@@ -38,6 +38,8 @@ Control {
     readonly property real waveBottomReserve: Math.ceil(Math.max(0,
         (itemSize - iconSize) * 0.5 * (boundedIconScale - 1)))
     property real lastPointerX: 0
+    property bool pointerEngaged: false
+    readonly property bool pointerHovered: pointerEngaged
     readonly property int itemCount: tiles.count
     signal itemActivated(string appId)
     signal closeRequested()
@@ -67,25 +69,28 @@ Control {
 
     TooltipStyle { id: tooltipStyle }
     FontMetrics { id: tooltipFont; font: root.font }
+    function updatePointerInteraction(): void {
+        const position = pointer.point.position
+        const bounds = interactionBounds
+        const inside = pointer.hovered && position.x >= bounds.x
+            && position.x <= bounds.x + bounds.width && position.y >= bounds.y
+            && position.y <= bounds.y + bounds.height
+        if (inside) lastPointerX = position.x
+        pointerEngaged = inside
+    }
 
     HoverHandler {
         id: pointer
         enabled: root.enabled && root.visible
         blocking: false
-        onPointChanged: {
-            if (pointer.hovered)
-                root.lastPointerX = pointer.point.position.x
-        }
-        onHoveredChanged: {
-            if (pointer.hovered)
-                root.lastPointerX = pointer.point.position.x
-        }
+        onPointChanged: root.updatePointerInteraction()
+        onHoveredChanged: root.updatePointerInteraction()
         acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
     }
 
     DockMagnification {
         id: wave
-        active: (pointer.hovered || root.contextMenuOpen) && root.visible && root.enabled
+        active: (root.pointerHovered || root.contextMenuOpen) && root.visible && root.enabled
         enabled: root.magnificationEnabled
         reducedMotion: root.reducedMotion
         pointerX: root.lastPointerX
@@ -126,9 +131,10 @@ Control {
 
     // Observe rendered bounds without feeding them back into logical centers.
     // This bounded scan follows declarative transforms, including exit progress.
-    readonly property rect surfaceBounds: {
+    readonly property rect renderedBounds: {
         let left = waveSideReserve
         let right = width - waveSideReserve
+        let top = waveTopReserve
         for (let i = 0; i < tiles.count; ++i) {
             const tile = tiles.itemAt(i) as LauncherTile
             if (!tile) continue
@@ -136,22 +142,19 @@ Control {
             const halfWidth = tile.width * tile.visualIconScale / 2
             left = Math.min(left, centerX - halfWidth - padding)
             right = Math.max(right, centerX + halfWidth + padding)
+            top = Math.min(top, tile.iconTopCenter.y - padding
+                - Math.max(0, tile.itemSize - tile.iconSize) * tile.visualIconScale / 2)
         }
-        return Qt.rect(left, waveTopReserve, right - left,
-            height - waveTopReserve - waveBottomReserve)
+        return Qt.rect(left, top, right - left, height - top)
     }
+    readonly property rect surfaceBounds: Qt.rect(renderedBounds.x, waveTopReserve,
+        renderedBounds.width, height - waveTopReserve - waveBottomReserve)
+    readonly property rect interactionBounds: renderedBounds
 
     // Exclude unused tooltip/bounce headroom, while covering raised launchers.
     // The window captures this extent once per slide, not on each animation frame.
     function measureSlideTravelHeight(): real {
-        let top = surfaceBounds.y
-        for (let i = 0; i < tiles.count; ++i) {
-            const tile = tiles.itemAt(i) as LauncherTile
-            if (!tile) continue
-            top = Math.min(top, tile.iconTopCenter.y - padding
-                - Math.max(0, tile.itemSize - tile.iconSize) * tile.visualIconScale / 2)
-        }
-        return Math.ceil(Math.max(1, height - top))
+        return Math.ceil(Math.max(1, interactionBounds.height))
     }
 
     background: AntialiasedSurface {
@@ -190,7 +193,6 @@ Control {
             itemSize: root.itemSize
             iconSize: root.iconSize
             maximumIconScale: root.boundedIconScale
-            selected: root.currentIndex === tile.index
             running: {
                 if (!root.applicationState) return false
                 root.applicationState.revision

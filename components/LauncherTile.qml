@@ -12,7 +12,6 @@ ToolButton {
     required property string title
     required property string iconName
     property string appId: ""
-    property bool selected: false
     property bool running: false
     property bool tooltipsEnabled: true
     readonly property DockMetrics metrics: DockMetrics {}
@@ -105,19 +104,32 @@ ToolButton {
     }
 
 
-    background: AntialiasedSurface {
+    background: LauncherHighlight {
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        width: root.iconSize + root.metrics.borderWidth * 2
+        height: width
         resolutionScale: root.visualIconScale
-        Rectangle {
-            objectName: "launcher-highlight"
-            anchors.fill: parent
-            anchors.margins: root.highlightInset
-            radius: Kirigami.Units.cornerRadius * 2
-            color: root.down ? root.palette.highlight
-                : root.hovered || root.selected || root.activeFocus
-                    ? Qt.alpha(root.palette.highlight, 0.2) : "transparent"
-            border.width: root.selected || root.activeFocus ? Kirigami.Units.smallSpacing / 2 : 0
-            border.color: root.palette.highlight
-        }
+        hovered: root.hovered
+        focused: root.visualFocus
+        pressed: root.down
+        highlightColor: root.palette.highlight
+        strokeWidth: root.metrics.borderWidth
+    }
+    // The outline is above the icon; the translucent hover fill stays below it.
+    LauncherHighlight {
+        objectName: "launcher-focus-outline"
+        x: root.background.x
+        y: root.background.y
+        width: root.background.width
+        height: root.background.height
+        z: 1
+        visible: root.visualFocus
+        outlineOnly: true
+        focused: root.visualFocus
+        highlightColor: root.palette.highlight
+        strokeWidth: root.metrics.borderWidth
+        resolutionScale: root.visualIconScale
     }
 
     LauncherTooltip {

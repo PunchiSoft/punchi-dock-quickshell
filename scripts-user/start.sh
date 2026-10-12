@@ -3,12 +3,13 @@
 set -euo pipefail
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 if (($# > 1)); then
-    printf '%s\n' 'Usage: start.sh [overlay|reserve|desktop|autohide|dodge-windows]' >&2
+    printf '%s\n' 'Usage: start.sh [reserve|autohide|dodge-windows|overlay]' >&2
     exit 2
 fi
 panel_mode="${1:-${PUNCHI_DOCK_MODE:-}}"
 case "$panel_mode" in
-    ""|overlay|reserve|desktop|autohide|dodge-windows) ;;
+    desktop) panel_mode="dodge-windows" ;; # Legacy below-windows setting.
+    ""|overlay|reserve|autohide|dodge-windows) ;;
     *) printf '%s\n' 'Invalid panel mode.' >&2; exit 2 ;;
 esac
 if ! command -v qs >/dev/null 2>&1; then

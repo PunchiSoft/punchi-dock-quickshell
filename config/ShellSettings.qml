@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQml
 import "LauncherIds.js" as LauncherIds
+import "PanelModes.js" as PanelModes
 import "../adapters/kde"
 
 QtObject {
@@ -14,6 +15,9 @@ QtObject {
     property real surfaceRadius: metrics.surfaceRadius
     property int bottomContentPadding: metrics.bottomContentPadding
     property string panelMode: "overlay"
+    onPanelModeChanged: {
+        if (panelMode === "desktop") panelMode = PanelModes.normalize(panelMode)
+    }
     property bool magnificationEnabled: true
     property bool reducedMotion: false
     property bool bounceEnabled: true
@@ -33,7 +37,7 @@ QtObject {
     }
     function restore(data: var): bool {
         if (!data || data.version !== 1) return false
-        if (["overlay", "reserve", "desktop", "autohide", "dodge-windows"].indexOf(data.panelMode) >= 0) panelMode = data.panelMode
+        if (PanelModes.accepts(data.panelMode)) panelMode = PanelModes.normalize(data.panelMode)
         if (Number.isInteger(data.sizePercent) && data.sizePercent >= 50 && data.sizePercent <= 150)
             sizePercent = data.sizePercent
         if (Number.isFinite(data.maximumIconScale) && data.maximumIconScale >= 1 && data.maximumIconScale <= 3)

@@ -36,10 +36,10 @@ PanelWindow {
     // Stable transparent allocation must not intercept input in the surrounding desktop.
     mask: Region {
         Region {
-            y: view.visible ? Math.floor(view.y)
-                : Math.max(0, root.height - windowGeometry.windowHeight)
-            width: !view.visible && nativeEdge.available ? 0 : root.width
-            height: view.visible ? Math.ceil(root.height - view.y) : windowGeometry.windowHeight
+            x: Math.floor(inputArea.x)
+            y: Math.floor(inputArea.y)
+            width: Math.ceil(inputArea.width)
+            height: Math.ceil(inputArea.height)
         }
         Region {
             x: Math.floor(contextMenu.x)
@@ -49,7 +49,7 @@ PanelWindow {
         }
     }
     onVisibleChanged: if (!visible) contextMenu.dismiss()
-    WlrLayershell.layer: panelPolicy.belowWindows ? WlrLayer.Bottom : WlrLayer.Top
+    WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dock"
     WlrLayershell.keyboardFocus: visibilityController.surfaceVisible
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -64,13 +64,13 @@ PanelWindow {
     }
     DockVisibilityController {
         id: visibilityController
-        autoHide: settings.panelMode === "autohide"
-        dodgeWindows: settings.panelMode === "dodge-windows"
+        autoHide: panelPolicy.effectiveMode === "autohide"
+        dodgeWindows: panelPolicy.effectiveMode === "dodge-windows"
         overlapAvailable: overlap.available
         overlapping: overlap.overlapping
         showingDesktop: overlap.showingDesktop
         configuring: root.configuring
-        pointerInside: visibilityController.surfaceVisible && windowPointer.hovered
+        pointerInside: inputArea.hovered || nativeEdge.pointerInside
         menuOpen: view.contextMenuOpen
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: settings.effectiveReducedMotion
@@ -82,6 +82,7 @@ PanelWindow {
     }
     Native.AutoHideEdge {
         id: nativeEdge
+        retainPointer: true
         enabled: root.visible && visibilityController.edgeMode
         armed: enabled && !visibilityController.surfaceVisible
         width: view.itemCount * settings.itemSize
@@ -90,13 +91,18 @@ PanelWindow {
         screenName: root.screen ? root.screen.name : ""
         onRevealRequested: visibilityController.reveal()
     }
-    HoverHandler {
-        id: windowPointer
+    DockInputArea {
+        id: inputArea
+        objectName: "dock-input-area"
+        hostWidth: root.width
+        hostHeight: root.height
+        contentBounds: Qt.rect(view.x + view.interactionBounds.x,
+            view.y + view.interactionBounds.y, view.interactionBounds.width,
+            view.interactionBounds.height)
+        surfaceVisible: visibilityController.surfaceVisible
+        nativeEdgeAvailable: nativeEdge.available
         enabled: root.visible && visibilityController.edgeMode
-        blocking: false
-        onHoveredChanged: {
-            if (windowPointer.hovered) visibilityController.reveal()
-        }
+        onEntered: visibilityController.reveal()
     }
     ShellSettings {
         id: settings
@@ -105,7 +111,6 @@ PanelWindow {
     DockPanelPolicy {
         id: panelPolicy
         mode: settings.panelMode
-        configuring: root.configuring
         baseHeight: (view.itemCount > 0 ? view.itemSize : 0) + view.padding + view.bottomContentPadding
         // The compositor also accounts for margins.bottom. Never reserve the
         // transparent top area used by wave, bounce, and balloons.
@@ -143,6 +148,9 @@ PanelWindow {
                 restingSceneY: view.y,
                 slideDistance: root.slideDistance,
                 nativeEdgeAvailable: nativeEdge.available,
+                nativeEdgePointerInside: nativeEdge.pointerInside,
+                dockPointerInside: inputArea.hovered,
+                inputBounds: Qt.rect(inputArea.x, inputArea.y, inputArea.width, inputArea.height),
                 overlapAvailable: overlap.available,
                 overlapping: overlap.overlapping,
                 showingDesktop: overlap.showingDesktop,

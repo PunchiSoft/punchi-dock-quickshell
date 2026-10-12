@@ -3,7 +3,13 @@ import QtQml
 import Quickshell
 import Quickshell.Io
 import "../config"
-QtObject {
+import "../config/PanelModes.js" as PanelModes
+// Singleton (a non-visual ReloadPropagator) instead of QtObject: the persistent
+// session must be a real child. A PersistentProperties held as a property value
+// is not matched by Quickshell's reloader, so its `loaded` signal fires with no
+// restored state and re-applying the start mode after every reload clobbers live
+// changes.
+Singleton {
     id: root
     required property ShellSettings settings
     property bool ready: false
@@ -17,7 +23,7 @@ QtObject {
         printErrors: false
         onSaveFailed: console.warn("Punchi Shell: settings save failed")
     }
-    readonly property PersistentProperties session: PersistentProperties {
+    PersistentProperties {
         id: sessionState
         reloadableId: "punchi-shell-settings"
         property string snapshot: ""
@@ -45,11 +51,12 @@ QtObject {
             try { settings.restore(JSON.parse(text)) }
             catch (error) { console.warn("Punchi Shell: invalid settings JSON") }
         }
-        // Startup overrides apply once, not on each source reload.
+        // Startup overrides apply once, not on each source reload. The session
+        // object is now a real child, so it is restored before this signal.
         if (previous.length === 0) {
             const mode = Quickshell.env("PUNCHI_DOCK_MODE")
-            if (["overlay", "reserve", "desktop", "autohide"].indexOf(mode) >= 0)
-                settings.panelMode = mode
+            if (PanelModes.accepts(mode))
+                settings.panelMode = PanelModes.normalize(mode)
         }
         sessionState.snapshot = JSON.stringify(settings.snapshot(), null, 2)
         ready = true
