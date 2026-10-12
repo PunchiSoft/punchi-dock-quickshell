@@ -111,11 +111,11 @@ TestCase {
         editor.draft.pinnedIds = ["files"]
         compare(pins.count, 8)
         editor.settings.panelMode = "desktop"
-        compare(editor.draft.panelMode, "desktop")
+        compare(editor.draft.panelMode, "dodge-windows")
         compare(editor.draft.sizePercent, 125)
         editor.apply()
         compare(editor.settings.sizePercent, 125)
-        compare(editor.settings.panelMode, "desktop")
+        compare(editor.settings.panelMode, "dodge-windows")
         compare(pins.count, 1)
         verify(!editor.dirty)
         editor.draft.sizePercent = 140

@@ -32,6 +32,7 @@ def main():
             shutil.copytree(root / directory, config / directory)
         (config / 'build').mkdir()
         (config / 'build/qml').symlink_to(root / 'build/qml', target_is_directory=True)
+        (config / 'build/punchi-window-state').symlink_to(root / 'build/punchi-window-state')
         (config / 'shell.qml').write_text('import Quickshell\nimport Quickshell.Io\n'
             'import "modules/dock"\nShellRoot { Dock { id: dock }\n'
             'IpcHandler { target: "probe"; function dismiss(): bool { dock.visible = false; return true } } }\n')
@@ -55,7 +56,7 @@ def main():
                     raise RuntimeError('The dock IPC did not register.')
                 initial = json.loads(result.stdout)
                 assert initial['mode'] == 'overlay' and initial['exclusiveZone'] == 0, initial
-                for mode, layer in [('reserve', 2), ('desktop', 1), ('autohide', 2), ('overlay', 2)]:
+                for mode, layer in [('reserve', 2), ('autohide', 2), ('dodge-windows', 2), ('overlay', 2)]:
                     result = subprocess.run(['bash', str(config / 'scripts-user/start.sh'), mode],
                                             capture_output=True, text=True, timeout=3)
                     assert result.returncode == 0 and json.loads(result.stdout) is True, result.stdout
@@ -93,6 +94,12 @@ def main():
                     print('Panel mode:',  json.dumps(state, sort_keys=True))
                     # Allow compositor commits; this is not a production animation loop.
                     time.sleep(0.15)
+                legacy = subprocess.run(['bash', str(config / 'scripts-user/start.sh'), 'desktop'],
+                                        capture_output=True, text=True, timeout=3)
+                assert legacy.returncode == 0 and json.loads(legacy.stdout) is True, legacy.stdout
+                migrated = json.loads(call(config, 'snapshot').stdout)
+                assert migrated['mode'] == 'dodge-windows' and migrated['layer'] == 2, migrated
+                assert migrated['exclusiveZone'] == 0, migrated
                 rejected = subprocess.run(['bash', str(config / 'scripts-user/start.sh'), 'dodge'],
                                           capture_output=True, text=True, timeout=3)
                 assert rejected.returncode == 2
@@ -125,9 +132,10 @@ def main():
         assert re.search(r'\.set_exclusive_zone\([1-9]\d*\)', output), 'No reservation request reached Wayland.'
         assert '.set_exclusive_zone(-1)' in output, 'Auto-hide did not reach the physical edge.'
         assert '.set_exclusive_zone(0)' in output, 'No zero reservation reached Wayland.'
-        for layer in (1, 2):
-            assert (f'.set_layer({layer})' in output
-                    or re.search(r'\.get_layer_surface\([^\n]+, ' + str(layer) + r', "punchi-shell"\)', output)), output
+        assert ('.set_layer(2)' in output
+                or re.search(r'\.get_layer_surface\([^\n]+, 2, "dock"\)', output)), output
+        assert '.set_layer(1)' not in output, 'Retired Bottom stacking was requested.'
+        assert not re.search(r'\.get_layer_surface\([^\n]+, 1, "dock"\)', output), output
         print('Live mode bindings, invalid-mode rejection, and layer-shell protocol commits: passed')
     return 0
 

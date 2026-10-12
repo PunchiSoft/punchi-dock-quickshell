@@ -12,43 +12,36 @@ TestCase {
         verify(policy !== null)
         compare(policy.effectiveMode, "overlay")
         compare(policy.exclusiveZone, 0)
-        verify(!policy.belowWindows)
         policy.mode = "reserve"
         compare(policy.exclusiveZone, 56)
-        verify(!policy.belowWindows)
         policy.baseHeight = 70
         policy.bottomClearance = 3
         compare(policy.exclusiveZone, 73)
         policy.mode = "desktop"
-        verify(policy.belowWindows)
+        compare(policy.effectiveMode, "dodge-windows")
         compare(policy.exclusiveZone, 0)
         policy.mode = "overlay"
-        verify(!policy.belowWindows)
+        compare(policy.effectiveMode, "overlay")
+        compare(policy.exclusiveZone, 0)
     }
 
-    function test_invalidModeDoesNotReserveOrLower() {
+    function test_invalidModeDoesNotReserve() {
         const policy = createTemporaryObject(fixture, this)
         for (const mode of ["", "auto-hide", "dodge", "reserve; command"]) {
             verify(!policy.accepts(mode))
             policy.mode = mode
             compare(policy.effectiveMode, "overlay")
             compare(policy.exclusiveZone, 0)
-            verify(!policy.belowWindows)
         }
     }
-    function test_configurationRaisesWithoutChangingModeOrReservation() {
+    function test_nativeModesAndReservation() {
         const policy = createTemporaryObject(fixture, this)
-        for (const mode of ["overlay", "reserve", "desktop", "autohide"]) {
+        for (const mode of ["reserve", "autohide", "dodge-windows", "overlay"]) {
+            verify(policy.accepts(mode))
             policy.mode = mode
-            const reserved = policy.exclusiveZone
-            policy.configuring = true
-            verify(!policy.belowWindows)
             compare(policy.mode, mode)
             compare(policy.effectiveMode, mode)
-            compare(policy.exclusiveZone, reserved)
-            policy.configuring = false
-            compare(policy.belowWindows, mode === "desktop")
-            compare(policy.exclusiveZone, reserved)
+            compare(policy.exclusiveZone, mode === "reserve" ? 56 : 0)
         }
     }
 }

@@ -73,7 +73,7 @@ ShellRoot {
                         time.sleep(0.03)
                     raise RuntimeError(log_path.read_text() + '\nReload probe timed out.')
                 initial = state_when(lambda state: state['ready'])
-                assert initial['preferences']['panelMode'] == 'desktop', initial
+                assert initial['preferences']['panelMode'] == 'dodge-windows', initial
                 assert json.loads(ipc(config, 'update').stdout) is True
                 assert state_when(lambda state: state['ready'])['preferences']['sizePercent'] == 125
                 for count in (2, 3):

@@ -48,12 +48,12 @@ ShellRoot {
     DockPanelPolicy {
         id: policy
         mode: preferences.panelMode
-        configuring: settingsWindow.visible
         baseHeight: preferences.itemSize
     }
     DockVisibilityController {
         id: visibility
-        autoHide: preferences.panelMode === "autohide"
+        autoHide: policy.effectiveMode === "autohide"
+        dodgeWindows: policy.effectiveMode === "dodge-windows"
         configuring: settingsWindow.visible
         reducedMotion: preferences.effectiveReducedMotion
     }
@@ -77,7 +77,7 @@ ShellRoot {
         function state(): string {
             return JSON.stringify({settingsVisible: settingsWindow.visible,
                 configuring: settingsWindow.visible, pending: settingsWindow.hasPendingChanges,
-                top: !policy.belowWindows, bottom: policy.belowWindows})
+                draftMode: probe.find(settingsWindow.contentItem, "dockSettingsView").settings.panelMode})
         }
         function prepare(): bool { preferences.reducedMotion = true; return true }
         function close(): bool {
@@ -124,14 +124,14 @@ ShellRoot {
                         time.sleep(0.03)
                     raise RuntimeError(log_path.read_text() + '\nConfiguration probe timed out.')
 
-                state_when(lambda s: s['bottom'] and s['mode'] == 'desktop')
+                state_when(lambda s: s['mode'] == 'dodge-windows')
                 call('configurationProbe', 'prepare')
                 for _ in range(2):
                     call('dock', 'openSettings')
-                    state_when(lambda s: s['settingsVisible'] and s['configuring'] and s['top'] and s['visible'])
-                    assert call('dock', 'snapshot')['mode'] == 'desktop'
+                    state_when(lambda s: s['settingsVisible'] and s['configuring'] and s['visible'] and s['surfaceVisible'])
+                    assert call('dock', 'snapshot')['mode'] == 'dodge-windows'
                     call('configurationProbe', 'close')
-                    state_when(lambda s: not s['configuring'] and s['bottom'] and s['mode'] == 'desktop')
+                    state_when(lambda s: not s['configuring'] and s['mode'] == 'dodge-windows')
                 call('dock', 'setMode', 'autohide')
                 state_when(lambda s: not s['surfaceVisible'])
                 call('dock', 'openSettings')
@@ -144,16 +144,29 @@ ShellRoot {
                 call('dock', 'openSettings')
                 state_when(lambda s: s['configuring'] and s['surfaceVisible'])
                 call('configurationProbe', 'applyMode', 'desktop')
-                state_when(lambda s: s['settingsVisible'] and s['top'] and s['mode'] == 'desktop' and not s['pending'])
+                state_when(lambda s: s['settingsVisible'] and s['mode'] == 'dodge-windows' and not s['pending'])
+                assert call('configurationProbe', 'state')['draftMode'] == 'dodge-windows'
                 call('configurationProbe', 'close')
-                state_when(lambda s: s['bottom'] and s['mode'] == 'desktop')
+                state_when(lambda s: s['mode'] == 'dodge-windows')
                 call('dock', 'setMode', 'reserve')
                 reserved = state_when(lambda s: s['exclusiveZone'] > 0)['exclusiveZone']
                 call('dock', 'openSettings')
-                state = state_when(lambda s: s['configuring'] and s['top'])
+                state = state_when(lambda s: s['configuring'])
                 assert state['exclusiveZone'] == reserved, state
                 call('configurationProbe', 'close')
                 state_when(lambda s: not s['settingsVisible'])
+                for mode in ('reserve', 'autohide', 'dodge-windows', 'overlay'):
+                    call('dock', 'openSettings')
+                    state_when(lambda s: s['settingsVisible'] and s['surfaceVisible'])
+                    call('configurationProbe', 'applyMode', mode)
+                    state = state_when(lambda s: s['settingsVisible'] and s['surfaceVisible']
+                                       and s['mode'] == mode and not s['pending'])
+                    assert (state['exclusiveZone'] > 0) == (mode == 'reserve'), state
+                    assert state['draftMode'] == mode, state
+                    saved = json.loads((Path(env['XDG_CONFIG_HOME']) / 'punchi-shell.json').read_text())
+                    assert saved['panelMode'] == mode, saved
+                    call('configurationProbe', 'close')
+                    state_when(lambda s: not s['settingsVisible'] and s['mode'] == mode)
                 call('configurationProbe', 'hideDock')
                 state_when(lambda s: not s['visible'])
                 call('dock', 'openSettings')
@@ -171,7 +184,7 @@ ShellRoot {
         print(output, end='')
         assert not re.search(r'\bERROR\b|ReferenceError|TypeError|Binding loop|Failed to load|'
                              r'Unable to assign|different thread|overrides a member|at engine destruction', output), output
-        print('Shared configuration controllers: reveal, layer policy, mode restore, Apply and reservation passed offscreen.')
+        print('Shared configuration controllers: reveal, legacy mode migration, mode restore, Apply and reservation passed offscreen.')
     return 0
 
 

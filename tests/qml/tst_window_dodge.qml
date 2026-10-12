@@ -111,12 +111,12 @@ TestCase {
         const view = createTemporaryObject(general, test)
         view.settings.panelMode = "autohide"
         const control = findChild(view, "visibilityMode")
-        compare(control.count, 5)
-        compare(control.currentIndex, 3)
+        compare(control.count, 4)
+        compare(control.currentIndex, 1)
         control.forceActiveFocus()
         keyClick(Qt.Key_Down)
         compare(view.settings.panelMode, "dodge-windows")
-        compare(control.currentIndex, 4)
+        compare(control.currentIndex, 2)
         const saved = view.settings.snapshot()
         const restored = createTemporaryObject(preferences, test)
         verify(restored.restore(saved))
@@ -125,8 +125,38 @@ TestCase {
         panel.mode = restored.panelMode
         verify(panel.accepts("dodge-windows"))
         compare(panel.exclusiveZone, 0)
-        verify(!panel.belowWindows)
+        compare(panel.effectiveMode, "dodge-windows")
         panel.mode = "desktop"
-        verify(panel.belowWindows)
+        compare(panel.effectiveMode, "dodge-windows")
+    }
+    function test_fourNativeOptionsInOrderAndLegacyMigration() {
+        const view = createTemporaryObject(general, test)
+        const control = findChild(view, "visibilityMode")
+        const panel = createTemporaryObject(policy, test)
+        const restored = createTemporaryObject(preferences, test)
+        const modes = ["reserve", "autohide", "dodge-windows", "overlay"]
+        const labels = ["Always visible", "Hide automatically", "Dodge windows", "Windows go below"]
+        compare(control.count, 4)
+        view.settings.panelMode = "reserve"
+        control.forceActiveFocus()
+        for (let index = 0; index < modes.length; ++index) {
+            if (index > 0) keyClick(Qt.Key_Down)
+            compare(control.currentIndex, index)
+            compare(control.currentText, labels[index])
+            compare(view.settings.panelMode, modes[index])
+            verify(restored.restore(JSON.parse(JSON.stringify(view.settings.snapshot()))))
+            compare(restored.panelMode, modes[index])
+            panel.mode = restored.panelMode
+            panel.baseHeight = 54
+            panel.bottomClearance = 2
+            compare(panel.exclusiveZone, index === 0 ? 56 : 0)
+        }
+        verify(view.settings.restore({version: 1, panelMode: "desktop"}))
+        compare(view.settings.panelMode, "dodge-windows")
+        compare(view.settings.snapshot().panelMode, "dodge-windows")
+        compare(control.currentIndex, 2)
+        compare(control.currentText, "Dodge windows")
+        view.settings.panelMode = "desktop"
+        compare(view.settings.panelMode, "dodge-windows")
     }
 }

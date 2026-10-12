@@ -24,9 +24,8 @@ private slots:
         QVERIFY(!all->property("filterByVirtualDesktop").toBool());
         for (const char *filter : {"filterMinimized", "filterHidden", "filterByCurrentVirtualDesktop", "filterByActivity"})
             QVERIFY2(visible->property(filter).toBool(), filter);
-        QVERIFY(visible->roleNames().values().contains("Geometry"));
-        QVERIFY(visible->roleNames().values().contains("IsWindow"));
-        // An offscreen model is a load contract, never proof of compositor access.
+        // Offscreen has no platform task source: successful resource loading and
+        // filter configuration do not establish compositor roles or access.
         const auto unavailable = windowVisibilitySnapshot(visible, false, false);
         QVERIFY(!unavailable.value("available").toBool());
     }

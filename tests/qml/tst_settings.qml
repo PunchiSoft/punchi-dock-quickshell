@@ -69,6 +69,6 @@ TestCase {
         compare(settings.restore(data), true)
         compare(settings.effectiveReducedMotion, true)
         compare(settings.pinnedIds[0], "terminal")
-        compare(settings.panelMode, "desktop")
+        compare(settings.panelMode, "dodge-windows")
     }
 }

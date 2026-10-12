@@ -144,11 +144,91 @@ struct EdgeCompositor {
         wl_pointer_send_enter(pointer, 1, surface, 0, 0);
         wl_display_flush_clients(display);
     }
+    void leave() {
+        QVERIFY(pointer && surface);
+        wl_pointer_send_leave(pointer, 2, surface);
+        wl_display_flush_clients(display);
+    }
 };
 
 class AutoHideEdgeTest : public QObject {
     Q_OBJECT
 private slots:
+    void retainedPointerSurvivesDisarmUntilActualLeave() {
+        EdgeCompositor server;
+        AutoHideEdge sensor;
+        QSignalSpy reveal(&sensor, &AutoHideEdge::revealRequested);
+        QSignalSpy containment(&sensor, &AutoHideEdge::pointerInsideChanged);
+        sensor.setRetainPointer(true);
+        sensor.setScreenName("TEST-1"); sensor.setWidth(480); sensor.setHeight(4);
+        sensor.setEnabled(true); sensor.setArmed(true); sensor.componentComplete();
+        QTRY_COMPARE(server.activated, 1);
+        server.trigger();
+        QTRY_COMPARE(reveal.count(), 1);
+        QVERIFY(sensor.pointerInside());
+        QCOMPARE(containment.count(), 1);
+        QVERIFY(server.acceptsInput);
+        sensor.setArmed(false); // Production disarms when the dock is revealed.
+        QTest::qWait(550); // Stationary pointer exceeds Plasma's leave grace.
+        QVERIFY(sensor.pointerInside()); QVERIFY(server.acceptsInput);
+        QCOMPARE(reveal.count(), 1); QCOMPARE(containment.count(), 1);
+        server.leave();
+        QTRY_VERIFY(!sensor.pointerInside());
+        QTRY_VERIFY(!server.acceptsInput);
+        QCOMPARE(containment.count(), 2);
+        sensor.setArmed(true);
+        QTRY_COMPARE(server.activated, 2);
+        server.trigger(); QTRY_COMPARE(reveal.count(), 2);
+        QVERIFY(sensor.pointerInside());
+        sensor.setEnabled(false);
+        QVERIFY(!sensor.pointerInside()); QVERIFY(!sensor.available());
+        QTRY_VERIFY(!server.surface && !server.edge);
+    }
+    void retainedPointerClearsOnCompositorLoss() {
+        EdgeCompositor server;
+        AutoHideEdge sensor;
+        sensor.setRetainPointer(true);
+        sensor.setScreenName("TEST-1"); sensor.setWidth(200); sensor.setHeight(4);
+        sensor.setEnabled(true); sensor.setArmed(true); sensor.componentComplete();
+        QTRY_COMPARE(server.activated, 1);
+        server.trigger(); QTRY_VERIFY(sensor.pointerInside());
+        sensor.setArmed(false);
+        zwlr_layer_surface_v1_send_closed(server.layer);
+        wl_display_flush_clients(server.display);
+        QTRY_VERIFY(!sensor.available());
+        QVERIFY(!sensor.pointerInside());
+        QTRY_VERIFY(!server.surface);
+    }
+    void containmentObserverCanDestroySensorDuringReveal() {
+        EdgeCompositor server;
+        auto sensor = std::make_unique<AutoHideEdge>();
+        sensor->setRetainPointer(true);
+        sensor->setScreenName("TEST-1"); sensor->setWidth(200); sensor->setHeight(4);
+        sensor->setEnabled(true); sensor->setArmed(true); sensor->componentComplete();
+        QTRY_COMPARE(server.activated, 1);
+        QObject::connect(sensor.get(), &AutoHideEdge::pointerInsideChanged, this, [&] {
+            if (sensor && sensor->pointerInside()) sensor.reset();
+        });
+        server.trigger();
+        QTRY_VERIFY(!sensor);
+        QTRY_VERIFY(!server.surface && !server.edge && !server.pointer);
+    }
+    void containmentObserverCanDestroySensorAfterNativeLeave() {
+        EdgeCompositor server;
+        auto sensor = std::make_unique<AutoHideEdge>();
+        sensor->setRetainPointer(true);
+        sensor->setScreenName("TEST-1"); sensor->setWidth(200); sensor->setHeight(4);
+        sensor->setEnabled(true); sensor->setArmed(true); sensor->componentComplete();
+        QTRY_COMPARE(server.activated, 1);
+        server.trigger(); QTRY_VERIFY(sensor->pointerInside());
+        sensor->setArmed(false);
+        QObject::connect(sensor.get(), &AutoHideEdge::pointerInsideChanged, this, [&] {
+            if (sensor && !sensor->pointerInside()) sensor.reset();
+        });
+        server.leave();
+        QTRY_VERIFY(!sensor);
+        QTRY_VERIFY(!server.surface && !server.edge && !server.pointer);
+    }
     void nativeLifecycleAndRearming() {
         EdgeCompositor server;
         AutoHideEdge sensor;
