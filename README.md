@@ -1,29 +1,44 @@
-# Punchi Shell
+# Punchi Dock Shell
 
-<p align="center"><img src="assets/icons/punchi-shell.svg" width="120" alt="Punchi Shell logo"></p>
+<p align="center"><img src="assets/icons/punchi-shell.svg" width="120" alt="Punchi Dock Shell logo"></p>
 
-<p align="center"><strong>A modular desktop interface for KDE, built with Quickshell and QML.</strong></p>
+<p align="center"><strong>An animated, configurable dock for KDE Plasma, built with Quickshell and native Qt/KDE integration.</strong></p>
 
-**Version: 0.1.0** — initial development snapshot. See the
-[changelog](CHANGELOG.md) for the recorded progress.
+Punchi Dock Shell combines animated magnification, configurable application
+launchers, KDE context actions, and persistent preferences. It runs alongside
+Plasma through reversible start and stop scripts.
 
-Punchi Shell explores a unified desktop interface with a dock, panel, launcher,
-and control surfaces. It draws on
-[Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered) and
-[Caelestia Shell](https://github.com/caelestia-dots/shell), while targeting KDE/KWin.
-
-**Current stage:** an eight-launcher dock with a continuous zoom wave, themed speech
-balloons, and a background that expands horizontally. Click or Enter/Space launches
-the configured application with a two-hop bounce; arrow keys navigate and Escape
-hides the surface. Files opens Dolphin, Terminal opens Konsole, and Browser opens
-Firefox. Window tracking and activation of existing windows are future stages.
+**Development status:** early prototype. Version **0.1.0** is the first versioned
+snapshot. Compatibility and validation limits are documented below; see the
+[changelog](CHANGELOG.md) for recorded progress and known issues.
 
 [Architecture](docs/architecture.md) · [Development and testing](docs/development.md) ·
 [Roadmap](docs/roadmap.md) · [Attribution](NOTICE.md) · [License](LICENSE)
 
+## Current features
+
+- Continuous hover magnification, themed tooltips, an expanding background and
+  two-hop launch feedback, with reduced motion support.
+- Configurable pinned applications: discover and search installed applications
+  through KDE, add or reorder launchers, and save preferences. Eight preset
+  launchers provide the initial configuration.
+- Native application launching through KService and KIO, with Wayland activation
+  integration.
+- Launcher context menus with KDE desktop actions, recent documents, unpinning
+  and KDE Places navigation for eligible file-manager launchers.
+- Dock settings for icon size, magnification, bounce, reduced motion and
+  visibility: overlay, reserved space, below windows or automatic hiding.
+- Keyboard navigation and pending settings edits through Apply, Accept and Close.
+
+Running-application indicators are under development. Existing-window activation,
+window-overlap-driven hiding, a separate panel, an application-launcher surface
+and additional controls remain future work. See the [roadmap](docs/roadmap.md).
+
 ## Run and return to KDE
 
-With a compatible Quickshell package installed, run from this directory:
+Install a Quickshell package compatible with its Qt libraries and the native
+Qt/KDE build dependencies listed in the [development guide](docs/development.md).
+Then run from the checkout directory:
 
 ```bash
 cmake -S . -B build -G Ninja
@@ -36,15 +51,51 @@ To try panel behavior, use `./scripts-user/start.sh desktop` (below windows),
 `./scripts-user/start.sh overlay` (above windows without reservation). An explicit
 mode switches a running instance. See [panel modes](docs/panel-modes.md).
 
+Use `./scripts-user/start.sh autohide` to try automatic hiding and bottom-edge
+reveal. This mode does not detect window overlap.
+
 Keep the foreground terminal open. To stop, press Ctrl+C there, or use another terminal:
 
 ```bash
 ./scripts-user/restore-kde.sh
 ```
 
-Plasma stays running. This stage adds a surface above the existing desktop and
-does not modify panels, settings, autostart, or session services. The restore
+Plasma stays running. The dock coexists with the existing desktop and does not
+replace Plasma panels, settings, autostart, or session services. The restore
 script selects only this project's Quickshell configuration.
+
+## Dock configuration
+
+Right-click the dock and choose Configure Dock to open its settings.
+With Punchi Dock Shell running, `./scripts-user/settings.sh` also opens the window.
+Apply saves pending changes without closing; Accept saves and closes; Close
+discards pending changes. Preferences persist independently of Plasma. See
+[dock settings](docs/settings.md) for controls and storage.
+
+## Compatibility and validation
+
+The initial target is Linux with KDE Plasma/KWin on Wayland. The observed
+development environment is Fedora with Quickshell 0.2.1, Qt 6.11.2 and KDE
+Frameworks 6.30.0. Quickshell and Qt must be ABI-compatible; other combinations,
+distributions, X11 and other compositors require their own validation.
+
+For the 0.1.0 snapshot, configuration and compilation passed, as did 11 of 12
+CTest groups. The enabled `settings_reload` test failed: the startup panel-mode
+override was reapplied after an engine reload instead of preserving the changed
+mode. This remains a known issue recorded in the [changelog](CHANGELOG.md).
+
+An isolated Wayland session probe passed startup, duplicate prevention, rendering,
+hide/reopen and scoped restoration. Automated checks do not establish final
+visual quality, fractional scaling, multi-monitor behavior, screen-reader support,
+or native KDE startup cursor feedback. See the [development guide](docs/development.md)
+and the historical [stage 1](docs/stage-1.md), [stage 2](docs/stage-2.md) and
+[stage 3](docs/stage-3.md) records for evidence and limits.
+
+## Development
+
+This QML configuration runs in Quickshell. CMake builds the native KDE adapters
+and organizes validation. See the [development guide](docs/development.md)
+for commands and [AGENTS.md](AGENTS.md) for project rules.
 
 ## Modular structure
 
@@ -60,27 +111,16 @@ script selects only this project's Quickshell configuration.
 | `.agents/skills/` | Repository-scoped development workflows |
 
 English is the source language. Only English fallback strings are supported at
-this stage. Modularity, reactive updates, keyboard access, and reversible desktop
-coexistence are core project requirements.
+this stage. Settings update existing surfaces through reactive state.
 
-## Development
+## Origins and attribution
 
-This QML configuration runs in Quickshell. CMake builds the native KDE launch
-module and organizes validation. See [the development guide](docs/development.md)
-for exact commands and evidence limits, and [AGENTS.md](AGENTS.md) for project rules.
-
-Quickshell and Qt must be ABI-compatible. Other distributions and compositor
-features need their own tests before support is claimed. The initial tested
-environment and results are recorded in [stage 1](docs/stage-1.md) and [stage 2](docs/stage-2.md), and [stage 3](docs/stage-3.md).
+The project draws on [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered)
+and takes architectural and visual inspiration from
+[Caelestia Shell](https://github.com/caelestia-dots/shell), while implementing
+desktop integration for KDE/KWin. See [NOTICE.md](NOTICE.md) for reused code,
+assets and attribution.
 
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
-
-## Dock configuration
-
-Right-click the dock and choose Configure Dock to open its settings.
-With Punchi Shell running, `./scripts-user/settings.sh` also opens the window.
-Apply saves pending changes without closing; Accept saves and closes; Close
-discards pending changes. Preferences persist independently of Plasma. See
-[dock settings](docs/settings.md) for controls and storage.
