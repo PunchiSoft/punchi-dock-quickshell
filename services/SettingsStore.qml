@@ -4,12 +4,13 @@ import Quickshell
 import Quickshell.Io
 import "../config"
 import "../config/PanelModes.js" as PanelModes
-// Singleton (a non-visual ReloadPropagator) instead of QtObject: the persistent
+// Scope (a non-visual ReloadPropagator) instead of QtObject: the persistent
 // session must be a real child. A PersistentProperties held as a property value
 // is not matched by Quickshell's reloader, so its `loaded` signal fires with no
 // restored state and re-applying the start mode after every reload clobbers live
-// changes.
-Singleton {
+// changes. `Singleton` also groups children but Qt rejects it outside its own
+// root component.
+Scope {
     id: root
     required property ShellSettings settings
     property bool ready: false

@@ -20,8 +20,8 @@
 - Fixed the saved presentation mode reverting after a Quickshell reload. The
   session snapshot was held as a property value, which Quickshell's reloader does
   not match, so the start-mode override re-applied on every reload and overwrote
-  live changes. SettingsStore is now a non-visual `Singleton` so the session can
-  be a real child that survives a reload. `settings_reload` passes.
+  live changes. SettingsStore is now a non-visual `Scope` so the session can be
+  a real child that survives a reload. `settings_reload` passes.
 
 - Retained the native edge pointer through reveal until a real Wayland leave,
   preventing trigger disarming from dropping the dock's visibility hold. Limited
