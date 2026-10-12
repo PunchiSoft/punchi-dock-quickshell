@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../../config"
+import "../../config/PanelModes.js" as PanelModes
 
 ColumnLayout {
     id: root
@@ -16,10 +17,10 @@ ColumnLayout {
             id: visibilityControl
             objectName: "visibilityMode"
             Layout.fillWidth: true
-            model: [qsTr("Always visible"), qsTr("Reserve space"), qsTr("Below windows"), qsTr("Hide automatically"), qsTr("Dodge windows")]
-            currentIndex: ["overlay", "reserve", "desktop", "autohide", "dodge-windows"].indexOf(root.settings.panelMode)
+            model: [qsTr("Always visible"), qsTr("Hide automatically"), qsTr("Dodge windows"), qsTr("Windows go below")]
+            currentIndex: PanelModes.modes.indexOf(PanelModes.effective(root.settings.panelMode))
             Accessible.name: qsTr("Visibility")
-            onActivated: root.settings.panelMode = ["overlay", "reserve", "desktop", "autohide", "dodge-windows"][currentIndex]
+            onActivated: root.settings.panelMode = PanelModes.modes[currentIndex]
         }
         Label {
             text: qsTr("Icon size: %1%").arg(root.settings.sizePercent)
