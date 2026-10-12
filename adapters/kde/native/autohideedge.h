@@ -17,6 +17,8 @@ class AutoHideEdge : public QObject, public QQmlParserStatus
     Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(QString screenName READ screenName WRITE setScreenName NOTIFY screenNameChanged)
     Q_PROPERTY(bool available READ available NOTIFY availableChanged)
+    Q_PROPERTY(bool retainPointer READ retainPointer WRITE setRetainPointer NOTIFY retainPointerChanged)
+    Q_PROPERTY(bool pointerInside READ pointerInside NOTIFY pointerInsideChanged)
 public:
     explicit AutoHideEdge(QObject *parent = nullptr);
     ~AutoHideEdge() override;
@@ -28,11 +30,14 @@ public:
     int height() const { return m_height; }
     QString screenName() const { return m_screenName; }
     bool available() const { return m_available; }
+    bool retainPointer() const { return m_retainPointer; }
+    bool pointerInside() const { return m_pointerInside; }
     void setEnabled(bool value);
     void setArmed(bool value);
     void setWidth(int value);
     void setHeight(int value);
     void setScreenName(const QString &value);
+    void setRetainPointer(bool value);
 signals:
     void enabledChanged();
     void armedChanged();
@@ -40,13 +45,17 @@ signals:
     void heightChanged();
     void screenNameChanged();
     void availableChanged();
+    void retainPointerChanged();
+    void pointerInsideChanged();
     void revealRequested();
 private:
     struct Connection;
     std::unique_ptr<Connection> m_connection;
     void refresh(bool rebuild = false);
     void setAvailable(bool value);
+    void setPointerInside(bool value);
     bool m_complete = false, m_enabled = false, m_armed = false, m_available = false;
+    bool m_retainPointer = false, m_pointerInside = false;
     int m_width = 1, m_height = 1;
     QString m_screenName;
 };

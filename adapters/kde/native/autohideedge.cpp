@@ -3,6 +3,7 @@
 #include "kde-screen-edge-v1-client.h"
 #include "wlr-layer-shell-unstable-v1-client.h"
 #include <QSocketNotifier>
+#include <QPointer>
 #include <QTimer>
 #include <wayland-client.h>
 #include <sys/mman.h>
@@ -30,6 +31,7 @@ struct AutoHideEdge::Connection {
     struct Output { uint32_t id; wl_output *proxy; QString name; };
     std::vector<Output> outputs;
     bool configured = false, failed = false, active = false, triggered = false;
+    bool pointerOnSurface = false, inputEnabled = false;
     uint32_t compositorId = 0, shmId = 0, seatId = 0, shellId = 0, managerId = 0;
 
     explicit Connection(AutoHideEdge *value) : owner(value) {}
@@ -37,6 +39,7 @@ struct AutoHideEdge::Connection {
     void fail() {
         if (failed) return;
         failed = true;
+        owner->setPointerInside(false);
         owner->setAvailable(false);
         // Destruction is deferred until the current Wayland callback returns.
         QTimer::singleShot(0, owner, [this] { if (failed) close(); });
@@ -68,6 +71,8 @@ struct AutoHideEdge::Connection {
         flush();
     }
     void disposeSurface() {
+        pointerOnSurface = false; inputEnabled = false;
+        owner->setPointerInside(false);
         owner->setAvailable(false);
         configured = false; active = false; triggered = false;
         if (edge) { kde_auto_hide_screen_edge_v1_destroy(edge); edge = nullptr; }
@@ -150,15 +155,36 @@ struct AutoHideEdge::Connection {
         auto *self = static_cast<Connection *>(data);
         if (surface != self->surface || !self->active || self->triggered) return;
         self->triggered = true;
-        self->setInput(false);
+        self->pointerOnSurface = true;
+        // Retain a stationary edge pointer while the dock maps above this strip.
+        // Input is released on actual pointer leave, not on trigger disarming.
+        self->setInput(self->owner->retainPointer());
         kde_auto_hide_screen_edge_v1_deactivate(self->edge);
         self->active = false;
         self->flush();
         QTimer::singleShot(0, self->owner, [self] {
-            if (self->owner->enabled() && self->triggered) emit self->owner->revealRequested();
+            if (self->owner->enabled() && !self->failed && self->configured && self->triggered) {
+                const bool retained = self->owner->retainPointer() && self->pointerOnSurface;
+                QPointer<AutoHideEdge> owner = self->owner;
+                owner->setPointerInside(retained);
+                if (owner && owner->enabled() && owner->available()) emit owner->revealRequested();
+            }
         });
     }
-    static void leave(void *, wl_pointer *, uint32_t, wl_surface *) {}
+    static void leave(void *data, wl_pointer *, uint32_t, wl_surface *surface) {
+        auto *self = static_cast<Connection *>(data);
+        if (surface != self->surface) return;
+        self->pointerOnSurface = false;
+        self->update();
+        // Notify after dispatch returns: an observer may destroy the sensor.
+        QTimer::singleShot(0, self->owner, [self] {
+            if (!self->pointerOnSurface && self->owner->enabled() && self->configured) {
+                QPointer<AutoHideEdge> owner = self->owner;
+                owner->setPointerInside(false);
+                if (owner) self->update();
+            }
+        });
+    }
     static void motion(void *, wl_pointer *, uint32_t, wl_fixed_t, wl_fixed_t) {}
     static void button(void *, wl_pointer *, uint32_t, uint32_t, uint32_t, uint32_t) {}
     static void axis(void *, wl_pointer *, uint32_t, uint32_t, wl_fixed_t) {}
@@ -195,6 +221,7 @@ struct AutoHideEdge::Connection {
         return buffer != nullptr;
     }
     void setInput(bool accepts) {
+        inputEnabled = accepts;
         auto *region = wl_compositor_create_region(compositor);
         if (accepts) wl_region_add(region, 0, 0, owner->width(), owner->height());
         wl_surface_set_input_region(surface, region);
@@ -218,9 +245,10 @@ struct AutoHideEdge::Connection {
             zwlr_layer_surface_v1_set_keyboard_interactivity(layer, ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE);
             setInput(false); // Initial commit has no buffer, as required by layer-shell.
         } else if (configured) {
-            const bool wanted = owner->armed() && !triggered;
+            const bool wanted = owner->armed() && !triggered && !owner->pointerInside();
+            const bool inputWanted = wanted || (owner->retainPointer() && pointerOnSurface);
+            if (inputWanted != inputEnabled) setInput(inputWanted);
             if (wanted != active) {
-                setInput(wanted);
                 if (wanted) kde_auto_hide_screen_edge_v1_activate(edge);
                 else kde_auto_hide_screen_edge_v1_deactivate(edge);
                 active = wanted;
@@ -236,6 +264,16 @@ void AutoHideEdge::componentComplete() { m_complete = true; refresh(); }
 void AutoHideEdge::setAvailable(bool value) {
     if (m_available == value) return;
     m_available = value; emit availableChanged();
+}
+void AutoHideEdge::setPointerInside(bool value) {
+    if (m_pointerInside == value) return;
+    m_pointerInside = value; emit pointerInsideChanged();
+}
+void AutoHideEdge::setRetainPointer(bool value) {
+    if (m_retainPointer == value) return;
+    m_retainPointer = value;
+    if (!value) setPointerInside(false);
+    refresh(); emit retainPointerChanged();
 }
 void AutoHideEdge::refresh(bool rebuild) {
     if (!m_complete) return;
