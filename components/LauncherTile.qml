@@ -1,0 +1,149 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Controls
+import org.kde.kirigami as Kirigami
+import "../config"
+
+ToolButton {
+    id: root
+
+    required property string title
+    required property string iconName
+    property string appId: ""
+    property bool selected: false
+    property bool running: false
+    property bool tooltipsEnabled: true
+    readonly property DockMetrics metrics: DockMetrics {}
+    property int itemSize: metrics.itemSize
+    property int iconSize: metrics.iconSize
+    property real maximumIconScale: 2
+    readonly property int highQualityIconSize: {
+        const targetSize = Math.ceil(iconSize * Math.max(1, maximumIconScale))
+        if (targetSize <= iconSize) return iconSize
+        if (targetSize <= 64 && iconSize < 64) return 64
+        if (targetSize <= 96) return 96
+        if (targetSize <= 128) return 128
+        if (targetSize <= 256) return 256
+        return Math.min(512, targetSize)
+    }
+    property real targetIconScale: 1
+    property bool reducedMotion: false
+    property int clickDuration: Kirigami.Units.longDuration
+    readonly property bool feedbackRunning: feedback.running
+    readonly property real clickOffsetY: feedback.verticalOffset
+    signal activated()
+    property bool magnificationEnabled: true
+    readonly property real visualIconScale: magnificationEnabled ? targetIconScale : 1
+    property real iconOffsetX: 0
+    readonly property real iconOffsetY: -iconSize * 0.5 * (visualIconScale - 1)
+        + clickOffsetY
+    // Parent coordinates, shared by unscaled surfaces attached to the icon.
+    readonly property point iconTopCenter: Qt.point(
+        root.x + root.width / 2 + root.iconOffsetX,
+        root.y + root.height / 2 + root.iconOffsetY - root.iconSize * root.visualIconScale / 2)
+
+    readonly property real highlightInset: Kirigami.Units.smallSpacing
+    containmentMask: QtObject {
+        function contains(position: point): bool {
+            const halfWidth = root.width / 2 - root.highlightInset
+            const halfHeight = root.height / 2 - root.highlightInset
+            return Math.abs(position.x - root.width / 2) <= halfWidth
+                && Math.abs(position.y - root.height / 2) <= halfHeight
+        }
+    }
+
+    scale: visualIconScale
+    transform: Translate {
+        x: root.iconOffsetX
+        y: root.iconOffsetY
+    }
+
+    implicitWidth: itemSize
+    implicitHeight: itemSize
+    text: title
+    display: AbstractButton.IconOnly
+    icon.name: iconName
+    icon.width: iconSize
+    icon.height: iconSize
+    focusPolicy: Qt.StrongFocus
+    hoverEnabled: true
+    Accessible.name: title
+    Accessible.description: running ? qsTr("Running") : ""
+    onClicked: {
+        feedback.play()
+        root.activated()
+    }
+    onEnabledChanged: if (!enabled) feedback.reset()
+    onVisibleChanged: if (!visible) feedback.reset()
+    Accessible.onPressAction: root.clicked()
+
+    LauncherClickFeedback {
+        id: feedback
+        iconSize: root.iconSize
+        duration: root.clickDuration
+        motionEnabled: !root.reducedMotion && root.enabled && root.visible
+    }
+
+    Keys.onReturnPressed: root.clicked()
+    Keys.onEnterPressed: root.clicked()
+
+    // Keep a fixed high-resolution source and animate only scene transforms.
+    contentItem: Item {
+        Kirigami.Icon {
+            objectName: "launcher-theme-icon"
+            anchors.centerIn: parent
+            width: root.highQualityIconSize
+            height: width
+            source: root.iconName
+            roundToIconSize: false
+            smooth: true
+            scale: root.iconSize / root.highQualityIconSize
+            Accessible.ignored: true
+        }
+    }
+
+
+    background: AntialiasedSurface {
+        resolutionScale: root.visualIconScale
+        Rectangle {
+            objectName: "launcher-highlight"
+            anchors.fill: parent
+            anchors.margins: root.highlightInset
+            radius: Kirigami.Units.cornerRadius * 2
+            color: root.down ? root.palette.highlight
+                : root.hovered || root.selected || root.activeFocus
+                    ? Qt.alpha(root.palette.highlight, 0.2) : "transparent"
+            border.width: root.selected || root.activeFocus ? Kirigami.Units.smallSpacing / 2 : 0
+            border.color: root.palette.highlight
+        }
+    }
+
+    LauncherTooltip {
+        id: balloon
+        objectName: "launcher-tooltip"
+        parent: root.parent
+        text: root.title
+        font: root.font
+        palette: root.palette
+        visible: root.tooltipsEnabled && root.hovered && root.enabled
+        x: root.iconTopCenter.x - width / 2
+        y: root.iconTopCenter.y - height - metrics.gap
+    }
+    Rectangle {
+        id: runningDot
+        objectName: "launcher-running-marker"
+        parent: root.parent
+        visible: root.running && root.visible
+        width: root.metrics.runningMarkerSize
+        height: width
+        radius: width / 2
+        antialiasing: true
+        color: root.palette.windowText
+        opacity: 0.75
+        x: root.x + root.width / 2 + root.iconOffsetX - width / 2
+        y: root.y + root.height + (root.metrics.bottomContentPadding - height) / 2
+        Accessible.ignored: true
+    }
+}

@@ -1,0 +1,202 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+pragma ComponentBehavior: Bound
+
+import QtQuick
+import QtQuick.Controls
+import org.kde.kirigami as Kirigami
+import "../../components"
+import "../../config"
+
+Control {
+    id: root
+
+    required property var entries
+    property var applicationState: null
+    property int currentIndex: -1
+    readonly property DockMetrics metrics: DockMetrics {}
+    property int itemSize: metrics.itemSize
+    property int iconSize: metrics.iconSize
+    property int itemSpacing: metrics.spacing
+    property real surfaceRadius: metrics.surfaceRadius
+    property int bottomContentPadding: metrics.bottomContentPadding
+    property bool magnificationEnabled: true
+    property bool reducedMotion: false
+    property real maximumIconScale: 2.0
+    property real waveSharedScaleLimit: 1.0
+    property int clickDuration: Kirigami.Units.longDuration
+    readonly property real clickTopReserve: Math.ceil(iconSize * 0.45)
+    property int waveEnterDuration: 110
+    property int waveLeaveDuration: 85
+    readonly property real boundedIconScale: Number.isFinite(maximumIconScale)
+        ? Math.max(1, Math.min(3, maximumIconScale)) : 1
+    readonly property real tooltipReserve: Math.ceil(tooltipFont.height
+        + tooltipStyle.padding * 2 + tooltipStyle.tailHeight + tooltipStyle.gap)
+    readonly property real waveTopReserve: Math.ceil((itemSize + iconSize) * 0.5 * (boundedIconScale - 1))
+        + tooltipReserve + clickTopReserve
+    readonly property real waveSideReserve: Math.ceil(wave.maximumShift
+        + itemSize * (boundedIconScale - 1) / 2)
+    readonly property real waveBottomReserve: Math.ceil(Math.max(0,
+        (itemSize - iconSize) * 0.5 * (boundedIconScale - 1)))
+    property real lastPointerX: 0
+    readonly property int itemCount: tiles.count
+    signal itemActivated(string appId)
+    signal closeRequested()
+    signal settingsRequested()
+    property bool contextMenuOpen: false
+    signal contextMenuRequested(Item sourceItem, string appId, string title, point position)
+    readonly property bool keyboardFocused: currentIndex >= 0 && currentIndex < tiles.count
+        && tiles.itemAt(currentIndex).activeFocus
+    TapHandler {
+        acceptedButtons: Qt.RightButton
+        onTapped: function(eventPoint) {
+            const tile = root.launcherAt(eventPoint.position)
+            root.contextMenuRequested(tile || root, tile ? tile.appId : "",
+                tile ? tile.title : "", eventPoint.position)
+        }
+    }
+
+    implicitWidth: itemCount * itemSize + Math.max(0, itemCount - 1) * itemSpacing
+        + leftPadding + rightPadding
+    implicitHeight: (itemCount > 0 ? itemSize : 0) + topPadding + bottomPadding
+    focusPolicy: Qt.NoFocus
+    padding: metrics.padding
+    bottomPadding: bottomContentPadding + waveBottomReserve
+    topPadding: padding + waveTopReserve
+    leftPadding: padding + waveSideReserve
+    rightPadding: padding + waveSideReserve
+
+    TooltipStyle { id: tooltipStyle }
+    FontMetrics { id: tooltipFont; font: root.font }
+
+    HoverHandler {
+        id: pointer
+        enabled: root.enabled && root.visible
+        blocking: false
+        onPointChanged: {
+            if (pointer.hovered)
+                root.lastPointerX = pointer.point.position.x
+        }
+        onHoveredChanged: {
+            if (pointer.hovered)
+                root.lastPointerX = pointer.point.position.x
+        }
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+    }
+
+    DockMagnification {
+        id: wave
+        active: (pointer.hovered || root.contextMenuOpen) && root.visible && root.enabled
+        enabled: root.magnificationEnabled
+        reducedMotion: root.reducedMotion
+        pointerX: root.lastPointerX
+        itemPitch: root.itemSize + root.itemSpacing
+        iconSize: root.iconSize
+        activeIndex: root.itemCount > 0 ? Math.max(0, Math.min(root.itemCount - 1,
+            Math.floor((root.lastPointerX - root.leftPadding + root.itemSpacing / 2) / wave.itemPitch))) : -1
+        maximumScale: root.boundedIconScale
+        sharedScaleLimit: root.waveSharedScaleLimit
+        enterDuration: root.waveEnterDuration
+        leaveDuration: root.waveLeaveDuration
+    }
+
+    function focusItem(index) {
+        if (index < 0 || index >= tiles.count)
+            return false
+        root.currentIndex = index
+        tiles.itemAt(index).forceActiveFocus(Qt.TabFocusReason)
+        return true
+    }
+
+    function launcherAt(position: point): LauncherTile {
+        // Reverse paint order; map through the real scale/translation before
+        // testing the same containment mask used by the interactive control.
+        for (let i = tiles.count - 1; i >= 0; --i) {
+            const tile = tiles.itemAt(i) as LauncherTile
+            if (tile && tile.visible && tile.enabled
+                    && tile.contains(tile.mapFromItem(root, position.x, position.y)))
+                return tile
+        }
+        return null
+    }
+
+    onItemCountChanged: {
+        if (root.currentIndex >= root.itemCount)
+            root.currentIndex = root.itemCount - 1
+    }
+
+    // Observe rendered bounds without feeding them back into logical centers.
+    // This bounded scan follows declarative transforms, including exit progress.
+    readonly property rect surfaceBounds: {
+        let left = waveSideReserve
+        let right = width - waveSideReserve
+        for (let i = 0; i < tiles.count; ++i) {
+            const tile = tiles.itemAt(i) as LauncherTile
+            if (!tile) continue
+            const centerX = tile.x + tile.width / 2 + tile.iconOffsetX
+            const halfWidth = tile.width * tile.visualIconScale / 2
+            left = Math.min(left, centerX - halfWidth - padding)
+            right = Math.max(right, centerX + halfWidth + padding)
+        }
+        return Qt.rect(left, waveTopReserve, right - left,
+            height - waveTopReserve - waveBottomReserve)
+    }
+
+    background: AntialiasedSurface {
+        objectName: "dock-surface"
+        x: root.surfaceBounds.x
+        y: root.surfaceBounds.y
+        width: root.surfaceBounds.width
+        height: root.surfaceBounds.height
+        Rectangle {
+            anchors.fill: parent
+            radius: root.surfaceRadius
+            color: root.palette.window
+            border.width: root.metrics.borderWidth
+            border.color: root.palette.mid
+        }
+    }
+
+    contentItem: Item {}
+
+    // Stable logical centers; visual controls are parented to the full surface
+    // so their raised/scaled hit targets remain reachable outside base cells.
+    Repeater {
+        id: tiles
+        model: root.entries
+        delegate: LauncherTile {
+            id: tile
+            tooltipsEnabled: !root.contextMenuOpen
+            required property int index
+            required appId
+            parent: root
+            x: root.leftPadding + index * (root.itemSize + root.itemSpacing)
+            y: root.topPadding
+            width: root.itemSize
+            height: root.itemSize
+            objectName: "launcher-" + appId
+            itemSize: root.itemSize
+            iconSize: root.iconSize
+            maximumIconScale: root.boundedIconScale
+            selected: root.currentIndex === tile.index
+            running: {
+                if (!root.applicationState) return false
+                root.applicationState.revision
+                return root.applicationState.isRunning(tile.appId)
+            }
+            magnificationEnabled: root.magnificationEnabled
+            reducedMotion: root.reducedMotion || !root.visible || !root.enabled
+            clickDuration: root.clickDuration
+            targetIconScale: wave.scaleAt(tile.x + tile.width / 2, tile.index)
+            iconOffsetX: wave.shiftAt(tile.x + tile.width / 2)
+
+            onActivated: {
+                root.currentIndex = tile.index
+                root.itemActivated(tile.appId)
+            }
+
+            Keys.onLeftPressed: root.focusItem((tile.index + tiles.count - 1) % tiles.count)
+            Keys.onRightPressed: root.focusItem((tile.index + 1) % tiles.count)
+            Keys.onEscapePressed: root.closeRequested()
+        }
+    }
+}
