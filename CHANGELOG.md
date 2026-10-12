@@ -17,6 +17,44 @@
 
 ## Unreleased — 2026-10-12
 
+- Fixed the saved presentation mode reverting after a Quickshell reload. The
+  session snapshot was held as a property value, which Quickshell's reloader does
+  not match, so the start-mode override re-applied on every reload and overwrote
+  live changes. SettingsStore is now a non-visual `Singleton` so the session can
+  be a real child that survives a reload. `settings_reload` passes.
+
+- Retained the native edge pointer through reveal until a real Wayland leave,
+  preventing trigger disarming from dropping the dock's visibility hold. Limited
+  input and magnification to rendered content plus lower clearance; excluded
+  unused headroom and preserved icon hover/click delivery through an ancestor
+  observer. Added native lifecycle and pointer-handoff regressions.
+
+- Shared a stationary input rectangle between dock hover detection and the native
+  input mask, including transparent bottom clearance and the fallback edge strip.
+  Separated transient launcher hover fill from the foreground keyboard-focus
+  outline; pointer clicks no longer retain selection frames under icons.
+
+- Matched Plasma's four visibility choices and their order. Always visible now
+  selects reservation; Windows go below keeps the dock above ordinary windows
+  without reservation. Retired Below windows stacking and migrated its saved
+  `desktop` mode to genuine Dodge windows, including startup overrides and IPC.
+
+- Classified dock and edge surfaces with KDE's `dock` scope for Show Desktop.
+  Added the separate Dodge windows mode with native desktop/activity-filtered
+  geometry, interaction holds, bounded snapshots and unavailable fallback.
+
+- Fixed the native edge sensor's reactive `armed` binding loop by giving each
+  writable property its own change notification. Added a strict QML regression.
+
+- Added a scoped native KWin auto-hide edge sensor with themed compositor glow,
+  pointer input release and a local fallback. Corrected slide timing, visual
+  travel, reversal geometry and completion without changing menu allocation.
+
+- Added themed, baseline-anchored markers for pinned applications with open KDE
+  windows, separate from focus and launch feedback. A dedicated read-only native
+  window-state backend uses scoped desktop registration instead of granting
+  generic Quickshell configurations access to KWin window management.
+
 - Aligned application-picker details at the left beneath a larger results list.
 - Added item-order arrows with retained selection and pending Apply/Close behavior.
 - Keep the dock revealed with a temporary Top-layer request while configuring,

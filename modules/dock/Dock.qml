@@ -5,6 +5,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Io
+import Punchi.Kde as Native
 import "../../config"
 import "../../services"
 import "../../adapters/kde"
@@ -21,13 +22,15 @@ PanelWindow {
     // Coexist with Plasma and respect its reserved screen space.
     anchors.bottom: true
     exclusiveZone: panelPolicy.exclusiveZone
-    exclusionMode: visibilityController.autoHide ? ExclusionMode.Ignore : ExclusionMode.Normal
-    margins.bottom: visibilityController.autoHide ? 0 : settings.edgeMargin
+    exclusionMode: visibilityController.edgeMode ? ExclusionMode.Ignore : ExclusionMode.Normal
+    margins.bottom: visibilityController.edgeMode ? 0 : settings.edgeMargin
     implicitWidth: visibilityController.surfaceVisible ? view.implicitWidth
         : view.itemCount * settings.itemSize + Math.max(0, view.itemCount - 1) * settings.spacing
             + settings.padding * 2
     readonly property real dockAllocationHeight: view.implicitHeight
-        + (visibilityController.autoHide ? settings.edgeMargin : 0)
+        + (visibilityController.edgeMode ? settings.edgeMargin : 0)
+    readonly property real slideDistance: slideGeometry.distance
+    DockSlideGeometry { id: slideGeometry }
     implicitHeight: windowGeometry.windowHeight
     color: "transparent"
     // Stable transparent allocation must not intercept input in the surrounding desktop.
@@ -35,7 +38,7 @@ PanelWindow {
         Region {
             y: view.visible ? Math.floor(view.y)
                 : Math.max(0, root.height - windowGeometry.windowHeight)
-            width: root.width
+            width: !view.visible && nativeEdge.available ? 0 : root.width
             height: view.visible ? Math.ceil(root.height - view.y) : windowGeometry.windowHeight
         }
         Region {
@@ -47,7 +50,7 @@ PanelWindow {
     }
     onVisibleChanged: if (!visible) contextMenu.dismiss()
     WlrLayershell.layer: panelPolicy.belowWindows ? WlrLayer.Bottom : WlrLayer.Top
-    WlrLayershell.namespace: "punchi-shell"
+    WlrLayershell.namespace: "dock"
     WlrLayershell.keyboardFocus: visibilityController.surfaceVisible
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
@@ -55,23 +58,41 @@ PanelWindow {
         id: windowGeometry
         baseHeight: root.dockAllocationHeight
         screenHeight: root.screen ? root.screen.height : 0
-        bottomMargin: visibilityController.autoHide ? 0 : settings.edgeMargin
+        bottomMargin: visibilityController.edgeMode ? 0 : settings.edgeMargin
         edgeHeight: settings.metrics.borderWidth
         surfaceVisible: visibilityController.surfaceVisible
     }
     DockVisibilityController {
         id: visibilityController
         autoHide: settings.panelMode === "autohide"
+        dodgeWindows: settings.panelMode === "dodge-windows"
+        overlapAvailable: overlap.available
+        overlapping: overlap.overlapping
+        showingDesktop: overlap.showingDesktop
         configuring: root.configuring
         pointerInside: visibilityController.surfaceVisible && windowPointer.hovered
         menuOpen: view.contextMenuOpen
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: settings.effectiveReducedMotion
         transitionDuration: settings.slideDuration
+        onHiding: slideGeometry.capture(visibilityController.boundedSlideProgress,
+            view.measureSlideTravelHeight() + settings.edgeMargin)
+        onRevealing: slideGeometry.capture(visibilityController.boundedSlideProgress,
+            view.measureSlideTravelHeight() + settings.edgeMargin)
+    }
+    Native.AutoHideEdge {
+        id: nativeEdge
+        enabled: root.visible && visibilityController.edgeMode
+        armed: enabled && !visibilityController.surfaceVisible
+        width: view.itemCount * settings.itemSize
+            + Math.max(0, view.itemCount - 1) * settings.spacing + settings.padding * 2
+        height: Math.max(2, settings.metrics.padding)
+        screenName: root.screen ? root.screen.name : ""
+        onRevealRequested: visibilityController.reveal()
     }
     HoverHandler {
         id: windowPointer
-        enabled: root.visible && visibilityController.autoHide
+        enabled: root.visible && visibilityController.edgeMode
         blocking: false
         onHoveredChanged: {
             if (windowPointer.hovered) visibilityController.reveal()
@@ -85,7 +106,7 @@ PanelWindow {
         id: panelPolicy
         mode: settings.panelMode
         configuring: root.configuring
-        baseHeight: view.itemSize + view.padding + view.bottomContentPadding
+        baseHeight: (view.itemCount > 0 ? view.itemSize : 0) + view.padding + view.bottomContentPadding
         // The compositor also accounts for margins.bottom. Never reserve the
         // transparent top area used by wave, bounce, and balloons.
         bottomClearance: view.waveBottomReserve
@@ -120,13 +141,35 @@ PanelWindow {
                 slideOffset: slideTransform.y,
                 sceneY: view.mapToItem(null, 0, 0).y,
                 restingSceneY: view.y,
-                slideDistance: view.implicitHeight + settings.edgeMargin,
+                slideDistance: root.slideDistance,
+                nativeEdgeAvailable: nativeEdge.available,
+                overlapAvailable: overlap.available,
+                overlapping: overlap.overlapping,
+                showingDesktop: overlap.showingDesktop,
+                restingRegion: restingGeometry.region,
                 reducedMotion: settings.effectiveReducedMotion
             })
         }
     }
     ApplicationCatalog { id: availableApps }
     RunningApplications { id: runningApps; catalog: availableApps }
+    DockRestingGeometry {
+        id: restingGeometry
+        screenX: root.screen ? root.screen.x : 0
+        screenY: root.screen ? root.screen.y : 0
+        screenWidth: root.screen ? root.screen.width : 0
+        screenHeight: root.screen ? root.screen.height : 0
+        bodyWidth: view.itemCount * settings.itemSize
+            + Math.max(0, view.itemCount - 1) * settings.spacing + settings.padding * 2
+        bodyHeight: panelPolicy.baseHeight
+        bottomClearance: view.waveBottomReserve
+        edgeMargin: settings.edgeMargin
+    }
+    WindowOverlap {
+        id: overlap
+        source: runningApps.visibilityState
+        region: restingGeometry.region
+    }
     PinnedApplications { id: fixtureModel; catalog: availableApps; pinnedIds: settings.pinnedIds }
 
     DesktopApplicationAdapter {
@@ -203,15 +246,15 @@ PanelWindow {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         height: implicitHeight
-        anchors.bottomMargin: visibilityController.autoHide && visibilityController.surfaceVisible
+        anchors.bottomMargin: visibilityController.edgeMode && visibilityController.surfaceVisible
             ? settings.edgeMargin : 0
         visible: visibilityController.surfaceVisible
         opacity: visibilityController.opacity
         transform: Translate {
             id: slideTransform
-            y: visibilityController.autoHide
+            y: visibilityController.edgeMode
                 ? (1 - visibilityController.boundedSlideProgress)
-                    * (view.implicitHeight + settings.edgeMargin) : 0
+                    * root.slideDistance : 0
         }
         entries: fixtureModel
         itemSize: settings.itemSize

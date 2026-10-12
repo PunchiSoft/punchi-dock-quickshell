@@ -20,3 +20,11 @@ source or assets are copied in this stage.
 
 Quickshell is an external runtime dependency:
 <https://quickshell.org/>. The project does not bundle or fork it.
+
+The native edge sensor uses protocol descriptions from KDE
+`plasma-wayland-protocols` (`kde-screen-edge-v1.xml`, MIT-CMU), wlr-protocols
+(`wlr-layer-shell-unstable-v1.xml`, its permissive license), and Wayland protocols
+(`xdg-shell.xml`, its MIT-style license). Their complete upstream copyright and
+license notices remain in `adapters/kde/protocols/`. Generated bindings are build
+artifacts. Only a layer-shell argument name is adapted for C++ compilation;
+protocol wire semantics are unchanged.

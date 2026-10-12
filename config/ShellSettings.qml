@@ -33,7 +33,7 @@ QtObject {
     }
     function restore(data: var): bool {
         if (!data || data.version !== 1) return false
-        if (["overlay", "reserve", "desktop", "autohide"].indexOf(data.panelMode) >= 0) panelMode = data.panelMode
+        if (["overlay", "reserve", "desktop", "autohide", "dodge-windows"].indexOf(data.panelMode) >= 0) panelMode = data.panelMode
         if (Number.isInteger(data.sizePercent) && data.sizePercent >= 50 && data.sizePercent <= 150)
             sizePercent = data.sizePercent
         if (Number.isFinite(data.maximumIconScale) && data.maximumIconScale >= 1 && data.maximumIconScale <= 3)

@@ -14,7 +14,7 @@ QString normalized(QString id)
 }
 }
 
-RunningApplications::RunningApplications(QObject *parent) : QObject(parent)
+RunningApplications::RunningApplications(QObject *parent) : QObject(parent), m_visibility(this)
 {
     connect(&m_process, &QProcess::readyReadStandardOutput, this, &RunningApplications::consume);
     connect(&m_process, &QProcess::readyReadStandardError, this, [this]() {
@@ -45,6 +45,7 @@ bool RunningApplications::isRunning(const QString &desktopId) const
 }
 void RunningApplications::update(bool available, const QSet<QString> &ids)
 {
+    if (!available) m_visibility.clear();
     const QSet<QString> next = available ? ids : QSet<QString>();
     if (available == m_available && next == m_ids) return;
     m_available = available;
@@ -54,6 +55,8 @@ void RunningApplications::update(bool available, const QSet<QString> &ids)
 }
 void RunningApplications::stop()
 {
+    if (m_stopping) return;
+    m_stopping = true;
     if (m_process.state() != QProcess::NotRunning) {
         m_process.closeWriteChannel();
         if (!m_process.waitForFinished(500)) {
@@ -63,6 +66,7 @@ void RunningApplications::stop()
     }
     m_buffer.clear();
     update(false);
+    m_stopping = false;
 }
 void RunningApplications::restart()
 {
@@ -75,6 +79,7 @@ void RunningApplications::restart()
 }
 void RunningApplications::consume()
 {
+    if (m_stopping) { m_process.readAllStandardOutput(); return; }
     m_buffer += m_process.readAllStandardOutput();
     if (m_buffer.size() > 524288) { stop(); return; }
     while (m_buffer.contains('\n')) {
@@ -96,5 +101,6 @@ void RunningApplications::consume()
             ids.insert(normalized(value.toString()));
         }
         update(object.value(QStringLiteral("available")).toBool(), ids);
+        if (m_available) m_visibility.accept(object.value(QStringLiteral("visibility")).toObject());
     }
 }

@@ -14,6 +14,7 @@ QtObject {
         ? Math.ceil(Math.max(0, baseHeight) + Math.max(0, bottomClearance)) : 0
 
     function accepts(candidate: string): bool {
-        return candidate === "overlay" || candidate === "reserve" || candidate === "desktop" || candidate === "autohide"
+        return candidate === "overlay" || candidate === "reserve" || candidate === "desktop"
+            || candidate === "autohide" || candidate === "dodge-windows"
     }
 }

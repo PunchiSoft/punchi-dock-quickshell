@@ -16,10 +16,10 @@ ColumnLayout {
             id: visibilityControl
             objectName: "visibilityMode"
             Layout.fillWidth: true
-            model: [qsTr("Always visible"), qsTr("Reserve space"), qsTr("Below windows"), qsTr("Hide automatically")]
-            currentIndex: ["overlay", "reserve", "desktop", "autohide"].indexOf(root.settings.panelMode)
+            model: [qsTr("Always visible"), qsTr("Reserve space"), qsTr("Below windows"), qsTr("Hide automatically"), qsTr("Dodge windows")]
+            currentIndex: ["overlay", "reserve", "desktop", "autohide", "dodge-windows"].indexOf(root.settings.panelMode)
             Accessible.name: qsTr("Visibility")
-            onActivated: root.settings.panelMode = ["overlay", "reserve", "desktop", "autohide"][currentIndex]
+            onActivated: root.settings.panelMode = ["overlay", "reserve", "desktop", "autohide", "dodge-windows"][currentIndex]
         }
         Label {
             text: qsTr("Icon size: %1%").arg(root.settings.sizePercent)

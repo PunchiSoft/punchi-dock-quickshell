@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-shell VERSION 0.1.0 LANGUAGES CXX)
+project(punchi-shell VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml)
@@ -9,6 +9,30 @@ find_package(KF6WindowSystem 6.19 REQUIRED)
 find_package(PlasmaActivitiesStats REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(WaylandClient REQUIRED IMPORTED_TARGET wayland-client)
+find_program(WAYLAND_SCANNER_EXECUTABLE wayland-scanner REQUIRED)
+set(PROTOCOL_DIR ${CMAKE_BINARY_DIR}/protocols)
+file(MAKE_DIRECTORY ${PROTOCOL_DIR})
+set(EDGE_PROTOCOL_SOURCES)
+foreach(protocol kde-screen-edge-v1 wlr-layer-shell-unstable-v1 xdg-shell)
+    set(protocol_xml ${CMAKE_SOURCE_DIR}/adapters/kde/protocols/${protocol}.xml)
+    foreach(kind client-header server-header private-code)
+        if(kind STREQUAL "private-code")
+            set(output ${PROTOCOL_DIR}/${protocol}.c)
+        elseif(kind STREQUAL "client-header")
+            set(output ${PROTOCOL_DIR}/${protocol}-client.h)
+        else()
+            set(output ${PROTOCOL_DIR}/${protocol}-server.h)
+        endif()
+        add_custom_command(OUTPUT ${output}
+            COMMAND ${WAYLAND_SCANNER_EXECUTABLE} ${kind} ${protocol_xml} ${output}
+            DEPENDS ${protocol_xml} VERBATIM)
+        list(APPEND EDGE_PROTOCOL_SOURCES ${output})
+    endforeach()
+endforeach()
+add_library(punchi_edge_protocols STATIC ${EDGE_PROTOCOL_SOURCES})
+set_target_properties(punchi_edge_protocols PROPERTIES POSITION_INDEPENDENT_CODE ON)
+target_include_directories(punchi_edge_protocols PUBLIC ${PROTOCOL_DIR})
+target_link_libraries(punchi_edge_protocols PUBLIC PkgConfig::WaylandClient)
 qt_standard_project_setup()
 qt_policy(SET QTP0001 NEW)
 qt_add_qml_module(punchikde
@@ -20,15 +44,35 @@ qt_add_qml_module(punchikde
         adapters/kde/native/recentdocuments.h adapters/kde/native/recentdocuments.cpp
         adapters/kde/native/fileplaces.h adapters/kde/native/fileplaces.cpp
         adapters/kde/native/applicationcatalog.h adapters/kde/native/applicationcatalog.cpp
-        adapters/kde/native/runningapplications.h adapters/kde/native/runningapplications.cpp)
+        adapters/kde/native/runningapplications.h adapters/kde/native/runningapplications.cpp
+        adapters/kde/native/windowvisibilitystate.h adapters/kde/native/windowvisibilitystate.cpp
+        adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp)
 target_link_libraries(punchikde PRIVATE Qt6::Quick KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem Plasma::ActivitiesStats)
 target_include_directories(punchikde PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/native)
+target_link_libraries(punchikde PRIVATE punchi_edge_protocols)
 add_executable(punchi-window-state adapters/kde/window-state/main.cpp
     adapters/kde/window-state/registration.cpp)
-target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml KF6::Service PkgConfig::WaylandClient)
+target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml KF6::Service KF6::WindowSystem PkgConfig::WaylandClient)
+qt_add_resources(punchi-window-state "window_models" PREFIX "/"
+    FILES adapters/kde/window-state/WindowModels.qml)
 include(CTest)
 
 if(BUILD_TESTING)
+    find_package(Qt6 REQUIRED COMPONENTS Test)
+    add_executable(window_models_test tests/window_models_test.cpp)
+    target_include_directories(window_models_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(window_models_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
+    qt_add_resources(window_models_test "window_models_test_resource" PREFIX "/"
+        FILES adapters/kde/window-state/WindowModels.qml)
+    pkg_check_modules(WaylandServer REQUIRED IMPORTED_TARGET wayland-server)
+    add_executable(autohide_edge_test tests/autohide_edge_test.cpp adapters/kde/native/autohideedge.cpp)
+    target_include_directories(autohide_edge_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(autohide_edge_test PRIVATE Qt6::Test Qt6::Qml punchi_edge_protocols PkgConfig::WaylandServer)
+    add_executable(running_state_test tests/running_state_test.cpp adapters/kde/native/runningapplications.cpp
+        adapters/kde/native/windowvisibilitystate.cpp)
+    target_include_directories(running_state_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(running_state_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
+    target_compile_definitions(running_state_test PRIVATE PUNCHI_TEST_BACKEND="$<TARGET_FILE:punchi-window-state>")
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
     find_program(QMLLINT_EXECUTABLE NAMES qmllint qmllint6
         HINTS /usr/lib64/qt6/bin /usr/lib/qt6/bin REQUIRED)
@@ -40,8 +84,25 @@ if(BUILD_TESTING)
     add_test(NAME dock_components COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${QMLTESTRUNNER_EXECUTABLE} -input ${CMAKE_SOURCE_DIR}/tests/qml)
+    add_test(NAME autohide_edge COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:autohide_edge_test>)
+    set_tests_properties(autohide_edge PROPERTIES TIMEOUT 45)
     find_program(QUICKSHELL_EXECUTABLE NAMES qs REQUIRED)
     find_program(DBUS_RUN_SESSION_EXECUTABLE NAMES dbus-run-session REQUIRED)
+    add_test(NAME window_models COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:window_models_test>)
+    set_tests_properties(window_models PROPERTIES TIMEOUT 45)
+    add_test(NAME running_state COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:running_state_test>)
+    add_test(NAME running_marker_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/running_marker_runtime_test.py)
+    add_test(NAME window_dodge_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/window_dodge_runtime_test.py)
+    set_tests_properties(window_dodge_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME application_launch COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/launch_runtime_test.py)
@@ -70,5 +131,5 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/window_capability_test.py)
     add_test(NAME project_foundation COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/foundation_test.py)
-    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime settings_reload window_capability project_foundation PROPERTIES TIMEOUT 45)
+    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation PROPERTIES TIMEOUT 45)
 endif()

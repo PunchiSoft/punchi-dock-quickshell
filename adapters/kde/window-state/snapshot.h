@@ -6,6 +6,7 @@
 #include <QJsonObject>
 #include <QSet>
 #include <QUrl>
+#include <QRect>
 #include "../native/desktopentry.h"
 
 inline QString normalizedApplicationId(QString id)
@@ -39,10 +40,36 @@ inline QStringList runningDesktopIds(const QAbstractItemModel &model)
     return sorted;
 }
 
-inline QByteArray windowStateSnapshot(bool available, const QStringList &ids = {})
+inline QJsonObject windowVisibilitySnapshot(const QAbstractItemModel *model, bool available, bool showingDesktop)
 {
-    return QJsonDocument(QJsonObject{{QStringLiteral("version"), 1},
+    QJsonArray rectangles;
+    bool ready = available && model && model->rowCount() <= 512;
+    if (ready) {
+        const auto roles = model->roleNames();
+        const int geometry = roles.key("Geometry", -1);
+        const int isWindow = roles.key("IsWindow", -1);
+        ready = geometry >= 0 && isWindow >= 0;
+        for (int row = 0; ready && row < model->rowCount(); ++row) {
+            const auto index = model->index(row, 0);
+            if (!model->data(index, isWindow).toBool()) continue;
+            if (model->data(index, roles.key("SkipTaskbar", -1)).toBool()) continue;
+            if (model->data(index, roles.key("IsMinimized", -1)).toBool()
+                || model->data(index, roles.key("IsHidden", -1)).toBool()) continue;
+            const QRect rect = model->data(index, geometry).toRect();
+            if (rect.isEmpty()) { ready = false; break; }
+            rectangles.append(QJsonArray{rect.x(), rect.y(), rect.width(), rect.height()});
+        }
+    }
+    return {{QStringLiteral("available"), ready},
+        {QStringLiteral("showingDesktop"), ready && showingDesktop},
+        {QStringLiteral("rectangles"), ready ? rectangles : QJsonArray()}};
+}
+
+inline QByteArray windowStateSnapshot(bool available, const QStringList &ids = {}, const QJsonObject &visibility = {})
+{
+    QJsonObject object{{QStringLiteral("version"), 1},
         {QStringLiteral("available"), available},
-        {QStringLiteral("desktopIds"), QJsonArray::fromStringList(available ? ids : QStringList())}})
-        .toJson(QJsonDocument::Compact) + '\n';
+        {QStringLiteral("desktopIds"), QJsonArray::fromStringList(available ? ids : QStringList())}};
+    if (!visibility.isEmpty()) object.insert(QStringLiteral("visibility"), visibility);
+    return QJsonDocument(object).toJson(QJsonDocument::Compact) + '\n';
 }

@@ -133,7 +133,7 @@ ToolButton {
     }
     Rectangle {
         id: runningDot
-        objectName: "launcher-running-marker"
+        objectName: "launcher-running-marker-" + root.appId
         parent: root.parent
         visible: root.running && root.visible
         width: root.metrics.runningMarkerSize

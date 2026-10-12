@@ -7,6 +7,7 @@
 #include <QTimer>
 #include <QQmlComponent>
 #include <QQmlEngine>
+#include <KWindowSystem>
 #include <wayland-client.h>
 #include <cstdio>
 #include <unistd.h>
@@ -45,12 +46,13 @@ public:
                 wl_callback_destroy(callback);
                 self->m_sync = nullptr;
                 if (!self->m_global) { self->publish(); return; }
-                QQmlComponent component(&self->m_engine);
-                component.setData("import org.kde.taskmanager as TaskManager\n"
-                    "TaskManager.TasksModel { groupMode: TaskManager.TasksModel.GroupDisabled; "
-                    "filterMinimized: false; filterHidden: false }", QUrl(QStringLiteral("qrc:/WindowModel.qml")));
+                QQmlComponent component(&self->m_engine,
+                    QUrl(QStringLiteral("qrc:/adapters/kde/window-state/WindowModels.qml")));
                 self->m_object.reset(component.create());
-                self->m_model = qobject_cast<QAbstractItemModel *>(self->m_object.get());
+                self->m_model = self->m_object ? qobject_cast<QAbstractItemModel *>(
+                    self->m_object->property("allTasks").value<QObject *>()) : nullptr;
+                self->m_visibleModel = self->m_object ? qobject_cast<QAbstractItemModel *>(
+                    self->m_object->property("visibleTasks").value<QObject *>()) : nullptr;
                 if (!self->m_model || !self->m_model->roleNames().values().contains("AppId")
                     || !self->m_model->roleNames().values().contains("IsWindow")) {
                     qWarning() << "KDE task model unavailable";
@@ -58,10 +60,15 @@ public:
                     return;
                 }
                 const auto update = [self]() { self->schedule(); };
-                connect(self->m_model, &QAbstractItemModel::rowsInserted, self, update);
-                connect(self->m_model, &QAbstractItemModel::rowsRemoved, self, update);
-                connect(self->m_model, &QAbstractItemModel::dataChanged, self, update);
-                connect(self->m_model, &QAbstractItemModel::modelReset, self, update);
+                for (auto *model : {self->m_model, self->m_visibleModel}) {
+                    if (!model) continue;
+                    connect(model, &QAbstractItemModel::rowsInserted, self, update);
+                    connect(model, &QAbstractItemModel::rowsRemoved, self, update);
+                    connect(model, &QAbstractItemModel::rowsMoved, self, update);
+                    connect(model, &QAbstractItemModel::dataChanged, self, update);
+                    connect(model, &QAbstractItemModel::modelReset, self, update);
+                }
+                connect(KWindowSystem::self(), &KWindowSystem::showingDesktopChanged, self, update);
                 self->m_available = true;
                 self->publish();
             }};
@@ -72,12 +79,14 @@ private:
     void schedule() {
         if (m_pending) return;
         m_pending = true;
-        QTimer::singleShot(0, this, [this]() { m_pending = false; publish(); });
+        // Plasma settles newly created-window positions before deciding overlap.
+        QTimer::singleShot(10, this, [this]() { m_pending = false; publish(); });
     }
     void publish() {
         const bool ready = m_available && m_model && m_model->rowCount() <= 4096;
         const QStringList ids = ready ? runningDesktopIds(*m_model) : QStringList();
-        const QByteArray snapshot = windowStateSnapshot(ready && ids.size() <= 1024, ids);
+        const QByteArray snapshot = windowStateSnapshot(ready && ids.size() <= 1024, ids,
+            windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()));
         if (snapshot == m_previous) return;
         m_previous = snapshot;
         if (std::fwrite(snapshot.constData(), 1, snapshot.size(), stdout) != size_t(snapshot.size())) QCoreApplication::quit();
@@ -92,6 +101,7 @@ private:
     QQmlEngine m_engine;
     std::unique_ptr<QObject> m_object;
     QAbstractItemModel *m_model = nullptr;
+    QAbstractItemModel *m_visibleModel = nullptr;
 };
 
 int main(int argc, char **argv)

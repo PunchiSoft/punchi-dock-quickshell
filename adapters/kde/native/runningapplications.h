@@ -5,6 +5,7 @@
 #include <QSet>
 #include <QtQml/qqmlregistration.h>
 #include <QQmlParserStatus>
+#include "windowvisibilitystate.h"
 
 class RunningApplications : public QObject, public QQmlParserStatus
 {
@@ -15,6 +16,7 @@ class RunningApplications : public QObject, public QQmlParserStatus
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
     Q_PROPERTY(bool available READ available NOTIFY changed)
     Q_PROPERTY(int revision READ revision NOTIFY changed)
+    Q_PROPERTY(WindowVisibilityState *visibilityState READ visibilityState CONSTANT)
 public:
     explicit RunningApplications(QObject *parent = nullptr);
     ~RunningApplications() override;
@@ -22,6 +24,7 @@ public:
     bool enabled() const { return m_enabled; }
     bool available() const { return m_available; }
     int revision() const { return m_revision; }
+    WindowVisibilityState *visibilityState() { return &m_visibility; }
     void setExecutable(const QString &value);
     void setEnabled(bool value);
     Q_INVOKABLE bool isRunning(const QString &desktopId) const;
@@ -40,8 +43,10 @@ private:
     QString m_executable;
     QByteArray m_buffer;
     QSet<QString> m_ids;
+    WindowVisibilityState m_visibility;
     bool m_enabled = false;
     bool m_available = false;
     bool m_complete = false;
+    bool m_stopping = false;
     int m_revision = 0;
 };

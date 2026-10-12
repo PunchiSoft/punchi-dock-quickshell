@@ -20,7 +20,7 @@ int registerWindowBackend(bool remove)
     executable.replace('%', QStringLiteral("%%"));
     const QByteArray expected = QStringLiteral("[Desktop Entry]\nType=Application\n"
         "Name=Punchi Shell Window State\nNoDisplay=true\nTerminal=false\n"
-        "Exec=\"%1\"\nX-KDE-Wayland-Interfaces=org_kde_plasma_window_management;\n")
+        "Exec=\"%1\"\nX-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n")
         .arg(executable).toUtf8();
     const QString directory = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
         + QStringLiteral("/applications");

@@ -27,11 +27,11 @@ snapshot. Compatibility and validation limits are documented below; see the
 - Launcher context menus with KDE desktop actions, recent documents, unpinning
   and KDE Places navigation for eligible file-manager launchers.
 - Dock settings for icon size, magnification, bounce, reduced motion and
-  visibility: overlay, reserved space, below windows or automatic hiding.
+  visibility: Always visible, Hide automatically, Dodge windows or Windows go below.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
 
 Running-application indicators are under development. Existing-window activation,
-window-overlap-driven hiding, a separate panel, an application-launcher surface
+a separate panel, an application-launcher surface
 and additional controls remain future work. See the [roadmap](docs/roadmap.md).
 
 ## Run and return to KDE
@@ -46,8 +46,13 @@ cmake --build build
 ./scripts-user/start.sh
 ```
 
-To try panel behavior, use `./scripts-user/start.sh desktop` (below windows),
-`./scripts-user/start.sh reserve` (reserve base space), or
+The start script registers this build's hidden KDE window-state backend and
+refreshes the application service cache. A themed dot marks pinned apps with open
+windows. See [running markers](docs/running-applications.md) for scope, cleanup and
+live-session validation limits.
+
+To try panel behavior, use `./scripts-user/start.sh reserve` (Always visible),
+`./scripts-user/start.sh dodge-windows` (hide on window overlap), or
 `./scripts-user/start.sh overlay` (above windows without reservation). An explicit
 mode switches a running instance. See [panel modes](docs/panel-modes.md).
 

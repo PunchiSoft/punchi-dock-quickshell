@@ -141,6 +141,19 @@ Control {
             height - waveTopReserve - waveBottomReserve)
     }
 
+    // Exclude unused tooltip/bounce headroom, while covering raised launchers.
+    // The window captures this extent once per slide, not on each animation frame.
+    function measureSlideTravelHeight(): real {
+        let top = surfaceBounds.y
+        for (let i = 0; i < tiles.count; ++i) {
+            const tile = tiles.itemAt(i) as LauncherTile
+            if (!tile) continue
+            top = Math.min(top, tile.iconTopCenter.y - padding
+                - Math.max(0, tile.itemSize - tile.iconSize) * tile.visualIconScale / 2)
+        }
+        return Math.ceil(Math.max(1, height - top))
+    }
+
     background: AntialiasedSurface {
         objectName: "dock-surface"
         x: root.surfaceBounds.x

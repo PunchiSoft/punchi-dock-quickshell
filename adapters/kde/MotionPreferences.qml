@@ -11,5 +11,5 @@ QtObject {
     readonly property int leaveDuration: Math.max(80, Math.round(Kirigami.Units.shortDuration * 1.2))
     // Auto-hide travel: one eased slide, separate from the click bounce so
     // tuning one does not retime the other.
-    readonly property int slideDuration: Math.max(200, Math.round(Kirigami.Units.longDuration * 1.5))
+    readonly property int slideDuration: reducedMotion ? 0 : Kirigami.Units.longDuration
 }
