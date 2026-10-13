@@ -8,7 +8,7 @@ Punchi Dock Shell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
-**Development status:** early prototype. Current delivery: **0.1.09**.
+**Development status:** early prototype. Current delivery: **0.1.10**.
 The first Git snapshot was published as `0.1.0`, equivalent to `0.1.00` under
 the current delivery counter. Each delivery commit advances the counter once;
 see [versioning](docs/versioning.md) and the [changelog](CHANGELOG.md).

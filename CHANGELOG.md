@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.10 — 2026-10-13
+
+- Added a native read-only KDE user header with Kirigami's circular shader avatar
+  and a themed icon fallback for missing photos or software rendering.
+- Grouped settings into responsive appearance, behavior and animation sections,
+  with descriptive slider endpoints, accessible numeric values and a No position that
+  replaces the separate magnification toggle.
+- Kept the sidebar and Apply/Accept/Close footer fixed while central pages scroll,
+  preserving pending edits and reactive external settings.
+- Preserved application-picker space and corrected keyboard selection after item
+  moves to follow the selected application rather than a transient view cursor.
+- Positioned Small along the magnification track, separated from No, and hid
+  repeated native tick marks without changing input steps or keyboard operation.
+- Validation: 24 isolated CTest groups and 162 component cases passed. The
+  registered real-session reload probe remains excluded; lint retains the same
+  three upstream warnings. GPU-photo clipping and physical KWin checks remain
+  separate from the inspected offscreen light/dark layouts.
+
 ## 0.1.09 — 2026-10-13
 
 - Documented version-matched Quickshell/Qt editor setup and added official

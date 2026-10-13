@@ -139,7 +139,7 @@ Use the user-approved padded delivery counter: `0.1.00`, `0.1.01`, and so on.
 The original `v0.1.0` snapshot is the `0.1.00` baseline; preserve its existing tag
 and history. Count one increment for each delivery commit, including grouped
 functional changes or documentation, not each file or individual changelog bullet.
-The current delivery is `0.1.09`. Before a subsequent delivery commit, increment
+The current delivery is `0.1.10`. Before a subsequent delivery commit, increment
 the latest declared counter once and update CMake, README, CHANGELOG and the
 [versioning record](docs/versioning.md) consistently. Keep configuration schema
 and QML module API versions separate from the application delivery version.

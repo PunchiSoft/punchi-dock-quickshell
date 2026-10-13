@@ -63,7 +63,8 @@ ColumnLayout {
     ScrollView {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        Layout.minimumHeight: Kirigami.Units.gridUnit * 10
+        Layout.minimumHeight: 0
+        Layout.preferredHeight: Kirigami.Units.gridUnit * 10
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         ListView {
@@ -80,8 +81,10 @@ ColumnLayout {
                 return -1
             }
             onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
-            Keys.onUpPressed: if (count > 0) editor.select(entries.get(Math.max(0, currentIndex - 1)).appId)
-            Keys.onDownPressed: if (count > 0) editor.select(entries.get(Math.min(count - 1, currentIndex + 1)).appId)
+            // A model move can briefly leave the view's cursor at its old row.
+            // Keyboard intent follows the editor's selected application identity.
+            Keys.onUpPressed: if (count > 0) editor.select(entries.get(Math.max(0, editor.selectedIndex - 1)).appId)
+            Keys.onDownPressed: if (count > 0) editor.select(entries.get(Math.min(count - 1, editor.selectedIndex + 1)).appId)
             boundsBehavior: Flickable.StopAtBounds
             delegate: ApplicationListRow {
                 required property int index

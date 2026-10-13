@@ -11,57 +11,79 @@ ColumnLayout {
     id: root
     required property ShellSettings settings
     function focusFirst(): void { visibilityControl.forceActiveFocus() }
-    spacing: Kirigami.Units.mediumSpacing
-    Label { text: qsTr("General"); font.bold: true }
+    spacing: Kirigami.Units.largeSpacing
+    Kirigami.Heading { text: qsTr("General"); level: 1 }
+    Kirigami.Heading { text: qsTr("Appearance"); level: 3 }
+    GridLayout {
+        objectName: "settingsScaleLayout"
+        Layout.fillWidth: true
+        columns: width >= Kirigami.Units.gridUnit * 24 ? 2 : 1
+        columnSpacing: Kirigami.Units.largeSpacing * 2
+        rowSpacing: Kirigami.Units.largeSpacing
+        SettingsScaleControl {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+            title: qsTr("Size")
+            minimumText: qsTr("Small")
+            maximumText: qsTr("Large")
+            controlName: "iconSize"
+            from: 50; to: 150; stepSize: 5
+            value: root.settings.sizePercent
+            onMoved: function(value) { root.settings.sizePercent = Math.round(value) }
+        }
+        SettingsScaleControl {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 0
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+            title: qsTr("Magnification")
+            minimumText: qsTr("No")
+            nearMinimumText: qsTr("Small")
+            maximumText: qsTr("Large")
+            controlName: "zoomScale"
+            from: 100; to: 300; stepSize: 10
+            value: root.settings.magnificationEnabled ? root.settings.maximumIconScale * 100 : 100
+            onMoved: function(value) {
+                root.settings.maximumIconScale = value / 100
+                root.settings.magnificationEnabled = value > 100
+            }
+        }
+    }
+    ToolSeparator { orientation: Qt.Horizontal; Layout.fillWidth: true }
+    Kirigami.Heading { text: qsTr("Behavior"); level: 3 }
+    RowLayout {
+        Layout.fillWidth: true
+        Label { id: visibilityLabel; text: qsTr("Visibility"); Layout.fillWidth: true }
         ComboBox {
             id: visibilityControl
             objectName: "visibilityMode"
-            Layout.fillWidth: true
+            Layout.minimumWidth: implicitWidth
             model: [qsTr("Always visible"), qsTr("Hide automatically"), qsTr("Dodge windows"), qsTr("Windows go below")]
             currentIndex: PanelModes.modes.indexOf(PanelModes.effective(root.settings.panelMode))
-            Accessible.name: qsTr("Visibility")
+            Accessible.name: visibilityLabel.text
             onActivated: root.settings.panelMode = PanelModes.modes[currentIndex]
         }
-        Label {
-            text: qsTr("Icon size: %1%").arg(root.settings.sizePercent)
-            Layout.topMargin: Kirigami.Units.largeSpacing
-        }
-        Slider {
-            objectName: "iconSize"
-            Layout.fillWidth: true
-            from: 50; to: 150; stepSize: 5
-            value: root.settings.sizePercent
-            Accessible.name: qsTr("Icon size")
-            onMoved: root.settings.sizePercent = Math.round(value)
-        }
+    }
+    ToolSeparator { orientation: Qt.Horizontal; Layout.fillWidth: true }
+    Kirigami.Heading { text: qsTr("Animations"); level: 3 }
+    RowLayout {
+        Layout.fillWidth: true
+        Label { id: bounceLabel; text: qsTr("Click bounce"); Layout.fillWidth: true }
         Switch {
-            Layout.topMargin: Kirigami.Units.largeSpacing
-            objectName: "magnification"
-            text: qsTr("Magnification")
-            checked: root.settings.magnificationEnabled
-            onToggled: root.settings.magnificationEnabled = checked
-        }
-        Label { text: qsTr("Zoom scale: %1%").arg(Math.round(root.settings.maximumIconScale * 100)) }
-        Slider {
-            objectName: "zoomScale"
-            Layout.fillWidth: true
-            enabled: root.settings.magnificationEnabled
-            from: 100; to: 300; stepSize: 10
-            value: root.settings.maximumIconScale * 100
-            Accessible.name: qsTr("Zoom scale")
-            onMoved: root.settings.maximumIconScale = value / 100
-        }
-        Switch {
-            Layout.topMargin: Kirigami.Units.largeSpacing
             objectName: "bounceEnabled"
-            text: qsTr("Click bounce")
+            Accessible.name: bounceLabel.text
             checked: root.settings.bounceEnabled
             onToggled: root.settings.bounceEnabled = checked
         }
+    }
+    RowLayout {
+        Layout.fillWidth: true
+        Label { id: motionLabel; text: qsTr("Reduced motion"); Layout.fillWidth: true }
         Switch {
-            text: qsTr("Reduced motion")
+            objectName: "reducedMotion"
+            Accessible.name: motionLabel.text
             checked: root.settings.reducedMotion
             onToggled: root.settings.reducedMotion = checked
         }
-    Item { Layout.fillHeight: true }
+    }
 }

@@ -69,7 +69,7 @@ ShellRoot {
                 return
             }
             const view = probe.find(window.contentItem, "dockSettingsView")
-            const toggle = probe.find(window.contentItem, "magnification")
+            const toggle = probe.find(window.contentItem, "zoomScale")
             const expected = Quickshell.env("PUNCHI_EXPECT_WINDOW_COLOR")
             if (!view || !toggle || !Qt.colorEqual(window.color, expected)
                 || !Qt.colorEqual(view.palette.window, expected)
@@ -80,7 +80,7 @@ ShellRoot {
                 Qt.quit(); return
             }
             preferences.magnificationEnabled = false
-            if (toggle.checked || probe.find(window.contentItem, "zoomScale").enabled) {
+            if (toggle.value !== 100 || !toggle.enabled) {
                 console.error("PUNCHI_THEME_FAILED settings binding"); Qt.quit(); return
             }
             view.settings.bounceEnabled = false

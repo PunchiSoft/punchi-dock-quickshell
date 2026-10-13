@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 import "../../config"
 import "../../services"
@@ -22,21 +21,23 @@ Window {
         if (!visible) editor.begin()
         show(); raise(); requestActivate(); Qt.callLater(view.focusFirst)
     }
+    function keepFocusVisible(): void {
+        if (view) Qt.callLater(view.ensureFocusedVisible, root.activeFocusItem)
+    }
+    onActiveFocusItemChanged: keepFocusVisible()
+    onWidthChanged: keepFocusVisible()
+    onHeightChanged: keepFocusVisible()
     onClosing: { view.closeDialogs(); editor.cancel() }
     SettingsEditService { id: editor; settings: root.settings }
     Shortcut { sequence: "Escape"; enabled: !view.addingApplication; onActivated: root.close() }
-    ScrollView {
+    SettingsView {
+        id: view
         anchors.fill: parent
-        contentWidth: availableWidth
-        SettingsView {
-            id: view
-            width: parent.width
-            settings: editor.draft
-            hasPendingChanges: editor.dirty
-            applicationCatalog: root.applicationCatalog
-            onApplyRequested: editor.apply()
-            onAcceptRequested: { editor.apply(); root.close() }
-            onCloseRequested: root.close()
-        }
+        settings: editor.draft
+        hasPendingChanges: editor.dirty
+        applicationCatalog: root.applicationCatalog
+        onApplyRequested: editor.apply()
+        onAcceptRequested: { editor.apply(); root.close() }
+        onCloseRequested: root.close()
     }
 }

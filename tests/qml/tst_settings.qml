@@ -19,11 +19,12 @@ TestCase {
         const settings = view.settings
         settings.panelMode = "desktop"
         compare(findChild(view, "visibilityMode").currentIndex, 2)
-        const zoom = findChild(view, "magnification")
+        const zoom = findChild(view, "zoomScale")
         zoom.forceActiveFocus()
-        keyClick(Qt.Key_Space)
+        keyClick(Qt.Key_Home)
         compare(settings.magnificationEnabled, false)
-        compare(findChild(view, "zoomScale").enabled, false)
+        compare(zoom.value, 100)
+        verify(zoom.enabled)
         settings.sizePercent = 150
         compare(settings.iconSize, Math.round(settings.metrics.iconSize * 1.5))
         settings.bounceEnabled = false

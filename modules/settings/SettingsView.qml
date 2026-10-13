@@ -24,13 +24,30 @@ Pane {
     palette.windowText: Kirigami.Theme.textColor
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.largeSpacing * 2
-    implicitWidth: Kirigami.Units.gridUnit * 40
-    implicitHeight: Math.max(Kirigami.Units.gridUnit * 32, generalPage.implicitHeight + padding * 2 + footer.implicitHeight)
+    implicitWidth: Kirigami.Units.gridUnit * 44
+    // Preserve enough preferred height for the existing application picker.
+    implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
+        generalPage.implicitHeight + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
         if (currentPage === 0) itemsPage.focusFirst()
         else generalPage.focusFirst()
     }
     function closeDialogs(): void { addDialog.close(); pinService.cancel() }
+    function ensureFocusedVisible(control: Item): void {
+        if (currentPage !== 1 || !control) return
+        let ancestor = control
+        while (ancestor && ancestor !== generalPage) ancestor = ancestor.parent
+        if (!ancestor) return
+        const viewport = generalViewport
+        if (!viewport) return
+        const point = control.mapToItem(generalPage, 0, 0)
+        const margin = Kirigami.Units.mediumSpacing
+        const maximum = Math.max(0, viewport.contentHeight - viewport.height)
+        if (point.y - margin < viewport.contentY)
+            viewport.contentY = Math.max(0, Math.min(maximum, point.y - margin))
+        else if (point.y + control.height + margin > viewport.contentY + viewport.height)
+            viewport.contentY = Math.max(0, Math.min(maximum, point.y + control.height + margin - viewport.height))
+    }
     ApplicationPinService { id: pinService; settings: root.settings; catalog: root.applicationCatalog }
     AddApplicationDialog {
         id: addDialog
@@ -57,7 +74,11 @@ Pane {
             background: Rectangle { color: Kirigami.Theme.backgroundColor }
             ColumnLayout {
                 anchors.fill: parent
-                spacing: Kirigami.Units.smallSpacing
+                spacing: Kirigami.Units.mediumSpacing
+                SettingsUserHeader {
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: Kirigami.Units.largeSpacing
+                }
                 ItemDelegate {
                     objectName: "itemsSettingsPage"
                     Layout.fillWidth: true
@@ -91,6 +112,7 @@ Pane {
             StackLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumHeight: 0
                 currentIndex: root.currentPage
                 DockItemsSettings {
                     id: itemsPage
@@ -98,7 +120,26 @@ Pane {
                     applicationCatalog: root.applicationCatalog
                     onAddRequested: { pinService.begin(); addDialog.open() }
                 }
-                DockGeneralSettings { id: generalPage; settings: root.settings }
+                ScrollView {
+                    id: generalScroll
+                    objectName: "settingsGeneralScroll"
+                    Layout.minimumHeight: 0
+                    clip: true
+                    contentWidth: availableWidth
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    Flickable {
+                        id: generalViewport
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: generalPage.implicitHeight
+                        DockGeneralSettings {
+                            id: generalPage
+                            settings: root.settings
+                            width: generalViewport.width
+                        }
+                    }
+                }
             }
             RowLayout {
                 id: footer
