@@ -22,6 +22,14 @@ TestCase {
     Component {
         id: referenceWave
         DockMagnification {
+            itemPitch: 72
+            iconSize: 40
+            itemSize: 40
+            maximumScale: 1.65
+            // Numeric profile samples use settled input; interaction tests below
+            // retain real entry/exit durations and reversal coverage.
+            enterDuration: 0
+            leaveDuration: 0
             active: true
             progress: 1
             pointerX: 300
@@ -49,20 +57,21 @@ TestCase {
         return result
     }
 
-    function test_originalPunchiDockReferenceValues() {
+    function test_referenceWaveProfileValues() {
         const wave = createTemporaryObject(referenceWave, test)
         verify(wave !== null)
-        // Reference samples from DockItem.qml's horizontal wave at icon=40,
-        // pitch=72, scale=1.65, progress=1. They include the primary peak,
-        // the shared neighbours, and displacement beyond the scale radius.
+        // Independent numeric samples for the revised common profile at icon=40,
+        // pitch=72 and peak=1.65. They cover centre/shoulders, signed spacing,
+        // cutoff and displacement beyond the seven-pitch support.
         const samples = [
             [0, 1.65, 0],
-            [18, 1.5648732434036243, 4.966152097817755],
-            [36, 1.4603133832077952, 9.732511219441578],
-            [72, 1.3538537532504717, 17.96248356503686],
-            [144, 1.0862848165136787, 26.615470427394186],
-            [198, 1, 27.5],
-            [288, 1, 27.5]
+            [18, 1.6418515714590927, 6.337031429181852],
+            [36, 1.617814882068286, 12.356297641365725],
+            [72, 1.5276341856040885, 23.552683712081766],
+            [144, 1.2526806964641979, 39.15898135344749],
+            [198, 1.0709047681978903, 44.08190463604219],
+            [252, 1, 45.5],
+            [288, 1, 45.5]
         ]
         for (let i = 0; i < samples.length; ++i) {
             const sample = samples[i]
@@ -74,7 +83,7 @@ TestCase {
         wave.progress = 0.5
         tryCompare(wave, "progress", 0.5)
         fuzzyCompare(wave.scaleAt(300, 3), 1.325, 0.000001)
-        fuzzyCompare(wave.shiftAt(498), 13.75, 0.000001)
+        fuzzyCompare(wave.shiftAt(498), 22.040952318021095, 0.000001)
     }
 
     function test_horizontalTrackingAndGapContinuity() {
@@ -183,7 +192,8 @@ TestCase {
         const center = tile(view, "kate")
         const left = tile(view, "browser")
         const right = tile(view, "systemsettings")
-        const far = tile(view, "files")
+        const third = tile(view, "files")
+        const far = tile(view, "okular")
         const width = view.width
         const height = view.height
         const x = center.x
@@ -194,6 +204,7 @@ TestCase {
         verify(left.targetIconScale > 1)
         fuzzyCompare(left.targetIconScale, right.targetIconScale, 0.001)
         verify(left.targetIconScale < center.targetIconScale)
+        verify(third.targetIconScale > 1)
         compare(far.targetIconScale, 1)
         compare(view.width, width)
         compare(view.height, height)

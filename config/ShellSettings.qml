@@ -23,7 +23,6 @@ QtObject {
     property bool bounceEnabled: true
     property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:trash"]
     property real maximumIconScale: 2.0
-    property real waveSharedScaleLimit: 1.0
     readonly property MotionPreferences desktopMotion: MotionPreferences {}
     readonly property bool effectiveReducedMotion: reducedMotion || desktopMotion.reducedMotion
     readonly property int clickDuration: bounceEnabled ? desktopMotion.clickDuration : 0

@@ -37,13 +37,18 @@ Control {
     property bool magnificationEnabled: true
     property bool reducedMotion: false
     property real maximumIconScale: 2.0
-    property real waveSharedScaleLimit: 1.0
     property int clickDuration: Kirigami.Units.longDuration
     readonly property real clickTopReserve: Math.ceil(iconSize * 0.45)
     property int waveEnterDuration: 110
     property int waveLeaveDuration: 85
-    readonly property real boundedIconScale: Number.isFinite(maximumIconScale)
+    readonly property real boundedZoomScale: Number.isFinite(maximumIconScale)
         ? Math.max(1, Math.min(3, maximumIconScale)) : 1
+    // The normal theme size retains the percentage contract. Smaller bases can
+    // reach the same theme-derived ceiling; 100% always means no enlargement.
+    readonly property real maximumIconSize: iconSize
+        + (Math.max(iconSize, metrics.maximumMagnifiedIconSize) - iconSize) * (boundedZoomScale - 1) / 2
+    readonly property real boundedIconScale: Number.isFinite(iconSize) && iconSize > 0
+        ? maximumIconSize / iconSize : 1
     readonly property real tooltipReserve: Math.ceil(tooltipFont.height
         + tooltipStyle.padding * 2 + tooltipStyle.tailHeight + tooltipStyle.gap)
     readonly property real waveTopReserve: Math.ceil((itemSize + iconSize) * 0.5 * (boundedIconScale - 1))
@@ -121,10 +126,11 @@ Control {
         pointerX: root.lastPointerX
         itemPitch: root.itemSize + root.itemSpacing
         iconSize: root.iconSize
+        // Magnify the natural icon cell, not extra layout padding in a wider slot.
+        itemSize: Math.min(root.itemSize, root.iconSize + root.metrics.itemSize - root.metrics.iconSize)
         activeIndex: root.itemCount > 0 ? Math.max(0, Math.min(root.itemCount - 1,
             Math.floor((root.lastPointerX - root.leftPadding + root.itemSpacing / 2) / wave.itemPitch))) : -1
         maximumScale: root.boundedIconScale
-        sharedScaleLimit: root.waveSharedScaleLimit
         enterDuration: root.waveEnterDuration
         leaveDuration: root.waveLeaveDuration
     }

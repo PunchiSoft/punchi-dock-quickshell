@@ -344,7 +344,6 @@ PanelWindow {
         magnificationEnabled: settings.magnificationEnabled
         reducedMotion: settings.effectiveReducedMotion
         maximumIconScale: settings.maximumIconScale
-        waveSharedScaleLimit: settings.waveSharedScaleLimit
         waveEnterDuration: settings.waveEnterDuration
         waveLeaveDuration: settings.waveLeaveDuration
         clickDuration: settings.clickDuration

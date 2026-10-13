@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.1.09 — 2026-10-13
+
+- Documented version-matched Quickshell/Qt editor setup and added official
+  reference, tooling-diagnostic and KDE-boundary guidance to the Quickshell skill.
+- Recorded the three remaining upstream tooling diagnostics, the zero-new-warning
+  policy, and the checks required to retire resolved exceptions after updates.
+- Widened the dock magnification profile to three graded neighbours per side and
+  removed the shoulder cap that stopped neighbour growth above 200% zoom.
+- Matched horizontal separation to adjacent scaled cells using constant-time
+  finite cosine sums, preserving gaps without additional layout or animation loops.
+- Derived the maximum icon ceiling from KDE metrics and decoupled it from small
+  base sizes; 100% remains unmagnified and normal-size percentage behaviour remains
+  intact. Texture and reserve bounds follow the effective magnification.
+- Added coverage for high-zoom neighbour growth, cursor transfer, exact separation,
+  small/normal/large bases and edge containment; refreshed numeric profile samples
+  for the corrected spatial contract.
+- Validation: 24 isolated CTest groups passed; the registered real-session
+  `settings_reload` probe was excluded under the existing session restriction.
+  QML lint retains the same three upstream diagnostics, with no new warnings.
+  Physical KWin/visual behavior remains separate from automated checks.
+
 ## 0.1.08 — 2026-10-12
 
 - Adopted a padded development-delivery counter, increasing once per delivery

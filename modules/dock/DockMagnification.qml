@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Wave geometry adapted from Punchi Dock Remastered's DockItem.qml.
+// Continuous proximity wave, with exact spacing between scaled cells.
 import QtQuick
+import org.kde.kirigami as Kirigami
+import "../../config"
 
 QtObject {
     id: root
@@ -9,18 +11,22 @@ QtObject {
     property bool enabled: true
     property bool reducedMotion: false
     property real pointerX: 0
-    property real itemPitch: 72
-    property real iconSize: 40
-    property real maximumScale: 1.65
-    property real sharedScaleLimit: 0.5
+    readonly property DockMetrics metrics: DockMetrics {}
+    property real itemPitch: itemSize + metrics.spacing
+    property real iconSize: metrics.iconSize
+    property real itemSize: iconSize + metrics.itemSize - metrics.iconSize
+    property real maximumScale: 2
     property int activeIndex: -1
-    property int enterDuration: 110
-    property int leaveDuration: 85
+    property int enterDuration: Kirigami.Units.longDuration
+    property int leaveDuration: Kirigami.Units.shortDuration
     property real progress: active && enabled ? 1 : 0
-    readonly property real sharedDelta: Math.min(Math.max(0, sharedScaleLimit), Math.max(0, maximumScale - 1))
-    readonly property real primaryDelta: Math.max(0, maximumScale - 1 - sharedDelta)
-    readonly property real radius: Math.max(iconSize * 3, itemPitch * 2.75)
-    readonly property real maximumShift: iconSize * sharedDelta * radius / (2 * itemPitch)
+    readonly property bool validGeometry: Number.isFinite(itemPitch) && itemPitch > 0
+        && Number.isFinite(iconSize) && iconSize > 0 && Number.isFinite(itemSize) && itemSize > 0
+    readonly property real amplitude: Number.isFinite(maximumScale) ? Math.max(0, maximumScale - 1) : 0
+    // Seven pitches across: three neighbours per side, including a soft shoulder.
+    readonly property real radius: validGeometry ? itemPitch * 3.5 : 0
+    readonly property real separationSize: validGeometry ? Math.max(iconSize, itemSize) : 0
+    readonly property real maximumShift: separationSize * amplitude * 1.75
 
     Behavior on progress {
         enabled: !root.reducedMotion
@@ -32,35 +38,43 @@ QtObject {
 
     function scaleAt(centerX: real, index: int): real {
         if (!root.enabled || root.progress <= 0 || !Number.isFinite(root.pointerX)
-                || !Number.isFinite(root.maximumScale) || root.itemPitch <= 0)
+                || !root.validGeometry)
             return 1
         if (root.reducedMotion)
             return root.active && index === root.activeIndex
-                ? 1 + Math.min(0.08, Math.max(0, root.maximumScale - 1) * 0.25) : 1
+                ? 1 + Math.min(0.08, root.amplitude * 0.25) : 1
         const distance = Math.abs(centerX - root.pointerX)
         if (distance >= root.radius)
             return 1
         const influence = 0.5 * (1 + Math.cos(Math.PI * distance / root.radius))
-        let scale = 1 + root.sharedDelta * influence * root.progress
-        const primaryRadius = root.itemPitch * 0.5
-        if (root.primaryDelta > 0 && distance < primaryRadius) {
-            const peak = 0.5 * (1 + Math.cos(Math.PI * distance / primaryRadius))
-            scale += root.primaryDelta * peak * root.progress
-        }
-        return scale
+        return 1 + root.amplitude * influence * root.progress
+    }
+
+    // Sum compact cosine samples to the left in constant time. Endpoint samples
+    // enter at zero with zero slope, preserving continuity as the cursor moves.
+    function leftInfluenceSum(normalizedDistance: real): real {
+        const first = Math.max(1, Math.floor(normalizedDistance - 3.5) + 1)
+        const last = Math.ceil(normalizedDistance + 3.5) - 1
+        if (last < first) return 0
+        const count = last - first + 1
+        const phase = Math.PI / 3.5
+        const cosineSum = Math.sin(count * phase / 2) / Math.sin(phase / 2)
+            * Math.cos(phase * (normalizedDistance - (first + last) / 2))
+        return 0.5 * (count + cosineSum)
     }
 
     function shiftAt(centerX: real): real {
         if (!root.enabled || root.reducedMotion || root.progress <= 0
-                || !Number.isFinite(root.pointerX) || root.itemPitch <= 0)
+                || !Number.isFinite(root.pointerX) || !root.validGeometry)
             return 0
         const signedDistance = centerX - root.pointerX
-        if (Math.abs(signedDistance) < 0.001)
-            return 0
-        const distance = Math.min(1, Math.abs(signedDistance) / root.radius)
-        const integrated = root.radius * (0.5 * distance
-            + Math.sin(Math.PI * distance) / (2 * Math.PI))
-        const shift = root.iconSize * root.sharedDelta * root.progress * integrated / root.itemPitch
-        return signedDistance < 0 ? -shift : shift
+        if (signedDistance === 0) return 0
+        if (Math.abs(signedDistance) >= root.radius)
+            return (signedDistance < 0 ? -1 : 1) * root.maximumShift * root.progress
+        const distance = signedDistance / root.itemPitch
+        // For adjacent cells, the shift difference equals half their combined
+        // growth. Original gaps survive at every cursor position and zoom level.
+        return root.separationSize * root.amplitude * root.progress * 0.5
+            * (root.leftInfluenceSum(distance) - root.leftInfluenceSum(-distance))
     }
 }
