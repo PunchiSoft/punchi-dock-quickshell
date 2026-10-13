@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
+import Punchi.Kde as Native
 import org.kde.kirigami as Kirigami
 import "../../../config"
 import "../../../services"
@@ -16,7 +17,7 @@ TestCase {
         SettingsWindow {
             id: window
             settings: ShellSettings {}
-            applicationCatalog: ApplicationCatalog {}
+            applicationCatalog: Native.DockItemCatalog { applications: ApplicationCatalog {} trashTitle: "Owned Trash" }
             readonly property PinnedApplications livePins: PinnedApplications {
                 catalog: window.applicationCatalog
                 pinnedIds: window.settings.pinnedIds
@@ -58,34 +59,34 @@ TestCase {
         selectOwned(dialog)
         mouseClick(findChild(dialog, "confirmAddApplication"))
         tryCompare(dialog, "visible", false)
-        compare(view.settings.pinnedIds.length, 9)
-        compare(window.livePins.count, 8)
+        compare(view.settings.pinnedIds.length, 10)
+        compare(window.livePins.count, 9)
         verify(window.hasPendingChanges)
         mouseClick(findChild(view, "closeDockSettings"))
         tryCompare(window, "visible", false)
-        compare(window.settings.pinnedIds.length, 8)
+        compare(window.settings.pinnedIds.length, 9)
         window.open()
         verify(waitForRendering(window.contentItem))
-        compare(view.settings.pinnedIds.length, 8)
+        compare(view.settings.pinnedIds.length, 9)
         dialog = openEditor(view)
         selectOwned(dialog)
         mouseClick(findChild(dialog, "confirmAddApplication"))
         tryCompare(dialog, "visible", false)
         mouseClick(findChild(view, "applyDockSettings"))
-        compare(window.livePins.count, 9)
-        compare(window.settings.pinnedIds[8], "desktop:punchi-add-sentinel.desktop")
+        compare(window.livePins.count, 10)
+        compare(window.settings.pinnedIds[9], "desktop:punchi-add-sentinel.desktop")
         verify(window.visible)
         verify(!window.hasPendingChanges)
         mouseClick(findChild(view, "resetDockSettings"))
-        compare(window.livePins.count, 9)
+        compare(window.livePins.count, 10)
         mouseClick(findChild(view, "acceptDockSettings"))
         tryCompare(window, "visible", false)
-        compare(window.livePins.count, 8)
+        compare(window.livePins.count, 9)
         window.open()
         dialog = openEditor(view)
         selectOwned(dialog)
         window.close()
-        compare(window.settings.pinnedIds.length, 8)
+        compare(window.settings.pinnedIds.length, 9)
         compare(dialog.controller.selectedAppId, "")
         window.open()
         verify(waitForRendering(window.contentItem))

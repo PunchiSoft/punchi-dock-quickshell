@@ -15,6 +15,7 @@ QtObject {
     readonly property RecentDocumentsAdapter recentDocuments: RecentDocumentsAdapter { desktopId: root.desktopId }
     readonly property FilePlacesAdapter places: FilePlacesAdapter { desktopId: root.desktopId }
     readonly property bool usesPlaces: places.count > 0
+    readonly property ApplicationMediaService media: ApplicationMediaService { desktopId: root.desktopId }
     signal requestRejected(string appId)
 
     function isConfigured(): bool {
@@ -59,6 +60,7 @@ QtObject {
         return false
     }
     function forgetRecent(): bool { return isConfigured() && recentDocuments.forget() }
+    function controlMedia(command: string): bool { return isConfigured() && media.dispatch(command) }
     function unpin(): bool {
         if (!pinned) return false
         settings.pinnedIds = settings.pinnedIds.filter(id => id !== root.appId)

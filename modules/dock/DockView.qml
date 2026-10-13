@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 import "../../components"
@@ -13,6 +14,20 @@ Control {
     required property var entries
     property var applicationState: null
     property int currentIndex: -1
+    property bool keyboardNavigationRequested: false
+    property bool restoreRemovedFocus: false
+    property string keyboardFocusId: ""
+    property int keyboardFocusIndex: -1
+    Connections {
+        target: root.entries
+        function onCountChanged() { root.reconcileKeyboardFocus() }
+    }
+    readonly property bool hostActive: root.Window.active
+    onHostActiveChanged: if (!hostActive) {
+        keyboardFocusId = ""
+        keyboardNavigationRequested = false
+    }
+    onVisibleChanged: if (!visible) keyboardNavigationRequested = false
     readonly property DockMetrics metrics: DockMetrics {}
     property int itemSize: metrics.itemSize
     property int iconSize: metrics.iconSize
@@ -42,6 +57,7 @@ Control {
     readonly property bool pointerHovered: pointerEngaged
     readonly property int itemCount: tiles.count
     signal itemActivated(string appId)
+    signal itemNewWindowRequested(string appId)
     signal closeRequested()
     signal settingsRequested()
     property bool contextMenuOpen: false
@@ -49,7 +65,16 @@ Control {
     readonly property bool keyboardFocused: currentIndex >= 0 && currentIndex < tiles.count
         && tiles.itemAt(currentIndex).activeFocus
     TapHandler {
+        acceptedButtons: Qt.MiddleButton
+        onPressedChanged: if (pressed) root.releaseKeyboardNavigation()
+        onTapped: function(eventPoint) {
+            const tile = root.launcherAt(eventPoint.position)
+            if (tile) root.itemNewWindowRequested(tile.appId)
+        }
+    }
+    TapHandler {
         acceptedButtons: Qt.RightButton
+        onPressedChanged: if (pressed) root.releaseKeyboardNavigation()
         onTapped: function(eventPoint) {
             const tile = root.launcherAt(eventPoint.position)
             root.contextMenuRequested(tile || root, tile ? tile.appId : "",
@@ -108,8 +133,34 @@ Control {
         if (index < 0 || index >= tiles.count)
             return false
         root.currentIndex = index
+        root.keyboardNavigationRequested = true
         tiles.itemAt(index).forceActiveFocus(Qt.TabFocusReason)
         return true
+    }
+    function releaseKeyboardNavigation(): void {
+        keyboardNavigationRequested = false
+        keyboardFocusId = ""
+    }
+    function restoreKeyboardFocus(): void {
+        if (!restoreRemovedFocus) return
+        restoreRemovedFocus = false
+        if (!focusItem(Math.min(keyboardFocusIndex, itemCount - 1))) keyboardFocusId = ""
+    }
+    function reconcileKeyboardFocus(): void {
+        if (!keyboardFocusId) return
+        for (let row = 0; row < entries.count; ++row)
+            if (entries.get(row).appId === keyboardFocusId) return
+        restoreRemovedFocus = true
+        currentIndex = Math.min(keyboardFocusIndex, entries.count - 1)
+        Qt.callLater(root.restoreKeyboardFocus)
+    }
+    function clearKeyboardFocusIdentity(): void {
+        if (restoreRemovedFocus) return
+        for (let row = 0; row < tiles.count; ++row) {
+            const tile = tiles.itemAt(row) as LauncherTile
+            if (tile && tile.activeFocus && tile.visualFocus) { keyboardFocusId = tile.appId; return }
+        }
+        keyboardFocusId = ""
     }
 
     function launcherAt(position: point): LauncherTile {
@@ -127,6 +178,7 @@ Control {
     onItemCountChanged: {
         if (root.currentIndex >= root.itemCount)
             root.currentIndex = root.itemCount - 1
+        reconcileKeyboardFocus()
     }
 
     // Observe rendered bounds without feeding them back into logical centers.
@@ -183,6 +235,25 @@ Control {
             id: tile
             tooltipsEnabled: !root.contextMenuOpen
             required property int index
+            onIndexChanged: if (activeFocus) root.currentIndex = index
+            onActiveFocusChanged: {
+                if (activeFocus) root.currentIndex = index
+                if (activeFocus && visualFocus) {
+                    root.keyboardFocusId = appId; root.keyboardFocusIndex = index
+                }
+                else Qt.callLater(root.clearKeyboardFocusIdentity)
+            }
+            onVisualFocusChanged: {
+                if (activeFocus && visualFocus) {
+                    root.keyboardFocusId = appId; root.keyboardFocusIndex = index
+                }
+                else Qt.callLater(root.clearKeyboardFocusIdentity)
+            }
+            onFocusReasonChanged: {
+                if (activeFocus && (focusReason === Qt.TabFocusReason
+                    || focusReason === Qt.BacktabFocusReason || focusReason === Qt.ShortcutFocusReason))
+                    root.keyboardNavigationRequested = true
+            }
             required appId
             parent: root
             x: root.leftPadding + index * (root.itemSize + root.itemSpacing)
@@ -200,7 +271,7 @@ Control {
             }
             magnificationEnabled: root.magnificationEnabled
             reducedMotion: root.reducedMotion || !root.visible || !root.enabled
-            clickDuration: root.clickDuration
+            clickDuration: tile.appId.startsWith("item:") ? 0 : root.clickDuration
             targetIconScale: wave.scaleAt(tile.x + tile.width / 2, tile.index)
             iconOffsetX: wave.shiftAt(tile.x + tile.width / 2)
 
@@ -208,6 +279,7 @@ Control {
                 root.currentIndex = tile.index
                 root.itemActivated(tile.appId)
             }
+            onPointerPressed: root.releaseKeyboardNavigation()
 
             Keys.onLeftPressed: root.focusItem((tile.index + tiles.count - 1) % tiles.count)
             Keys.onRightPressed: root.focusItem((tile.index + 1) % tiles.count)

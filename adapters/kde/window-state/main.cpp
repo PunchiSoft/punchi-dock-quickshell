@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "registration.h"
 #include "snapshot.h"
+#include "windowactivation.h"
+#include "commandreader.h"
 #include <QGuiApplication>
 #include <QtGui/qguiapplication_platform.h>
 #include <QSocketNotifier>
@@ -75,7 +77,16 @@ public:
         wl_callback_add_listener(m_sync, &syncListener, this);
         wl_display_flush(native->display());
     }
+    void activate(const QJsonObject &request) {
+        const auto reply = activateWindowRequest(m_model, m_available, request);
+        if (reply.isEmpty()) { QCoreApplication::exit(2); return; }
+        send(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n');
+    }
 private:
+    void send(const QByteArray &message) {
+        if (std::fwrite(message.constData(), 1, message.size(), stdout) != size_t(message.size())) QCoreApplication::quit();
+        std::fflush(stdout);
+    }
     void schedule() {
         if (m_pending) return;
         m_pending = true;
@@ -85,12 +96,13 @@ private:
     void publish() {
         const bool ready = m_available && m_model && m_model->rowCount() <= 4096;
         const QStringList ids = ready ? runningDesktopIds(*m_model) : QStringList();
-        const QByteArray snapshot = windowStateSnapshot(ready && ids.size() <= 1024, ids,
-            windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()));
+        auto object = QJsonDocument::fromJson(windowStateSnapshot(ready && ids.size() <= 1024, ids,
+            windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()))).object();
+        object.insert(QStringLiteral("activationAvailable"), ready && supportsWindowActivation(m_model));
+        const QByteArray snapshot = QJsonDocument(object).toJson(QJsonDocument::Compact) + '\n';
         if (snapshot == m_previous) return;
         m_previous = snapshot;
-        if (std::fwrite(snapshot.constData(), 1, snapshot.size(), stdout) != size_t(snapshot.size())) QCoreApplication::quit();
-        std::fflush(stdout);
+        send(snapshot);
     }
     wl_registry *m_registry = nullptr;
     wl_callback *m_sync = nullptr;
@@ -115,12 +127,8 @@ int main(int argc, char **argv)
     app.setApplicationName(QStringLiteral("punchi-window-state"));
     app.setDesktopFileName(QStringLiteral("org.punchi.Shell.WindowState"));
     app.setQuitOnLastWindowClosed(false);
-    QSocketNotifier lifetime(STDIN_FILENO, QSocketNotifier::Read);
-    QObject::connect(&lifetime, &QSocketNotifier::activated, &app, [&]() {
-        char byte;
-        if (::read(STDIN_FILENO, &byte, 1) <= 0) app.quit();
-    });
     WindowObserver observer(&app);
+    WindowCommandReader commands([&](const QJsonObject &request) { observer.activate(request); }, &app);
     QTimer::singleShot(0, &observer, [&]() { observer.start(); });
     return app.exec();
 }

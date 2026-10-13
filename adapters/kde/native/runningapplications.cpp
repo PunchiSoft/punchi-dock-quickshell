@@ -14,7 +14,8 @@ QString normalized(QString id)
 }
 }
 
-RunningApplications::RunningApplications(QObject *parent) : QObject(parent), m_visibility(this)
+RunningApplications::RunningApplications(QObject *parent)
+    : QObject(parent), m_visibility(this), m_activation(&m_process, this)
 {
     connect(&m_process, &QProcess::readyReadStandardOutput, this, &RunningApplications::consume);
     connect(&m_process, &QProcess::readyReadStandardError, this, [this]() {
@@ -45,7 +46,7 @@ bool RunningApplications::isRunning(const QString &desktopId) const
 }
 void RunningApplications::update(bool available, const QSet<QString> &ids)
 {
-    if (!available) m_visibility.clear();
+    if (!available) { m_visibility.clear(); m_activation.setAvailable(false); }
     const QSet<QString> next = available ? ids : QSet<QString>();
     if (available == m_available && next == m_ids) return;
     m_available = available;
@@ -89,10 +90,17 @@ void RunningApplications::consume()
         QJsonParseError error;
         const auto document = QJsonDocument::fromJson(line, &error);
         const auto object = document.object();
+        if (error.error == QJsonParseError::NoError && document.isObject()
+            && object.value(QStringLiteral("type")).toString() == QLatin1String("activation-result")) {
+            if (!m_activation.acceptResult(object)) { stop(); return; }
+            continue;
+        }
         if (error.error != QJsonParseError::NoError || !document.isObject()
             || object.value(QStringLiteral("version")).toInt() != 1
             || !object.value(QStringLiteral("available")).isBool()
-            || !object.value(QStringLiteral("desktopIds")).isArray()) { stop(); return; }
+            || !object.value(QStringLiteral("desktopIds")).isArray()
+            || (object.contains(QStringLiteral("activationAvailable"))
+                && !object.value(QStringLiteral("activationAvailable")).isBool())) { stop(); return; }
         const auto array = object.value(QStringLiteral("desktopIds")).toArray();
         if (array.size() > 1024) { stop(); return; }
         QSet<QString> ids;
@@ -102,5 +110,6 @@ void RunningApplications::consume()
         }
         update(object.value(QStringLiteral("available")).toBool(), ids);
         if (m_available) m_visibility.accept(object.value(QStringLiteral("visibility")).toObject());
+        m_activation.setAvailable(m_available && object.value(QStringLiteral("activationAvailable")).toBool());
     }
 }

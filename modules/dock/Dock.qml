@@ -13,7 +13,7 @@ import "../../adapters/kde"
 PanelWindow {
     id: root
     property alias preferences: settings
-    readonly property alias applicationCatalog: availableApps
+    readonly property alias applicationCatalog: itemCatalog
     property bool configuring: false
     DockConfigurationController { hostWindow: root; active: root.configuring }
     signal settingsRequested()
@@ -51,8 +51,14 @@ PanelWindow {
     onVisibleChanged: if (!visible) contextMenu.dismiss()
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dock"
-    WlrLayershell.keyboardFocus: visibilityController.surfaceVisible
+    WlrLayershell.keyboardFocus: dockFocusPolicy.acceptsKeyboard
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    DockFocusPolicy {
+        id: dockFocusPolicy
+        surfaceVisible: visibilityController.surfaceVisible
+        menuOpen: view.contextMenuOpen
+        keyboardNavigationRequested: view.keyboardNavigationRequested
+    }
 
     DockWindowGeometry {
         id: windowGeometry
@@ -71,7 +77,7 @@ PanelWindow {
         showingDesktop: overlap.showingDesktop
         configuring: root.configuring
         pointerInside: inputArea.hovered || nativeEdge.pointerInside
-        menuOpen: view.contextMenuOpen
+        menuOpen: view.contextMenuOpen || trashConfirmation.visible || trash.confirming || trashState.busy
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: settings.effectiveReducedMotion
         transitionDuration: settings.slideDuration
@@ -128,6 +134,11 @@ PanelWindow {
             visibilityController.reveal()
             return true
         }
+        function focusDock(): bool {
+            root.visible = true
+            visibilityController.reveal()
+            return view.focusItem(Math.max(0, view.currentIndex))
+        }
         function openSettings(): bool {
             root.settingsRequested()
             return true
@@ -160,6 +171,32 @@ PanelWindow {
         }
     }
     ApplicationCatalog { id: availableApps }
+    Native.DockItemCatalog {
+        id: itemCatalog
+        applications: availableApps
+        trashTitle: qsTr("Trash")
+        trashIconName: trash.iconName
+    }
+    Native.TrashState { id: trashState }
+    TrashService {
+        id: trash
+        state: trashState
+        launcher: contextApplicationAdapter
+        onOperationRejected: console.warn("Punchi Shell: trash operation rejected")
+    }
+    Connections {
+        target: trashState
+        function onOperationFinished(success, error): void {
+            if (!success) console.warn("Punchi Shell: empty trash failed:", error)
+        }
+    }
+    TrashConfirmationWindow {
+        id: trashConfirmation
+        service: trash
+        questionText: qsTr("Do you want to permanently delete all items in the Trash?")
+        warningText: qsTr("This action cannot be undone.")
+        reducedMotion: settings.effectiveReducedMotion
+    }
     RunningApplications { id: runningApps; catalog: availableApps }
     DockRestingGeometry {
         id: restingGeometry
@@ -178,7 +215,13 @@ PanelWindow {
         source: runningApps.visibilityState
         region: restingGeometry.region
     }
-    PinnedApplications { id: fixtureModel; catalog: availableApps; pinnedIds: settings.pinnedIds }
+    PinnedApplications { id: fixtureModel; catalog: itemCatalog; pinnedIds: settings.pinnedIds }
+    Native.DockApplicationsModel {
+        id: dockItems
+        pinned: fixtureModel
+        catalog: itemCatalog
+        runningDesktopIds: runningApps.available ? runningApps.desktopIds : []
+    }
 
     DesktopApplicationAdapter {
         id: applicationAdapter
@@ -190,13 +233,24 @@ PanelWindow {
     }
     ApplicationLaunchService {
         id: contextLauncher
-        entries: fixtureModel
+        entries: dockItems
         adapter: contextApplicationAdapter
         onLaunchRejected: function(appId) {
             console.warn("Punchi Shell: desktop action rejected:", appId)
         }
         onLaunchCompleted: function(desktopId, success, error) {
             if (!success) console.warn("Punchi Shell: desktop action failed:", desktopId, error)
+        }
+    }
+
+    ApplicationActivationService {
+        id: activation
+        entries: dockItems
+        launcher: launcher
+        newWindowLauncher: newInstanceLauncher
+        windowState: runningApps
+        onActivationRejected: function(appId) {
+            console.warn("Punchi Shell: window activation rejected:", appId)
         }
     }
     DockContextPopup {
@@ -206,9 +260,12 @@ PanelWindow {
         actions: contextService.actions
         recentDocuments: contextService.recentDocuments
         places: contextService.places
+        media: contextService.media
         usesPlaces: contextService.usesPlaces
         canLaunchNewWindow: contextService.canLaunchNewWindow
         pinned: contextService.pinned
+        trashItem: contextMenu.appId === "item:trash"
+        canEmptyTrash: trash.canEmpty
         onSettingsRequested: root.settingsRequested()
         onActionRequested: function(appId, actionId) { contextLauncher.launchAction(appId, actionId) }
         onPlaceRequested: function(resource) { contextService.openPlace(resource) }
@@ -219,17 +276,20 @@ PanelWindow {
         onForgetRecentRequested: contextService.forgetRecent()
         onNewWindowRequested: contextService.openNewWindow()
         onUnpinRequested: contextService.unpin()
+        onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
+        onOpenTrashRequested: trash.open()
+        onEmptyTrashRequested: trash.requestEmpty()
     }
     ApplicationContextService {
         id: contextService
-        entries: fixtureModel
+        entries: dockItems
         adapter: contextApplicationAdapter
         settings: root.preferences
         onRequestRejected: function(appId) { console.warn("Punchi Shell: context request rejected:", appId) }
     }
     ApplicationLaunchService {
         id: launcher
-        entries: fixtureModel
+        entries: dockItems
         adapter: applicationAdapter
         onLaunchCompleted: function(desktopId, success, error) {
             if (!success) console.warn("Punchi Shell: KDE application launch failed:", desktopId, error)
@@ -237,6 +297,16 @@ PanelWindow {
         }
         onLaunchRejected: function(appId) {
             console.warn("Punchi Shell: application activation rejected:", appId)
+        }
+    }
+    DesktopApplicationAdapter { id: newInstanceAdapter; activationItem: view }
+    ApplicationLaunchService {
+        id: newInstanceLauncher
+        entries: dockItems
+        adapter: newInstanceAdapter
+        onLaunchRejected: function(appId) { console.warn("Punchi Shell: new window rejected:", appId) }
+        onLaunchCompleted: function(desktopId, success, error) {
+            if (!success) console.warn("Punchi Shell: new window failed:", desktopId, error)
         }
     }
 
@@ -264,7 +334,7 @@ PanelWindow {
                 ? (1 - visibilityController.boundedSlideProgress)
                     * root.slideDistance : 0
         }
-        entries: fixtureModel
+        entries: dockItems
         itemSize: settings.itemSize
         iconSize: settings.iconSize
         itemSpacing: settings.spacing
@@ -279,7 +349,15 @@ PanelWindow {
         waveLeaveDuration: settings.waveLeaveDuration
         clickDuration: settings.clickDuration
         onSettingsRequested: root.settingsRequested()
-        onItemActivated: function(appId) { launcher.launch(appId); contextMenu.dismiss() }
+        onItemActivated: function(appId) {
+            if (appId === "item:trash") trash.open()
+            else activation.activate(appId)
+            contextMenu.dismiss()
+        }
+        onItemNewWindowRequested: function(appId) {
+            if (!appId.startsWith("item:")) activation.newWindow(appId)
+            contextMenu.dismiss()
+        }
         onCloseRequested: if (!root.configuring) root.visible = false
     }
 }

@@ -24,6 +24,7 @@ public:
     Q_INVOKABLE bool canLaunchNewWindow(const QString &desktopId) const;
     Q_INVOKABLE bool openPlace(FilePlaces *places, const QString &resource);
     Q_INVOKABLE bool openRecent(RecentDocuments *documents, const QString &resource);
+    Q_INVOKABLE bool openTrash();
 signals:
     void activationItemChanged();
     void launchFinished(const QString &desktopId, bool success, const QString &error);

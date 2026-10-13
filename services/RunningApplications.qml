@@ -11,10 +11,14 @@ QtObject {
         enabled: executable.length > 0
     }
     readonly property bool available: backend.available
+    readonly property bool configured: backend.enabled
+    readonly property list<string> desktopIds: backend.desktopIds
+    readonly property var windowActivation: backend.windowActivation
     readonly property var visibilityState: backend.visibilityState
     readonly property int revision: backend.revision + (catalog ? catalog.revision : 0)
     function isRunning(appId: string): bool {
         if (!catalog || !backend.available) return false
         return backend.isRunning(catalog.application(appId).desktopId || "")
     }
+    function isRunningDesktop(desktopId: string): bool { return backend.isRunning(desktopId) }
 }

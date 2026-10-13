@@ -14,7 +14,12 @@ TestCase {
     Component { id: fixture; SettingsWindow { settings: ShellSettings {} } }
     Component {
         id: populatedWindowFixture
-        SettingsWindow { settings: ShellSettings {} applicationCatalog: DockFixtureModel {} }
+        // This fixture covers the original eight application rows. Special-item
+        // ordering and the new defaults have their own explicit regressions.
+        SettingsWindow {
+            settings: ShellSettings { pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular"] }
+            applicationCatalog: DockFixtureModel {}
+        }
     }
     Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
     Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
@@ -82,7 +87,8 @@ TestCase {
         compare(view.settings.sizePercent, 150)
         mouseClick(control(window, "resetDockSettings"))
         compare(view.settings.sizePercent, 100)
-        compare(view.settings.pinnedIds.length, 8)
+        compare(view.settings.pinnedIds.length, 9)
+        compare(view.settings.pinnedIds[8], "item:trash")
         compare(window.settings.sizePercent, 150)
         compare(window.settings.pinnedIds.length, 2)
         // A repeated Configure action raises the existing editor without losing edits.
@@ -99,7 +105,8 @@ TestCase {
         mouseClick(control(window, "applyDockSettings"))
         compare(window.settings.sizePercent, 100)
         compare(window.settings.panelMode, "overlay")
-        compare(window.settings.pinnedIds.length, 8)
+        compare(window.settings.pinnedIds.length, 9)
+        compare(window.settings.pinnedIds[8], "item:trash")
         window.close()
     }
     function test_externalChangesAndLivePinnedConsumer(): void {

@@ -17,9 +17,12 @@ Popup {
     property var actions: []
     property var recentDocuments: null
     property var places: null
+    property var media: null
     property bool usesPlaces: false
     property bool canLaunchNewWindow: false
     property bool pinned: false
+    property bool trashItem: false
+    property bool canEmptyTrash: false
     property bool preparingToShow: false
     property int openSerial: 0
     readonly property Item mainItem: content
@@ -28,6 +31,9 @@ Popup {
         ? Math.max(0, implicitHeight + Kirigami.Units.smallSpacing - capturedBaseY) : 0
     signal settingsRequested()
     signal actionRequested(string appId, string actionId)
+    signal mediaCommandRequested(string command)
+    signal openTrashRequested()
+    signal emptyTrashRequested()
     signal placeRequested(string resource)
     signal morePlacesRequested()
     signal placesGroupRequested(string group)
@@ -94,9 +100,12 @@ Popup {
         actions: root.actions
         recentDocuments: root.recentDocuments
         places: root.places
+        media: root.media
         usesPlaces: root.usesPlaces
         canLaunchNewWindow: root.canLaunchNewWindow
         pinned: root.pinned
+        trashItem: root.trashItem
+        canEmptyTrash: root.canEmptyTrash
         itemName: root.itemName
         pointerX: geometry.capturedGeometry.x + geometry.capturedGeometry.width / 2 - root.x
         onActionRequested: function(actionId) {
@@ -104,6 +113,9 @@ Popup {
             root.dismiss()
         }
         onCloseRequested: root.dismiss()
+        onOpenTrashRequested: { root.openTrashRequested(); root.dismiss() }
+        onEmptyTrashRequested: { root.emptyTrashRequested(); root.dismiss() }
+        onMediaCommandRequested: function(command) { root.mediaCommandRequested(command); root.dismiss() }
         onPlaceRequested: function(resource) { root.placeRequested(resource); root.dismiss() }
         onMorePlacesRequested: root.morePlacesRequested()
         onPlacesGroupRequested: function(group) { root.placesGroupRequested(group) }

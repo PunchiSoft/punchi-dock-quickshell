@@ -26,7 +26,7 @@ TestCase {
             property alias settings: settings
             property alias launch: launcher
             ShellSettings { id: settings }
-            ApplicationCatalog { id: catalog }
+            Native.DockItemCatalog { id: catalog; applications: ApplicationCatalog {} trashTitle: "Owned Trash" }
             SettingsView {
                 id: view
                 width: 850
@@ -80,7 +80,7 @@ TestCase {
         const window = createTemporaryObject(fixture, test)
         const view = window.settingsView
         tryVerify(function() { return window.catalog.application("desktop:punchi-add-sentinel.desktop").installed === true })
-        tryCompare(window.dock, "itemCount", 8)
+        tryCompare(window.dock, "itemCount", 9)
         const initial = window.settings.pinnedIds.join(",")
         let dialog = null
         for (let cycle = 0; cycle < 4; ++cycle) {
@@ -98,8 +98,8 @@ TestCase {
         selectOwned(dialog)
         mouseClick(findChild(dialog, "confirmAddApplication"))
         tryCompare(dialog, "visible", false)
-        tryCompare(window.dock, "itemCount", 9)
-        compare(window.settings.pinnedIds[8], "desktop:punchi-add-sentinel.desktop")
+        tryCompare(window.dock, "itemCount", 10)
+        compare(window.settings.pinnedIds[9], "desktop:punchi-add-sentinel.desktop")
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(JSON.parse(JSON.stringify(window.settings.snapshot()))))
         compare(restored.pinnedIds.join(","), window.settings.pinnedIds.join(","))
@@ -111,7 +111,7 @@ TestCase {
         verify(!findChild(dialog, "confirmAddApplication").enabled)
         keyClick(Qt.Key_Escape)
         tryCompare(dialog, "visible", false)
-        compare(window.settings.pinnedIds.length, 9)
+        compare(window.settings.pinnedIds.length, 10)
         completion.target = window.launch
         completion.clear()
         const tile = findChild(window.dock, "launcher-desktop:punchi-add-sentinel.desktop")
@@ -121,7 +121,7 @@ TestCase {
         compare(completion.signalArguments[0][0], "punchi-add-sentinel.desktop")
         compare(completion.signalArguments[0][1], true)
         window.settings.reset()
-        tryCompare(window.dock, "itemCount", 8)
+        tryCompare(window.dock, "itemCount", 9)
         window.close()
     }
     function test_hiddenAndUnknownApplicationsAreNotSelectable() {
@@ -137,7 +137,7 @@ TestCase {
         compare(controller.accept(), false)
         controller.search("punchi-add-hidden")
         tryCompare(controller.applications, "count", 0)
-        compare(window.settings.pinnedIds.length, 8)
+        compare(window.settings.pinnedIds.length, 9)
         window.close()
     }
 

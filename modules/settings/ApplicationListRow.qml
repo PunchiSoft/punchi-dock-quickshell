@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import Punchi.Kde as Native
 
 ItemDelegate {
     id: root
@@ -11,6 +12,7 @@ ItemDelegate {
     contentItem: RowLayout {
         spacing: Kirigami.Units.largeSpacing
         Kirigami.Icon {
+            Native.IconThemeRefresh.enabled: true
             source: root.iconName || "application-x-executable"
             Layout.preferredWidth: Kirigami.Units.iconSizes.medium
             Layout.preferredHeight: Kirigami.Units.iconSizes.medium

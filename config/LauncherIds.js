@@ -3,7 +3,7 @@
 const maximumPins = 32
 const presets = ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular"]
 function valid(id) {
-    return typeof id === "string" && (presets.indexOf(id) >= 0
+    return typeof id === "string" && (id === "item:trash" || presets.indexOf(id) >= 0
         || /^desktop:[A-Za-z0-9_][A-Za-z0-9_.-]{0,254}$/.test(id))
 }
 function validList(ids) {

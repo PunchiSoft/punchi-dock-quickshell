@@ -61,7 +61,8 @@ TestCase {
         compare(settings.sizePercent, 100)
         compare(settings.maximumIconScale, 2)
         compare(settings.bounceEnabled, true)
-        compare(settings.pinnedIds.length, 8)
+        compare(settings.pinnedIds.length, 9)
+        compare(settings.pinnedIds[8], "item:trash")
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
         data.pinnedIds = ["terminal"]
         data.reducedMotion = true

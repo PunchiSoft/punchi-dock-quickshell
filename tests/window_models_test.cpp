@@ -18,6 +18,9 @@ private slots:
         auto *all = qobject_cast<QAbstractItemModel *>(models->property("allTasks").value<QObject *>());
         auto *visible = qobject_cast<QAbstractItemModel *>(models->property("visibleTasks").value<QObject *>());
         QVERIFY(all); QVERIFY(visible);
+        QVERIFY(all->metaObject()->indexOfMethod("requestActivate(QModelIndex)") >= 0);
+        QVERIFY(all->metaObject()->indexOfMethod("requestToggleMinimized(QModelIndex)") >= 0);
+        QVERIFY(all->metaObject()->indexOfMethod("requestNewInstance(QModelIndex)") >= 0);
         QVERIFY(all != visible);
         QVERIFY(!all->property("filterMinimized").toBool());
         QVERIFY(!all->property("filterByActivity").toBool());

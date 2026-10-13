@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.08 — 2026-10-12
+
+- Adopted a padded development-delivery counter, increasing once per delivery
+  commit. The first `v0.1.0` snapshot is the `0.1.00` baseline; seven subsequent
+  commits map to `0.1.01` through `0.1.07`, and this grouped delivery is `0.1.08`.
+- Added native existing-window activation/minimization, group cycling, startup
+  guards, middle-click New Window and transient running-application entries.
+- Preserved application focus during pointer use so native active-window
+  minimization can select the correct task.
+- Added reusable KDE application media controls, distinct context pointer/focus
+  states and shared application-identity matching for running windows.
+- Added the reorderable Trash item, native KIO state and operations, confirmation
+  motion, schema migration and early special-item metadata initialization.
+- Added native KDE icon-theme notification refresh without replacing icon sources
+  or delegates.
+- Documented installation/distribution requirements, user settings and defaults,
+  modular panel growth and KDE/Qt update compatibility responsibilities.
+- Validation: 24 isolated CTest groups passed; the registered real-session
+  `settings_reload` probe was excluded under the existing session restriction.
+  QML lint retains three documented upstream diagnostics, with no new warnings.
+  Physical KWin behavior and broad distribution compatibility remain separate.
+
 ## 0.1.0 — 2026-10-12
 
 - First versioned repository snapshot of the current development work.
@@ -15,7 +37,53 @@
 - The dated development entries below preserve the implementation history
   included in this snapshot.
 
-## Unreleased — 2026-10-12
+## Development history — 2026-10-12
+
+- Refresh rendered dock, Trash, context-menu and application-picker icons after
+  KDE icon-theme notifications, using the existing native KDE loader and Kirigami
+  renderer without replacing delegates or icon sources. Added isolated pixel
+  checks across repeated theme changes.
+
+- Initialized special-item metadata before QML bindings run, preventing undefined
+  Trash titles during early dock/settings model projection. Added startup and
+  reactive-title regressions without suppressing warnings.
+
+- Added a reorderable special Trash item, reactive native KIO empty/full state,
+  KDE directory-app opening, an icon-anchored Open/Empty menu and themed animated
+  confirmation. Schema 2 preserves item order and migrates legacy pins without
+  removing entries. Running applications precede trailing special items.
+- Added owned native-state and Quickshell confirmation tests; no real mounted
+  trash is emptied during validation.
+
+- Separated context-menu pointer fill from keyboard visual focus, preventing the
+  programmatically focused Configure Dock row from duplicating mouse hover.
+- Added reusable application-scoped KDE MPRIS state and native context transport,
+  including live capabilities and player departure without a global fallback.
+- Shared KDE metadata identity resolution between running snapshots and window
+  activation, covering differing executable/desktop names and rejecting ambiguous
+  aliases. Added owned native-provider and identity regressions.
+
+- Fixed the dock requesting keyboard focus merely by becoming visible, which can
+  deactivate the application before deciding whether to minimize. Pointer use
+  now follows Plasma's non-focusable panel policy; menus/explicit keyboard mode
+  retain OnDemand. Added pointer-mode regressions and deliberate focusDock IPC.
+
+- Added native window-group cycling, KDE startup-task detection and bounded
+  normal-launch reservations to suppress repeated starts. Added middle-click
+  New Window using requestNewInstance or the existing KIO fallback. A native
+  dock projection now references pinned and known running catalog applications,
+  keeping transient apps out of saved pins and restoring keyboard focus on removal.
+
+- Normal clicks now request minimization of an eligible active matching window
+  through KDE TasksModel. Inactive/minimized windows retain the activation path;
+  a non-minimizable window is not toggled. Added native eligibility and typed
+  result regression checks; physical KWin minimize/restore remains to validate.
+
+- Added normal-click activation of existing KDE application windows through the
+  dedicated backend, selecting an active or most recently used window, including
+  minimized windows. Fresh no-window results use the existing KIO launcher;
+  errors/timeouts do not launch duplicates as recovery. Explicit New Window
+  remains separate. Added bounded command/result transport and isolated tests.
 
 - Fixed the saved presentation mode reverting after a Quickshell reload. The
   session snapshot was held as a property value, which Quickshell's reloader does
@@ -65,7 +133,7 @@
   and close, or discard. Application additions and resets stay pending until
   saved; unrelated external dock settings remain current.
 
-## Unreleased — 2026-10-11
+## Development history — 2026-10-11
 
 - Added Items/General settings navigation and an application-only Add item dialog.
   Native KDE discovery and search fill application metadata; discard leaves the

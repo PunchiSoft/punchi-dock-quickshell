@@ -4,6 +4,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
+import Punchi.Kde as Native
 import "../config"
 
 ToolButton {
@@ -33,6 +34,9 @@ ToolButton {
     readonly property bool feedbackRunning: feedback.running
     readonly property real clickOffsetY: feedback.verticalOffset
     signal activated()
+    signal pointerPressed()
+    onPressed: if (focusReason === Qt.MouseFocusReason) root.pointerPressed()
+    onFocusReasonChanged: if (pressed && focusReason === Qt.MouseFocusReason) root.pointerPressed()
     property bool magnificationEnabled: true
     readonly property real visualIconScale: magnificationEnabled ? targetIconScale : 1
     property real iconOffsetX: 0
@@ -91,6 +95,7 @@ ToolButton {
     // Keep a fixed high-resolution source and animate only scene transforms.
     contentItem: Item {
         Kirigami.Icon {
+            Native.IconThemeRefresh.enabled: true
             objectName: "launcher-theme-icon"
             anchors.centerIn: parent
             width: root.highQualityIconSize

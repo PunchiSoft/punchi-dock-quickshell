@@ -3,10 +3,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import Punchi.Kde as Native
 
 ItemDelegate {
     id: root
     property bool submenu: false
+    focusPolicy: Qt.StrongFocus
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.smallSpacing
     horizontalPadding: Kirigami.Units.smallSpacing * 2
@@ -21,6 +23,7 @@ ItemDelegate {
     contentItem: RowLayout {
         spacing: root.spacing
         Kirigami.Icon {
+            Native.IconThemeRefresh.enabled: true
             source: root.icon.name
             Layout.preferredWidth: root.icon.width
             Layout.preferredHeight: root.icon.height
@@ -33,6 +36,7 @@ ItemDelegate {
             Layout.fillWidth: true
         }
         Kirigami.Icon {
+            Native.IconThemeRefresh.enabled: true
             visible: root.submenu
             source: "go-next"
             Layout.preferredWidth: root.icon.width
@@ -41,9 +45,11 @@ ItemDelegate {
     }
     background: Rectangle {
         radius: Kirigami.Units.cornerRadius
-        color: root.hovered || root.activeFocus || root.down
+        color: root.enabled && (root.hovered || root.down)
             ? Qt.alpha(Kirigami.Theme.highlightColor, 0.2) : "transparent"
+        border.width: root.visualFocus ? 2 : 0
+        border.color: Kirigami.Theme.highlightColor
     }
-    Keys.onReturnPressed: clicked()
-    Keys.onEnterPressed: clicked()
+    Keys.onReturnPressed: if (root.enabled) root.clicked()
+    Keys.onEnterPressed: if (root.enabled) root.clicked()
 }

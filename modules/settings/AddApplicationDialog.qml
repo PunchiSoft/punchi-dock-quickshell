@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import Punchi.Kde as Native
 
 Dialog {
     id: root
@@ -91,6 +92,7 @@ Dialog {
                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
             }
             Kirigami.Icon {
+                Native.IconThemeRefresh.enabled: true
                 objectName: "applicationPreviewIcon"
                 source: root.controller.selectedApplication ? root.controller.selectedApplication.appIconName : "application-x-executable"
                 Layout.preferredWidth: Kirigami.Units.iconSizes.medium

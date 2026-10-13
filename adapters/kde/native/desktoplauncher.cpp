@@ -58,6 +58,12 @@ bool DesktopLauncher::openPlace(FilePlaces *places, const QString &resource)
     return enqueue(service, places->desktopId(), {}, {url});
 }
 
+bool DesktopLauncher::openTrash()
+{
+    const auto service = KApplicationTrader::preferredService(QStringLiteral("inode/directory"));
+    return service && enqueue(service, service->storageId(), {}, {QUrl(QStringLiteral("trash:/"))});
+}
+
 QVariantList DesktopLauncher::actions(const QString &desktopId) const
 {
     QVariantList result;

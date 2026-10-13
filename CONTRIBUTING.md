@@ -8,3 +8,8 @@ settings, and protected behavioral tests. Use [the development checks](docs/deve
 and describe the observable result, validation, and limitations in pull requests.
 Do not commit private evidence, credentials, generated packages, or local SDK trees.
 Preserve attribution for reused code and assets.
+
+Delivery commits use the project's padded counter (`0.1.00`, `0.1.01`, ...),
+advancing once per grouped delivery. Follow [versioning](docs/versioning.md) and
+keep the application version declarations consistent; configuration schema and
+QML module versions have independent compatibility contracts.

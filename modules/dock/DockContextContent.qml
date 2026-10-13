@@ -13,14 +13,18 @@ Item {
     property var actions: []
     property var recentDocuments: null
     property var places: null
+    property var media: null
     property bool usesPlaces: false
     property bool canLaunchNewWindow: false
     property bool pinned: false
+    property bool trashItem: false
+    property bool canEmptyTrash: false
     property real pointerX: width / 2
     readonly property real pointerHeight: Kirigami.Units.largeSpacing
     readonly property real pointerCenter: surface.pointerCenter
     readonly property real contentPadding: Kirigami.Units.largeSpacing
     signal actionRequested(string actionId)
+    signal mediaCommandRequested(string command)
     signal placeRequested(string resource)
     signal morePlacesRequested()
     signal placesGroupRequested(string group)
@@ -31,23 +35,32 @@ Item {
     signal unpinRequested()
     signal settingsRequested()
     signal closeRequested()
+    signal openTrashRequested()
+    signal emptyTrashRequested()
     Kirigami.Theme.inherit: false
     Kirigami.Theme.colorSet: Kirigami.Theme.Window
-    readonly property real labelWidth: actions.reduce(function(width, action) {
+    readonly property real labelWidth: trashItem
+        ? Math.max(labelMetrics.advanceWidth(openTrashAction.text), labelMetrics.advanceWidth(emptyTrashAction.text))
+        : actions.reduce(function(width, action) {
         return Math.max(width, labelMetrics.advanceWidth(action.name))
     }, labelMetrics.advanceWidth(configureAction.text))
-    implicitWidth: Math.max(Kirigami.Units.gridUnit * 12,
+    implicitWidth: Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
         placesContent.visible ? placesContent.implicitWidth + contentPadding * 2 : 0,
+        mediaContent.visible ? mediaContent.implicitWidth + contentPadding * 2 : 0,
         canLaunchNewWindow ? newWindowAction.implicitWidth + contentPadding * 2 : 0,
-        pinned ? unpinAction.implicitWidth + contentPadding * 2 : 0)
+        pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
+        trashItem ? emptyTrashAction.implicitWidth + contentPadding * 2 : 0)
     FontMetrics { id: labelMetrics; font: configureAction.font }
     implicitHeight: rows.implicitHeight + contentPadding * 2 + pointerHeight
     width: implicitWidth
     height: implicitHeight
 
-    function focusFirst() { configureAction.forceActiveFocus(Qt.PopupFocusReason) }
+    function focusFirst() {
+        if (root.trashItem) openTrashAction.forceActiveFocus(Qt.PopupFocusReason)
+        else configureAction.forceActiveFocus(Qt.PopupFocusReason)
+    }
     Keys.onEscapePressed: root.closeRequested()
 
     BalloonSurface {
@@ -65,6 +78,34 @@ Item {
         anchors.topMargin: root.contentPadding
         anchors.bottomMargin: root.contentPadding + root.pointerHeight
         spacing: Kirigami.Units.smallSpacing
+        DockContextAction {
+            id: openTrashAction
+            objectName: "openTrashAction"
+            Layout.fillWidth: true
+            visible: root.trashItem
+            text: qsTr("Open")
+            icon.name: "document-open"
+            onClicked: root.openTrashRequested()
+        }
+        DockContextSeparator { visible: root.trashItem; Layout.fillWidth: true }
+        DockContextAction {
+            id: emptyTrashAction
+            objectName: "emptyTrashAction"
+            Layout.fillWidth: true
+            visible: root.trashItem
+            enabled: root.canEmptyTrash
+            text: qsTr("Empty Trash")
+            icon.name: "edit-delete"
+            onClicked: root.emptyTrashRequested()
+        }
+        DockContextMedia {
+            id: mediaContent
+            objectName: "dockContextMedia"
+            Layout.fillWidth: true
+            media: root.media
+            visible: available
+            onCommandRequested: function(command) { root.mediaCommandRequested(command) }
+        }
         DockContextPlaces {
             id: placesContent
             Layout.fillWidth: true
@@ -121,19 +162,20 @@ Item {
             id: unpinAction
             objectName: "unpinDockAction"
             Layout.fillWidth: true
-            visible: root.pinned
+            visible: root.pinned && !root.trashItem
             text: qsTr("Unpin from Dock")
             icon.name: "window-unpin"
             onClicked: root.unpinRequested()
         }
         DockContextSeparator {
-            visible: root.actions.length > 0 || root.canLaunchNewWindow || root.pinned || recentContent.visible || placesContent.visible
+            visible: !root.trashItem && (root.actions.length > 0 || root.canLaunchNewWindow || root.pinned || recentContent.visible || placesContent.visible)
             Layout.fillWidth: true
         }
         DockContextAction {
             id: configureAction
             objectName: "configureDockAction"
             Layout.fillWidth: true
+            visible: !root.trashItem
             text: qsTr("Configure Dock")
             icon.name: "preferences-system"
             onClicked: root.settingsRequested()

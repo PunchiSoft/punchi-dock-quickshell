@@ -21,7 +21,7 @@ QtObject {
     property bool magnificationEnabled: true
     property bool reducedMotion: false
     property bool bounceEnabled: true
-    property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular"]
+    property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:trash"]
     property real maximumIconScale: 2.0
     property real waveSharedScaleLimit: 1.0
     readonly property MotionPreferences desktopMotion: MotionPreferences {}
@@ -32,11 +32,11 @@ QtObject {
     readonly property int slideDuration: desktopMotion.slideDuration
 
     function snapshot(): var {
-        return {version: 1, panelMode, sizePercent, magnificationEnabled,
+        return {version: 2, panelMode, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds}
     }
     function restore(data: var): bool {
-        if (!data || data.version !== 1) return false
+        if (!data || (data.version !== 1 && data.version !== 2)) return false
         if (PanelModes.accepts(data.panelMode)) panelMode = PanelModes.normalize(data.panelMode)
         if (Number.isInteger(data.sizePercent) && data.sizePercent >= 50 && data.sizePercent <= 150)
             sizePercent = data.sizePercent
@@ -44,13 +44,17 @@ QtObject {
             maximumIconScale = data.maximumIconScale
         for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled"])
             if (typeof data[key] === "boolean") this[key] = data[key]
-        if (LauncherIds.validList(data.pinnedIds))
+        if (LauncherIds.validList(data.pinnedIds)) {
             pinnedIds = data.pinnedIds.slice()
+            if (data.version === 1 && pinnedIds.indexOf("item:trash") < 0
+                    && pinnedIds.length < LauncherIds.maximumPins)
+                pinnedIds = pinnedIds.concat(["item:trash"])
+        }
         return true
     }
     function reset(): void {
-        restore({version: 1, panelMode: "overlay", sizePercent: 100,
+        restore({version: 2, panelMode: "overlay", sizePercent: 100,
             maximumIconScale: 2, magnificationEnabled: true, reducedMotion: false,
-            bounceEnabled: true, pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular"]})
+            bounceEnabled: true, pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:trash"]})
     }
 }
