@@ -163,8 +163,8 @@ Do not restart or terminate Plasma as part of testing or restoring this prototyp
 ## Delivery versioning
 
 Use the user-approved padded delivery counter: `0.1.00`, `0.1.01`, and so on.
-The original `v0.1.0` snapshot is the `0.1.00` baseline; preserve its existing tag
-and history.
+The original `0.1.0` snapshot is the `0.1.00` baseline; preserve its commit
+history. Do not create tags or releases unless the user explicitly requests them.
 
 Advance the counter once per commit that changes application behavior:
 `shell.qml`, `modules/`, `components/`, `services/`, `adapters/`, `config/`,
