@@ -226,7 +226,7 @@ Item {
             id: locationAction
             objectName: "folderOpenLocation"
             visible: root.viewMode !== "grid"
-            text: qsTr("Open in File Manager"); icon.name: "document-open-folder"
+            text: qsTr("Open in File Manager"); icon.name: "folder-open"
             Layout.alignment: Qt.AlignRight
             onClicked: root.controller.openLocation()
         }

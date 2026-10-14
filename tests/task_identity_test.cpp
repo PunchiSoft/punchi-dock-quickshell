@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QtTest>
 #include <QStandardItemModel>
+#include <QIcon>
 #include "adapters/kde/window-state/snapshot.h"
 #include "adapters/kde/window-state/windowactivation.h"
 #include "adapters/kde/native/applicationcatalog.h"
@@ -60,6 +61,58 @@ private slots:
         QCOMPARE(runningDesktopIds(tasks), QStringList{"punchi-owned-alternative"});
         QCOMPARE(activateWindowRequest(&tasks, true, request).value("status").toString(), "not-found");
         dock.setRunningDesktopIds({}); QTRY_COMPARE(dock.rowCount(), 0);
+    }
+    void taskMetadataAddsRunningWindowsWithoutVisibleDesktopEntries() {
+        const QString desktopId = QStringLiteral("punchi-unlisted-plasmoid-settings");
+        QStandardItemModel tasks;
+        tasks.setItemRoleNames({{Qt::UserRole + 1, "IsWindow"}, {Qt::UserRole + 2, "SkipTaskbar"},
+            {Qt::UserRole + 3, "AppId"}, {Qt::UserRole + 4, "LauncherUrlWithoutIcon"},
+            {Qt::UserRole + 5, "AppName"}});
+        auto *window = new QStandardItem;
+        window->setData(true, Qt::UserRole + 1);
+        window->setData(false, Qt::UserRole + 2);
+        window->setData(desktopId, Qt::UserRole + 3);
+        window->setData(QStringLiteral("Plasma Applet Settings"), Qt::UserRole + 5);
+        window->setData(QIcon::fromTheme(QStringLiteral("preferences-system-windows")), Qt::DecorationRole);
+        tasks.appendRow(window);
+
+        const auto entries = runningApplicationEntries(tasks);
+        QCOMPARE(entries.size(), 1);
+        QCOMPARE(entries.first().toObject().value(QStringLiteral("desktopId")).toString(), desktopId);
+        QCOMPARE(entries.first().toObject().value(QStringLiteral("name")).toString(),
+            QStringLiteral("Plasma Applet Settings"));
+        QCOMPARE(entries.first().toObject().value(QStringLiteral("iconName")).toString(),
+            QStringLiteral("preferences-system-windows"));
+
+        QStandardItemModel pins, catalog;
+        DockApplicationsModel dock;
+        dock.setPinned(&pins);
+        dock.setCatalog(&catalog);
+        dock.setRunningDesktopIds({desktopId});
+        dock.setRunningApplications({QVariantMap{{QStringLiteral("desktopId"), desktopId},
+            {QStringLiteral("name"), QStringLiteral("Plasma Applet Settings")},
+            {QStringLiteral("iconName"), QStringLiteral("preferences-system-windows")}}});
+        QTRY_COMPARE(dock.rowCount(), 1);
+        const auto entry = dock.get(0);
+        QCOMPARE(entry.value(QStringLiteral("appId")).toString(),
+            QStringLiteral("desktop:punchi-unlisted-plasmoid-settings.desktop"));
+        QCOMPARE(entry.value(QStringLiteral("desktopId")).toString(), desktopId + QStringLiteral(".desktop"));
+        QCOMPARE(entry.value(QStringLiteral("title")).toString(), QStringLiteral("Plasma Applet Settings"));
+        QCOMPARE(entry.value(QStringLiteral("iconName")).toString(), QStringLiteral("preferences-system-windows"));
+
+        // Once pinned, its stable configured row replaces the transient copy.
+        pins.setItemRoleNames({{Qt::UserRole + 1, "appId"}, {Qt::UserRole + 2, "desktopId"},
+            {Qt::UserRole + 3, "title"}, {Qt::UserRole + 4, "iconName"}});
+        auto *pinned = new QStandardItem;
+        pinned->setData(QStringLiteral("desktop:punchi-unlisted-plasmoid-settings.desktop"), Qt::UserRole + 1);
+        pinned->setData(desktopId + QStringLiteral(".desktop"), Qt::UserRole + 2);
+        pinned->setData(QStringLiteral("Pinned settings"), Qt::UserRole + 3);
+        pinned->setData(QStringLiteral("configure"), Qt::UserRole + 4);
+        pins.appendRow(pinned);
+        QTRY_COMPARE(dock.get(0).value(QStringLiteral("title")).toString(), QStringLiteral("Pinned settings"));
+        dock.setRunningDesktopIds({});
+        dock.setRunningApplications({});
+        QTRY_COMPARE(dock.rowCount(), 1);
     }
 };
 QTEST_MAIN(TaskIdentityTest)

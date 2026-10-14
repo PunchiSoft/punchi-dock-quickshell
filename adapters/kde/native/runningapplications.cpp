@@ -5,6 +5,8 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QRegularExpression>
+#include <QMap>
 
 namespace {
 QString normalized(QString id)
@@ -44,13 +46,15 @@ bool RunningApplications::isRunning(const QString &desktopId) const
 {
     return m_available && m_ids.contains(normalized(desktopId));
 }
-void RunningApplications::update(bool available, const QSet<QString> &ids)
+void RunningApplications::update(bool available, const QSet<QString> &ids, const QVariantList &applicationEntries)
 {
     if (!available) { m_visibility.clear(); m_activation.setAvailable(false); }
     const QSet<QString> next = available ? ids : QSet<QString>();
-    if (available == m_available && next == m_ids) return;
+    const QVariantList nextEntries = available ? applicationEntries : QVariantList();
+    if (available == m_available && next == m_ids && nextEntries == m_applicationEntries) return;
     m_available = available;
     m_ids = next;
+    m_applicationEntries = nextEntries;
     m_revision = m_revision == INT_MAX ? 0 : m_revision + 1;
     emit changed();
 }
@@ -99,6 +103,8 @@ void RunningApplications::consume()
             || object.value(QStringLiteral("version")).toInt() != 1
             || !object.value(QStringLiteral("available")).isBool()
             || !object.value(QStringLiteral("desktopIds")).isArray()
+            || (object.contains(QStringLiteral("applications"))
+                && !object.value(QStringLiteral("applications")).isArray())
             || (object.contains(QStringLiteral("activationAvailable"))
                 && !object.value(QStringLiteral("activationAvailable")).isBool())) { stop(); return; }
         const auto array = object.value(QStringLiteral("desktopIds")).toArray();
@@ -108,7 +114,28 @@ void RunningApplications::consume()
             if (!value.isString() || normalized(value.toString()).isEmpty()) { stop(); return; }
             ids.insert(normalized(value.toString()));
         }
-        update(object.value(QStringLiteral("available")).toBool(), ids);
+        QVariantList applications;
+        const auto applicationArray = object.value(QStringLiteral("applications")).toArray();
+        if (applicationArray.size() > 256) { stop(); return; }
+        QMap<QString, QVariantMap> uniqueApplications;
+        static const QRegularExpression iconNamePattern(QStringLiteral("^[A-Za-z0-9_.-]{1,128}$"));
+        for (const auto value : applicationArray) {
+            if (!value.isObject()) { stop(); return; }
+            const auto entry = value.toObject();
+            const QString id = normalized(entry.value(QStringLiteral("desktopId")).toString());
+            const QString name = entry.value(QStringLiteral("name")).toString().trimmed();
+            QString iconName = entry.value(QStringLiteral("iconName")).toString();
+            if (id.isEmpty() || name.isEmpty() || name.size() > 128
+                || iconName.size() > 128
+                || (!iconName.isEmpty() && !iconNamePattern.match(iconName).hasMatch())) { stop(); return; }
+            if (!ids.contains(id)) { stop(); return; }
+            iconName = iconName.isEmpty() ? QStringLiteral("application-x-executable") : iconName;
+            uniqueApplications.insert(id, {{QStringLiteral("desktopId"), id},
+                {QStringLiteral("name"), name}, {QStringLiteral("iconName"), iconName}});
+        }
+        for (auto it = uniqueApplications.cbegin(); it != uniqueApplications.cend(); ++it)
+            applications.append(it.value());
+        update(object.value(QStringLiteral("available")).toBool(), ids, applications);
         if (m_available) m_visibility.accept(object.value(QStringLiteral("visibility")).toObject());
         m_activation.setAvailable(m_available && object.value(QStringLiteral("activationAvailable")).toBool());
     }

@@ -29,7 +29,7 @@ Window {
     onHeightChanged: keepFocusVisible()
     onClosing: { view.closeDialogs(); editor.cancel() }
     SettingsEditService { id: editor; settings: root.settings }
-    Shortcut { sequence: "Escape"; enabled: !view.addingApplication; onActivated: root.close() }
+    Shortcut { sequence: "Escape"; enabled: !view.addingItem; onActivated: root.close() }
     SettingsView {
         id: view
         anchors.fill: parent

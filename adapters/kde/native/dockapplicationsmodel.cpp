@@ -54,6 +54,25 @@ void DockApplicationsModel::setRunningDesktopIds(const QStringList &ids)
     if (m_running == normalized) return;
     m_running = normalized; schedule(); emit sourcesChanged();
 }
+void DockApplicationsModel::setRunningApplications(const QVariantList &applications)
+{
+    QVariantList normalized;
+    QSet<QString> seen;
+    for (const auto &value : applications.mid(0, 256)) {
+        const auto entry = value.toMap();
+        const auto desktopId = normalizedApplicationId(entry.value(QStringLiteral("desktopId")).toString());
+        const auto name = entry.value(QStringLiteral("name")).toString().trimmed().left(128);
+        auto iconName = entry.value(QStringLiteral("iconName")).toString().trimmed().left(128);
+        if (desktopId.isEmpty() || name.isEmpty() || seen.contains(desktopId)) continue;
+        if (iconName.isEmpty()) iconName = QStringLiteral("application-x-executable");
+        normalized.append(QVariantMap{{QStringLiteral("desktopId"), desktopId},
+            {QStringLiteral("name"), name}, {QStringLiteral("iconName"), iconName}});
+        seen.insert(desktopId);
+    }
+    if (m_runningApplications == normalized) return;
+    m_runningApplications = normalized;
+    schedule(); emit sourcesChanged();
+}
 int DockApplicationsModel::rowCount(const QModelIndex &parent) const { return parent.isValid() ? 0 : m_rows.size(); }
 QHash<int, QByteArray> DockApplicationsModel::roleNames() const
 {
@@ -63,7 +82,9 @@ QVariant DockApplicationsModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() < 0 || index.row() >= m_rows.size()) return {};
     if (role == Qt::DisplayRole) role = Title;
-    return field(m_rows.at(index.row()).source, roleNames().value(role));
+    const auto &row = m_rows.at(index.row());
+    return row.source.isValid() ? field(row.source, roleNames().value(role))
+        : row.fallback.value(QString::fromUtf8(roleNames().value(role)));
 }
 QVariantMap DockApplicationsModel::get(int row) const
 {
@@ -90,7 +111,7 @@ void DockApplicationsModel::rebuild()
         const auto appId = field(source, "appId").toString();
         const auto desktopId = normalizedApplicationId(field(source, "desktopId").toString());
         if (appId.isEmpty() || appIds.contains(appId)) continue;
-        next.append({appId, source}); appIds.insert(appId); identities.insert(desktopId);
+        next.append({appId, source, {}}); appIds.insert(appId); identities.insert(desktopId);
     }
     for (int row = 0; m_catalog && row < m_catalog->rowCount(); ++row) {
         const auto source = m_catalog->index(row, 0);
@@ -98,7 +119,22 @@ void DockApplicationsModel::rebuild()
         const auto desktopId = normalizedApplicationId(field(source, "desktopId").toString());
         if (appId.isEmpty() || desktopId.isEmpty() || !field(source, "installed").toBool()
             || !m_running.contains(desktopId) || identities.contains(desktopId) || appIds.contains(appId)) continue;
-        candidates.append({appId, source}); identities.insert(desktopId); appIds.insert(appId);
+        candidates.append({appId, source, {}}); identities.insert(desktopId); appIds.insert(appId);
+    }
+    // Some real window tasks (notably Plasma applet settings) have no visible
+    // desktop service. Keep them as transient entries using KDE task metadata.
+    for (const auto &value : m_runningApplications) {
+        const auto entry = value.toMap();
+        const auto desktopId = normalizedApplicationId(entry.value(QStringLiteral("desktopId")).toString());
+        const auto appId = QStringLiteral("desktop:") + desktopId + QStringLiteral(".desktop");
+        if (desktopId.isEmpty() || !m_running.contains(desktopId)
+            || identities.contains(desktopId) || appIds.contains(appId)) continue;
+        const QVariantMap fallback{{QStringLiteral("appId"), appId},
+            {QStringLiteral("desktopId"), desktopId + QStringLiteral(".desktop")},
+            {QStringLiteral("title"), entry.value(QStringLiteral("name"))},
+            {QStringLiteral("iconName"), entry.value(QStringLiteral("iconName"))}};
+        candidates.append({appId, {}, fallback});
+        identities.insert(desktopId); appIds.insert(appId);
     }
     // Running applications join before trailing special items. A special item
     // explicitly moved into the middle retains its chosen position.

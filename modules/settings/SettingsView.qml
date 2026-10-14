@@ -14,7 +14,7 @@ Pane {
     property var applicationCatalog: null
     property int currentPage: 1
     property bool hasPendingChanges: false
-    readonly property bool addingApplication: addDialog.visible
+    readonly property bool addingItem: addDialog.visible
     signal applyRequested()
     signal acceptRequested()
     signal closeRequested()
@@ -25,7 +25,7 @@ Pane {
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.largeSpacing * 2
     implicitWidth: Kirigami.Units.gridUnit * 44
-    // Preserve enough preferred height for the existing application picker.
+    // Preserve enough preferred height for the unified item picker.
     implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
         generalPage.implicitHeight + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
@@ -51,13 +51,22 @@ Pane {
             viewport.contentY = Math.max(0, Math.min(maximum, point.y + control.height + margin - viewport.height))
     }
     ApplicationPinService { id: pinService; settings: root.settings; catalog: root.applicationCatalog }
-    AddApplicationDialog {
+    AddDockItemDialog {
         id: addDialog
         controller: pinService
+        settings: itemsPage.settings
         hostItem: root
         onSearchRequested: function(text) { pinService.search(text) }
         onSelectionRequested: function(appId) { pinService.select(appId) }
-        onAddRequested: if (pinService.accept()) close()
+        onAddRequested: {
+            if (itemType === "application") {
+                if (pinService.accept()) close()
+            } else if (itemType === "container") {
+                if (itemsPage.pinContainer(containerPath, containerLayout)) close()
+            } else if (itemsPage.pinTrash()) {
+                close()
+            }
+        }
         onClosed: { pinService.cancel(); itemsPage.focusFirst() }
     }
     ButtonGroup { id: navigation }
@@ -131,7 +140,13 @@ Pane {
                     id: itemsPage
                     settings: root.settings
                     applicationCatalog: root.applicationCatalog
-                    onAddRequested: { pinService.begin(); addDialog.open() }
+                    onAddRequested: {
+                        pinService.begin()
+                        addDialog.itemType = "application"
+                        addDialog.containerPath = ""
+                        addDialog.containerLayout = "grid"
+                        addDialog.open()
+                    }
                 }
                 ScrollView {
                     id: generalScroll

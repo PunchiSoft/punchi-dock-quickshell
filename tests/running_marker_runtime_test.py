@@ -35,9 +35,10 @@ while True:
   sys.stdout.buffer.write(current+b'\\n'); sys.stdout.flush(); last=current
 ''')
         backend.chmod(0o700)
-        def write_state(available, ids):
+        def write_state(available, ids, applications=None):
             temporary = config / 'next.json'
-            temporary.write_text(json.dumps({'version': 1, 'available': available, 'desktopIds': ids}))
+            temporary.write_text(json.dumps({'version': 1, 'available': available, 'desktopIds': ids,
+                'applications': applications or []}))
             temporary.replace(config / 'state.json')
         write_state(False, [])
         pragmas = '\n'.join(line for line in (root / 'shell.qml').read_text().splitlines()
@@ -46,12 +47,20 @@ while True:
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Punchi.Kde as Native
 import "modules/dock"
 import "services"
 ShellRoot {
     ApplicationCatalog { id: catalog }
     RunningApplications { id: running; catalog: catalog }
-    PinnedApplications { id: entries; catalog: catalog; pinnedIds: ["desktop:punchi-running-sentinel.desktop"] }
+    PinnedApplications { id: pins; catalog: catalog; pinnedIds: ["desktop:punchi-running-sentinel.desktop"] }
+    Native.DockApplicationsModel {
+        id: entries
+        pinned: pins
+        catalog: catalog
+        runningDesktopIds: running.available ? running.desktopIds : []
+        runningApplications: running.available ? running.applicationEntries : []
+    }
     FloatingWindow {
         visible: true
         implicitWidth: dock.implicitWidth
@@ -73,8 +82,16 @@ ShellRoot {
         function state(): string {
             const tile = find(dock, "launcher-desktop:punchi-running-sentinel.desktop")
             const marker = find(dock, "launcher-running-marker-desktop:punchi-running-sentinel.desktop")
+            const transientId = "desktop:org.punchi.plasmoid-settings.desktop"
+            const transient = find(dock, "launcher-" + transientId)
+            const transientDot = find(dock, "launcher-running-marker-" + transientId)
+            const transientEntry = entries.get(1)
             return JSON.stringify({available: running.available, count: dock.itemCount,
-                running: tile ? tile.running : false, marker: marker ? marker.visible : false})
+                running: tile ? tile.running : false, marker: marker ? marker.visible : false,
+                transientRunning: transient ? transient.running : false,
+                transientMarker: transientDot ? transientDot.visible : false,
+                transientTitle: transientEntry ? transientEntry.title : "",
+                transientIcon: transientEntry ? transientEntry.iconName : ""})
         }
         function stopBackend(): bool { running.backend.enabled = false; return true }
     }
@@ -105,6 +122,14 @@ ShellRoot {
                 state_when(lambda s: s['count'] == 1 and not s['marker'] and not s['available'])
                 write_state(True, ['punchi-running-sentinel'])
                 state_when(lambda s: s['available'] and s['running'] and s['marker'])
+                write_state(True, ['punchi-running-sentinel', 'org.punchi.plasmoid-settings'],
+                    [{'desktopId': 'org.punchi.plasmoid-settings', 'name': 'Plasma Applet Settings',
+                      'iconName': 'preferences-system-windows'}])
+                state_when(lambda s: s['count'] == 2 and s['transientRunning']
+                    and s['transientMarker'] and s['transientTitle'] == 'Plasma Applet Settings'
+                    and s['transientIcon'] == 'preferences-system-windows')
+                write_state(True, ['punchi-running-sentinel'])
+                state_when(lambda s: s['count'] == 1 and not s['transientRunning'])
                 write_state(True, ['other-app'])
                 state_when(lambda s: s['available'] and not s['running'] and not s['marker'])
                 write_state(True, ['punchi-running-sentinel.desktop'])

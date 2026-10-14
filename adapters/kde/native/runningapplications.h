@@ -18,6 +18,7 @@ class RunningApplications : public QObject, public QQmlParserStatus
     Q_PROPERTY(bool available READ available NOTIFY changed)
     Q_PROPERTY(int revision READ revision NOTIFY changed)
     Q_PROPERTY(QStringList desktopIds READ desktopIds NOTIFY changed)
+    Q_PROPERTY(QVariantList applicationEntries READ applicationEntries NOTIFY changed)
     Q_PROPERTY(WindowVisibilityState *visibilityState READ visibilityState CONSTANT)
     Q_PROPERTY(WindowActivation *windowActivation READ windowActivation CONSTANT)
 public:
@@ -28,6 +29,7 @@ public:
     bool available() const { return m_available; }
     int revision() const { return m_revision; }
     QStringList desktopIds() const { auto ids = m_ids.values(); ids.sort(); return ids; }
+    QVariantList applicationEntries() const { return m_applicationEntries; }
     WindowVisibilityState *visibilityState() { return &m_visibility; }
     WindowActivation *windowActivation() { return &m_activation; }
     void setExecutable(const QString &value);
@@ -43,11 +45,12 @@ private:
     void restart();
     void stop();
     void consume();
-    void update(bool available, const QSet<QString> &ids = {});
+    void update(bool available, const QSet<QString> &ids = {}, const QVariantList &applicationEntries = {});
     QProcess m_process;
     QString m_executable;
     QByteArray m_buffer;
     QSet<QString> m_ids;
+    QVariantList m_applicationEntries;
     WindowVisibilityState m_visibility;
     WindowActivation m_activation;
     bool m_enabled = false;

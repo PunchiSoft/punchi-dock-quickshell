@@ -259,6 +259,7 @@ PanelWindow {
         pinned: fixtureModel
         catalog: itemCatalog
         runningDesktopIds: runningApps.available ? runningApps.desktopIds : []
+        runningApplications: runningApps.available ? runningApps.applicationEntries : []
     }
 
     Native.KWinMinimizeEffectController { id: minimizeEffects }

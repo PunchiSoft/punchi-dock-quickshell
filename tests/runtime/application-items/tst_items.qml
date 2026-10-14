@@ -26,7 +26,12 @@ TestCase {
             property alias settings: settings
             property alias launch: launcher
             ShellSettings { id: settings }
-            Native.DockItemCatalog { id: catalog; applications: ApplicationCatalog {} trashTitle: "Owned Trash" }
+            Native.DockItemCatalog {
+                id: catalog
+                applications: ApplicationCatalog {}
+                containers: settings.containers
+                trashTitle: "Owned Trash"
+            }
             SettingsView {
                 id: view
                 width: 850
@@ -57,10 +62,10 @@ TestCase {
     }
     function openEditor(view: Item): var {
         verify(waitForRendering(view))
-        const add = findChild(view, "addDockApplication")
+        const add = findChild(view, "addDockItem")
         verify(add.enabled)
         mouseClick(add)
-        const dialog = findChild(view, "addApplicationDialog")
+        const dialog = findChild(view, "addDockItemDialog")
         tryCompare(dialog, "opened", true)
         verify(dialog.width > 0 && dialog.height > 0, "geometry " + [dialog.width, dialog.height, dialog.implicitHeight, dialog.hostWidth, dialog.hostHeight, dialog.parent].join(" / "))
         return dialog
@@ -85,21 +90,22 @@ TestCase {
         let dialog = null
         for (let cycle = 0; cycle < 4; ++cycle) {
             dialog = openEditor(view)
-            verify(!findChild(dialog, "confirmAddApplication").enabled)
+            verify(!findChild(dialog, "confirmAddItem").enabled)
             selectOwned(dialog)
-            verify(findChild(dialog, "confirmAddApplication").enabled)
+            verify(findChild(dialog, "confirmAddItem").enabled)
             compare(window.settings.pinnedIds.join(","), initial)
-            mouseClick(findChild(dialog, "discardAddApplication"))
+            mouseClick(findChild(dialog, "discardAddItem"))
             tryCompare(dialog, "visible", false)
             compare(window.settings.pinnedIds.join(","), initial)
-            tryCompare(findChild(view, "addDockApplication"), "activeFocus", true)
+            tryCompare(findChild(view, "addDockItem"), "activeFocus", true)
         }
         dialog = openEditor(view)
         selectOwned(dialog)
-        mouseClick(findChild(dialog, "confirmAddApplication"))
+        mouseClick(findChild(dialog, "confirmAddItem"))
         tryCompare(dialog, "visible", false)
         tryCompare(window.dock, "itemCount", 11)
-        compare(window.settings.pinnedIds[10], "desktop:punchi-add-sentinel.desktop")
+        compare(window.settings.pinnedIds[9], "desktop:punchi-add-sentinel.desktop")
+        compare(window.settings.pinnedIds[10], "item:trash")
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(JSON.parse(JSON.stringify(window.settings.snapshot()))))
         compare(restored.pinnedIds.join(","), window.settings.pinnedIds.join(","))
@@ -108,7 +114,7 @@ TestCase {
         compare(restored.pinnedIds.join(","), addedPins)
         dialog = openEditor(view)
         selectOwned(dialog)
-        verify(!findChild(dialog, "confirmAddApplication").enabled)
+        verify(!findChild(dialog, "confirmAddItem").enabled)
         keyClick(Qt.Key_Escape)
         tryCompare(dialog, "visible", false)
         compare(window.settings.pinnedIds.length, 11)
@@ -138,6 +144,70 @@ TestCase {
         controller.search("punchi-add-hidden")
         tryCompare(controller.applications, "count", 0)
         compare(window.settings.pinnedIds.length, 10)
+        window.close()
+    }
+
+    function test_addContainerAndSingletonTrashCanBeRemovedAndReadded() {
+        const window = createTemporaryObject(fixture, test)
+        const view = window.settingsView
+        tryCompare(window.dock, "itemCount", 10)
+
+        let dialog = openEditor(view)
+        dialog.itemType = "trash"
+        verify(!findChild(dialog, "confirmAddItem").enabled,
+            "the default Trash cannot be added twice")
+        mouseClick(findChild(dialog, "discardAddItem"))
+        tryCompare(dialog, "visible", false)
+        const trashRow = findChild(view, "configuredItem-item:trash")
+        verify(trashRow !== null)
+        const itemList = findChild(view, "settingsDockItems")
+        itemList.positionViewAtIndex(itemList.count - 1, ListView.Contain)
+        verify(waitForRendering(itemList))
+        mouseClick(trashRow)
+        compare(itemList.currentIndex, itemList.count - 1)
+        mouseClick(findChild(view, "removeDockItem"))
+        compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
+        compare(window.dock.itemCount, 9)
+
+        dialog = openEditor(view)
+        dialog.itemType = "container"
+        dialog.containerPath = "/tmp/punchi-discarded-container"
+        dialog.containerLayout = "list"
+        mouseClick(findChild(dialog, "discardAddItem"))
+        tryCompare(dialog, "visible", false)
+        compare(window.settings.containers.length, 1)
+        verify(!window.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0))
+
+        dialog = openEditor(view)
+        dialog.itemType = "trash"
+        verify(findChild(dialog, "confirmAddItem").enabled)
+        mouseClick(findChild(dialog, "confirmAddItem"))
+        tryCompare(dialog, "visible", false)
+        compare(window.settings.pinnedIds.filter(id => id === "item:trash").length, 1)
+        compare(window.dock.itemCount, 10)
+
+        dialog = openEditor(view)
+        dialog.itemType = "container"
+        dialog.containerPath = "/tmp/punchi-owned-container"
+        dialog.containerLayout = "detail"
+        verify(findChild(dialog, "confirmAddItem").enabled)
+        compare(window.settings.containers.length, 1,
+            "the selected folder stays a draft until Add")
+        mouseClick(findChild(dialog, "confirmAddItem"))
+        tryCompare(dialog, "visible", false)
+        const containerId = window.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)
+        verify(containerId.length > 0)
+        compare(window.settings.container(containerId).layout, "detail")
+        compare(window.dock.itemCount, 11)
+        const containerRow = findChild(view, "configuredItem-" + containerId)
+        verify(containerRow !== null)
+        itemList.positionViewAtIndex(itemList.count - 2, ListView.Contain)
+        verify(waitForRendering(itemList))
+        mouseClick(containerRow)
+        mouseClick(findChild(view, "removeDockItem"))
+        compare(window.settings.pinnedIds.indexOf(containerId), -1)
+        compare(window.settings.container(containerId), null)
+        compare(window.dock.itemCount, 10)
         window.close()
     }
 

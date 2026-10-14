@@ -51,7 +51,7 @@ ShellRoot {
         onTriggered: {
             if (probe.stage === 1) {
                 if (window.visible && probe.frames > probe.lastFrames
-                    && !probe.find(window.contentItem, "dockSettingsView").addingApplication) {
+                    && !probe.find(window.contentItem, "dockSettingsView").addingItem) {
                     const view = probe.find(window.contentItem, "dockSettingsView")
                     if (window.hasPendingChanges || view.settings.sizePercent !== 100
                         || view.settings.magnificationEnabled || view.settings.bounceEnabled) {
@@ -95,8 +95,8 @@ ShellRoot {
                 console.error("PUNCHI_THEME_FAILED pending edits leaked"); Qt.quit(); return
             }
             view.currentPage = 0
-            probe.find(view, "addDockApplication").clicked()
-            const dialog = probe.find(view, "addApplicationDialog")
+            probe.find(view, "addDockItem").clicked()
+            const dialog = probe.find(view, "addDockItemDialog")
             if (!dialog || !dialog.visible || dialog.width <= 0 || dialog.height <= 0
                 || dialog.contentItem.Window.window !== window) {
                 console.error("PUNCHI_THEME_FAILED editor host"); Qt.quit(); return

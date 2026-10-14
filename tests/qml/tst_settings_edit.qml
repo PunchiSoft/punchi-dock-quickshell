@@ -21,6 +21,24 @@ TestCase {
             applicationCatalog: DockFixtureModel {}
         }
     }
+    Component {
+        id: itemManagementWindowFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            applicationCatalog: ListModel {
+                ListElement { appId: "files"; desktopId: "org.kde.dolphin"; title: "Files"; iconName: "folder" }
+                ListElement { appId: "terminal"; desktopId: "org.kde.konsole"; title: "Terminal"; iconName: "utilities-terminal" }
+                ListElement { appId: "browser"; desktopId: "org.mozilla.firefox"; title: "Browser"; iconName: "internet-web-browser" }
+                ListElement { appId: "kate"; desktopId: "org.kde.kate"; title: "Kate"; iconName: "accessories-text-editor" }
+                ListElement { appId: "systemsettings"; desktopId: "org.kde.systemsettings"; title: "System Settings"; iconName: "preferences-system" }
+                ListElement { appId: "discover"; desktopId: "org.kde.discover"; title: "Discover"; iconName: "system-software-install" }
+                ListElement { appId: "gwenview"; desktopId: "org.kde.gwenview"; title: "Gwenview"; iconName: "gwenview" }
+                ListElement { appId: "okular"; desktopId: "org.kde.okular"; title: "Okular"; iconName: "okular" }
+                ListElement { appId: "item:downloads"; desktopId: ""; title: "Downloads"; iconName: "folder-downloads" }
+                ListElement { appId: "item:trash"; desktopId: ""; title: "Trash"; iconName: "user-trash" }
+            }
+        }
+    }
     Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
     Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
 
@@ -155,7 +173,7 @@ TestCase {
         verify(main.width > sidebar.width * 2)
         mouseClick(control(window, "itemsSettingsPage"))
         compare(view.currentPage, 0)
-        const add = control(window, "addDockApplication")
+        const add = control(window, "addDockItem")
         compare(add.text, "Add Item")
         compare(add.icon.name, "list-add")
         const addPosition = add.mapToItem(view, 0, 0)
@@ -221,6 +239,68 @@ TestCase {
         verify(waitForRendering(window.contentItem))
         compare(view.settings.pinnedIds[0], "terminal")
         compare(pins.get(0).appId, "terminal")
+        window.close()
+    }
+    function test_removeDockItemIsPendingUntilApplyAndRestoresOnClose(): void {
+        const window = createTemporaryObject(itemManagementWindowFixture, test)
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        mouseClick(control(window, "itemsSettingsPage"))
+        const view = control(window, "dockSettingsView")
+        const list = control(window, "settingsDockItems")
+        list.positionViewAtIndex(list.count - 1, ListView.Contain)
+        verify(waitForRendering(list))
+        mouseClick(control(window, "configuredItem-item:trash"))
+        compare(list.currentIndex, list.count - 1)
+        mouseClick(control(window, "removeDockItem"))
+        compare(view.settings.pinnedIds.indexOf("item:trash"), -1)
+        verify(window.settings.pinnedIds.indexOf("item:trash") >= 0)
+        verify(window.hasPendingChanges)
+        mouseClick(control(window, "closeDockSettings"))
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        verify(view.settings.pinnedIds.indexOf("item:trash") >= 0)
+        verify(!window.hasPendingChanges)
+        mouseClick(control(window, "itemsSettingsPage"))
+        list.positionViewAtIndex(list.count - 1, ListView.Contain)
+        verify(waitForRendering(list))
+        mouseClick(control(window, "configuredItem-item:trash"))
+        mouseClick(control(window, "removeDockItem"))
+        mouseClick(control(window, "applyDockSettings"))
+        compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
+
+        mouseClick(control(window, "addDockItem"))
+        let dialog = findChild(view, "addDockItemDialog")
+        verify(dialog !== null)
+        tryCompare(dialog, "opened", true)
+        dialog.itemType = "container"
+        dialog.containerPath = "/tmp/punchi-pending-container"
+        dialog.containerLayout = "detail"
+        mouseClick(control(dialog, "confirmAddItem"))
+        tryCompare(dialog, "visible", false)
+        const addedContainer = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)
+        verify(addedContainer.length > 0)
+        compare(view.settings.container(addedContainer).layout, "detail")
+        compare(window.settings.containers.length, 1,
+            "the container remains in the settings draft until Apply")
+        mouseClick(control(window, "closeDockSettings"))
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        verify(!view.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0))
+
+        mouseClick(control(window, "itemsSettingsPage"))
+        mouseClick(control(window, "addDockItem"))
+        dialog = findChild(view, "addDockItemDialog")
+        verify(dialog !== null)
+        tryCompare(dialog, "opened", true)
+        dialog.itemType = "trash"
+        verify(control(dialog, "confirmAddItem").enabled)
+        mouseClick(control(dialog, "confirmAddItem"))
+        tryCompare(dialog, "visible", false)
+        verify(view.settings.pinnedIds.indexOf("item:trash") >= 0)
+        compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
+        mouseClick(control(window, "applyDockSettings"))
+        verify(window.settings.pinnedIds.indexOf("item:trash") >= 0)
         window.close()
     }
 }

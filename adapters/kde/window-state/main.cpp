@@ -97,8 +97,10 @@ private:
     void publish() {
         const bool ready = m_available && m_model && m_model->rowCount() <= 4096;
         const QStringList ids = ready ? runningDesktopIds(*m_model) : QStringList();
+        const QJsonArray applications = ready ? runningApplicationEntries(*m_model) : QJsonArray();
         auto object = QJsonDocument::fromJson(windowStateSnapshot(ready && ids.size() <= 1024, ids,
-            windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()))).object();
+            windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()),
+            applications)).object();
         object.insert(QStringLiteral("activationAvailable"), ready && supportsWindowActivation(m_model));
         const QByteArray snapshot = QJsonDocument(object).toJson(QJsonDocument::Compact) + '\n';
         if (snapshot == m_previous) return;

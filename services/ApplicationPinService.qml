@@ -28,7 +28,11 @@ QtObject {
     function select(appId: string): void { selectedAppId = appId }
     function accept(): bool {
         if (!canAdd) return false
-        settings.pinnedIds = settings.pinnedIds.concat([selectedAppId])
+        const pins = settings.pinnedIds.slice()
+        const trashIndex = pins.indexOf("item:trash")
+        if (trashIndex === pins.length - 1) pins.splice(trashIndex, 0, selectedAppId)
+        else pins.push(selectedAppId)
+        settings.pinnedIds = pins
         cancel()
         return true
     }

@@ -14,13 +14,13 @@ ColumnLayout {
     property var applicationCatalog: null
     property int orderRevision: 0
     signal addRequested()
+    readonly property bool canRemoveSelected: editor.canRemove
     function focusFirst(): void { addButton.forceActiveFocus(Qt.OtherFocusReason) }
     spacing: Kirigami.Units.largeSpacing
     PinnedItemsEditService { id: editor; settings: root.settings }
     // Folder containers: the selected item may point at a folder on disk. An
     // empty path is the built-in Downloads folder.
     readonly property var selectedContainer: root.settings.container(editor.selectedAppId)
-    property bool addingContainer: false
     function localPath(url): string {
         return decodeURIComponent(String(url).replace(/^file:\/\//, ""))
     }
@@ -29,33 +29,49 @@ ColumnLayout {
         const name = parts.length > 0 ? parts[parts.length - 1] : ""
         return name.length > 0 ? name : qsTr("Folder")
     }
-    function pinContainer(path: string): void {
-        const id = root.settings.addContainer(path, root.folderName(path), "folder")
-        if (id.length === 0) return
+    function pinContainer(path: string, layout: string): bool {
+        if (root.settings.pinnedIds.length >= 32) return false
+        const id = root.settings.addContainer(path, root.folderName(path), "folder", layout)
+        if (id.length === 0) return false
         const pins = root.settings.pinnedIds.slice()
-        if (pins.indexOf(id) >= 0) return
+        if (pins.indexOf(id) >= 0) return false
         // Trash stays last, matching the default profile order.
         const trash = pins.indexOf("item:trash")
         if (trash >= 0) pins.splice(trash, 0, id)
         else pins.push(id)
         root.settings.pinnedIds = pins
         editor.select(id)
+        return true
+    }
+    function pinTrash(): bool {
+        const pins = root.settings.pinnedIds.slice()
+        if (pins.indexOf("item:trash") >= 0 || pins.length >= 32) return false
+        pins.push("item:trash")
+        root.settings.pinnedIds = pins
+        editor.select("item:trash")
+        return true
     }
     RowLayout {
         Layout.fillWidth: true
         Button {
             id: addButton
-            objectName: "addDockApplication"
+            objectName: "addDockItem"
             text: qsTr("Add Item")
             icon.name: "list-add"
-            enabled: root.applicationCatalog !== null
+            enabled: true
             onClicked: root.addRequested()
         }
-        Button {
-            objectName: "addDockContainer"
-            text: qsTr("Add folder")
-            icon.name: "folder-new"
-            onClicked: { root.addingContainer = true; folderDialog.open() }
+        ToolButton {
+            objectName: "configureDockItem"
+            text: qsTr("Configure item")
+            icon.name: "configure"
+            display: AbstractButton.IconOnly
+            enabled: root.selectedContainer !== null
+            Accessible.name: text
+            ToolTip.text: text
+            ToolTip.visible: hovered || activeFocus
+            ToolTip.delay: Kirigami.Units.toolTipDelay
+            onClicked: folderViewSetting.forceActiveFocus(Qt.TabFocusReason)
         }
         ToolButton {
             objectName: "moveDockItemUp"
@@ -80,6 +96,18 @@ ColumnLayout {
             ToolTip.visible: hovered || activeFocus
             ToolTip.delay: Kirigami.Units.toolTipDelay
             onClicked: editor.move(1)
+        }
+        ToolButton {
+            objectName: "removeDockItem"
+            text: qsTr("Remove from Dock")
+            icon.name: "edit-delete"
+            display: AbstractButton.IconOnly
+            enabled: editor.canRemove
+            Accessible.name: text
+            ToolTip.text: text
+            ToolTip.visible: hovered || activeFocus
+            ToolTip.delay: Kirigami.Units.toolTipDelay
+            onClicked: editor.removeSelected()
         }
         Item { Layout.fillWidth: true }
     }
@@ -149,7 +177,7 @@ ColumnLayout {
                 objectName: "containerChooseFolder"
                 text: qsTr("Choose folder…")
                 icon.name: "folder-open"
-                onClicked: { root.addingContainer = false; folderDialog.open() }
+                onClicked: folderDialog.open()
             }
         }
         RowLayout {
@@ -157,6 +185,7 @@ ColumnLayout {
             Label { text: qsTr("View"); Layout.fillWidth: true }
             ComboBox {
                 objectName: "folderViewSetting"
+                id: folderViewSetting
                 model: [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
                 currentIndex: ["grid", "list", "detail"].indexOf(root.selectedContainer
                     ? root.selectedContainer.layout : "grid")
@@ -171,9 +200,7 @@ ColumnLayout {
         title: qsTr("Choose folder")
         onAccepted: {
             const path = root.localPath(selectedFolder)
-            if (root.addingContainer) root.pinContainer(path)
-            else root.settings.setContainerPath(editor.selectedAppId, path)
-            root.addingContainer = false
+            root.settings.setContainerPath(editor.selectedAppId, path)
         }
     }
 }

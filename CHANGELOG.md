@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+## 0.1.14 — 2026-10-14
+
+- Use the theme's `folder-open` icon for the folder container's Open entry.
+- Added transient dock entries for eligible running KDE windows that lack a
+  visible application desktop entry, using the task model's application name
+  and theme icon metadata.
+- Unified item addition for applications, Grid/List/Detail folder containers
+  and a single Trash item; Items settings can configure, reorder and remove
+  pinned entries without deleting applications or folder contents.
+
 ## 0.1.13 — 2026-10-14
 
 - Renamed the project and repository to **Punchi Dock Quickshell** and added a

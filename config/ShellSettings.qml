@@ -57,14 +57,24 @@ QtObject {
         // The built-in Downloads container keeps its historical item id.
         return appId === "item:downloads" ? "downloads" : LauncherIds.containerId(appId)
     }
-    function addContainer(path: string, title: string, icon: string): string {
+    function addContainer(path: string, title: string, icon: string, layout): string {
+        if (layout === undefined) layout = "grid"
         if (containers.length >= LauncherIds.maximumPins) return ""
         if (!LauncherIds.validContainerPath(path)) return ""
+        if (["grid", "list", "detail"].indexOf(layout) < 0) return ""
         let suffix = containers.length
         while (containers.some(entry => entry.id === "folder-" + suffix)) ++suffix
         const id = "folder-" + suffix
-        containers = containers.concat([{id, path, title, icon: icon.length > 0 ? icon : "folder", layout: "grid", sortMode: "modified"}])
+        containers = containers.concat([{id, path, title, icon: icon.length > 0 ? icon : "folder", layout, sortMode: "modified"}])
         return "item:folder:" + id
+    }
+    function removeContainer(appId: string): bool {
+        const id = containerIdOf(appId)
+        if (id.length === 0 || id === "downloads") return false
+        const next = containers.filter(entry => entry.id !== id)
+        if (next.length === containers.length) return false
+        containers = next
+        return true
     }
     function setContainerPath(appId: string, path: string): bool {
         const id = containerIdOf(appId)

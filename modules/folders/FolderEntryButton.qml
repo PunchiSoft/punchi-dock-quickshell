@@ -56,11 +56,12 @@ ItemDelegate {
                 border.color: Qt.alpha(Kirigami.Theme.textColor, 0.22)
             }
             Kirigami.Icon {
+                objectName: "folderEntryIcon"
                 Native.IconThemeRefresh.enabled: true
                 anchors.centerIn: parent
                 width: root.locationAction ? Kirigami.Units.iconSizes.medium : parent.width
                 height: width
-                source: root.locationAction ? "go-next" : root.entryIcon
+                source: root.locationAction ? "folder-open" : root.entryIcon
                 color: root.locationAction ? Kirigami.Theme.textColor : "transparent"
                 Accessible.ignored: true
             }

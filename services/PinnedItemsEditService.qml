@@ -10,6 +10,7 @@ QtObject {
     readonly property int selectedIndex: settings.pinnedIds.indexOf(selectedAppId)
     readonly property bool canMoveUp: selectedIndex > 0
     readonly property bool canMoveDown: selectedIndex >= 0 && selectedIndex < settings.pinnedIds.length - 1
+    readonly property bool canRemove: selectedIndex >= 0
 
     function select(appId: string): void {
         if (settings.pinnedIds.indexOf(appId) >= 0) selectedAppId = appId
@@ -27,6 +28,18 @@ QtObject {
         const next = settings.pinnedIds.slice()
         next.splice(to, 0, next.splice(from, 1)[0])
         settings.pinnedIds = next
+        return true
+    }
+    function removeSelected(): bool {
+        const from = selectedIndex
+        if (from < 0) return false
+        const next = settings.pinnedIds.slice()
+        const removedId = next.splice(from, 1)[0]
+        if (String(removedId).indexOf("item:folder:") === 0)
+            settings.removeContainer(removedId)
+        settings.pinnedIds = next
+        selectedAppId = next.length > 0 ? next[Math.min(from, next.length - 1)] : ""
+        previousIndex = Math.max(0, Math.min(from, next.length - 1))
         return true
     }
     onSelectedIndexChanged: if (selectedIndex >= 0) previousIndex = selectedIndex

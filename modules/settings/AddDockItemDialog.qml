@@ -2,21 +2,37 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
+import QtQuick.Dialogs
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
+import "../../config/LauncherIds.js" as LauncherIds
 
 Dialog {
     id: root
     required property var controller
+    required property var settings
     property Item hostItem: null
     property real hostWidth: parent ? parent.width : 0
     property real hostHeight: parent ? parent.height : 0
     signal searchRequested(string text)
     signal selectionRequested(string appId)
     signal addRequested()
+    property string itemType: "application"
+    property string containerPath: ""
+    property string containerLayout: "grid"
+    readonly property bool trashAlreadyPinned: settings.pinnedIds.indexOf("item:trash") >= 0
+    readonly property bool canAddContainer: containerPath.length > 0
+        && LauncherIds.validContainerPath(containerPath)
+        && settings.pinnedIds.length < LauncherIds.maximumPins
+        && settings.containers.length < LauncherIds.maximumPins
+    readonly property bool canAddTrash: !trashAlreadyPinned
+        && settings.pinnedIds.length < LauncherIds.maximumPins
+    readonly property bool canAddItem: itemType === "application" ? controller.canAdd
+        : itemType === "container" ? canAddContainer
+        : itemType === "trash" && canAddTrash
     title: qsTr("Add item to Dock")
-    objectName: "addApplicationDialog"
+    objectName: "addDockItemDialog"
     parent: hostItem && hostItem.Window.window ? hostItem.Window.window.contentItem : null
     popupType: Popup.Item
     modal: true
@@ -26,10 +42,23 @@ Dialog {
     x: (hostWidth - width) / 2
     y: (hostHeight - height) / 2
     closePolicy: Popup.CloseOnEscape
-    onOpened: search.forceActiveFocus(Qt.PopupFocusReason)
+    onOpened: itemTypeSelector.forceActiveFocus(Qt.PopupFocusReason)
+    onItemTypeChanged: if (itemType === "application" && opened)
+        search.forceActiveFocus(Qt.PopupFocusReason)
+    function localPath(url): string {
+        return decodeURIComponent(String(url).replace(/^file:\/\//, ""))
+    }
     contentItem: ColumnLayout {
         spacing: Kirigami.Units.mediumSpacing
-        Label { text: qsTr("Application"); font.bold: true }
+        ComboBox {
+            id: itemTypeSelector
+            objectName: "addItemType"
+            Layout.fillWidth: true
+            model: [qsTr("Application"), qsTr("Popup Container"), qsTr("Trash")]
+            currentIndex: ["application", "container", "trash"].indexOf(root.itemType)
+            Accessible.name: qsTr("Item type")
+            onActivated: root.itemType = ["application", "container", "trash"][currentIndex]
+        }
         TextField {
             id: search
             objectName: "applicationSearch"
@@ -37,6 +66,7 @@ Dialog {
             placeholderText: qsTr("Name or alias")
             Accessible.name: qsTr("Search applications")
             text: root.controller.query
+            visible: root.itemType === "application"
             onTextEdited: root.searchRequested(text)
         }
         ScrollView {
@@ -46,6 +76,7 @@ Dialog {
             Layout.preferredHeight: Kirigami.Units.gridUnit * 14
             Layout.minimumHeight: Kirigami.Units.gridUnit * 3
             clip: true
+            visible: root.itemType === "application"
             ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ListView {
                 id: applications
@@ -71,6 +102,7 @@ Dialog {
             objectName: "applicationDetails"
             Layout.fillWidth: true
             Layout.topMargin: Kirigami.Units.largeSpacing
+            visible: root.itemType === "application"
             columns: 2
             columnSpacing: Kirigami.Units.largeSpacing
             rowSpacing: Kirigami.Units.mediumSpacing
@@ -113,19 +145,66 @@ Dialog {
                 Layout.fillWidth: true
             }
         }
+        ColumnLayout {
+            objectName: "containerItemEditor"
+            visible: root.itemType === "container"
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Label { text: qsTr("Folder"); font.bold: true }
+            RowLayout {
+                Layout.fillWidth: true
+                Label {
+                    objectName: "newContainerPath"
+                    Layout.fillWidth: true
+                    text: root.containerPath.length > 0 ? root.containerPath : qsTr("No folder selected")
+                    textFormat: Text.PlainText
+                    elide: Text.ElideMiddle
+                }
+                Button {
+                    objectName: "chooseNewContainerFolder"
+                    text: qsTr("Choose folder…")
+                    icon.name: "folder-open"
+                    onClicked: folderDialog.open()
+                }
+            }
+            Label { text: qsTr("View"); font.bold: true }
+            ComboBox {
+                id: newContainerLayout
+                objectName: "newContainerLayout"
+                Layout.fillWidth: true
+                model: [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
+                currentIndex: ["grid", "list", "detail"].indexOf(root.containerLayout)
+                Accessible.name: qsTr("Container view")
+                onActivated: root.containerLayout = ["grid", "list", "detail"][currentIndex]
+            }
+        }
+        Kirigami.Icon {
+            objectName: "newTrashPreview"
+            visible: root.itemType === "trash"
+            source: "user-trash"
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: Kirigami.Units.iconSizes.large
+            Layout.preferredHeight: Kirigami.Units.iconSizes.large
+            Accessible.ignored: true
+        }
+        FolderDialog {
+            id: folderDialog
+            title: qsTr("Choose folder")
+            onAccepted: root.containerPath = root.localPath(selectedFolder)
+        }
         RowLayout {
             Layout.fillWidth: true
             Layout.topMargin: Kirigami.Units.largeSpacing
             Item { Layout.fillWidth: true }
             Button {
-                objectName: "confirmAddApplication"
+                objectName: "confirmAddItem"
                 text: qsTr("Add")
                 icon.name: "list-add"
-                enabled: root.controller.canAdd
+                enabled: root.canAddItem
                 onClicked: root.addRequested()
             }
             Button {
-                objectName: "discardAddApplication"
+                objectName: "discardAddItem"
                 text: qsTr("Discard")
                 onClicked: root.reject()
             }

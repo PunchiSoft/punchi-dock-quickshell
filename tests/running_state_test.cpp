@@ -122,6 +122,28 @@ private slots:
         QCOMPARE(normalizedApplicationId(QStringLiteral("org.kde.konsole.desktop")), QStringLiteral("org.kde.konsole"));
         QVERIFY(normalizedApplicationId(QStringLiteral("../unsafe.desktop")).isEmpty());
     }
+    void applicationMetadataIsParsedAndClearedWithWindowState() {
+        QTemporaryDir directory;
+        const QString state = directory.filePath(QStringLiteral("state"));
+        const QString desktopId = QStringLiteral("punchi-unlisted-plasmoid-settings");
+        const QJsonArray applications{QJsonObject{{QStringLiteral("desktopId"), desktopId},
+            {QStringLiteral("name"), QStringLiteral("Plasma Applet Settings")},
+            {QStringLiteral("iconName"), QStringLiteral("preferences-system-windows")}}};
+        write(state, windowStateSnapshot(true, {desktopId}, {}, applications));
+        RunningApplications provider;
+        provider.setExecutable(fixture(directory));
+        provider.setEnabled(true);
+        provider.componentComplete();
+        QTRY_VERIFY_WITH_TIMEOUT(provider.available(), 3000);
+        QCOMPARE(provider.applicationEntries().size(), 1);
+        const auto entry = provider.applicationEntries().first().toMap();
+        QCOMPARE(entry.value(QStringLiteral("desktopId")).toString(), desktopId);
+        QCOMPARE(entry.value(QStringLiteral("name")).toString(), QStringLiteral("Plasma Applet Settings"));
+        QCOMPARE(entry.value(QStringLiteral("iconName")).toString(), QStringLiteral("preferences-system-windows"));
+        write(state, windowStateSnapshot(true, {desktopId}));
+        QTRY_VERIFY_WITH_TIMEOUT(provider.applicationEntries().isEmpty(), 3000);
+        provider.setEnabled(false);
+    }
     void providerStreamingUpdatesUnavailableAndLifetime() {
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
