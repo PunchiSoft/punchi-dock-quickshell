@@ -115,7 +115,7 @@ that observe contracts; do not raise baselines or hide new diagnostics.
 
 ## Validation and records
 
-The actual developer workflow is documented in `docs/development.md`.
+The actual developer workflow is documented in the local `docs/development.md`.
 After implementation, configure/build the validation graph, run complete CTest,
 then run relevant real-session checks. Lint/type metadata, component behavior,
 real Quickshell loading, visual inspection, and desktop compatibility are separate
@@ -125,10 +125,13 @@ Tests own unique temporary XDG data, caches, processes, and sockets. Clean after
 success, failure, signal, and timeout. Session probes isolate their runtime dir
 and connect to the existing compositor without changing desktop configuration.
 
-Public `docs/`, skills, and tests are tracked. Private `notes/`, SDK trees, build
-output, credentials, and local diagnostics are ignored. New record directories
+Public `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `NOTICE.md`, skills and
+tests are tracked. `docs/` is a local development record and is not published
+with the repository; private `notes/`, SDK trees, build output, credentials and
+local diagnostics are ignored. New record directories
 have an index and a template when they host a repeatable workflow. Record durable
-architecture changes in docs/changelog; no private evidence goes in public docs.
+architecture changes in `CHANGELOG.md` and the local `docs/` record; no private
+evidence goes in tracked files.
 
 GitHub-ready files do not authorize a remote, commit, push, tag, or release.
 Do not restart or terminate Plasma as part of testing or restoring this prototype.
@@ -141,7 +144,7 @@ and history. Count one increment for each delivery commit, including grouped
 functional changes or documentation, not each file or individual changelog bullet.
 When a delivery is deliberately split into one commit per feature, each feature
 commit advances the counter once.
-The current delivery is `0.1.11`. Before a subsequent delivery commit, increment
+The current delivery is `0.1.12`. Before a subsequent delivery commit, increment
 the latest declared counter once and update CMake, README, CHANGELOG and the
-[versioning record](docs/versioning.md) consistently. Keep configuration schema
+local `docs/versioning.md` record consistently. Keep configuration schema
 and QML module API versions separate from the application delivery version.

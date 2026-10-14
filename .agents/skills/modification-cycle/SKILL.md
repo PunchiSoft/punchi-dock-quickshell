@@ -11,7 +11,7 @@ source of scope; inferred implementation details must not expand the feature.
 Record context, request, included/excluded scope, risks, sequential plan,
 implementation, validation, and next decisions. For substantial later changes,
 use ignored `notes/changes/change-YYYY-MM-DD-descriptor.md`; create its index and
-template when first needed. Public stage boundaries live in `docs/roadmap.md`.
+template when first needed. Stage boundaries live in the local `docs/roadmap.md`.
 
 Proceed with already authorized work; ask only for missing decisions that affect
 the result. Apply domain skills when their implementation stage begins.

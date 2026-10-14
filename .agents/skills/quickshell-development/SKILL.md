@@ -53,7 +53,7 @@ Distinguish editor diagnostics, configured `qmllint`, and runtime failures. The
 official 0.2.1 guide documents unresolved `PanelWindow` tooling support. Preserve
 valid runtime syntax and exact known upstream signatures; do not fake types,
 suppress categories, disable checking, or expand baselines to hide defects.
-See [development guidance](../../../docs/development.md) for the local workflow.
+See the local `docs/development.md` for the workflow.
 
 ## Runtime evidence
 

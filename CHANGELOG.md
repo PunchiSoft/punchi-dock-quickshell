@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.12 — 2026-10-14
+
+- Kept the development documentation under `docs/` local: it is no longer
+  published with the repository, and the files remain on disk unchanged.
+- Replaced the published `docs/` links with local file references in `README.md`,
+  `CONTRIBUTING.md`, `tests/README.md`, `AGENTS.md` and the skills, so a fresh
+  clone has no broken documentation links.
+- Corrected the documented settings-format version in the README to schema 6,
+  matching `ShellSettings.qml`.
+
 ## 0.1.11 — 2026-10-14
 
 - Added folder containers: **Add folder** in Items binds a dock item to any

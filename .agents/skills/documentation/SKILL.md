@@ -1,6 +1,6 @@
 ---
 name: documentation
-description: Maintain the English GitHub README, portable architecture documents, attribution, and honest project-stage descriptions.
+description: Maintain the English GitHub README, the local development record, attribution, and honest project-stage descriptions.
 ---
 
 # Public documentation
@@ -12,6 +12,8 @@ branding, current status, architecture links, developer guidance, and license.
 - Use only working local links and real commands; no hypothetical release URLs,
   passing badges, screenshots, or build instructions presented as current.
 - Keep public `docs/` portable and local `notes/` private.
+- Keep `docs/` local and out of the published repository; publish only
+  `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `NOTICE.md` and the skills.
 - Preserve historical records; update living architecture docs when rules change.
 - Every documentation directory has an index README; repeatable local record
   workflows also have a template when that directory is introduced.
