@@ -140,11 +140,22 @@ Do not restart or terminate Plasma as part of testing or restoring this prototyp
 
 Use the user-approved padded delivery counter: `0.1.00`, `0.1.01`, and so on.
 The original `v0.1.0` snapshot is the `0.1.00` baseline; preserve its existing tag
-and history. Count one increment for each delivery commit, including grouped
-functional changes or documentation, not each file or individual changelog bullet.
-When a delivery is deliberately split into one commit per feature, each feature
-commit advances the counter once.
-The current delivery is `0.1.12`. Before a subsequent delivery commit, increment
-the latest declared counter once and update CMake, README, CHANGELOG and the
-local `docs/versioning.md` record consistently. Keep configuration schema
+and history.
+
+Advance the counter once per commit that changes application behavior:
+`shell.qml`, `modules/`, `components/`, `services/`, `adapters/`, `config/`,
+`scripts-user/`, their native sources, or their build wiring in `CMakeLists.txt`.
+Grouped functional changes share one increment. When such a delivery is
+deliberately split into one commit per feature, each feature commit advances the
+counter once.
+
+Do not advance the counter for repository metadata or documentation-only commits:
+`.gitattributes`, `.gitignore`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
+`NOTICE.md`, `LICENSE`, `.agents/`, the local `docs/`, `scripts-dev/`, `tests/`,
+or comment-, formatting- and wording-only edits. Keep these commits marked as
+`chore:` or `docs:`; the declared delivery version stays unchanged.
+
+The current delivery is `0.1.12`. Before a commit that advances the counter,
+increment the latest declared counter once and update CMake, README, CHANGELOG and
+the local `docs/versioning.md` record consistently. Keep configuration schema
 and QML module API versions separate from the application delivery version.
