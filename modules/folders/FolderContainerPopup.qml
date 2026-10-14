@@ -70,7 +70,7 @@ Popup {
         rootLocation: root.containerLocation
         rootTitle: root.containerTitle
         onOpenDispatched: root.dismiss()
-        onOperationRejected: console.warn("Punchi Shell: folder activation rejected")
+        onOperationRejected: console.warn("Punchi Dock Quickshell: folder activation rejected")
     }
     DockContextAnchor {
         id: anchor

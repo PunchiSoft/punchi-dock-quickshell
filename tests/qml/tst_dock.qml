@@ -7,6 +7,7 @@ import QtTest
 import org.kde.kirigami as Kirigami
 import "../../modules/dock"
 import "../../services"
+import "../../config"
 
 TestCase {
     id: test
@@ -23,10 +24,20 @@ TestCase {
             entries: DockFixtureModel {}
             property alias testGeometry: geometry
             property alias testContent: content
+            property ShellSettings preferences: ShellSettings {}
+            property QtObject minimizeController: QtObject {
+                property bool available: true
+                property bool squashAvailable: true
+                property bool magicLampAvailable: true
+                property string effect: "squash"
+            }
             DockContextAnchor { id: geometry }
             DockContextContent {
                 id: content
                 visible: false
+                settings: dock.preferences
+                dockBackground: true
+                minimizeEffectController: dock.minimizeController
                 onSettingsRequested: { visible = false; dock.settingsRequested() }
                 onCloseRequested: visible = false
             }
@@ -163,6 +174,83 @@ TestCase {
         keyClick(Qt.Key_F10, Qt.ShiftModifier)
         compare(content.visible, false)
         compare(settingsSpy.count, 1)
+    }
+
+    function test_contextMenuExposesDockControlsAndPositionSubmenu() {
+        const view = createView()
+        const content = view.testContent
+        content.visible = true
+        const autoHide = findChild(content, "dockAutoHideAction")
+        const magnification = findChild(content, "dockMagnificationAction")
+        const position = findChild(content, "dockPositionSubmenu")
+        verify(autoHide !== null && magnification !== null && position !== null)
+        compare(autoHide.text, "Automatically Hide Dock")
+        compare(autoHide.marked, false)
+        compare(magnification.marked, true)
+        compare(findChild(content, "dockPosition-left").visible, false)
+        const edgeSpy = createTemporaryQmlObject(
+            'import QtTest; SignalSpy { signalName: "dockEdgeRequested" }', test)
+        edgeSpy.target = content
+        position.clicked()
+        compare(content.openDockSubmenu, "position")
+        compare(findChild(content, "dockPosition-left").visible, true)
+        findChild(content, "dockPosition-left").clicked()
+        compare(edgeSpy.count, 1)
+        compare(edgeSpy.signalArguments[0][0], "left")
+    }
+
+    function test_unpinnedRunningApplicationOffersPinToDock() {
+        const view = createView()
+        const content = view.testContent
+        content.visible = true
+        content.dockBackground = false
+        content.canPin = true
+        content.pinned = false
+        const action = findChild(content, "pinDockAction")
+        verify(action !== null)
+        compare(action.text, "Pin to Dock")
+        compare(action.visible, true)
+        const pinSpy = createTemporaryQmlObject(
+            'import QtTest; SignalSpy { signalName: "pinRequested" }', test)
+        pinSpy.target = content
+        action.clicked()
+        compare(pinSpy.count, 1)
+        content.pinned = true
+        compare(action.visible, false)
+        content.pinned = false
+        content.canPin = false
+        compare(action.visible, false)
+        content.dockBackground = true
+        content.canPin = true
+        compare(action.visible, false)
+    }
+
+    function test_globalDockControlsNeverAppearInItemContextMenus() {
+        const view = createView()
+        const content = view.testContent
+        content.visible = true
+        content.dockBackground = false
+        for (const objectName of ["dockAutoHideAction", "dockMagnificationAction", "dockPositionSubmenu", "minimizeEffectSubmenu"])
+            compare(findChild(content, objectName).visible, false)
+        compare(findChild(content, "configureDockAction").visible, true)
+    }
+
+    function test_contextMenuReflectsAndRequestsGlobalMinimizeEffect() {
+        const view = createView()
+        const content = view.testContent
+        content.visible = true
+        const submenu = findChild(content, "minimizeEffectSubmenu")
+        verify(submenu !== null)
+        compare(submenu.visible, true)
+        const effectSpy = createTemporaryQmlObject(
+            'import QtTest; SignalSpy { signalName: "minimizeEffectRequested" }', test)
+        effectSpy.target = content
+        submenu.clicked()
+        compare(content.openDockSubmenu, "minimize")
+        compare(findChild(content, "minimizeEffect-squash").marked, true)
+        findChild(content, "minimizeEffect-magiclamp").clicked()
+        compare(effectSpy.count, 1)
+        compare(effectSpy.signalArguments[0][0], "magiclamp")
     }
 
     function test_contextMenuUsesNativeCapturedAnchor() {

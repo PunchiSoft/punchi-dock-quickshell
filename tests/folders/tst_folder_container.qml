@@ -330,7 +330,7 @@ TestCase {
         capture(window.popup.contentItem, "detail")
         window.opener.accepted = false
         // Rejection logging is an existing internal diagnostic, not UI failure.
-        ignoreWarning("Punchi Shell: folder activation rejected")
+        ignoreWarning("Punchi Dock Quickshell: folder activation rejected")
         mouseClick(item)
         verify(window.popup.visible)
         window.opener.accepted = true

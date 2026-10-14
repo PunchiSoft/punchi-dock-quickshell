@@ -219,12 +219,12 @@ PanelWindow {
         id: trash
         state: trashState
         launcher: contextApplicationAdapter
-        onOperationRejected: console.warn("Punchi Shell: trash operation rejected")
+        onOperationRejected: console.warn("Punchi Dock Quickshell: trash operation rejected")
     }
     Connections {
         target: trashState
         function onOperationFinished(success, error): void {
-            if (!success) console.warn("Punchi Shell: empty trash failed:", error)
+            if (!success) console.warn("Punchi Dock Quickshell: empty trash failed:", error)
         }
     }
     TrashConfirmationWindow {
@@ -261,6 +261,8 @@ PanelWindow {
         runningDesktopIds: runningApps.available ? runningApps.desktopIds : []
     }
 
+    Native.KWinMinimizeEffectController { id: minimizeEffects }
+
     DesktopApplicationAdapter {
         id: applicationAdapter
         activationItem: view
@@ -274,10 +276,10 @@ PanelWindow {
         entries: dockItems
         adapter: contextApplicationAdapter
         onLaunchRejected: function(appId) {
-            console.warn("Punchi Shell: desktop action rejected:", appId)
+            console.warn("Punchi Dock Quickshell: desktop action rejected:", appId)
         }
         onLaunchCompleted: function(desktopId, success, error) {
-            if (!success) console.warn("Punchi Shell: desktop action failed:", desktopId, error)
+            if (!success) console.warn("Punchi Dock Quickshell: desktop action failed:", desktopId, error)
         }
     }
 
@@ -288,12 +290,13 @@ PanelWindow {
         newWindowLauncher: newInstanceLauncher
         windowState: runningApps
         onActivationRejected: function(appId) {
-            console.warn("Punchi Shell: window activation rejected:", appId)
+            console.warn("Punchi Dock Quickshell: window activation rejected:", appId)
         }
     }
     DockContextPopup {
         id: contextMenu
         settings: settings
+        minimizeEffectController: minimizeEffects
         dockEdge: settings.dockEdge
         hostWindow: root
         hostBaseHeight: root.vertical ? root.height : root.dockAllocationHeight
@@ -303,6 +306,7 @@ PanelWindow {
         media: contextService.media
         usesPlaces: contextService.usesPlaces
         canLaunchNewWindow: contextService.canLaunchNewWindow
+        canPin: contextService.canPin
         pinned: contextService.pinned
         trashItem: contextMenu.appId === "item:trash"
         canEmptyTrash: trash.canEmpty
@@ -315,6 +319,7 @@ PanelWindow {
         onRecentRequested: function(resource) { contextService.openRecent(resource) }
         onForgetRecentRequested: contextService.forgetRecent()
         onNewWindowRequested: contextService.openNewWindow()
+        onPinRequested: contextService.pin()
         onUnpinRequested: contextService.unpin()
         onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
         onFolderSortRequested: function(appId, sortMode) { settings.setContainerSortMode(appId, sortMode) }
@@ -326,24 +331,30 @@ PanelWindow {
         }
         onOpenTrashRequested: trash.open()
         onEmptyTrashRequested: trash.requestEmpty()
+        onAutoHideRequested: settings.panelMode = settings.panelMode === "autohide" ? "overlay" : "autohide"
+        onMagnificationRequested: settings.magnificationEnabled = !settings.magnificationEnabled
+        onDockEdgeRequested: function(edge) { settings.dockEdge = edge }
+        onMinimizeEffectRequested: function(effect) {
+            if (!minimizeEffects.setEffect(effect)) console.warn("Punchi Dock Quickshell: KWin minimize effect update failed")
+        }
     }
     ApplicationContextService {
         id: contextService
         entries: dockItems
         adapter: contextApplicationAdapter
         settings: root.preferences
-        onRequestRejected: function(appId) { console.warn("Punchi Shell: context request rejected:", appId) }
+        onRequestRejected: function(appId) { console.warn("Punchi Dock Quickshell: context request rejected:", appId) }
     }
     ApplicationLaunchService {
         id: launcher
         entries: dockItems
         adapter: applicationAdapter
         onLaunchCompleted: function(desktopId, success, error) {
-            if (!success) console.warn("Punchi Shell: KDE application launch failed:", desktopId, error)
+            if (!success) console.warn("Punchi Dock Quickshell: KDE application launch failed:", desktopId, error)
             root.applicationLaunchFinished(desktopId, success, error)
         }
         onLaunchRejected: function(appId) {
-            console.warn("Punchi Shell: application activation rejected:", appId)
+            console.warn("Punchi Dock Quickshell: application activation rejected:", appId)
         }
     }
     DesktopApplicationAdapter { id: newInstanceAdapter; activationItem: view }
@@ -351,9 +362,9 @@ PanelWindow {
         id: newInstanceLauncher
         entries: dockItems
         adapter: newInstanceAdapter
-        onLaunchRejected: function(appId) { console.warn("Punchi Shell: new window rejected:", appId) }
+        onLaunchRejected: function(appId) { console.warn("Punchi Dock Quickshell: new window rejected:", appId) }
         onLaunchCompleted: function(desktopId, success, error) {
-            if (!success) console.warn("Punchi Shell: new window failed:", desktopId, error)
+            if (!success) console.warn("Punchi Dock Quickshell: new window failed:", desktopId, error)
         }
     }
 

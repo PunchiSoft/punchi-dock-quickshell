@@ -123,10 +123,10 @@ ShellRoot {
             else probe.completed++
         }
     }
-    QtObject { id: settings; property var pinnedIds: ["test"] }
+    QtObject { id: settings; property var pinnedIds: ["desktop:punchi-recent-sentinel.desktop"] }
     ListModel {
         id: entries
-        ListElement { appId: "test"; desktopId: "punchi-recent-sentinel" }
+        ListElement { appId: "desktop:punchi-recent-sentinel.desktop"; desktopId: "punchi-recent-sentinel" }
     }
     ApplicationContextService { id: context; entries: entries; settings: settings; adapter: adapter }
     Instantiator {
@@ -142,13 +142,13 @@ ShellRoot {
             if (++probe.ticks > 50) { probe.reject("model timed out"); return }
             if (probe.stage === 0) {
                 if (adapter.applicationCount === 0) return
-                context.select("test")
+                context.select("desktop:punchi-recent-sentinel.desktop")
                 probe.stage++
             } else if (probe.stage === 1) {
                 if (rows.count !== 5) return
                 if (rows.objectAt(0).name !== "picture 6.png"
                     || rows.objectAt(4).name !== "picture 2.png"
-                    || !context.canLaunchNewWindow || !context.pinned
+                    || !context.canLaunchNewWindow || !context.pinned || context.canPin
                     || adapter.canLaunchNewWindow("punchi-single-sentinel")
                     || adapter.canLaunchNewWindow("/tmp/unsafe.desktop")
                     || context.openRecent("/not-in-current-history.png")) {
@@ -164,9 +164,21 @@ ShellRoot {
                 probe.stage++
             } else if (probe.stage === 3) {
                 if (rows.count !== 0) return
-                if (!context.unpin() || context.pinned || settings.pinnedIds.length !== 0 || context.unpin()) {
+                if (!context.unpin() || context.pinned || !context.canPin || settings.pinnedIds.length !== 0 || context.unpin()) {
                     probe.reject("unpin did not update settings"); return
                 }
+                if (!context.pin() || !context.pinned || context.canPin
+                    || settings.pinnedIds[0] !== "desktop:punchi-recent-sentinel.desktop" || context.pin()) {
+                    probe.reject("pin did not add the eligible running app exactly once"); return
+                }
+                if (!context.unpin()) { probe.reject("could not reset pin eligibility fixture"); return }
+                settings.pinnedIds = Array.from({length: 32}, function(_, index) {
+                    return "desktop:pinned-limit-" + index + ".desktop"
+                })
+                if (context.canPin || context.pin()) {
+                    probe.reject("maximum pin count was not enforced"); return
+                }
+                settings.pinnedIds = []
                 context.select("not-configured")
                 if (context.appId !== "" || context.canLaunchNewWindow || context.openNewWindow()) {
                     probe.reject("unknown app accepted"); return

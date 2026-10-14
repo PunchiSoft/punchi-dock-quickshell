@@ -163,7 +163,7 @@ ShellRoot {
                                        and s['mode'] == mode and not s['pending'])
                     assert (state['exclusiveZone'] > 0) == (mode == 'reserve'), state
                     assert state['draftMode'] == mode, state
-                    saved = json.loads((Path(env['XDG_CONFIG_HOME']) / 'punchi-shell.json').read_text())
+                    saved = json.loads((Path(env['XDG_CONFIG_HOME']) / 'punchi-dock-quickshell.json').read_text())
                     assert saved['panelMode'] == mode, saved
                     call('configurationProbe', 'close')
                     state_when(lambda s: not s['settingsVisible'] and s['mode'] == mode)

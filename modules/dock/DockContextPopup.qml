@@ -16,14 +16,17 @@ Popup {
     property alias capturedGeometry: geometry.capturedGeometry
     property real capturedBaseY: 0
     property string appId: ""
+    readonly property bool dockBackground: appId.length === 0
     property var settings: null
     readonly property var folderContainer: settings ? settings.container(appId) : null
     property var actions: []
     property var recentDocuments: null
     property var places: null
     property var media: null
+    property var minimizeEffectController: null
     property bool usesPlaces: false
     property bool canLaunchNewWindow: false
+    property bool canPin: false
     property bool pinned: false
     property bool trashItem: false
     property bool canEmptyTrash: false
@@ -41,6 +44,10 @@ Popup {
     signal folderSortRequested(string appId, string sortMode)
     signal folderLayoutRequested(string appId, string layout)
     signal emptyTrashRequested()
+    signal autoHideRequested()
+    signal magnificationRequested()
+    signal dockEdgeRequested(string edge)
+    signal minimizeEffectRequested(string effect)
     signal placeRequested(string resource)
     signal morePlacesRequested()
     signal placesGroupRequested(string group)
@@ -49,6 +56,7 @@ Popup {
     signal forgetRecentRequested()
     signal newWindowRequested()
     signal unpinRequested()
+    signal pinRequested()
     parent: hostWindow ? hostWindow.contentItem : null
     popupType: Popup.Item
     modal: false
@@ -115,10 +123,14 @@ Popup {
         recentDocuments: root.recentDocuments
         places: root.places
         media: root.media
+        settings: root.settings
+        minimizeEffectController: root.minimizeEffectController
         usesPlaces: root.usesPlaces
         canLaunchNewWindow: root.canLaunchNewWindow
+        canPin: root.canPin
         pinned: root.pinned
         trashItem: root.trashItem
+        dockBackground: root.dockBackground
         folderItem: root.folderContainer !== null
         folderContainer: root.folderContainer
         canEmptyTrash: root.canEmptyTrash
@@ -144,8 +156,13 @@ Popup {
         onRecentRequested: function(resource) { root.recentRequested(resource); root.dismiss() }
         onForgetRecentRequested: { root.forgetRecentRequested(); root.dismiss() }
         onNewWindowRequested: { root.newWindowRequested(); root.dismiss() }
+        onPinRequested: { root.dismiss(); root.pinRequested() }
         // Dismiss before removing the anchor's model row.
         onUnpinRequested: { root.dismiss(); root.unpinRequested() }
         onSettingsRequested: { root.dismiss(); root.settingsRequested() }
+        onAutoHideRequested: { root.dismiss(); root.autoHideRequested() }
+        onMagnificationRequested: { root.dismiss(); root.magnificationRequested() }
+        onDockEdgeRequested: function(edge) { root.dismiss(); root.dockEdgeRequested(edge) }
+        onMinimizeEffectRequested: function(effect) { root.dismiss(); root.minimizeEffectRequested(effect) }
     }
 }

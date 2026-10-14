@@ -10,7 +10,7 @@ Window {
     required property ShellSettings settings
     property var applicationCatalog: null
     readonly property bool hasPendingChanges: editor.dirty
-    title: qsTr("Punchi Shell — Dock settings")
+    title: qsTr("Punchi Dock Quickshell — Dock settings")
     visible: false
     width: view.implicitWidth
     height: Math.min(view.implicitHeight, Screen.height * 0.85)

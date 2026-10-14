@@ -1,11 +1,12 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-shell VERSION 0.1.12 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.13 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus)
 find_package(KF6KIO REQUIRED)
 find_package(KF6Service REQUIRED)
 find_package(KF6CoreAddons REQUIRED)
+find_package(KF6Config REQUIRED)
 find_package(KF6WindowSystem 6.19 REQUIRED)
 find_package(PlasmaActivitiesStats REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -54,13 +55,15 @@ qt_add_qml_module(punchikde
         adapters/kde/native/runningapplications.h adapters/kde/native/runningapplications.cpp
         adapters/kde/native/windowvisibilitystate.h adapters/kde/native/windowvisibilitystate.cpp
         adapters/kde/native/windowactivation.h adapters/kde/native/windowactivation.cpp
-        adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp)
-target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem Plasma::ActivitiesStats)
+        adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp
+        adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
+target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats)
 target_include_directories(punchikde PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/native)
 target_link_libraries(punchikde PRIVATE punchi_edge_protocols)
 add_executable(punchi-window-state adapters/kde/window-state/main.cpp
-    adapters/kde/window-state/registration.cpp adapters/kde/window-state/windowactivation.cpp)
-target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml KF6::Service KF6::WindowSystem PkgConfig::WaylandClient)
+    adapters/kde/window-state/registration.cpp adapters/kde/window-state/windowactivation.cpp
+    adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
+target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml Qt6::DBus KF6::ConfigCore KF6::Service KF6::WindowSystem PkgConfig::WaylandClient)
 add_library(punchi_task_identity STATIC adapters/kde/window-state/taskidentity.cpp)
 target_link_libraries(punchi_task_identity PUBLIC Qt6::Gui KF6::Service KF6::CoreAddons)
 target_link_libraries(punchi-window-state PRIVATE punchi_task_identity)
@@ -92,6 +95,12 @@ if(BUILD_TESTING)
         adapters/kde/native/applicationcatalog.cpp adapters/kde/native/dockapplicationsmodel.cpp)
     target_include_directories(task_identity_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(task_identity_test PRIVATE Qt6::Test Qt6::Qml Qt6::Quick punchi_task_identity)
+    add_executable(kwin_minimize_effect_test tests/kwin_minimize_effect_test.cpp
+        adapters/kde/native/kwinminimizeeffect.cpp)
+    target_include_directories(kwin_minimize_effect_test PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/native)
+    target_link_libraries(kwin_minimize_effect_test PRIVATE Qt6::Test Qt6::DBus KF6::ConfigCore)
+    target_compile_definitions(kwin_minimize_effect_test PRIVATE
+        PUNCHI_RESTORE_SCRIPT="${CMAKE_SOURCE_DIR}/scripts-user/restore-kde.sh")
     add_test(NAME task_identity COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
@@ -175,6 +184,10 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:window_activation_test>)
     set_tests_properties(window_activation PROPERTIES TIMEOUT 45)
+    add_test(NAME kwin_minimize_effect COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:kwin_minimize_effect_test>)
+    set_tests_properties(kwin_minimize_effect PROPERTIES TIMEOUT 45)
     add_test(NAME window_activation_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py

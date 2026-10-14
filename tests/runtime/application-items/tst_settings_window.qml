@@ -133,4 +133,30 @@ TestCase {
         tryCompare(dialog, "visible", false)
         window.close()
     }
+
+    function test_aboutPageNavigationAndProjectMetadata() {
+        const window = createTemporaryObject(settingsWindowFixture, test)
+        window.open()
+        const view = findChild(window.contentItem, "dockSettingsView")
+        const aboutNavigation = findChild(view, "aboutSettingsPage")
+        mouseClick(aboutNavigation)
+        tryCompare(view, "currentPage", 2)
+        const aboutPage = findChild(view, "settingsAboutPage")
+        verify(waitForRendering(aboutPage))
+        const name = findChild(aboutPage, "aboutProjectName")
+        const logo = findChild(aboutPage, "aboutProjectLogo")
+        const repository = findChild(aboutPage, "aboutRepositoryLink")
+        const help = findChild(aboutPage, "aboutHelpLink")
+        const authors = findChild(aboutPage, "aboutAuthors")
+        compare(name.text, "Punchi Dock Quickshell 0.1.13")
+        compare(logo.status, Image.Ready)
+        compare(repository.url, "https://github.com/PunchiSoft/punchi-dock-quickshell")
+        compare(repository.horizontalAlignment, Text.AlignLeft)
+        compare(help.url, "https://github.com/PunchiSoft/punchi-dock-quickshell/issues")
+        compare(help.horizontalAlignment, Text.AlignLeft)
+        compare(help.text, "Report an issue")
+        compare(authors.text, "Punchi Dock Contributors")
+        verify(!window.hasPendingChanges)
+        window.close()
+    }
 }

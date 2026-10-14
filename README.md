@@ -1,14 +1,14 @@
-# Punchi Dock Shell
+# Punchi Dock Quickshell
 
-<p align="center"><img src="assets/icons/punchi-shell.svg" width="120" alt="Punchi Dock Shell logo"></p>
+<p align="center"><img src="assets/icons/punchi-dock-quickshell.svg" width="120" alt="Punchi Dock Quickshell logo"></p>
 
 <p align="center"><strong>An animated, configurable dock for KDE Plasma, built with Quickshell and native Qt/KDE integration.</strong></p>
 
-Punchi Dock Shell combines animated magnification, configurable application
+Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
-**Development status:** early prototype. Current delivery: **0.1.12**.
+**Development status:** early prototype. Current delivery: **0.1.13**.
 The first Git snapshot was published as `0.1.0`, equivalent to `0.1.00` under
 the current delivery counter. Each delivery commit advances the counter once;
 see the [changelog](CHANGELOG.md). Compatibility and validation limits are
@@ -16,9 +16,10 @@ documented below.
 
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md)
 
-The development documentation under `docs/` is kept locally and is not published
-with this repository, so the references below name local files instead of
-linking to them.
+The source-checkout workflow below is the supported development installation.
+The automated setup currently covers Fedora with Quickshell 0.2.1, Qt 6.11.2
+and KDE Frameworks 6.30; other distributions need package-name adjustments and
+their own validation.
 
 ## Current features
 
@@ -48,9 +49,30 @@ and additional controls remain future work. See `docs/roadmap.md`.
 
 ## Run and return to KDE
 
-Install a Quickshell package compatible with its Qt libraries and the native
-Qt/KDE build dependencies listed in `docs/development.md`.
-Then run from the checkout directory:
+Clone the repository and enter the checkout:
+
+```bash
+git clone https://github.com/PunchiSoft/punchi-dock-quickshell.git
+cd punchi-dock-quickshell
+```
+
+On the tested Fedora setup, install Quickshell and the native build dependencies:
+
+```bash
+sudo dnf install quickshell cmake ninja-build gcc-c++ extra-cmake-modules \
+  qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qttools-devel \
+  kf6-kio-devel kf6-kservice-devel kf6-kcoreaddons-devel kf6-kconfig-devel \
+  kf6-kwindowsystem-devel plasma-activities-stats-devel wayland-devel
+```
+
+This provides the Quickshell runtime, CMake/Ninja/C++ build tools, Qt and KDE
+development libraries, and Wayland headers used by the native adapters. Install
+the Kirigami, Kirigami Addons, Plasma TaskManager and Plasma MPRIS runtime QML
+modules from the same Fedora repositories if your system does not already have
+them. Package availability can vary with Fedora release.
+
+Configure, compile the native KDE plugin and window-state helper, then start the
+Quickshell configuration:
 
 ```bash
 cmake -S . -B build -G Ninja
@@ -84,14 +106,17 @@ script selects only this project's Quickshell configuration.
 ## Dock configuration
 
 Right-click the dock and choose Configure Dock to open its settings.
-With Punchi Dock Shell running, `./scripts-user/settings.sh` also opens the window.
+With Punchi Dock Quickshell running, `./scripts-user/settings.sh` also opens the window.
 Apply saves pending changes without closing; Accept saves and closes; Close
 discards pending changes. Preferences persist independently of Plasma. See
 `docs/settings.md` for controls and storage.
 
 Preferences are stored separately for each operating-system user in
-`$XDG_CONFIG_HOME/punchi-shell.json`, or `~/.config/punchi-shell.json` when
+`$XDG_CONFIG_HOME/punchi-dock-quickshell.json`, or `~/.config/punchi-dock-quickshell.json` when
 `XDG_CONFIG_HOME` is unset. They are not stored in the installed program files.
+At first start, an existing `punchi-shell.json` is migrated to the new filename
+only when the new file does not exist; the original file is kept as a backup.
+If both files exist, the new filename takes precedence and neither is overwritten.
 Without a saved file, the application uses the defaults in
 [`ShellSettings.qml`](config/ShellSettings.qml):
 
@@ -186,7 +211,7 @@ adaptation and regression checks.
 Before claiming support for a release, declare required versions and test the
 actual packages together, including launching, activation/minimization, menus,
 Trash and hiding behavior. A normal KDE update does not intentionally manage
-Punchi Shell's personal settings file; our own format updates must migrate it.
+Punchi Dock Quickshell's personal settings file; our own format updates must migrate it.
 Broad update compatibility remains a maintenance goal, not an established
 guarantee of this prototype.
 

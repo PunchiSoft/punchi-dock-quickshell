@@ -1,22 +1,46 @@
-# Project instructions: Punchi Shell
+# Project instructions: Punchi Dock Quickshell
 
 ## Scope and product
 
 This file is canonical for this repository. Scoped instructions may supplement
 it. Skills live in `.agents/skills/`. User instructions take precedence.
 
-Punchi Shell is a modular desktop interface built with Quickshell and QML for
+Punchi Dock Quickshell is a modular desktop interface built with Quickshell and QML for
 KDE Plasma/KWin, primarily on Wayland. The current stage is a dock with configured desktop-entry launchers, a continuous
 magnification wave, and two-hop activation feedback. A native Qt/KDE QML module
 provides application launching. Rust remains optional.
 
 ## Safe coexistence — current operating contract
 
-Keep Plasma running. Do not remove panels, alter Plasma configuration, claim
-notification/tray/polkit ownership, install autostart, or replace the session.
-`scripts-user/start.sh` runs this project's configuration in the foreground.
-`scripts-user/restore-kde.sh` stops only that configuration. Closing Punchi Shell
-reveals the unchanged KDE interface. Changes to this contract need explicit scope.
+Keep Plasma running. Do not remove panels, claim notification/tray/polkit
+ownership, install autostart, or replace the session. `scripts-user/start.sh`
+runs this project's configuration in the foreground.
+
+Punchi Dock Quickshell may change the global KWin minimize effect only after an explicit
+user selection, and only within KWin's `exclusiveGroup=minimize`. Before its
+first write, capture the presence and boolean value of every discovered
+`Plugins/<effect>Enabled` key in the user-owned
+`$XDG_STATE_HOME/punchi-dock-quickshell/owned-settings.json` recovery record
+(fallback: `$HOME/.local/state/punchi-dock-quickshell/owned-settings.json`).
+Read a legacy record from the former `punchi-shell/` directory only when the
+new record does not exist, and preserve the original snapshot during migration.
+Write that record
+atomically with owner-only permissions before changing `kwinrc`. Preserve the
+original snapshot while Punchi Dock Quickshell continues running; a later selection may
+update the recorded values Punchi Dock Quickshell wrote, but must not replace that original
+snapshot. Write only keys whose effective values differ from the requested
+state, and preserve unrelated KWin settings.
+
+On clean shutdown and when `scripts-user/restore-kde.sh` runs, restore each
+owned key only if its current presence and value still match the last state
+Punchi Dock Quickshell wrote. Restore the original value when it was present, or delete
+the key when it was originally absent. If a key no longer matches Punchi
+Quickshell's recorded write, preserve the current value as an external user change
+and discard its ownership entry. Keep the recovery record when restoration or
+its durable write fails, so the restore script can retry after an unclean exit.
+The restore script must run this recovery even when Punchi Dock Quickshell is already
+stopped. Closing Punchi Dock Quickshell reveals the KDE interface with Punchi-owned KWin
+settings restored; other Plasma configuration remains untouched.
 
 ## Modularization — primary requirement
 
@@ -155,7 +179,7 @@ Do not advance the counter for repository metadata or documentation-only commits
 or comment-, formatting- and wording-only edits. Keep these commits marked as
 `chore:` or `docs:`; the declared delivery version stays unchanged.
 
-The current delivery is `0.1.12`. Before a commit that advances the counter,
+The current delivery is `0.1.13`. Before a commit that advances the counter,
 increment the latest declared counter once and update CMake, README, CHANGELOG and
 the local `docs/versioning.md` record consistently. Keep configuration schema
 and QML module API versions separate from the application delivery version.

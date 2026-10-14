@@ -150,7 +150,7 @@ ShellRoot {
             expected_style = override or 'org.kde.desktop'
             selected = re.findall(r'qt.quick.controls.style: done resolving:\s*style="([^"]+)"', output)
             assert selected and selected[-1] == expected_style, output
-            saved = json.loads((home / 'punchi-shell.json').read_text())
+            saved = json.loads((home / 'punchi-dock-quickshell.json').read_text())
             assert saved['sizePercent'] == 100 and saved['magnificationEnabled'] is False, saved
             assert saved['bounceEnabled'] is False, saved
         print('KDE settings theme: owned light/dark palettes, native style discovery, explicit style override and window lifecycle passed.')

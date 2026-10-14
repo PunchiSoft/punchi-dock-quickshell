@@ -13,7 +13,7 @@ case "$panel_mode" in
     *) printf '%s\n' 'Invalid panel mode.' >&2; exit 2 ;;
 esac
 if ! command -v qs >/dev/null 2>&1; then
-    printf '%s\n' 'Quickshell is required. Install it before starting Punchi Shell.' >&2
+    printf '%s\n' 'Quickshell is required. Install it before starting Punchi Dock Quickshell.' >&2
     exit 1
 fi
 instances="$(qs list --path "$project_root" --json)"

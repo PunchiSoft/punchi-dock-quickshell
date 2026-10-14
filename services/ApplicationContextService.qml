@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQml
 import "../adapters/kde"
+import "../config/LauncherIds.js" as LauncherIds
 
 QtObject {
     id: root
@@ -12,6 +13,8 @@ QtObject {
     property var actions: []
     property bool canLaunchNewWindow: false
     readonly property bool pinned: appId.length > 0 && settings.pinnedIds.indexOf(appId) >= 0
+    readonly property bool canPin: appId.length > 0 && desktopId.length > 0 && !appId.startsWith("item:")
+        && LauncherIds.valid(appId) && !pinned && settings.pinnedIds.length < LauncherIds.maximumPins && isConfigured()
     readonly property RecentDocumentsAdapter recentDocuments: RecentDocumentsAdapter { desktopId: root.desktopId }
     readonly property FilePlacesAdapter places: FilePlacesAdapter { desktopId: root.desktopId }
     readonly property bool usesPlaces: places.count > 0
@@ -64,6 +67,11 @@ QtObject {
     function unpin(): bool {
         if (!pinned) return false
         settings.pinnedIds = settings.pinnedIds.filter(id => id !== root.appId)
+        return true
+    }
+    function pin(): bool {
+        if (!canPin) return false
+        settings.pinnedIds = settings.pinnedIds.concat([root.appId])
         return true
     }
 }

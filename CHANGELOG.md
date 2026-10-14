@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.13 — 2026-10-14
+
+- Renamed the project and repository to **Punchi Dock Quickshell** and added a
+  Fedora source-checkout setup recipe. Existing `punchi-shell.json` preferences
+  and KWin recovery records are migrated without replacing a newer file.
+- Added an About page to settings with the project logo, current delivery
+  version, repository and issue links, license information and contributor
+  attribution.
+- Added recoverable ownership for Punchi Dock Quickshell's global KWin minimize-effect
+  changes. The shell records original key presence and values, restores only
+  settings that still match its own writes, and exposes a restore command for
+  recovery after an unclean exit.
+- Bounded KWin effect metadata reads and changed the live reconfigure request to
+  asynchronous D-Bus.
+
 ## 0.1.12 — 2026-10-14
 
 - Kept the development documentation under `docs/` local: it is no longer
@@ -283,7 +298,7 @@
   will follow Punchi Dock.
 - Added validated JSON preference persistence and scoped configuration entry points.
 
-- Established Punchi Shell as a modular Quickshell/QML project targeting KDE.
+- Established Punchi Dock Quickshell as a modular Quickshell/QML project targeting KDE.
 - Added a fixed-icon dock with selection, keyboard navigation, and scoped dismissal.
 - Added safe foreground start and restore scripts while keeping Plasma untouched.
 - Adapted reusable agent workflows and added component/session validation tooling.

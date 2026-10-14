@@ -3,6 +3,7 @@
 #include "snapshot.h"
 #include "windowactivation.h"
 #include "commandreader.h"
+#include "../native/kwinminimizeeffect.h"
 #include <QGuiApplication>
 #include <QtGui/qguiapplication_platform.h>
 #include <QSocketNotifier>
@@ -118,6 +119,11 @@ private:
 
 int main(int argc, char **argv)
 {
+    if (argc == 2 && QByteArray(argv[1]) == "--restore-desktop-settings") {
+        QCoreApplication app(argc, argv);
+        app.setApplicationName(QStringLiteral("punchi-window-state"));
+        return KWinMinimizeEffectController::restoreOwnedSettings() ? 0 : 1;
+    }
     if (argc == 2 && (QByteArray(argv[1]) == "--register" || QByteArray(argv[1]) == "--unregister")) {
         QCoreApplication app(argc, argv);
         return registerWindowBackend(QByteArray(argv[1]) == "--unregister");

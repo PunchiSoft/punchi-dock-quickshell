@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QtTest>
 #include <QStandardItemModel>
+#include <QDir>
 #include <QTemporaryDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSaveFile>
 #include <QStandardPaths>
 #include <KApplicationTrader>
@@ -15,6 +17,7 @@ class RunningStateTest : public QObject
     Q_OBJECT
 private:
     static void write(const QString &path, const QByteArray &data) {
+        QDir().mkpath(QFileInfo(path).absolutePath());
         QSaveFile file(path);
         QVERIFY(file.open(QIODevice::WriteOnly));
         QCOMPARE(file.write(data), data.size());
@@ -171,13 +174,27 @@ private slots:
     void scopedDesktopRegistrationAndCollision() {
         const QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
             + QStringLiteral("/applications/org.punchi.Shell.WindowState.desktop");
+        QString legacyExecutable = QStringLiteral(PUNCHI_TEST_BACKEND);
+        QVERIFY(legacyExecutable.contains(QStringLiteral("/punchi-dock-quickshell/build/punchi-window-state")));
+        legacyExecutable.replace(QStringLiteral("/punchi-dock-quickshell/build/punchi-window-state"),
+            QStringLiteral("/punchi-shell/build/punchi-window-state"));
+        const QByteArray legacyRegistration = QStringLiteral("[Desktop Entry]\nType=Application\n"
+            "Name=Punchi Shell Window State\nNoDisplay=true\nTerminal=false\n"
+            "Exec=\"%1\"\nX-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n")
+            .arg(legacyExecutable).toUtf8();
+        write(path, legacyRegistration);
         auto run = [&](QString argument) {
             QProcess process;
             process.start(QStringLiteral(PUNCHI_TEST_BACKEND), {argument});
             if (!process.waitForFinished(15000)) { process.kill(); process.waitForFinished(); return -1; }
             return process.exitCode();
         };
+        QCOMPARE(run(QStringLiteral("--restore-desktop-settings")), 0);
         QCOMPARE(run(QStringLiteral("--register")), 0);
+        QFile migrated(path);
+        QVERIFY(migrated.open(QIODevice::ReadOnly));
+        QVERIFY(migrated.readAll().contains("Name=Punchi Dock Quickshell Window State"));
+        migrated.close();
         QCOMPARE(run(QStringLiteral("--register")), 0);
         KSycoca::self()->ensureCacheValid();
         const auto matches = KApplicationTrader::query([](const KService::Ptr &service) {

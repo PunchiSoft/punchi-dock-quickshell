@@ -14,14 +14,19 @@ Item {
     property var recentDocuments: null
     property var places: null
     property var media: null
+    property var settings: null
+    property var minimizeEffectController: null
     property bool usesPlaces: false
     property bool canLaunchNewWindow: false
+    property bool canPin: false
     property bool pinned: false
     property bool trashItem: false
+    property bool dockBackground: false
     property bool folderItem: false
     property var folderContainer: null
     property Item folderSortNameAction: null
     property bool canEmptyTrash: false
+    property string openDockSubmenu: ""
     property string tailEdge: "bottom"
     readonly property bool verticalTail: tailEdge === "left" || tailEdge === "right"
     property real pointerY: height / 2
@@ -39,6 +44,7 @@ Item {
     signal forgetRecentRequested()
     signal newWindowRequested()
     signal unpinRequested()
+    signal pinRequested()
     signal settingsRequested()
     signal closeRequested()
     signal openTrashRequested()
@@ -46,19 +52,28 @@ Item {
     signal folderSortRequested(string sortMode)
     signal folderLayoutRequested(string layout)
     signal emptyTrashRequested()
+    signal autoHideRequested()
+    signal magnificationRequested()
+    signal dockEdgeRequested(string edge)
+    signal minimizeEffectRequested(string effect)
     Kirigami.Theme.inherit: false
     Kirigami.Theme.colorSet: Kirigami.Theme.Window
     readonly property real labelWidth: trashItem
         ? Math.max(labelMetrics.advanceWidth(openTrashAction.text), labelMetrics.advanceWidth(emptyTrashAction.text))
         : actions.reduce(function(width, action) {
         return Math.max(width, labelMetrics.advanceWidth(action.name))
-    }, labelMetrics.advanceWidth(configureAction.text))
+    }, Math.max(labelMetrics.advanceWidth(configureAction.text), dockBackground
+        ? Math.max(labelMetrics.advanceWidth(qsTr("Position on Screen")),
+            labelMetrics.advanceWidth(qsTr("Minimize Windows Using")), labelMetrics.advanceWidth(qsTr("Automatically Hide Dock")))
+        : 0))
     implicitWidth: (verticalTail ? pointerHeight : 0) + Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
         placesContent.visible ? placesContent.implicitWidth + contentPadding * 2 : 0,
+        dockBackground ? dockAutoHideAction.implicitWidth + contentPadding * 2 : 0,
         mediaContent.visible ? mediaContent.implicitWidth + contentPadding * 2 : 0,
         canLaunchNewWindow ? newWindowAction.implicitWidth + contentPadding * 2 : 0,
+        canPin ? pinAction.implicitWidth + contentPadding * 2 : 0,
         pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
         trashItem ? emptyTrashAction.implicitWidth + contentPadding * 2 : 0)
     FontMetrics { id: labelMetrics; font: configureAction.font }
@@ -70,6 +85,7 @@ Item {
         if (root.trashItem) openTrashAction.forceActiveFocus(Qt.PopupFocusReason)
         else if (root.folderItem && root.folderSortNameAction)
             root.folderSortNameAction.forceActiveFocus(Qt.PopupFocusReason)
+        else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(Qt.PopupFocusReason)
         else configureAction.forceActiveFocus(Qt.PopupFocusReason)
     }
     Keys.onEscapePressed: root.closeRequested()
@@ -227,6 +243,15 @@ Item {
             onClicked: root.newWindowRequested()
         }
         DockContextAction {
+            id: pinAction
+            objectName: "pinDockAction"
+            Layout.fillWidth: true
+            visible: root.canPin && !root.pinned && !root.trashItem && !root.dockBackground
+            text: qsTr("Pin to Dock")
+            icon.name: "window-pin"
+            onClicked: root.pinRequested()
+        }
+        DockContextAction {
             id: unpinAction
             objectName: "unpinDockAction"
             Layout.fillWidth: true
@@ -236,8 +261,90 @@ Item {
             onClicked: root.unpinRequested()
         }
         DockContextSeparator {
-            visible: !root.trashItem && (root.actions.length > 0 || root.canLaunchNewWindow || root.pinned || recentContent.visible || placesContent.visible)
+            visible: !root.trashItem && (root.dockBackground || root.actions.length > 0 || root.canLaunchNewWindow
+                || root.canPin || root.pinned || recentContent.visible || placesContent.visible)
             Layout.fillWidth: true
+        }
+        DockContextSectionHeader {
+            visible: !root.trashItem && root.dockBackground
+            text: qsTr("Dock")
+            Layout.fillWidth: true
+        }
+        DockContextAction {
+            id: dockAutoHideAction
+            objectName: "dockAutoHideAction"
+            Layout.fillWidth: true
+            visible: !root.trashItem && root.dockBackground && !!root.settings
+            text: qsTr("Automatically Hide Dock")
+            icon.name: "visibility-hidden"
+            marked: !!root.settings && root.settings.panelMode === "autohide"
+            onClicked: root.autoHideRequested()
+        }
+        DockContextAction {
+            objectName: "dockMagnificationAction"
+            Layout.fillWidth: true
+            visible: !root.trashItem && root.dockBackground && !!root.settings
+            text: qsTr("Magnification")
+            icon.name: "zoom-in"
+            marked: !!root.settings && root.settings.magnificationEnabled
+            onClicked: root.magnificationRequested()
+        }
+        DockContextAction {
+            id: dockPositionSubmenu
+            objectName: "dockPositionSubmenu"
+            Layout.fillWidth: true
+            visible: !root.trashItem && root.dockBackground && !!root.settings
+            text: qsTr("Position on Screen")
+            icon.name: "transform-move"
+            submenu: true
+            onClicked: root.openDockSubmenu = root.openDockSubmenu === "position" ? "" : "position"
+        }
+        Repeater {
+            model: [
+                {edge: "left", label: qsTr("Left")},
+                {edge: "bottom", label: qsTr("Bottom")},
+                {edge: "right", label: qsTr("Right")}
+            ]
+            delegate: DockContextAction {
+                required property var modelData
+                objectName: "dockPosition-" + modelData.edge
+                Layout.fillWidth: true
+                Layout.leftMargin: Kirigami.Units.gridUnit
+                visible: !root.trashItem && root.dockBackground && !!root.settings && root.openDockSubmenu === "position"
+                text: modelData.label
+                marked: !!root.settings && root.settings.dockEdge === modelData.edge
+                onClicked: root.dockEdgeRequested(modelData.edge)
+            }
+        }
+        DockContextAction {
+            id: minimizeEffectSubmenu
+            objectName: "minimizeEffectSubmenu"
+            Layout.fillWidth: true
+            visible: !root.trashItem && root.dockBackground && !!root.minimizeEffectController && root.minimizeEffectController.available
+            text: qsTr("Minimize Windows Using")
+            icon.name: "window-minimize"
+            submenu: true
+            onClicked: root.openDockSubmenu = root.openDockSubmenu === "minimize" ? "" : "minimize"
+        }
+        Repeater {
+            model: [
+                {effect: "none", label: qsTr("No Effect"), available: true},
+                {effect: "squash", label: qsTr("Squash"), available: !!root.minimizeEffectController && root.minimizeEffectController.squashAvailable},
+                {effect: "magiclamp", label: qsTr("Magic Lamp"), available: !!root.minimizeEffectController && root.minimizeEffectController.magicLampAvailable},
+                {effect: "other", label: qsTr("Other"), available: !!root.minimizeEffectController && root.minimizeEffectController.effect === "other"}
+            ]
+            delegate: DockContextAction {
+                required property var modelData
+                objectName: "minimizeEffect-" + modelData.effect
+                Layout.fillWidth: true
+                Layout.leftMargin: Kirigami.Units.gridUnit
+                visible: !root.trashItem && root.dockBackground && root.openDockSubmenu === "minimize"
+                    && !!root.minimizeEffectController && modelData.available
+                enabled: modelData.effect !== "other"
+                text: modelData.label
+                marked: !!root.minimizeEffectController && root.minimizeEffectController.effect === modelData.effect
+                onClicked: root.minimizeEffectRequested(modelData.effect)
+            }
         }
         DockContextAction {
             id: configureAction

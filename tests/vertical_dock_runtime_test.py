@@ -159,7 +159,7 @@ ShellRoot {
                         assert call('mode',mode) is True
                         state = wait_state(lambda s:(s['zone'] > 0) == (mode == 'reserve'))
                         assert state['configuring']
-                    saved = Path(env['XDG_CONFIG_HOME']) / 'punchi-shell.json'
+                    saved = Path(env['XDG_CONFIG_HOME']) / 'punchi-dock-quickshell.json'
                     deadline = time.monotonic() + 3
                     while time.monotonic() < deadline:
                         if saved.exists():

@@ -30,17 +30,19 @@ Pane {
         generalPage.implicitHeight + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
         if (currentPage === 0) itemsPage.focusFirst()
-        else generalPage.focusFirst()
+        else if (currentPage === 1) generalPage.focusFirst()
+        else aboutPage.focusFirst()
     }
     function closeDialogs(): void { addDialog.close(); pinService.cancel() }
     function ensureFocusedVisible(control: Item): void {
-        if (currentPage !== 1 || !control) return
+        if ((currentPage !== 1 && currentPage !== 2) || !control) return
+        const page = currentPage === 1 ? generalPage : aboutPage
         let ancestor = control
-        while (ancestor && ancestor !== generalPage) ancestor = ancestor.parent
+        while (ancestor && ancestor !== page) ancestor = ancestor.parent
         if (!ancestor) return
-        const viewport = generalViewport
+        const viewport = currentPage === 1 ? generalViewport : aboutViewport
         if (!viewport) return
-        const point = control.mapToItem(generalPage, 0, 0)
+        const point = control.mapToItem(page, 0, 0)
         const margin = Kirigami.Units.mediumSpacing
         const maximum = Math.max(0, viewport.contentHeight - viewport.height)
         if (point.y - margin < viewport.contentY)
@@ -102,6 +104,17 @@ Pane {
                     onClicked: { root.currentPage = 1; generalPage.focusFirst() }
                 }
                 Item { Layout.fillHeight: true }
+                ItemDelegate {
+                    objectName: "aboutSettingsPage"
+                    Layout.fillWidth: true
+                    text: qsTr("About")
+                    icon.name: "help-about"
+                    checkable: true
+                    checked: root.currentPage === 2
+                    highlighted: checked
+                    ButtonGroup.group: navigation
+                    onClicked: { root.currentPage = 2; aboutPage.focusFirst() }
+                }
             }
         }
         ColumnLayout {
@@ -137,6 +150,26 @@ Pane {
                             id: generalPage
                             settings: root.settings
                             width: generalViewport.width
+                        }
+                    }
+                }
+                ScrollView {
+                    id: aboutScroll
+                    objectName: "settingsAboutScroll"
+                    Layout.minimumHeight: 0
+                    clip: true
+                    contentWidth: availableWidth
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    Flickable {
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: aboutPage.implicitHeight
+                        id: aboutViewport
+                        SettingsAbout {
+                            id: aboutPage
+                            objectName: "settingsAboutPage"
+                            width: parent.width
                         }
                     }
                 }

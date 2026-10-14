@@ -27,7 +27,7 @@ def main():
             '--session', '--', sys.executable, str(Path(__file__).resolve()), '--isolated']).returncode
     with tempfile.TemporaryDirectory(prefix='punchi-shell-settings-') as temporary:
         config = Path(temporary)
-        for directory in ('components', 'config', 'services', 'modules', 'adapters'):
+        for directory in ('components', 'config', 'services', 'modules', 'adapters', 'assets'):
             shutil.copytree(root / directory, config / directory)
         fixture = '''import QtQuick
 import Quickshell
@@ -44,10 +44,10 @@ ShellRoot {
         onTriggered: {
             if (!store.ready) throw new Error("Settings did not load")
             if (Quickshell.env("PUNCHI_TEST_RESTORE") === "1") {
-                if (dock.preferences.panelMode !== "desktop" || dock.preferences.sizePercent !== 125
+                if (dock.preferences.panelMode !== "dodge-windows" || dock.preferences.sizePercent !== 125
                     || dock.preferences.pinnedIds.join(",") !== "terminal,files")
                     throw new Error("Preferences did not survive restart")
-            } else {
+            } else if (Quickshell.env("PUNCHI_TEST_MIGRATE") !== "1") {
                 dock.preferences.panelMode = "desktop"
                 dock.preferences.sizePercent = 125
                 dock.preferences.pinnedIds = ["terminal", "files"]
@@ -80,12 +80,38 @@ ShellRoot {
             if result.returncode or 'PUNCHI_SETTINGS_PASS' not in output or re.search(
                     r'TypeError|ReferenceError|Binding loop|Failed to load|\bERROR\b', output):
                 raise RuntimeError(output)
-            data = json.loads((Path(env['XDG_CONFIG_HOME']) / 'punchi-shell.json').read_text())
-            assert data['panelMode'] == 'desktop' and data['sizePercent'] == 125, data
+            data = json.loads((Path(env['XDG_CONFIG_HOME']) / 'punchi-dock-quickshell.json').read_text())
+            assert data['panelMode'] == 'dodge-windows' and data['sizePercent'] == 125, data
             assert data['pinnedIds'] == ['terminal', 'files'], data
-        # Malformed files fall back safely instead of preventing shell startup.
-        (Path(env['XDG_CONFIG_HOME']) / 'punchi-shell.json').write_text('{invalid')
+        # A legacy profile is copied only when the new location is absent.
+        preferences = Path(env['XDG_CONFIG_HOME'])
+        current = preferences / 'punchi-dock-quickshell.json'
+        legacy = preferences / 'punchi-shell.json'
+        current.unlink()
+        migrated = json.loads((preferences / 'punchi-dock-quickshell.json').read_text()) \
+            if current.exists() else data
+        migrated['sizePercent'] = 130
+        legacy.write_text(json.dumps(migrated))
         env['PUNCHI_TEST_RESTORE'] = '0'
+        env['PUNCHI_TEST_MIGRATE'] = '1'
+        result = run_shell(config, env)
+        output = result.stdout + result.stderr
+        if result.returncode or 'PUNCHI_SETTINGS_PASS' not in output:
+            raise RuntimeError(output)
+        assert json.loads(current.read_text())['sizePercent'] == 130
+        assert json.loads(legacy.read_text())['sizePercent'] == 130
+        current.write_text(json.dumps({**migrated, 'sizePercent': 140}))
+        legacy.write_text(json.dumps({**migrated, 'sizePercent': 110}))
+        result = run_shell(config, env)
+        output = result.stdout + result.stderr
+        if result.returncode or 'PUNCHI_SETTINGS_PASS' not in output:
+            raise RuntimeError(output)
+        assert json.loads(current.read_text())['sizePercent'] == 140
+        assert json.loads(legacy.read_text())['sizePercent'] == 110
+        # Malformed files fall back safely instead of preventing shell startup.
+        current.write_text('{invalid')
+        env['PUNCHI_TEST_RESTORE'] = '0'
+        env.pop('PUNCHI_TEST_MIGRATE', None)
         result = run_shell(config, env)
         assert result.returncode == 0 and 'PUNCHI_SETTINGS_PASS' in result.stdout + result.stderr
         print('Wayland settings open/close/reopen, dock coexistence, persistence and malformed JSON: passed')

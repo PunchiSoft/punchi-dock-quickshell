@@ -14,15 +14,23 @@ Scope {
     id: root
     required property ShellSettings settings
     property bool ready: false
-    readonly property string path: (Quickshell.env("XDG_CONFIG_HOME")
-        || Quickshell.env("HOME") + "/.config") + "/punchi-shell.json"
+    readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME")
+        || Quickshell.env("HOME") + "/.config"
+    readonly property string path: configHome + "/punchi-dock-quickshell.json"
+    readonly property string legacyPath: configHome + "/punchi-shell.json"
     readonly property FileView file: FileView {
         path: root.path
         preload: false
         blockLoading: true
         atomicWrites: true
         printErrors: false
-        onSaveFailed: console.warn("Punchi Shell: settings save failed")
+        onSaveFailed: console.warn("Punchi Dock Quickshell: settings save failed")
+    }
+    readonly property FileView legacyFile: FileView {
+        path: root.legacyPath
+        preload: false
+        blockLoading: true
+        printErrors: false
     }
     PersistentProperties {
         id: sessionState
@@ -50,10 +58,14 @@ Scope {
     }
     function initialize(previous: string): void {
         ready = false
-        const text = previous || file.text()
+        let text = previous || file.text()
+        const migrateLegacy = previous.length === 0 && text.length === 0
+        if (migrateLegacy) text = legacyFile.text()
         if (text.length > 0 && text.length <= 16384) {
-            try { settings.restore(JSON.parse(text)) }
-            catch (error) { console.warn("Punchi Shell: invalid settings JSON") }
+            try {
+                const restored = settings.restore(JSON.parse(text))
+                if (restored && migrateLegacy) file.setText(text)
+            } catch (error) { console.warn("Punchi Dock Quickshell: invalid settings JSON") }
         }
         // Startup overrides apply once, not on each source reload. The session
         // object is now a real child, so it is restored before this signal.
