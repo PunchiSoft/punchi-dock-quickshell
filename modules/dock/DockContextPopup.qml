@@ -7,6 +7,8 @@ import org.kde.kirigami as Kirigami
 Popup {
     id: root
     objectName: "dockContextMenu"
+    property string dockEdge: "bottom"
+    readonly property bool vertical: dockEdge === "left" || dockEdge === "right"
     property var hostWindow: null
     property real hostBaseHeight: hostWindow ? hostWindow.height : 0
     property alias sourceItem: geometry.sourceItem
@@ -14,6 +16,8 @@ Popup {
     property alias capturedGeometry: geometry.capturedGeometry
     property real capturedBaseY: 0
     property string appId: ""
+    property var settings: null
+    readonly property var folderContainer: settings ? settings.container(appId) : null
     property var actions: []
     property var recentDocuments: null
     property var places: null
@@ -27,12 +31,15 @@ Popup {
     property int openSerial: 0
     readonly property Item mainItem: content
     // Only the transparent window allocation grows; the dock stays at its baseline.
-    readonly property real topOverflow: visible || preparingToShow
+    readonly property real topOverflow: !vertical && (visible || preparingToShow)
         ? Math.max(0, implicitHeight + Kirigami.Units.smallSpacing - capturedBaseY) : 0
     signal settingsRequested()
     signal actionRequested(string appId, string actionId)
     signal mediaCommandRequested(string command)
     signal openTrashRequested()
+    signal openFolderRequested()
+    signal folderSortRequested(string appId, string sortMode)
+    signal folderLayoutRequested(string appId, string layout)
     signal emptyTrashRequested()
     signal placeRequested(string resource)
     signal morePlacesRequested()
@@ -54,9 +61,13 @@ Popup {
     implicitWidth: content.implicitWidth
     implicitHeight: content.implicitHeight
     x: Math.max(0, Math.min((parent ? parent.width : 0) - width,
-        geometry.capturedGeometry.x + geometry.capturedGeometry.width / 2 - width / 2))
-    y: capturedBaseY + (hostWindow ? hostWindow.height - hostBaseHeight : 0)
-        - height - Kirigami.Units.smallSpacing
+        dockEdge === "left" ? geometry.anchorGeometry.x + geometry.anchorGeometry.width + Kirigami.Units.smallSpacing
+            : dockEdge === "right" ? geometry.anchorGeometry.x - width - Kirigami.Units.smallSpacing
+            : geometry.anchorGeometry.x + geometry.anchorGeometry.width / 2 - width / 2))
+    y: vertical ? Math.max(0, Math.min((parent ? parent.height : 0) - height,
+        geometry.anchorGeometry.y + geometry.anchorGeometry.height / 2 - height / 2))
+        : capturedBaseY + (hostWindow ? hostWindow.height - hostBaseHeight : 0)
+            - height - Kirigami.Units.smallSpacing
     onOpened: content.focusFirst()
     onClosed: {
         openSerial++
@@ -64,7 +75,10 @@ Popup {
         if (sourceItem && sourceItem.visible && sourceItem.enabled)
             sourceItem.forceActiveFocus(Qt.PopupFocusReason)
     }
-    DockContextAnchor { id: geometry }
+    DockContextAnchor {
+        id: geometry
+        followRenderedIcon: root.vertical && (root.visible || root.preparingToShow)
+    }
     Connections {
         target: root.parent ? root.parent.Window.window : null
         function onActiveChanged() {
@@ -83,7 +97,7 @@ Popup {
         if (geometry.capturePoint(item, position)) prepareOpen()
     }
     function prepareOpen() {
-        capturedBaseY = geometry.capturedGeometry.y
+        capturedBaseY = geometry.anchorGeometry.y
             - (hostWindow ? hostWindow.height - hostBaseHeight : 0)
         const serial = ++openSerial
         preparingToShow = true
@@ -105,14 +119,21 @@ Popup {
         canLaunchNewWindow: root.canLaunchNewWindow
         pinned: root.pinned
         trashItem: root.trashItem
+        folderItem: root.folderContainer !== null
+        folderContainer: root.folderContainer
         canEmptyTrash: root.canEmptyTrash
         itemName: root.itemName
-        pointerX: geometry.capturedGeometry.x + geometry.capturedGeometry.width / 2 - root.x
+        tailEdge: root.dockEdge === "left" ? "left" : root.dockEdge === "right" ? "right" : "bottom"
+        pointerY: geometry.anchorGeometry.y + geometry.anchorGeometry.height / 2 - root.y
+        pointerX: geometry.anchorGeometry.x + geometry.anchorGeometry.width / 2 - root.x
         onActionRequested: function(actionId) {
             root.actionRequested(root.appId, actionId)
             root.dismiss()
         }
         onCloseRequested: root.dismiss()
+        onOpenFolderRequested: { root.openFolderRequested(); root.dismiss() }
+        onFolderSortRequested: function(sortMode) { root.folderSortRequested(root.appId, sortMode); root.dismiss() }
+        onFolderLayoutRequested: function(layout) { root.folderLayoutRequested(root.appId, layout); root.dismiss() }
         onOpenTrashRequested: { root.openTrashRequested(); root.dismiss() }
         onEmptyTrashRequested: { root.emptyTrashRequested(); root.dismiss() }
         onMediaCommandRequested: function(command) { root.mediaCommandRequested(command); root.dismiss() }

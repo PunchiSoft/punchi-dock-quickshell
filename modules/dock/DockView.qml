@@ -13,8 +13,41 @@ Control {
 
     required property var entries
     property var applicationState: null
+    property string dockEdge: "bottom"
+    readonly property bool vertical: dockEdge === "left" || dockEdge === "right"
     property int currentIndex: -1
     property bool keyboardNavigationRequested: false
+    property point sceneTranslation: Qt.point(0, 0)
+    property real availableLength: 0
+    property real scrollOffset: 0
+    property bool scrollPositionChangedByUser: false
+    readonly property real maximumScroll: vertical ? Math.max(0, naturalHeight - height) : 0
+    readonly property real centeredScrollOffset: vertical
+        ? Math.max(0, Math.min(maximumScroll, topPadding + itemLength / 2 - height / 2)) : 0
+    // Center the icon run itself, excluding unequal decorative reserves.
+    readonly property real contentCenterOffset: vertical && maximumScroll === 0
+        ? (bottomPadding - topPadding) / 2 : 0
+    onMaximumScrollChanged: scrollOffset = scrollPositionChangedByUser
+        ? Math.max(0, Math.min(maximumScroll, scrollOffset)) : centeredScrollOffset
+    onHeightChanged: if (vertical && !scrollPositionChangedByUser) scrollOffset = centeredScrollOffset
+    onDockEdgeChanged: {
+        scrollPositionChangedByUser = false
+        scrollOffset = centeredScrollOffset
+        pointerEngaged = false
+        Qt.callLater(root.updatePointerInteraction)
+    }
+    clip: vertical && maximumScroll > 0
+    WheelHandler {
+        enabled: root.vertical && root.maximumScroll > 0 && !root.contextMenuOpen
+        target: null
+        onWheel: function(event) {
+            const delta = event.pixelDelta.y || event.angleDelta.y / 120 * (root.itemSize + root.itemSpacing)
+            root.scrollPositionChangedByUser = true
+            root.scrollOffset = Math.max(0, Math.min(root.maximumScroll, root.scrollOffset - delta))
+            Qt.callLater(root.updatePointerInteraction)
+            event.accepted = true
+        }
+    }
     property bool restoreRemovedFocus: false
     property string keyboardFocusId: ""
     property int keyboardFocusIndex: -1
@@ -87,15 +120,16 @@ Control {
         }
     }
 
-    implicitWidth: itemCount * itemSize + Math.max(0, itemCount - 1) * itemSpacing
-        + leftPadding + rightPadding
-    implicitHeight: (itemCount > 0 ? itemSize : 0) + topPadding + bottomPadding
+    readonly property real itemLength: itemCount * itemSize + Math.max(0, itemCount - 1) * itemSpacing
+    implicitWidth: (vertical ? (itemCount > 0 ? itemSize : 0) : itemLength) + leftPadding + rightPadding
+    readonly property real naturalHeight: (vertical ? itemLength : (itemCount > 0 ? itemSize : 0)) + topPadding + bottomPadding
+    implicitHeight: vertical && availableLength > 0 ? Math.min(naturalHeight, availableLength) : naturalHeight
     focusPolicy: Qt.NoFocus
     padding: metrics.padding
-    bottomPadding: bottomContentPadding + waveBottomReserve
-    topPadding: padding + waveTopReserve
-    leftPadding: padding + waveSideReserve
-    rightPadding: padding + waveSideReserve
+    bottomPadding: vertical ? padding + waveSideReserve + bottomContentPadding : bottomContentPadding + waveBottomReserve
+    topPadding: padding + (vertical ? waveSideReserve : waveTopReserve)
+    leftPadding: padding + (vertical ? (dockEdge === "right" ? waveTopReserve : waveBottomReserve) : waveSideReserve)
+    rightPadding: padding + (vertical ? (dockEdge === "left" ? waveTopReserve : waveBottomReserve) : waveSideReserve)
 
     TooltipStyle { id: tooltipStyle }
     FontMetrics { id: tooltipFont; font: root.font }
@@ -105,7 +139,7 @@ Control {
         const inside = pointer.hovered && position.x >= bounds.x
             && position.x <= bounds.x + bounds.width && position.y >= bounds.y
             && position.y <= bounds.y + bounds.height
-        if (inside) lastPointerX = position.x
+        if (inside) lastPointerX = vertical ? position.y + scrollOffset : position.x
         pointerEngaged = inside
     }
 
@@ -129,16 +163,31 @@ Control {
         // Magnify the natural icon cell, not extra layout padding in a wider slot.
         itemSize: Math.min(root.itemSize, root.iconSize + root.metrics.itemSize - root.metrics.iconSize)
         activeIndex: root.itemCount > 0 ? Math.max(0, Math.min(root.itemCount - 1,
-            Math.floor((root.lastPointerX - root.leftPadding + root.itemSpacing / 2) / wave.itemPitch))) : -1
+            Math.floor((root.lastPointerX - (root.vertical ? root.topPadding : root.leftPadding) + root.itemSpacing / 2) / wave.itemPitch))) : -1
         maximumScale: root.boundedIconScale
         enterDuration: root.waveEnterDuration
         leaveDuration: root.waveLeaveDuration
     }
 
+    function itemForId(appId: string): Item {
+        for (let index = 0; index < tiles.count; ++index) {
+            const item = tiles.itemAt(index) as LauncherTile
+            if (item && item.appId === appId) return item
+        }
+        return null
+    }
     function focusItem(index) {
         if (index < 0 || index >= tiles.count)
             return false
         root.currentIndex = index
+        if (vertical && maximumScroll > 0) {
+            scrollPositionChangedByUser = true
+            const start = topPadding + index * (itemSize + itemSpacing)
+            const end = start + itemSize + bottomContentPadding
+            if (start - padding < scrollOffset) scrollOffset = Math.max(0, start - padding)
+            else if (end + padding > scrollOffset + height)
+                scrollOffset = Math.min(maximumScroll, end + padding - height)
+        }
         root.keyboardNavigationRequested = true
         tiles.itemAt(index).forceActiveFocus(Qt.TabFocusReason)
         return true
@@ -182,6 +231,10 @@ Control {
     }
 
     onItemCountChanged: {
+        if (vertical) {
+            scrollPositionChangedByUser = false
+            Qt.callLater(function() { root.scrollOffset = root.centeredScrollOffset })
+        }
         if (root.currentIndex >= root.itemCount)
             root.currentIndex = root.itemCount - 1
         reconcileKeyboardFocus()
@@ -190,9 +243,10 @@ Control {
     // Observe rendered bounds without feeding them back into logical centers.
     // This bounded scan follows declarative transforms, including exit progress.
     readonly property rect renderedBounds: {
-        let left = waveSideReserve
-        let right = width - waveSideReserve
-        let top = waveTopReserve
+        let left = vertical ? leftPadding - padding : waveSideReserve
+        let right = vertical ? leftPadding + itemSize + padding : width - waveSideReserve
+        let top = vertical ? topPadding - padding : waveTopReserve
+        let bottom = vertical ? height - waveSideReserve : height
         for (let i = 0; i < tiles.count; ++i) {
             const tile = tiles.itemAt(i) as LauncherTile
             if (!tile) continue
@@ -202,17 +256,25 @@ Control {
             right = Math.max(right, centerX + halfWidth + padding)
             top = Math.min(top, tile.iconTopCenter.y - padding
                 - Math.max(0, tile.itemSize - tile.iconSize) * tile.visualIconScale / 2)
+            if (vertical) bottom = Math.max(bottom, tile.iconTopCenter.y
+                + tile.iconSize * tile.visualIconScale + padding + bottomContentPadding)
         }
-        return Qt.rect(left, top, right - left, height - top)
+        if (vertical && maximumScroll > 0) {
+            top = Math.max(0, top)
+            bottom = Math.min(height, bottom)
+        }
+        return Qt.rect(left, top, right - left, bottom - top)
     }
-    readonly property rect surfaceBounds: Qt.rect(renderedBounds.x, waveTopReserve,
-        renderedBounds.width, height - waveTopReserve - waveBottomReserve)
+    readonly property rect surfaceBounds: vertical
+        ? Qt.rect(leftPadding - padding, renderedBounds.y, itemSize + padding * 2, renderedBounds.height)
+        : Qt.rect(renderedBounds.x, waveTopReserve, renderedBounds.width,
+                  height - waveTopReserve - waveBottomReserve)
     readonly property rect interactionBounds: renderedBounds
 
     // Exclude unused tooltip/bounce headroom, while covering raised launchers.
     // The window captures this extent once per slide, not on each animation frame.
     function measureSlideTravelHeight(): real {
-        return Math.ceil(Math.max(1, interactionBounds.height))
+        return Math.ceil(Math.max(1, vertical ? interactionBounds.width : interactionBounds.height))
     }
 
     background: AntialiasedSurface {
@@ -262,8 +324,11 @@ Control {
             }
             required appId
             parent: root
-            x: root.leftPadding + index * (root.itemSize + root.itemSpacing)
-            y: root.topPadding
+            x: root.leftPadding + (root.vertical ? 0 : index * (root.itemSize + root.itemSpacing))
+            y: root.topPadding + (root.vertical ? index * (root.itemSize + root.itemSpacing) - root.scrollOffset : 0)
+            readonly property real axisCenter: root.vertical
+                ? root.topPadding + index * (root.itemSize + root.itemSpacing) + height / 2
+                : x + width / 2
             width: root.itemSize
             height: root.itemSize
             objectName: "launcher-" + appId
@@ -278,8 +343,9 @@ Control {
             magnificationEnabled: root.magnificationEnabled
             reducedMotion: root.reducedMotion || !root.visible || !root.enabled
             clickDuration: tile.appId.startsWith("item:") ? 0 : root.clickDuration
-            targetIconScale: wave.scaleAt(tile.x + tile.width / 2, tile.index)
-            iconOffsetX: wave.shiftAt(tile.x + tile.width / 2)
+            dockEdge: root.dockEdge
+            targetIconScale: wave.scaleAt(tile.axisCenter, tile.index)
+            axisOffset: wave.shiftAt(tile.axisCenter)
 
             onActivated: {
                 root.currentIndex = tile.index
@@ -287,8 +353,10 @@ Control {
             }
             onPointerPressed: root.releaseKeyboardNavigation()
 
-            Keys.onLeftPressed: root.focusItem((tile.index + tiles.count - 1) % tiles.count)
-            Keys.onRightPressed: root.focusItem((tile.index + 1) % tiles.count)
+            Keys.onLeftPressed: if (!root.vertical) root.focusItem((tile.index + tiles.count - 1) % tiles.count)
+            Keys.onRightPressed: if (!root.vertical) root.focusItem((tile.index + 1) % tiles.count)
+            Keys.onUpPressed: if (root.vertical) root.focusItem((tile.index + tiles.count - 1) % tiles.count)
+            Keys.onDownPressed: if (root.vertical) root.focusItem((tile.index + 1) % tiles.count)
             Keys.onEscapePressed: root.closeRequested()
         }
     }

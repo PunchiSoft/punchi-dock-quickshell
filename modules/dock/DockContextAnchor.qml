@@ -5,8 +5,24 @@ import QtQuick
 QtObject {
     id: root
     property Item sourceItem: null
+    property bool followRenderedIcon: false
     property string itemName: ""
     property rect capturedGeometry: Qt.rect(0, 0, 1, 1)
+    readonly property rect anchorGeometry: followRenderedIcon && sourceItem
+        ? renderedItemGeometry(sourceItem) : capturedGeometry
+    function renderedItemGeometry(item: var): rect {
+        if (!item || !item.Window.contentItem) return capturedGeometry
+        if (item.iconTopCenter === undefined || item.iconSize === undefined) return capturedGeometry
+        // mapToItem does not declare dependencies on the dock's translation.
+        // The source contract is a launcher directly parented to DockView.
+        item.parent.x; item.parent.y; item.parent.width; item.parent.height; item.parent.scale
+        // DockView publishes its transform as a notifying point property.
+        // Reading Item.transform itself would depend on a non-bindable list.
+        if (item.parent.sceneTranslation !== undefined) item.parent.sceneTranslation
+        const top = item.parent.mapToItem(item.Window.contentItem, item.iconTopCenter.x, item.iconTopCenter.y)
+        const size = item.iconSize * item.visualIconScale
+        return Qt.rect(top.x - size / 2, top.y, size, size)
+    }
     function captureItem(item: var, title: string): bool {
         if (!item || !item.Window.contentItem) return false
         sourceItem = item

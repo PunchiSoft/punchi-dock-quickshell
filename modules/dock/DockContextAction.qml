@@ -8,6 +8,7 @@ import Punchi.Kde as Native
 ItemDelegate {
     id: root
     property bool submenu: false
+    property bool marked: false
     focusPolicy: Qt.StrongFocus
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.smallSpacing
@@ -37,8 +38,8 @@ ItemDelegate {
         }
         Kirigami.Icon {
             Native.IconThemeRefresh.enabled: true
-            visible: root.submenu
-            source: "go-next"
+            visible: root.submenu || root.marked
+            source: root.marked ? "dialog-ok" : "go-next"
             Layout.preferredWidth: root.icon.width
             Layout.preferredHeight: root.icon.height
         }

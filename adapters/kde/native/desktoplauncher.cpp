@@ -11,6 +11,9 @@
 #include <QQuickWindow>
 #include <QRegularExpression>
 #include <QTimer>
+#include <QStandardPaths>
+#include <QFileInfo>
+#include <QDir>
 
 void DesktopLauncher::setActivationItem(QQuickItem *item)
 {
@@ -62,6 +65,40 @@ bool DesktopLauncher::openTrash()
 {
     const auto service = KApplicationTrader::preferredService(QStringLiteral("inode/directory"));
     return service && enqueue(service, service->storageId(), {}, {QUrl(QStringLiteral("trash:/"))});
+}
+
+bool DesktopLauncher::openDownloads()
+{
+    const auto location = QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+    const auto service = KApplicationTrader::preferredService(QStringLiteral("inode/directory"));
+    return FolderContents::localUrl(location) && service && enqueue(service, service->storageId(), {}, {location});
+}
+
+bool DesktopLauncher::openFolderUrl(FolderContents *contents, const QUrl &url)
+{
+    if (!contents || !contents->active() || !FolderContents::localUrl(url)) return false;
+    QString mime;
+    if (url == contents->location()) mime = QStringLiteral("inode/directory");
+    else {
+        const auto item = contents->itemForUrl(url);
+        if (item.isNull()) return false;
+        mime = item.mimetype();
+    }
+    const auto service = KApplicationTrader::preferredService(mime);
+    return service && enqueue(service, service->storageId(), {}, {url});
+}
+
+bool DesktopLauncher::openFolderLocation(const QUrl &url)
+{
+    if (!FolderContents::localUrl(url) || !QFileInfo(url.toLocalFile()).isDir()) return false;
+    const auto service = KApplicationTrader::preferredService(QStringLiteral("inode/directory"));
+    return service && enqueue(service, service->storageId(), {}, {url});
+}
+
+bool DesktopLauncher::openFolderPath(const QString &path)
+{
+    if (!QDir::isAbsolutePath(path)) return false;
+    return openFolderLocation(QUrl::fromLocalFile(QDir::cleanPath(path)));
 }
 
 QVariantList DesktopLauncher::actions(const QString &desktopId) const

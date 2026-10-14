@@ -37,6 +37,8 @@ Scope {
     }
     readonly property Connections changes: Connections {
         target: root.settings
+        function onDownloadsViewChanged() { root.save() }
+        function onDockEdgeChanged() { root.save() }
         function onPanelModeChanged() { root.save() }
         function onSizePercentChanged() { root.save() }
         function onMaximumIconScaleChanged() { root.save() }
@@ -44,6 +46,7 @@ Scope {
         function onReducedMotionChanged() { root.save() }
         function onBounceEnabledChanged() { root.save() }
         function onPinnedIdsChanged() { root.save() }
+        function onContainersChanged() { root.save() }
     }
     function initialize(previous: string): void {
         ready = false

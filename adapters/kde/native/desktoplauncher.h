@@ -8,6 +8,7 @@
 #include <KService>
 #include "recentdocuments.h"
 #include "fileplaces.h"
+#include "foldercontents.h"
 
 class DesktopLauncher : public QObject
 {
@@ -25,6 +26,10 @@ public:
     Q_INVOKABLE bool openPlace(FilePlaces *places, const QString &resource);
     Q_INVOKABLE bool openRecent(RecentDocuments *documents, const QString &resource);
     Q_INVOKABLE bool openTrash();
+    Q_INVOKABLE bool openDownloads();
+    Q_INVOKABLE bool openFolderUrl(FolderContents *contents, const QUrl &url);
+    Q_INVOKABLE bool openFolderLocation(const QUrl &url);
+    Q_INVOKABLE bool openFolderPath(const QString &path);
 signals:
     void activationItemChanged();
     void launchFinished(const QString &desktopId, bool success, const QString &error);

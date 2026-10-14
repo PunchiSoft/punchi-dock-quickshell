@@ -89,7 +89,7 @@ private slots:
         app->setData(true,ApplicationCatalog::Installed); apps.appendRow(app);
         DockItemCatalog catalog; catalog.setApplications(&apps); catalog.setTrashTitle("Owned Trash");
         QAbstractItemModelTester tester(&catalog,QAbstractItemModelTester::FailureReportingMode::QtTest);
-        QCOMPARE(catalog.rowCount(),2);
+        QCOMPARE(catalog.rowCount(),3);
         const auto trash=catalog.get(0);
         QCOMPARE(trash.value("appId").toString(),"item:trash"); QVERIFY(trash.value("desktopId").toString().isEmpty());
         QVERIFY(!trash.value("installed").toBool()); QVERIFY(catalog.application("item:trash").isEmpty());

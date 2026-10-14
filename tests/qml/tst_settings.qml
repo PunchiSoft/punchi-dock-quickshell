@@ -12,6 +12,7 @@ TestCase {
     width: 600
     height: 900
     Component { id: fixture; SettingsView { settings: ShellSettings {} } }
+    Component { id: settingsFixture; ShellSettings {} }
     Component { id: modelFixture; PinnedApplications { catalog: DockFixtureModel {}
         pinnedIds: [] } }
     function test_reactive_controls_and_reset() {
@@ -62,8 +63,9 @@ TestCase {
         compare(settings.sizePercent, 100)
         compare(settings.maximumIconScale, 2)
         compare(settings.bounceEnabled, true)
-        compare(settings.pinnedIds.length, 9)
-        compare(settings.pinnedIds[8], "item:trash")
+        compare(settings.pinnedIds.length, 10)
+        compare(settings.pinnedIds[8], "item:downloads")
+        compare(settings.pinnedIds[9], "item:trash")
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
         data.pinnedIds = ["terminal"]
         data.reducedMotion = true
@@ -72,5 +74,33 @@ TestCase {
         compare(settings.effectiveReducedMotion, true)
         compare(settings.pinnedIds[0], "terminal")
         compare(settings.panelMode, "dodge-windows")
+    }
+    function test_folderContainers() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        // The built-in container keeps its historical id and the empty path
+        // that the native model resolves to the user's download location.
+        compare(settings.container("item:downloads").id, "downloads")
+        compare(settings.container("item:downloads").path, "")
+        compare(settings.container("files"), null)
+        // A chosen folder is stored, addressable and validated.
+        const id = settings.addContainer("/tmp/owned", "owned", "folder")
+        compare(id, "item:folder:folder-1")
+        compare(settings.container(id).path, "/tmp/owned")
+        compare(settings.addContainer("relative/path", "x", ""), "")
+        verify(settings.setContainerPath(id, "/tmp/other"))
+        compare(settings.container(id).path, "/tmp/other")
+        compare(settings.setContainerPath(id, "relative"), false)
+        compare(settings.container(id).path, "/tmp/other")
+        compare(settings.setContainerPath("files", "/tmp/other"), false)
+        // The persisted profile carries the containers and still round-trips.
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.version, 6)
+        compare(data.containers.length, 2)
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore(data))
+        compare(restored.container(id).path, "/tmp/other")
+        restored.containers = []
+        verify(restored.restore(data))
+        compare(restored.containers.length, 2)
     }
 }

@@ -18,7 +18,13 @@ Item {
     property bool canLaunchNewWindow: false
     property bool pinned: false
     property bool trashItem: false
+    property bool folderItem: false
+    property var folderContainer: null
+    property Item folderSortNameAction: null
     property bool canEmptyTrash: false
+    property string tailEdge: "bottom"
+    readonly property bool verticalTail: tailEdge === "left" || tailEdge === "right"
+    property real pointerY: height / 2
     property real pointerX: width / 2
     readonly property real pointerHeight: Kirigami.Units.largeSpacing
     readonly property real pointerCenter: surface.pointerCenter
@@ -36,6 +42,9 @@ Item {
     signal settingsRequested()
     signal closeRequested()
     signal openTrashRequested()
+    signal openFolderRequested()
+    signal folderSortRequested(string sortMode)
+    signal folderLayoutRequested(string layout)
     signal emptyTrashRequested()
     Kirigami.Theme.inherit: false
     Kirigami.Theme.colorSet: Kirigami.Theme.Window
@@ -44,7 +53,7 @@ Item {
         : actions.reduce(function(width, action) {
         return Math.max(width, labelMetrics.advanceWidth(action.name))
     }, labelMetrics.advanceWidth(configureAction.text))
-    implicitWidth: Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
+    implicitWidth: (verticalTail ? pointerHeight : 0) + Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
         placesContent.visible ? placesContent.implicitWidth + contentPadding * 2 : 0,
@@ -53,12 +62,14 @@ Item {
         pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
         trashItem ? emptyTrashAction.implicitWidth + contentPadding * 2 : 0)
     FontMetrics { id: labelMetrics; font: configureAction.font }
-    implicitHeight: rows.implicitHeight + contentPadding * 2 + pointerHeight
+    implicitHeight: rows.implicitHeight + contentPadding * 2 + (verticalTail ? 0 : pointerHeight)
     width: implicitWidth
     height: implicitHeight
 
     function focusFirst() {
         if (root.trashItem) openTrashAction.forceActiveFocus(Qt.PopupFocusReason)
+        else if (root.folderItem && root.folderSortNameAction)
+            root.folderSortNameAction.forceActiveFocus(Qt.PopupFocusReason)
         else configureAction.forceActiveFocus(Qt.PopupFocusReason)
     }
     Keys.onEscapePressed: root.closeRequested()
@@ -68,16 +79,73 @@ Item {
         objectName: "dockContextSurface"
         anchors.fill: parent
         pointerX: root.pointerX
+        pointerY: root.pointerY
+        tailEdge: root.tailEdge
         tailHeight: root.pointerHeight
     }
     ColumnLayout {
         id: rows
         anchors.fill: parent
-        anchors.leftMargin: root.contentPadding
-        anchors.rightMargin: root.contentPadding
+        anchors.leftMargin: root.contentPadding + (root.tailEdge === "left" ? root.pointerHeight : 0)
+        anchors.rightMargin: root.contentPadding + (root.tailEdge === "right" ? root.pointerHeight : 0)
         anchors.topMargin: root.contentPadding
-        anchors.bottomMargin: root.contentPadding + root.pointerHeight
+        anchors.bottomMargin: root.contentPadding + (root.verticalTail ? 0 : root.pointerHeight)
         spacing: Kirigami.Units.smallSpacing
+        DockContextSectionHeader {
+            visible: root.folderItem
+            text: qsTr("Sort by")
+            Layout.fillWidth: true
+        }
+        Repeater {
+            model: [
+                {mode: "name", label: qsTr("Name")},
+                {mode: "size", label: qsTr("Size")},
+                {mode: "modified", label: qsTr("Date Modified")},
+                {mode: "created", label: qsTr("Date Created")},
+                {mode: "kind", label: qsTr("Type")}
+            ]
+            delegate: DockContextAction {
+                id: folderSortOption
+                required property var modelData
+                objectName: "folderSort-" + modelData.mode
+                Layout.fillWidth: true
+                visible: root.folderItem
+                text: modelData.label
+                marked: !!root.folderContainer && root.folderContainer.sortMode === modelData.mode
+                onClicked: root.folderSortRequested(modelData.mode)
+                Component.onCompleted: if (modelData.mode === "name") root.folderSortNameAction = folderSortOption
+            }
+        }
+        DockContextSectionHeader {
+            visible: root.folderItem
+            text: qsTr("View content as")
+            Layout.fillWidth: true
+        }
+        Repeater {
+            model: [
+                {mode: "grid", label: qsTr("Grid")},
+                {mode: "list", label: qsTr("List")},
+                {mode: "detail", label: qsTr("Detail")}
+            ]
+            delegate: DockContextAction {
+                required property var modelData
+                objectName: "folderLayout-" + modelData.mode
+                Layout.fillWidth: true
+                visible: root.folderItem
+                text: modelData.label
+                marked: !!root.folderContainer && root.folderContainer.layout === modelData.mode
+                onClicked: root.folderLayoutRequested(modelData.mode)
+            }
+        }
+        DockContextAction {
+            objectName: "openFolderAction"
+            Layout.fillWidth: true
+            visible: root.folderItem
+            text: root.folderContainer && root.folderContainer.title.length > 0
+                ? qsTr("Open “%1”").arg(root.folderContainer.title) : qsTr("Open Downloads")
+            icon.name: "document-open-folder"
+            onClicked: root.openFolderRequested()
+        }
         DockContextAction {
             id: openTrashAction
             objectName: "openTrashAction"

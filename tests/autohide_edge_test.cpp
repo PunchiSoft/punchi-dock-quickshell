@@ -229,6 +229,40 @@ private slots:
         QTRY_VERIFY(!sensor);
         QTRY_VERIFY(!server.surface && !server.edge && !server.pointer);
     }
+    void lateralEdgesRetainPointerAndRebuild() {
+        EdgeCompositor server;
+        AutoHideEdge sensor;
+        QSignalSpy reveal(&sensor, &AutoHideEdge::revealRequested);
+        sensor.setEdge(QStringLiteral("left"));
+        sensor.setScreenName("TEST-1"); sensor.setWidth(4); sensor.setHeight(480);
+        sensor.setRetainPointer(true); sensor.setEnabled(true); sensor.setArmed(true);
+        sensor.componentComplete();
+        QTRY_VERIFY(sensor.available());
+        QCOMPARE(server.width, 4); QCOMPARE(server.height, 480);
+        QCOMPARE(server.anchor, int(ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT));
+        QCOMPARE(server.border, int(KDE_SCREEN_EDGE_MANAGER_V1_BORDER_LEFT));
+        QCOMPARE(server.zone, -1); QCOMPARE(server.keyboard, 0);
+        server.trigger(); QTRY_COMPARE(reveal.count(), 1);
+        sensor.setArmed(false);
+        QVERIFY(sensor.pointerInside()); QVERIFY(server.acceptsInput);
+        sensor.setEdge(QStringLiteral("right"));
+        QTRY_VERIFY(sensor.available());
+        QVERIFY(!sensor.pointerInside());
+        QCOMPARE(server.anchor, int(ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT));
+        QCOMPARE(server.border, int(KDE_SCREEN_EDGE_MANAGER_V1_BORDER_RIGHT));
+        sensor.setEdge(QStringLiteral("invalid"));
+        QCOMPARE(sensor.edge(), QStringLiteral("right"));
+        sensor.setArmed(true);
+        QTRY_VERIFY(server.acceptsInput);
+        server.trigger(); QTRY_COMPARE(reveal.count(), 2);
+        QVERIFY(sensor.pointerInside());
+        server.leave(); QTRY_VERIFY(!sensor.pointerInside());
+        // Reject a compositor-controlled allocation with excessive thickness.
+        zwlr_layer_surface_v1_send_configure(server.layer, 2, 129, 480);
+        wl_display_flush_clients(server.display);
+        QTRY_VERIFY(!sensor.available());
+        QTRY_VERIFY(!server.surface);
+    }
     void nativeLifecycleAndRearming() {
         EdgeCompositor server;
         AutoHideEdge sensor;

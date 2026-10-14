@@ -147,7 +147,10 @@ TestCase {
         view.palette.toolTipBase = "#203040"
         view.palette.toolTipText = "#f4f4f4"
         compare(tooltip.palette.toolTipBase, view.palette.toolTipBase)
-        compare(tooltip.contentItem.color, view.palette.toolTipText)
+        compare(tooltip.Kirigami.Theme.colorSet, Kirigami.Theme.Window)
+        compare(tooltip.contentItem.color, tooltip.Kirigami.Theme.textColor)
+        compare(tooltip.background.fillColor, tooltip.Kirigami.Theme.backgroundColor)
+        verify(tooltip.background.tailHeight > 0)
         mouseMove(test, 820, 260)
         tryCompare(tooltip, "opened", false)
     }

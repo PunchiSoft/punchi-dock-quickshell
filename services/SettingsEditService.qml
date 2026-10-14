@@ -53,6 +53,8 @@ QtObject {
     }
     readonly property Connections changes: Connections {
         target: root.settings
+        function onDownloadsViewChanged() { root.synchronize() }
+        function onDockEdgeChanged() { root.synchronize() }
         function onPanelModeChanged() { root.synchronize() }
         function onSizePercentChanged() { root.synchronize() }
         function onMaximumIconScaleChanged() { root.synchronize() }
@@ -60,5 +62,6 @@ QtObject {
         function onReducedMotionChanged() { root.synchronize() }
         function onBounceEnabledChanged() { root.synchronize() }
         function onPinnedIdsChanged() { root.synchronize() }
+        function onContainersChanged() { root.synchronize() }
     }
 }

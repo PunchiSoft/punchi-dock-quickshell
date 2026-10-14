@@ -12,6 +12,7 @@ class AutoHideEdge : public QObject, public QQmlParserStatus
     QML_ELEMENT
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
+    Q_PROPERTY(QString edge READ edge WRITE setEdge NOTIFY edgeChanged)
     Q_PROPERTY(bool armed READ armed WRITE setArmed NOTIFY armedChanged)
     Q_PROPERTY(int width READ width WRITE setWidth NOTIFY widthChanged)
     Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
@@ -25,6 +26,7 @@ public:
     void classBegin() override {}
     void componentComplete() override;
     bool enabled() const { return m_enabled; }
+    QString edge() const { return m_edge; }
     bool armed() const { return m_armed; }
     int width() const { return m_width; }
     int height() const { return m_height; }
@@ -33,6 +35,7 @@ public:
     bool retainPointer() const { return m_retainPointer; }
     bool pointerInside() const { return m_pointerInside; }
     void setEnabled(bool value);
+    void setEdge(const QString &value);
     void setArmed(bool value);
     void setWidth(int value);
     void setHeight(int value);
@@ -40,6 +43,7 @@ public:
     void setRetainPointer(bool value);
 signals:
     void enabledChanged();
+    void edgeChanged();
     void armedChanged();
     void widthChanged();
     void heightChanged();
@@ -58,4 +62,5 @@ private:
     bool m_retainPointer = false, m_pointerInside = false;
     int m_width = 1, m_height = 1;
     QString m_screenName;
+    QString m_edge = QStringLiteral("bottom");
 };

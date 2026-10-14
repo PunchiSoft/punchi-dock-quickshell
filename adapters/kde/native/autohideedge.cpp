@@ -198,7 +198,9 @@ struct AutoHideEdge::Connection {
         wl_surface_damage(self->surface, 0, 0, width, height);
         wl_surface_commit(self->surface);
         if (!self->edge) self->edge = kde_screen_edge_manager_v1_get_auto_hide_screen_edge(self->manager,
-            KDE_SCREEN_EDGE_MANAGER_V1_BORDER_BOTTOM, self->surface);
+            self->owner->edge() == QStringLiteral("left") ? KDE_SCREEN_EDGE_MANAGER_V1_BORDER_LEFT
+                : self->owner->edge() == QStringLiteral("right") ? KDE_SCREEN_EDGE_MANAGER_V1_BORDER_RIGHT
+                : KDE_SCREEN_EDGE_MANAGER_V1_BORDER_BOTTOM, self->surface);
         self->configured = true;
         self->owner->setAvailable(true);
         self->update();
@@ -206,7 +208,9 @@ struct AutoHideEdge::Connection {
     static void closed(void *data, zwlr_layer_surface_v1 *) { static_cast<Connection *>(data)->fail(); }
     bool makeBuffer(uint32_t width, uint32_t height) {
         // Bound compositor-controlled allocation; transparent pixels need no HiDPI raster.
-        if (width > 16384 || height > 128 || width == 0 || height == 0) return false;
+        const bool vertical = owner->edge() != QStringLiteral("bottom");
+        if (width == 0 || height == 0 || width > (vertical ? 128u : 16384u)
+                || height > (vertical ? 16384u : 128u)) return false;
         const size_t size = size_t(width) * height * 4;
         const int fd = memfd_create("punchi-edge", MFD_CLOEXEC);
         if (fd < 0) return false;
@@ -239,7 +243,10 @@ struct AutoHideEdge::Connection {
                 ZWLR_LAYER_SHELL_V1_LAYER_OVERLAY, "dock");
             static const zwlr_layer_surface_v1_listener listener = {configure, closed};
             zwlr_layer_surface_v1_add_listener(layer, &listener, this);
-            zwlr_layer_surface_v1_set_anchor(layer, ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM);
+            zwlr_layer_surface_v1_set_anchor(layer,
+                owner->edge() == QStringLiteral("left") ? ZWLR_LAYER_SURFACE_V1_ANCHOR_LEFT
+                : owner->edge() == QStringLiteral("right") ? ZWLR_LAYER_SURFACE_V1_ANCHOR_RIGHT
+                : ZWLR_LAYER_SURFACE_V1_ANCHOR_BOTTOM);
             zwlr_layer_surface_v1_set_size(layer, owner->width(), owner->height());
             zwlr_layer_surface_v1_set_exclusive_zone(layer, -1);
             zwlr_layer_surface_v1_set_keyboard_interactivity(layer, ZWLR_LAYER_SURFACE_V1_KEYBOARD_INTERACTIVITY_NONE);
@@ -278,7 +285,9 @@ void AutoHideEdge::setRetainPointer(bool value) {
 void AutoHideEdge::refresh(bool rebuild) {
     if (!m_complete) return;
     if (!m_enabled) { m_connection->close(); return; }
-    if (m_width <= 0 || m_width > 16384 || m_height <= 0 || m_height > 128) { m_connection->close(); return; }
+    const bool vertical = m_edge != QStringLiteral("bottom");
+    if (m_width <= 0 || m_width > (vertical ? 128 : 16384)
+            || m_height <= 0 || m_height > (vertical ? 16384 : 128)) { m_connection->close(); return; }
     if (!m_connection->display) m_connection->open();
     else if (rebuild) m_connection->disposeSurface();
     m_connection->update();
@@ -298,3 +307,11 @@ void AutoHideEdge::setArmed(bool value) {
 void AutoHideEdge::setWidth(int value) { if (m_width != value) { m_width = value; refresh(true); emit widthChanged(); } }
 void AutoHideEdge::setHeight(int value) { if (m_height != value) { m_height = value; refresh(true); emit heightChanged(); } }
 void AutoHideEdge::setScreenName(const QString &value) { if (m_screenName != value) { m_screenName = value; refresh(true); emit screenNameChanged(); } }
+
+void AutoHideEdge::setEdge(const QString &value) {
+    if (value == m_edge || (value != QStringLiteral("bottom")
+            && value != QStringLiteral("left") && value != QStringLiteral("right"))) return;
+    m_edge = value;
+    refresh(true);
+    emit edgeChanged();
+}

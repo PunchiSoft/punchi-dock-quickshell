@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.1.11 — 2026-10-14
+
+- Added folder containers: **Add folder** in Items binds a dock item to any
+  folder and **Choose folder** changes its path later. The container keeps a
+  stable slug, so changing the folder preserves its order and its open popup.
+  The built-in Downloads container stays first, before Trash.
+- Added Downloads with Grid, List and Detail views, native KDE directory
+  updates, navigation with Back restoration and preferred KDE file/folder
+  opening through the existing KIO/Wayland activation path.
+- Matched the folder Grid popup to Punchi Dock's reference with larger bold
+  labels, a top-right close control, a circular Open in File Manager cell, and
+  KDE blur behind the balloon when available.
+- Labeled the Grid popup's final folder-opening cell “Open” beneath its arrow
+  icon and increased its icon slots from 2.5 to 3 grid units.
+- Added fixed-geometry marquee captions for long file and folder names in popup
+  Grid/List/Detail views, with a matching 25% theme-colored shadow on the title
+  and a reduced-motion tooltip fallback.
+- Added folder context-menu sorting by name, size, modification date, creation
+  date or type, plus Grid/List/Detail selection and an action to open the
+  configured folder. Preferences persist per folder; Date Added and the Options
+  submenu remain deferred.
+- Added Bottom/Left/Right position selection with pending edits, persistence and
+  reactive dock geometry; older profiles keep their Bottom default.
+- Reused the wave vertically with inward growth/bounce, upright icons, indicators
+  below icons, Up/Down navigation and bounded wheel/keyboard overflow handling.
+- Added side-following balloon tails and icon-relative popup placement while
+  preserving horizontal behavior and subsequent launcher clicks.
+- Extended native KDE auto-hide sensors to both side borders with bounded
+  allocations, edge-to-content pointer holding and axis-aware dodge/reservation.
+- Matched launcher-tooltip colors to the context menu's Kirigami Window profile,
+  preserving its comic balloon, pointer and system font.
+- Persisted containers, their layout and their sort criterion in schema 6, which
+  accepts schemas 1 to 5 and keeps the one-time Trash/Downloads migrations.
+- Validation: the full CTest graph passed (29/29, `qml_lint` included, no new
+  diagnostics). Physical KWin placement, KDE blur and real-theme appearance
+  remain separate manual checks.
+
 ## 0.1.10 — 2026-10-13
 
 - Added a native read-only KDE user header with Kirigami's circular shader avatar

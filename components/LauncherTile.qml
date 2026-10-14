@@ -13,6 +13,10 @@ ToolButton {
     required property string title
     required property string iconName
     property string appId: ""
+    property string dockEdge: "bottom"
+    readonly property bool vertical: dockEdge === "left" || dockEdge === "right"
+    readonly property real inwardDirection: dockEdge === "left" ? 1 : -1
+    property real axisOffset: 0
     property bool running: false
     property bool tooltipsEnabled: true
     readonly property DockMetrics metrics: DockMetrics {}
@@ -39,9 +43,10 @@ ToolButton {
     onFocusReasonChanged: if (pressed && focusReason === Qt.MouseFocusReason) root.pointerPressed()
     property bool magnificationEnabled: true
     readonly property real visualIconScale: magnificationEnabled ? targetIconScale : 1
-    property real iconOffsetX: 0
-    readonly property real iconOffsetY: -iconSize * 0.5 * (visualIconScale - 1)
-        + clickOffsetY
+    property real iconOffsetX: vertical
+        ? inwardDirection * (iconSize * 0.5 * (visualIconScale - 1) - clickOffsetY) : axisOffset
+    readonly property real iconOffsetY: vertical ? axisOffset
+        : -iconSize * 0.5 * (visualIconScale - 1) + clickOffsetY
     // Parent coordinates, shared by unscaled surfaces attached to the icon.
     readonly property point iconTopCenter: Qt.point(
         root.x + root.width / 2 + root.iconOffsetX,
@@ -145,8 +150,12 @@ ToolButton {
         font: root.font
         palette: root.palette
         visible: root.tooltipsEnabled && root.hovered && root.enabled
-        x: root.iconTopCenter.x - width / 2
-        y: root.iconTopCenter.y - height - metrics.gap
+        tailEdge: root.dockEdge === "left" ? "left" : root.dockEdge === "right" ? "right" : "bottom"
+        x: root.dockEdge === "left" ? root.iconTopCenter.x + root.iconSize * root.visualIconScale / 2 + metrics.gap
+            : root.dockEdge === "right" ? root.iconTopCenter.x - root.iconSize * root.visualIconScale / 2 - width - metrics.gap
+            : root.iconTopCenter.x - width / 2
+        y: root.vertical ? root.iconTopCenter.y + root.iconSize * root.visualIconScale / 2 - height / 2
+            : root.iconTopCenter.y - height - metrics.gap
     }
     Rectangle {
         id: runningDot
@@ -160,7 +169,9 @@ ToolButton {
         color: root.palette.windowText
         opacity: 0.75
         x: root.x + root.width / 2 + root.iconOffsetX - width / 2
-        y: root.y + root.height + (root.metrics.bottomContentPadding - height) / 2
+        y: root.vertical ? root.iconTopCenter.y + root.iconSize * root.visualIconScale
+            + (root.metrics.bottomContentPadding - height) / 2
+            : root.y + root.height + (root.metrics.bottomContentPadding - height) / 2
         Accessible.ignored: true
     }
 }

@@ -14,6 +14,17 @@ ColumnLayout {
     spacing: Kirigami.Units.largeSpacing
     Kirigami.Heading { text: qsTr("General"); level: 1 }
     Kirigami.Heading { text: qsTr("Appearance"); level: 3 }
+    RowLayout {
+        Layout.fillWidth: true
+        Label { id: positionLabel; text: qsTr("Position on screen"); Layout.fillWidth: true }
+        ComboBox {
+            objectName: "dockPosition"
+            model: [qsTr("Bottom"), qsTr("Left"), qsTr("Right")]
+            currentIndex: ["bottom", "left", "right"].indexOf(root.settings.dockEdge)
+            Accessible.name: positionLabel.text
+            onActivated: root.settings.dockEdge = ["bottom", "left", "right"][currentIndex]
+        }
+    }
     GridLayout {
         objectName: "settingsScaleLayout"
         Layout.fillWidth: true

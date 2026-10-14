@@ -5,6 +5,8 @@ import QtQuick
 // Extend effective content bounds toward the edge, excluding unused allocation.
 Item {
     id: root
+    property string dockEdge: "bottom"
+    property real edgeLength: 0
     property real hostWidth: 0
     property real hostHeight: 0
     property real surfaceTop: 0
@@ -15,11 +17,19 @@ Item {
     QtObject { id: containment; property bool inside: false }
     signal entered()
 
-    x: surfaceVisible ? Math.max(0, Math.min(hostWidth, contentBounds.x)) : 0
+    readonly property real contentLeft: Math.max(0, Math.min(hostWidth, contentBounds.x))
+    readonly property real contentRight: Math.max(contentLeft, Math.min(hostWidth, contentBounds.x + contentBounds.width))
+    readonly property real contentTop: Math.max(0, Math.min(hostHeight, contentBounds.y))
+    readonly property real contentBottom: Math.max(contentTop, Math.min(hostHeight, contentBounds.y + contentBounds.height))
+    x: surfaceVisible && dockEdge !== "left" ? contentLeft : 0
+    y: surfaceVisible ? contentTop : dockEdge !== "bottom" && edgeLength > 0
+        ? Math.max(0, (hostHeight - edgeLength) / 2) : 0
     width: !surfaceVisible && nativeEdgeAvailable ? 0
-        : surfaceVisible ? Math.max(0, Math.min(hostWidth - x, contentBounds.width)) : Math.max(0, hostWidth)
-    y: surfaceVisible ? Math.max(0, Math.min(hostHeight, contentBounds.y)) : 0
-    height: Math.max(0, hostHeight - y)
+        : !surfaceVisible || dockEdge === "right" ? Math.max(0, hostWidth - x)
+        : dockEdge === "left" ? contentRight : Math.max(0, contentRight - x)
+    height: !surfaceVisible && dockEdge !== "bottom" && edgeLength > 0 ? Math.min(hostHeight, edgeLength)
+        : !surfaceVisible || dockEdge === "bottom" ? Math.max(0, hostHeight - y)
+        : Math.max(0, contentBottom - y)
     Accessible.ignored: true
     onHoveredChanged: if (hovered) entered()
     function updateContainment(): void {

@@ -12,7 +12,7 @@ import sys
 def main():
     root = Path(__file__).resolve().parents[1]
     files = [root / 'shell.qml']
-    for directory in ('components', 'config', 'services', 'modules', 'adapters', 'tests/qml', 'tests/runtime'):
+    for directory in ('components', 'config', 'services', 'modules', 'adapters', 'tests/qml', 'tests/runtime', 'tests/folders'):
         files.extend(sorted((root / directory).rglob('*.qml')))
     result = subprocess.run([sys.argv[1], '-I', str(root / 'build/qml'), '--max-warnings', '0', *map(str, files)],
                             cwd=root, capture_output=True, text=True)

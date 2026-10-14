@@ -9,6 +9,7 @@ import Punchi.Kde as Native
 import "../../config"
 import "../../services"
 import "../../adapters/kde"
+import "../folders"
 
 PanelWindow {
     id: root
@@ -19,19 +20,36 @@ PanelWindow {
     signal settingsRequested()
     signal applicationLaunchFinished(string desktopId, bool success, string error)
 
+    readonly property bool vertical: settings.dockEdge === "left" || settings.dockEdge === "right"
+    readonly property real baseLength: view.itemCount * settings.itemSize
+        + Math.max(0, view.itemCount - 1) * settings.spacing + settings.padding * 2
+    readonly property real edgeClearance: visibilityController.edgeMode ? settings.edgeMargin : 0
+    Connections {
+        target: settings
+        function onDockEdgeChanged() {
+            contextMenu.dismiss()
+            folderPopup.dismiss()
+            visibilityController.reveal()
+        }
+    }
     // Coexist with Plasma and respect its reserved screen space.
     anchors.bottom: true
+    anchors.top: root.vertical
+    anchors.left: settings.dockEdge === "left"
+    anchors.right: settings.dockEdge === "right"
     exclusiveZone: panelPolicy.exclusiveZone
     exclusionMode: visibilityController.edgeMode ? ExclusionMode.Ignore : ExclusionMode.Normal
-    margins.bottom: visibilityController.edgeMode ? 0 : settings.edgeMargin
-    implicitWidth: visibilityController.surfaceVisible ? view.implicitWidth
-        : view.itemCount * settings.itemSize + Math.max(0, view.itemCount - 1) * settings.spacing
-            + settings.padding * 2
-    readonly property real dockAllocationHeight: view.implicitHeight
-        + (visibilityController.edgeMode ? settings.edgeMargin : 0)
+    margins.bottom: !root.vertical && !visibilityController.edgeMode ? settings.edgeMargin : 0
+    margins.left: settings.dockEdge === "left" && !visibilityController.edgeMode ? settings.edgeMargin : 0
+    margins.right: settings.dockEdge === "right" && !visibilityController.edgeMode ? settings.edgeMargin : 0
+    implicitWidth: root.screen ? root.screen.width : view.implicitWidth
+    readonly property real dockAllocationHeight: (root.vertical ? view.implicitWidth : view.implicitHeight)
+        + root.edgeClearance
     readonly property real slideDistance: slideGeometry.distance
     DockSlideGeometry { id: slideGeometry }
-    implicitHeight: windowGeometry.windowHeight
+    // Opposite main-axis anchors let KWin supply the usable vertical extent.
+    // The visible dock stays compact and centered inside this masked allocation.
+    implicitHeight: root.vertical && root.screen ? root.screen.height : windowGeometry.windowHeight
     color: "transparent"
     // Stable transparent allocation must not intercept input in the surrounding desktop.
     mask: Region {
@@ -47,8 +65,14 @@ PanelWindow {
             width: contextMenu.visible ? Math.ceil(contextMenu.width) : 0
             height: contextMenu.visible ? Math.ceil(contextMenu.height) : 0
         }
+        Region {
+            x: Math.floor(folderPopup.x)
+            y: Math.floor(folderPopup.y)
+            width: folderPopup.visible ? Math.ceil(folderPopup.width) : 0
+            height: folderPopup.visible ? Math.ceil(folderPopup.height) : 0
+        }
     }
-    onVisibleChanged: if (!visible) contextMenu.dismiss()
+    onVisibleChanged: if (!visible) { contextMenu.dismiss(); folderPopup.dismiss() }
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dock"
     WlrLayershell.keyboardFocus: dockFocusPolicy.acceptsKeyboard
@@ -63,7 +87,7 @@ PanelWindow {
     DockWindowGeometry {
         id: windowGeometry
         baseHeight: root.dockAllocationHeight
-        screenHeight: root.screen ? root.screen.height : 0
+        screenHeight: root.screen ? (root.vertical ? root.screen.width : root.screen.height) : 0
         bottomMargin: visibilityController.edgeMode ? 0 : settings.edgeMargin
         edgeHeight: settings.metrics.borderWidth
         surfaceVisible: visibilityController.surfaceVisible
@@ -77,7 +101,7 @@ PanelWindow {
         showingDesktop: overlap.showingDesktop
         configuring: root.configuring
         pointerInside: inputArea.hovered || nativeEdge.pointerInside
-        menuOpen: view.contextMenuOpen || trashConfirmation.visible || trash.confirming || trashState.busy
+        menuOpen: view.contextMenuOpen || folderPopup.visible || folderPopup.preparingToShow || trashConfirmation.visible || trash.confirming || trashState.busy
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: settings.effectiveReducedMotion
         transitionDuration: settings.slideDuration
@@ -88,18 +112,21 @@ PanelWindow {
     }
     Native.AutoHideEdge {
         id: nativeEdge
+        edge: settings.dockEdge
         retainPointer: true
         enabled: root.visible && visibilityController.edgeMode
         armed: enabled && !visibilityController.surfaceVisible
-        width: view.itemCount * settings.itemSize
-            + Math.max(0, view.itemCount - 1) * settings.spacing + settings.padding * 2
-        height: Math.max(2, settings.metrics.padding)
+        width: root.vertical ? Math.max(2, settings.metrics.padding) : root.baseLength
+        height: root.vertical ? Math.min(root.baseLength, root.screen ? root.screen.height : root.baseLength)
+            : Math.max(2, settings.metrics.padding)
         screenName: root.screen ? root.screen.name : ""
         onRevealRequested: visibilityController.reveal()
     }
     DockInputArea {
         id: inputArea
         objectName: "dock-input-area"
+        dockEdge: settings.dockEdge
+        edgeLength: root.baseLength
         hostWidth: root.width
         hostHeight: root.height
         contentBounds: Qt.rect(view.x + view.interactionBounds.x,
@@ -117,9 +144,10 @@ PanelWindow {
     DockPanelPolicy {
         id: panelPolicy
         mode: settings.panelMode
-        baseHeight: (view.itemCount > 0 ? view.itemSize : 0) + view.padding + view.bottomContentPadding
-        // The compositor also accounts for margins.bottom. Never reserve the
-        // transparent top area used by wave, bounce, and balloons.
+        baseHeight: (view.itemCount > 0 ? view.itemSize : 0) + view.padding
+            + (root.vertical ? view.padding : view.bottomContentPadding)
+        // The compositor also accounts for the selected edge margin. Never reserve
+        // the transparent inward allocation used by wave, bounce and balloons.
         bottomClearance: view.waveBottomReserve
     }
     IpcHandler {
@@ -146,6 +174,12 @@ PanelWindow {
         function snapshot(): string {
             return JSON.stringify({
                 mode: panelPolicy.effectiveMode,
+                edge: settings.dockEdge,
+                vertical: root.vertical,
+                windowWidth: root.width,
+                screenWidth: root.screen ? root.screen.width : 0,
+                dockViewX: view.x,
+                dockViewWidth: view.width,
                 visible: root.visible,
                 layer: root.WlrLayershell.layer,
                 exclusiveZone: root.exclusiveZone,
@@ -154,7 +188,8 @@ PanelWindow {
                 surfaceVisible: visibilityController.surfaceVisible,
                 opacity: visibilityController.opacity,
                 slideProgress: visibilityController.boundedSlideProgress,
-                slideOffset: slideTransform.y,
+                slideOffset: root.vertical ? slideTransform.x : slideTransform.y,
+                sceneX: view.mapToItem(null, 0, 0).x,
                 sceneY: view.mapToItem(null, 0, 0).y,
                 restingSceneY: view.y,
                 slideDistance: root.slideDistance,
@@ -174,6 +209,8 @@ PanelWindow {
     Native.DockItemCatalog {
         id: itemCatalog
         applications: availableApps
+        containers: settings.containers
+        downloadsTitle: qsTr("Downloads")
         trashTitle: qsTr("Trash")
         trashIconName: trash.iconName
     }
@@ -200,13 +237,14 @@ PanelWindow {
     RunningApplications { id: runningApps; catalog: availableApps }
     DockRestingGeometry {
         id: restingGeometry
+        dockEdge: settings.dockEdge
         screenX: root.screen ? root.screen.x : 0
         screenY: root.screen ? root.screen.y : 0
         screenWidth: root.screen ? root.screen.width : 0
         screenHeight: root.screen ? root.screen.height : 0
-        bodyWidth: view.itemCount * settings.itemSize
-            + Math.max(0, view.itemCount - 1) * settings.spacing + settings.padding * 2
-        bodyHeight: panelPolicy.baseHeight
+        bodyWidth: root.vertical ? panelPolicy.baseHeight : root.baseLength
+        bodyHeight: root.vertical ? Math.min(root.baseLength + view.bottomContentPadding,
+            root.screen ? root.screen.height : root.baseLength + view.bottomContentPadding) : panelPolicy.baseHeight
         bottomClearance: view.waveBottomReserve
         edgeMargin: settings.edgeMargin
     }
@@ -255,8 +293,10 @@ PanelWindow {
     }
     DockContextPopup {
         id: contextMenu
+        settings: settings
+        dockEdge: settings.dockEdge
         hostWindow: root
-        hostBaseHeight: root.dockAllocationHeight
+        hostBaseHeight: root.vertical ? root.height : root.dockAllocationHeight
         actions: contextService.actions
         recentDocuments: contextService.recentDocuments
         places: contextService.places
@@ -277,6 +317,13 @@ PanelWindow {
         onNewWindowRequested: contextService.openNewWindow()
         onUnpinRequested: contextService.unpin()
         onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
+        onFolderSortRequested: function(appId, sortMode) { settings.setContainerSortMode(appId, sortMode) }
+        onFolderLayoutRequested: function(appId, layout) { settings.setContainerLayout(appId, layout) }
+        onOpenFolderRequested: {
+            const entry = settings.container(contextMenu.appId)
+            if (entry && entry.path.length > 0) contextApplicationAdapter.openFolderPath(entry.path)
+            else contextApplicationAdapter.openDownloads()
+        }
         onOpenTrashRequested: trash.open()
         onEmptyTrashRequested: trash.requestEmpty()
     }
@@ -310,29 +357,50 @@ PanelWindow {
         }
     }
 
+    FolderContainerPopup {
+        id: folderPopup
+        objectName: "downloadsPopup"
+        hostWindow: root
+        hostBaseHeight: root.dockAllocationHeight
+        settings: root.preferences
+        opener: contextApplicationAdapter
+    }
+    Connections {
+        target: settings
+        function onPinnedIdsChanged() {
+            if (!settings.container(folderPopup.appId)) folderPopup.dismiss()
+        }
+    }
     DockView {
         id: view
+        objectName: "dock-view"
         applicationState: runningApps
-        contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow
+        contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow || folderPopup.visible || folderPopup.preparingToShow
         onContextMenuRequested: function(sourceItem, appId, title, position) {
+            folderPopup.dismiss()
             contextMenu.appId = appId
             contextService.select(appId)
             if (appId.length > 0) contextMenu.openForItem(sourceItem, title)
             else contextMenu.openAt(sourceItem, position)
         }
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        dockEdge: settings.dockEdge
+        sceneTranslation: Qt.point(slideTransform.x, slideTransform.y)
+        availableLength: root.vertical ? root.height : 0
+        width: implicitWidth
         height: implicitHeight
-        anchors.bottomMargin: visibilityController.edgeMode && visibilityController.surfaceVisible
-            ? settings.edgeMargin : 0
+        x: settings.dockEdge === "right" ? root.width - width - root.edgeClearance
+            : root.vertical ? root.edgeClearance : (root.width - width) / 2
+        y: root.vertical ? (root.height - height) / 2 + view.contentCenterOffset
+            : root.height - height - root.edgeClearance
         visible: visibilityController.surfaceVisible
         opacity: visibilityController.opacity
         transform: Translate {
             id: slideTransform
-            y: visibilityController.edgeMode
-                ? (1 - visibilityController.boundedSlideProgress)
-                    * root.slideDistance : 0
+            x: visibilityController.edgeMode && root.vertical
+                ? (settings.dockEdge === "left" ? -1 : 1)
+                    * (1 - visibilityController.boundedSlideProgress) * root.slideDistance : 0
+            y: visibilityController.edgeMode && !root.vertical
+                ? (1 - visibilityController.boundedSlideProgress) * root.slideDistance : 0
         }
         entries: dockItems
         itemSize: settings.itemSize
@@ -349,11 +417,17 @@ PanelWindow {
         clickDuration: settings.clickDuration
         onSettingsRequested: root.settingsRequested()
         onItemActivated: function(appId) {
-            if (appId === "item:trash") trash.open()
-            else activation.activate(appId)
             contextMenu.dismiss()
+            const container = settings.container(appId)
+            if (container) folderPopup.toggleForItem(view.itemForId(appId), appId, container)
+            else {
+                folderPopup.dismiss()
+                if (appId === "item:trash") trash.open()
+                else activation.activate(appId)
+            }
         }
         onItemNewWindowRequested: function(appId) {
+            folderPopup.dismiss()
             if (!appId.startsWith("item:")) activation.newWindow(appId)
             contextMenu.dismiss()
         }

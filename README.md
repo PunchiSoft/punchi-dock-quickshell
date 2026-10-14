@@ -8,7 +8,7 @@ Punchi Dock Shell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
-**Development status:** early prototype. Current delivery: **0.1.10**.
+**Development status:** early prototype. Current delivery: **0.1.11**.
 The first Git snapshot was published as `0.1.0`, equivalent to `0.1.00` under
 the current delivery counter. Each delivery commit advances the counter once;
 see [versioning](docs/versioning.md) and the [changelog](CHANGELOG.md).
@@ -35,6 +35,8 @@ Compatibility and validation limits are documented below.
 - Dock settings for icon size, magnification, bounce, reduced motion and
   visibility: Always visible, Hide automatically, Dodge windows or Windows go below.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
+- Downloads with Grid, List and Detail folder views, navigation inside a themed
+  balloon, and native KDE file opening; see [folder containers](docs/folder-containers.md).
 
 Running-application indicators and existing-window activation are implemented
 with isolated validation; physical KDE checks remain pending. A separate panel,
@@ -93,7 +95,7 @@ Without a saved file, the application uses the defaults in
 | Setting | Current first-run default |
 |---|---|
 | Surface | Bottom dock; no custom top bar yet |
-| Pinned items, in order | Dolphin, Konsole, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Trash |
+| Pinned items, in order | Dolphin, Konsole, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
 | Click bounce | Enabled |
@@ -104,7 +106,7 @@ Without a saved file, the application uses the defaults in
 These are prototype defaults, not a guarantee that every preset application is
 installed. Changing settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
-mode. The current file format is version 2 and accepts version 1 through migration.
+mode. The current file format is version 3 and accepts versions 1 and 2 through migration.
 
 ## Installation and sharing
 

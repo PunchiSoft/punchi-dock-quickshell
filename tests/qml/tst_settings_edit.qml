@@ -89,8 +89,9 @@ TestCase {
         compare(view.settings.sizePercent, 150)
         mouseClick(control(window, "resetDockSettings"))
         compare(view.settings.sizePercent, 100)
-        compare(view.settings.pinnedIds.length, 9)
-        compare(view.settings.pinnedIds[8], "item:trash")
+        compare(view.settings.pinnedIds.length, 10)
+        compare(view.settings.pinnedIds[8], "item:downloads")
+        compare(view.settings.pinnedIds[9], "item:trash")
         compare(window.settings.sizePercent, 150)
         compare(window.settings.pinnedIds.length, 2)
         // A repeated Configure action raises the existing editor without losing edits.
@@ -107,8 +108,9 @@ TestCase {
         mouseClick(control(window, "applyDockSettings"))
         compare(window.settings.sizePercent, 100)
         compare(window.settings.panelMode, "overlay")
-        compare(window.settings.pinnedIds.length, 9)
-        compare(window.settings.pinnedIds[8], "item:trash")
+        compare(window.settings.pinnedIds.length, 10)
+        compare(window.settings.pinnedIds[8], "item:downloads")
+        compare(window.settings.pinnedIds[9], "item:trash")
         window.close()
     }
     function test_externalChangesAndLivePinnedConsumer(): void {

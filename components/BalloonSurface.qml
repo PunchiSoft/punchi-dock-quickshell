@@ -11,31 +11,67 @@ AntialiasedSurface {
     property real borderWidth: Kirigami.Units.smallSpacing / 4
     property real cornerRadius: Kirigami.Units.cornerRadius * 2
     property real tailHeight: Kirigami.Units.largeSpacing
+    property real tailBaseScale: 1
+    property real tailTipRadius: 0
+    property string tailEdge: "bottom"
+    readonly property bool verticalTail: tailEdge === "left" || tailEdge === "right"
+    property real pointerY: height / 2
     property real pointerX: width / 2
-    readonly property real bodyHeight: height - tailHeight
-    readonly property real radius: Math.min(cornerRadius, bodyHeight / 2, width / 2)
+    readonly property real bodyHeight: verticalTail ? height : height - tailHeight
+    readonly property real radius: Math.min(cornerRadius, bodyHeight / 2, (verticalTail ? width - tailHeight : width) / 2)
     readonly property real strokeInset: borderWidth / 2
     readonly property real pointerCenter: Math.max(radius + tailHeight,
-        Math.min(width - radius - tailHeight, pointerX))
+        Math.min((verticalTail ? height : width) - radius - tailHeight, verticalTail ? pointerY : pointerX))
+    readonly property real effectiveTailTipRadius: Math.max(0, Math.min(tailTipRadius,
+        tailHeight * tailBaseScale * 0.75, tailHeight - strokeInset))
 
     // One continuous outline: the pointer shares the body fill and border.
     Shape {
-        anchors.fill: parent
+        id: outline
+        width: root.verticalTail ? root.height : root.width
+        height: root.verticalTail ? root.width : root.height
+        x: (root.width - width) / 2
+        y: (root.height - height) / 2
+        rotation: root.tailEdge === "left" ? 90 : root.tailEdge === "right" ? -90 : 0
+        readonly property real bodyHeight: height - root.tailHeight
+        readonly property real pointerCenter: root.tailEdge === "right" ? width - root.pointerCenter : root.pointerCenter
         ShapePath {
             strokeWidth: root.borderWidth
             strokeColor: root.strokeColor
             fillColor: root.fillColor
             startX: root.radius
             startY: root.strokeInset
-            PathLine { x: root.width - root.radius; y: root.strokeInset }
-            PathQuad { x: root.width - root.strokeInset; y: root.radius; controlX: root.width - root.strokeInset; controlY: root.strokeInset }
-            PathLine { x: root.width - root.strokeInset; y: root.bodyHeight - root.radius }
-            PathQuad { x: root.width - root.radius; y: root.bodyHeight; controlX: root.width - root.strokeInset; controlY: root.bodyHeight }
-            PathLine { x: root.pointerCenter + root.tailHeight; y: root.bodyHeight }
-            PathLine { x: root.pointerCenter; y: root.height - root.strokeInset }
-            PathLine { x: root.pointerCenter - root.tailHeight; y: root.bodyHeight }
-            PathLine { x: root.radius; y: root.bodyHeight }
-            PathQuad { x: root.strokeInset; y: root.bodyHeight - root.radius; controlX: root.strokeInset; controlY: root.bodyHeight }
+            PathLine { x: outline.width - root.radius; y: root.strokeInset }
+            PathQuad { x: outline.width - root.strokeInset; y: root.radius; controlX: outline.width - root.strokeInset; controlY: root.strokeInset }
+            PathLine { x: outline.width - root.strokeInset; y: outline.bodyHeight - root.radius }
+            PathQuad { x: outline.width - root.radius; y: outline.bodyHeight; controlX: outline.width - root.strokeInset; controlY: outline.bodyHeight }
+            PathLine { x: outline.pointerCenter + root.tailHeight * root.tailBaseScale; y: outline.bodyHeight }
+            PathQuad {
+                x: outline.pointerCenter + root.effectiveTailTipRadius
+                y: outline.height - root.strokeInset - root.effectiveTailTipRadius
+                controlX: root.effectiveTailTipRadius > 0
+                    ? outline.pointerCenter + root.tailHeight * root.tailBaseScale
+                    : outline.pointerCenter + root.tailHeight / 2
+                controlY: root.effectiveTailTipRadius > 0
+                    ? outline.bodyHeight : outline.bodyHeight + (root.tailHeight - root.strokeInset) / 2
+            }
+            PathQuad {
+                x: outline.pointerCenter - root.effectiveTailTipRadius
+                y: outline.height - root.strokeInset - root.effectiveTailTipRadius
+                controlX: outline.pointerCenter
+                controlY: outline.height - root.strokeInset + root.effectiveTailTipRadius
+            }
+            PathQuad {
+                x: outline.pointerCenter - root.tailHeight * root.tailBaseScale
+                y: outline.bodyHeight
+                controlX: root.effectiveTailTipRadius > 0
+                    ? outline.pointerCenter - root.tailHeight * root.tailBaseScale
+                    : outline.pointerCenter - root.tailHeight / 2
+                controlY: root.effectiveTailTipRadius > 0
+                    ? outline.bodyHeight : outline.bodyHeight + (root.tailHeight - root.strokeInset) / 2
+            }
+            PathLine { x: root.radius; y: outline.bodyHeight }
+            PathQuad { x: root.strokeInset; y: outline.bodyHeight - root.radius; controlX: root.strokeInset; controlY: outline.bodyHeight }
             PathLine { x: root.strokeInset; y: root.radius }
             PathQuad { x: root.radius; y: root.strokeInset; controlX: root.strokeInset; controlY: root.strokeInset }
         }

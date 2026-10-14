@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-shell VERSION 0.1.10 LANGUAGES C CXX)
+project(punchi-shell VERSION 0.1.11 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus)
@@ -41,7 +41,9 @@ qt_add_qml_module(punchikde
     VERSION 1.0
     OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml/Punchi/Kde
     SOURCES adapters/kde/native/desktoplauncher.h adapters/kde/native/desktoplauncher.cpp
+        adapters/kde/native/popupblurcontroller.h adapters/kde/native/popupblurcontroller.cpp
         adapters/kde/native/iconthemerefresh.h adapters/kde/native/iconthemerefresh.cpp
+        adapters/kde/native/foldercontents.h adapters/kde/native/foldercontents.cpp
         adapters/kde/native/desktopentry.h
         adapters/kde/native/recentdocuments.h adapters/kde/native/recentdocuments.cpp
         adapters/kde/native/fileplaces.h adapters/kde/native/fileplaces.cpp
@@ -69,6 +71,13 @@ include(CTest)
 if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
+    add_executable(folder_contents_test tests/folder_contents_test.cpp adapters/kde/native/foldercontents.cpp)
+    target_include_directories(folder_contents_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(folder_contents_test PRIVATE Qt6::Test Qt6::Widgets Qt6::Qml KF6::KIOFileWidgets)
+    add_test(NAME folder_contents COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:folder_contents_test>)
+    set_tests_properties(folder_contents PROPERTIES TIMEOUT 45)
     add_executable(trash_state_test tests/trash_state_test.cpp
         adapters/kde/native/trashstate.cpp adapters/kde/native/dockitemcatalog.cpp
         adapters/kde/native/applicationcatalog.cpp adapters/kde/native/dockapplicationsmodel.cpp)
@@ -127,6 +136,11 @@ if(BUILD_TESTING)
     add_test(NAME dock_components COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${QMLTESTRUNNER_EXECUTABLE} -input ${CMAKE_SOURCE_DIR}/tests/qml)
+    add_test(NAME folder_container COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/folder_container_test.py ${QMLTESTRUNNER_EXECUTABLE})
+    set_tests_properties(folder_container PROPERTIES TIMEOUT 45)
     add_test(NAME autohide_edge COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:autohide_edge_test>)
     set_tests_properties(autohide_edge PROPERTIES TIMEOUT 45)
@@ -137,6 +151,16 @@ if(BUILD_TESTING)
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/icon_theme_runtime_test.py)
     set_tests_properties(icon_theme_runtime PROPERTIES TIMEOUT 45)
+    add_test(NAME vertical_dock_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/vertical_dock_runtime_test.py)
+    set_tests_properties(vertical_dock_runtime PROPERTIES TIMEOUT 45)
+    add_test(NAME tooltip_theme_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/tooltip_theme_runtime_test.py)
+    set_tests_properties(tooltip_theme_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME trash_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
