@@ -9,7 +9,7 @@
 >
 > Punchi Dock Quickshell is under constant development. Expect breaking changes
 > to behavior, configuration, native APIs and documentation without migration.
-> It has only been tested on the maintainer's Fedora/KDE Plasma Wayland machine;
+> It has only been tested on Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland;
 > other distributions, X11 and other compositors are unvalidated. There is no
 > stable release, package, support commitment or compatibility guarantee yet.
 
@@ -25,9 +25,9 @@ Compatibility and validation limits are documented below.
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
 The source-checkout workflow below is the supported development installation.
-The automated setup currently covers Fedora with Quickshell 0.2.1, Qt 6.11.2
-and KDE Frameworks 6.30; other distributions need package-name adjustments and
-their own validation.
+The automated setup currently covers Fedora 44 with Quickshell 0.2.1, Qt 6.11.2,
+KDE Frameworks 6.31.0 and KDE Plasma/KWin 6.7.5; other distributions need
+package-name adjustments and their own validation.
 
 ## Current features
 
@@ -58,7 +58,7 @@ an application-launcher surface and additional controls remain future work.
 
 - Alpha software: behavior, configuration and native APIs may change without
   migration.
-- Validated only on one Fedora/KDE Plasma Wayland machine; X11, other
+- Validated only on Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland; X11, other
   distributions and other compositors are untested.
 - Source builds only; no packages, tags or release binaries.
 - Window activation, KWin cursor feedback and multi-monitor behavior still need
@@ -74,20 +74,43 @@ git clone https://github.com/PunchiSoft/punchi-dock-quickshell.git
 cd punchi-dock-quickshell
 ```
 
-On the tested Fedora setup, install Quickshell and the native build dependencies:
+### Tested environment
+
+The current build has been exercised on:
+
+| Component | Tested version |
+|---|---|
+| Distribution | Fedora 44 (x86_64) |
+| Session | KDE Plasma/KWin 6.7.5 on Wayland |
+| Quickshell | 0.2.1 (Fedora package) |
+| Qt | 6.11.2 |
+| KDE Frameworks | 6.31.0 |
+| Kirigami Addons | 1.13.1 |
+| Wayland | 1.26.0 |
+
+These are the tested versions, not guaranteed minimums. Other versions require
+their own validation.
+
+Install Quickshell and the runtime QML modules:
 
 ```bash
-sudo dnf install quickshell cmake ninja-build gcc-c++ extra-cmake-modules \
+sudo dnf install quickshell kf6-kirigami kf6-kirigami-addons \
+  kf6-qqc2-desktop-style kf6-ksvg plasma-workspace plasma-activities-stats
+```
+
+Then install the native build dependencies:
+
+```bash
+sudo dnf install cmake ninja-build gcc-c++ extra-cmake-modules \
   qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qttools-devel \
   kf6-kio-devel kf6-kservice-devel kf6-kcoreaddons-devel kf6-kconfig-devel \
   kf6-kwindowsystem-devel plasma-activities-stats-devel wayland-devel
 ```
 
-This provides the Quickshell runtime, CMake/Ninja/C++ build tools, Qt and KDE
-development libraries, and Wayland headers used by the native adapters. Install
-the Kirigami, Kirigami Addons, Plasma TaskManager and Plasma MPRIS runtime QML
-modules from the same Fedora repositories if your system does not already have
-them. Package availability can vary with Fedora release.
+This provides the Quickshell runtime, Kirigami QML modules, Plasma TaskManager
+and MPRIS modules (`plasma-workspace`), CMake/Ninja/C++ build tools, Qt and KDE
+development libraries, and Wayland headers used by the native adapters. Package
+availability can vary with Fedora release.
 
 Configure, compile the native KDE plugin and window-state helper, then start the
 Quickshell configuration:
@@ -206,9 +229,11 @@ existing preferences. See [KConfig](https://api.kde.org/kconfig-index.html).
 ## Compatibility and validation
 
 The initial target is Linux with KDE Plasma/KWin on Wayland. The observed
-development environment is Fedora with Quickshell 0.2.1, Qt 6.11.2 and KDE
-Frameworks 6.30.0. Quickshell and Qt must be ABI-compatible; other combinations,
-distributions, X11 and other compositors require their own validation.
+development environment is Fedora 44 with KDE Plasma/KWin 6.7.5, Quickshell
+0.2.1, Qt 6.11.2 and KDE Frameworks 6.31.0. Kirigami Addons 1.13.1 and Wayland
+1.26.0 complete the tested runtime. Quickshell and Qt must be ABI-compatible;
+other combinations, distributions, X11 and other compositors require their own
+validation.
 
 Updates to Plasma, KWin, KDE Frameworks, Qt or Quickshell can affect compatibility.
 The risk differs between maintenance updates and changes to major versions or
