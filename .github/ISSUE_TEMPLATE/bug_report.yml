@@ -1,0 +1,79 @@
+name: Bug report
+description: Report a reproducible problem with Punchi Dock Quickshell.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is alpha software. Read the README and its Known limitations
+        first. Do not paste personal file paths, usernames, tokens, or private
+        file contents. Report security problems through SECURITY.md instead.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Start the dock with ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: input
+    id: distribution
+    attributes:
+      label: Distribution and version
+      placeholder: Fedora 44
+    validations:
+      required: true
+  - type: input
+    id: plasma
+    attributes:
+      label: KDE Plasma and KWin versions
+      placeholder: Plasma 6.x, KWin 6.x
+    validations:
+      required: true
+  - type: input
+    id: qt-quickshell
+    attributes:
+      label: Qt and Quickshell versions
+      description: Include the output of `qs --version` and `qtpaths6 --qt-version`.
+    validations:
+      required: true
+  - type: dropdown
+    id: session
+    attributes:
+      label: Session type
+      options:
+        - Wayland
+        - X11
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove personal paths, usernames and private data before pasting.
+      render: shell
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I read the README and its Known limitations.
+          required: true
+        - label: I searched existing issues.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

@@ -21,7 +21,7 @@ Plasma through reversible start and stop scripts.
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
 
-[Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md)
+[Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
 The source-checkout workflow below is the supported development installation.
 The automated setup currently covers Fedora with Quickshell 0.2.1, Qt 6.11.2
