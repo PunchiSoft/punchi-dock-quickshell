@@ -8,7 +8,7 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     objectName: "settingsAboutContent"
-    readonly property string applicationVersion: "0.1.13"
+    readonly property string applicationVersion: "0.1.16"
     readonly property string repositoryUrl: "https://github.com/PunchiSoft/punchi-dock-quickshell"
     readonly property string helpUrl: repositoryUrl + "/issues"
     readonly property string licenseUrl: "https://www.gnu.org/licenses/gpl-3.0.html"
@@ -119,7 +119,7 @@ ColumnLayout {
                 }
                 Label {
                     objectName: "aboutAuthors"
-                    text: qsTr("Punchi Dock Contributors")
+                    text: qsTr("PunchiSoft")
                 }
             }
         }

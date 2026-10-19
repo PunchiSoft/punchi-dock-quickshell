@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.16 — 2026-10-19
+
+- Show PunchiSoft as the project author and refresh the version displayed in the
+  About page.
+- Document the use of AI coding agents as development support.
+
 ## 0.1.15 — 2026-10-19
 
 - Keep Add Item inside the Items settings page, replacing only the item-content

@@ -17,7 +17,7 @@ Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
-**Current delivery:** **0.1.15**. The first Git snapshot was published as
+**Current delivery:** **0.1.16**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -293,6 +293,12 @@ ctest --test-dir build --output-on-failure
 
 English is the source language. Only English fallback strings are supported at
 this stage. Settings update existing surfaces through reactive state.
+
+## Author and development assistance
+
+Punchi Dock Quickshell is developed by PunchiSoft. AI coding agents are used as
+development support for implementation, review and documentation. The maintainer
+remains responsible for all changes, validation and published content.
 
 ## Origins and attribution
 
