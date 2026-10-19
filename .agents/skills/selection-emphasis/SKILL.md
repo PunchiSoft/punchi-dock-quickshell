@@ -1,0 +1,105 @@
+---
+name: selection-emphasis
+description: Prevent competing selection and hover fills in QML lists, sidebars, and delegates while preserving keyboard focus and the active Plasma/Kirigami theme.
+---
+
+# Selection emphasis
+
+Use this skill for QML surfaces that show selected or current rows, categories,
+tabs, launcher entries, or delegates that also react to the pointer.
+
+## Rule
+
+Each selection set has exactly one primary emphasis. A selected/current item may
+use the theme highlight fill plus highlighted text and icon colors. While any
+selection is active, pointer hover must not paint a second filled background on
+another item. Hover may still provide a tooltip or a pointer cursor change; it
+must not compete with the selection fill.
+
+Keep the states distinct:
+
+- **Selection** is durable until another item is chosen.
+- **Hover** is transient pointer presence, never steals focus, and never adds a
+  second fill while a selection exists.
+- **Focus** must remain visible independently; never use hover styling as the
+  focus indicator.
+- **Press** and **drop** express separate intents, not selection.
+
+Failure signs: two adjacent rows/categories filled at once, the selection losing
+contrast while the pointer moves, icon or text colors flipping on hover, or a
+hardcoded accent color that ignores the user's scheme.
+
+## Native behavior and theme
+
+1. Inspect the installed Qt Quick Controls style and, for Plasma work, the local
+   reference checkout when present:
+   - Punchi Dock Remastered declares its settings categories with
+     `ConfigModel`/`ConfigCategory` in `contents/config/config.qml`; Plasma's
+     configuration dialog owns sidebar hover, selection and focus painting. Do
+     not reimplement those states in plasmoid QML.
+   - Its `kde-sdk/` tree contains the matching Qt/Plasma sources for checking
+     the native behavior.
+2. Prefer native `ItemDelegate`, `ListView`, Kirigami controls and the user's
+   QQC2 Desktop Style. Let the style paint checked, highlighted and focus states.
+3. Never hardcode colors. Use the active theme roles:
+   `Kirigami.Theme.highlightColor`, `highlightedTextColor`, `textColor`,
+   `backgroundColor`, `focusColor` and `disabledTextColor`. For symbolic icons,
+   use `Kirigami.Icon.color`.
+4. Preserve `Kirigami.Theme.colorSet` and `Kirigami.Theme.inherit`; do not reset
+   the theme on a child to force a specific look.
+5. Verify the user's light and dark schemes and a non-default accent color.
+   Check selected text/icon contrast and that keyboard focus remains visible.
+
+## Implementation patterns
+
+Lists that can have no selection (for example the dock-items list):
+
+```qml
+ItemDelegate {
+    property bool selectionActive: false
+    hoverEnabled: !root.selectionActive
+    highlighted: root.selected
+    // ...
+}
+```
+
+The view passes `selectionActive: selectedId.length > 0`, so hover works only
+while the list has no current item. This is the existing `ApplicationListRow`
+contract.
+
+Navigation where an item is always current (settings categories, tabs):
+
+```qml
+ItemDelegate {
+    // The selected fill is the only emphasis while a page is current.
+    hoverEnabled: false
+    checkable: true
+    checked: ...
+    highlighted: checked
+    // ...
+}
+```
+
+Do not use `hovered` to drive the same background, icon color or text color as
+selection. If a non-fill hover affordance is required, make it visually
+subordinate and confirm it cannot be mistaken for selection.
+
+## Checklist
+
+- One filled selection at a time; no second hover fill.
+- Hover never steals keyboard focus; focus remains visible.
+- All colors come from the active theme; accent changes follow.
+- Native style and components are preferred; custom backgrounds use theme roles.
+- Keyboard activation, `Accessible.name` and existing object names are preserved.
+- A component test asserts `hoverEnabled === false` while selection is active.
+- `qml_lint`, component tests and a light/dark visual check pass.
+
+## Validation
+
+```bash
+ctest --test-dir build --output-on-failure -R '^(qml_lint|dock_components)$'
+```
+
+Offscreen tests prove state contracts, not theme fidelity. Inspect the real
+window with light and dark schemes and the user's accent color before declaring
+visual validation.

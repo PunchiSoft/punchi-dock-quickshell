@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.1.21 — 2026-10-19
+
+- Add a contextual details pane to Items settings. The dock list and the pane
+  sit side by side on wide pages and stack in a narrow window; the pane shows
+  the selected application, folder or Trash item, moves the folder path and
+  Grid/List/Detail controls out of the list footer, and shows an explanatory
+  note when there is no selection.
+- Open the Items page without a preselected entry. The explanatory note is the
+  initial state, row hover emphasis remains available until a row is chosen,
+  and closing and reopening the window starts neutral again. If an external
+  change removes the selected entry, its selection clears instead of moving to
+  a neighbour.
+- Present the settings categories with a large themed icon above a centered
+  label, matching the sidebar hierarchy of the reference interface while
+  preserving the existing selection highlight and keyboard focus.
+- Keep the selected settings category as the only filled state. Category
+  buttons no longer paint a pointer-hover background while another page is
+  current. The single-emphasis rule is recorded in the `selection-emphasis`
+  skill for future lists, tabs and delegates.
+- After a successful interactive update pull, ask whether to rebuild and install
+  the updated copy. The non-interactive `--pull` path still never rebuilds or
+  installs on its own.
+- Add a Spanish README translation (`README.es.md`) with a clear compatibility
+  table and link both language versions.
+
 ## 0.1.20 — 2026-10-19
 
 - Add a "Check for updates" menu entry and `--check-updates` option. It fetches

@@ -5,8 +5,9 @@ import "../config"
 QtObject {
     id: root
     required property ShellSettings settings
+    // Opening the page starts without a selection; the details pane explains
+    // the available actions until the user chooses a row.
     property string selectedAppId: ""
-    property int previousIndex: 0
     readonly property int selectedIndex: settings.pinnedIds.indexOf(selectedAppId)
     readonly property bool canMoveUp: selectedIndex > 0
     readonly property bool canMoveDown: selectedIndex >= 0 && selectedIndex < settings.pinnedIds.length - 1
@@ -15,11 +16,7 @@ QtObject {
     function select(appId: string): void {
         if (settings.pinnedIds.indexOf(appId) >= 0) selectedAppId = appId
     }
-    function ensureSelection(): void {
-        if (!settings || selectedIndex >= 0) return
-        const pins = settings.pinnedIds
-        selectedAppId = pins.length > 0 ? pins[Math.min(previousIndex, pins.length - 1)] : ""
-    }
+    function clearSelection(): void { selectedAppId = "" }
     function move(direction: int): bool {
         if (direction !== -1 && direction !== 1) return false
         const from = selectedIndex
@@ -39,14 +36,17 @@ QtObject {
             settings.removeContainer(removedId)
         settings.pinnedIds = next
         selectedAppId = next.length > 0 ? next[Math.min(from, next.length - 1)] : ""
-        previousIndex = Math.max(0, Math.min(from, next.length - 1))
         return true
     }
-    onSelectedIndexChanged: if (selectedIndex >= 0) previousIndex = selectedIndex
-    onSettingsChanged: ensureSelection()
-    Component.onCompleted: ensureSelection()
+    onSettingsChanged: selectedAppId = ""
     readonly property Connections changes: Connections {
         target: root.settings
-        function onPinnedIdsChanged() { root.ensureSelection() }
+        // An external removal clears the selection instead of choosing a
+        // neighbour the user did not ask for. A removal through this service
+        // sets its follow-up selection after the model change.
+        function onPinnedIdsChanged() {
+            if (root.selectedAppId.length > 0 && root.selectedIndex < 0)
+                root.selectedAppId = ""
+        }
     }
 }

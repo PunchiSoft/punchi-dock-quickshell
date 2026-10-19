@@ -393,9 +393,36 @@ def check_update_check(root: Path) -> None:
         pulled_output = pulled.stdout + pulled.stderr
         assert pulled.returncode == 0, pulled_output
         assert 'Checkout updated' in pulled_output, pulled_output
+        assert 'Rebuild and install now?' not in pulled_output, pulled_output
         assert git_run('rev-parse', 'HEAD', cwd=source).stdout.strip() \
             == git_run('rev-parse', 'HEAD', cwd=clone).stdout.strip()
         assert '0.1.21' in (source / 'CMakeLists.txt').read_text()
+
+        # Interactive prompt mode offers to rebuild and install after a
+        # successful pull. PUNCHI_ASSUME_YES drives both confirmations without
+        # a TTY; the install callback is stubbed so the test never builds.
+        write_version(clone, '0.1.22')
+        git_run('add', 'CMakeLists.txt', cwd=clone)
+        git_run('commit', '-m', 'upstream install prompt', cwd=clone)
+        git_run('push', 'origin', 'main', cwd=clone)
+        prompted_environment = environment.copy()
+        prompted_environment['PUNCHI_ASSUME_YES'] = '1'
+        prompted = subprocess.run(
+            ['bash', '-c',
+             f'punchi_project_root="{source}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_action_install() { printf "INSTALL_CALLED\\n"; }; '
+             'punchi_check_updates prompt'],
+            cwd=root, env=prompted_environment, capture_output=True, text=True,
+            check=False, timeout=60)
+        prompted_output = prompted.stdout + prompted.stderr
+        assert prompted.returncode == 0, prompted_output
+        assert 'Checkout updated' in prompted_output, prompted_output
+        assert 'INSTALL_CALLED' in prompted_output, prompted_output
+        assert git_run('rev-parse', 'HEAD', cwd=source).stdout.strip() \
+            == git_run('rev-parse', 'HEAD', cwd=clone).stdout.strip()
+        assert '0.1.22' in (source / 'CMakeLists.txt').read_text()
 
 
 def check_git_missing(root: Path) -> None:

@@ -42,6 +42,8 @@ Actions (choose one):
                       --install-missing, offer to install missing packages.
   --check-updates     Fetch the configured Git remote and report whether this
                       checkout is behind. It only reads unless --pull is used.
+                      The interactive menu can pull and then offer a rebuild and
+                      install.
   --uninstall         Stop this project, restore owned KDE settings and remove
                       the user-local installation. Build output is kept by
                       default.
@@ -64,7 +66,8 @@ Options:
   --pull              With --check-updates, run git pull --ff-only when the
                       checkout is behind. It refuses when tracked files have
                       modifications and never rebases, resets or stashes. The
-                      interactive menu asks before pulling.
+                      interactive menu asks before pulling and then offers to
+                      rebuild and install; this option never installs.
   -y, --yes           Assume yes for confirmations. The interactive menu still
                       asks separately before deleting preferences.
   -j, --jobs N        Parallel build jobs. Default: detected CPU count.

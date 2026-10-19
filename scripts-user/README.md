@@ -31,9 +31,10 @@ distribution and never installs git automatically.
 "Check for updates" (`--check-updates`) fetches the configured Git upstream,
 reports ahead/behind counts, the upstream declared version and the installed
 copy version, and then suggests `git pull --ff-only`. The menu asks before
-pulling; `--pull` performs the same fast-forward pull non-interactively. It
-refuses modified tracked files and never rebases, resets or stashes, and it does
-not rebuild or reinstall on its own. Qt tools (`qtpaths6`, `qmllint`,
+pulling and, after a successful pull, asks whether to rebuild and install the
+updated copy. `--pull` performs the same fast-forward pull non-interactively
+and never rebuilds or installs. It refuses modified tracked files and never
+rebases, resets or stashes. Qt tools (`qtpaths6`, `qmllint`,
 `qmltestrunner`) are resolved from `PATH` and then from the distribution Qt bin
 directory; `PUNCHI_QT_BIN_DIRS` adds colon-separated custom Qt prefixes.
 

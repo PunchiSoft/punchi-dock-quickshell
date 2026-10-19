@@ -4,13 +4,17 @@
 
 <p align="center"><strong>An animated, configurable dock for KDE Plasma, built with Quickshell and native Qt/KDE integration.</strong></p>
 
+[English](README.md) · [Español](README.es.md)
+
 > [!WARNING]
 > **Under construction — actively changing.**
 >
 > Punchi Dock Quickshell is under constant development. Expect breaking changes
 > to behavior, configuration, native APIs and documentation without migration.
-> It has only been tested on Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland;
-> other distributions, X11 and other compositors are unvalidated. There is no
+> Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland is the primary validated
+> environment. Arch Linux (rolling, KDE current as of 2026-10-19) compiles and
+> starts but still needs complete runtime and visual validation. Other
+> distributions, X11 and other compositors are unvalidated. There is no
 > stable release, package, support commitment or compatibility guarantee yet.
 
 Punchi Dock Quickshell combines animated magnification, configurable application
@@ -22,7 +26,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.20**. The first Git snapshot was published as
+**Current delivery:** **0.1.21**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -65,13 +69,15 @@ an application-launcher surface and additional controls remain future work.
   migration.
 - Requires KDE Plasma/KWin on Wayland. Other desktops and compositors are not
   supported.
-- Validated only on Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland; X11, other
-  distributions and other compositors are untested.
+- Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland is the primary validated
+  environment. Arch Linux currently builds and starts but still needs complete
+  runtime and visual validation; X11 and other compositors are untested.
+- English UI only for now; [README.es.md](README.es.md) is a documentation
+  translation.
 - Source and CMake prefix installs only; no RPM/DEB packages, tags or release
   binaries.
 - Window activation, KWin cursor feedback and multi-monitor behavior still need
   broader real-session validation.
-- English UI only for now.
 
 ## Install, run and return to KDE
 
@@ -99,7 +105,7 @@ Without arguments it opens a menu:
 | Start the dock | `./scripts-user/setup.sh --start` | Starts the installed copy, or the source checkout when no installation exists. |
 | Check dependencies | `./scripts-user/setup.sh --check-deps` | Reports runtime, build, validation and KDE checks. Qt tools are also found outside `PATH` in the distribution Qt bin directory. Fedora package names are validated; Debian/Ubuntu and Arch mappings are best-effort. |
 | Check for updates | `./scripts-user/setup.sh --check-updates` | Fetches the configured Git remote and reports ahead/behind counts, the upstream declared version and the installed copy version. It only reads unless `--pull` is passed. |
-| Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Runs `git pull --ff-only` after the check when the checkout is behind. It refuses modified tracked files and never rebases, resets or stashes. The menu asks before pulling. |
+| Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Runs `git pull --ff-only` after the check when the checkout is behind. It refuses modified tracked files and never rebases, resets or stashes. The menu asks before pulling and then offers to rebuild and install; `--pull` never installs. |
 | Uninstall | `./scripts-user/setup.sh --uninstall` | Stops this project, restores owned KWin settings and removes the user-local installation. `build/` is kept unless `--remove-build` is passed. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Shows commands, paths and README locations. |
 
@@ -133,51 +139,58 @@ checkout and the user-local installation. Starting one while the other is
 running reports the active path and the restore script that stops it; it does
 not register a second window backend.
 
-### Validated Fedora 44 setup
+### Compatibility at a glance
 
-The current build has been exercised only on this environment:
+| Status | Environment / family | Plasma | KWin | Qt | KF6 | Quickshell | Distributions / notes |
+|:---:|---|---|---|---|---|---|---|
+| ✅ | Fedora KDE 44 | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | — |
+| 🟡 | Arch Linux (rolling) | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | KDE current 2026-10-19; Mesa/Zink warnings |
+| ⚪ | Fedora/RHEL family | — | — | — | — | — | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE |
+| ⚪ | Debian/Ubuntu family | — | — | — | — | — | Debian KDE, Kubuntu, KDE neon, Tuxedo OS, MX Linux KDE |
+| ⚪ | Arch family | — | — | — | — | — | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE |
+| ⚪ | openSUSE | — | — | — | — | — | Tumbleweed, Leap |
+| ⚪ | Independent | — | — | — | — | — | KaOS, Solus KDE |
+| ❌ | X11 / non-KDE compositors | — | — | — | — | — | — |
 
-| Component | Tested version |
-|---|---|
-| Distribution | Fedora 44 (x86_64) |
-| Session | KDE Plasma/KWin 6.7.5 on Wayland |
-| Quickshell | 0.2.1 (Fedora package) |
-| Qt | 6.11.2 |
-| KDE Frameworks | 6.31.0 |
-| Kirigami Addons | 1.13.1 |
-| Wayland | 1.26.0 |
+✅ validated · 🟡 builds/starts, validation pending · ⚪ untested, same family · ❌ unsupported · ⏳ pending · — not applicable.
 
-These are the tested versions, not guaranteed minimums. Other versions require
-their own validation.
+Only Fedora 44 has the complete automated validation graph. List based on the
+[KDE Community wiki — Distributions](https://community.kde.org/Distributions).
 
-The dependency check uses these Fedora package groups. Install the runtime and
-QML modules first:
+The setup assistant reports dependencies in two groups. Distribution-specific
+package names and install commands stay in `scripts-user/`; this list names the
+software each group needs.
 
-```bash
-sudo dnf install quickshell kf6-kirigami kf6-kirigami-addons \
-  kf6-qqc2-desktop-style kf6-ksvg kf6-kservice plasma-workspace \
-  plasma-activities-stats
-```
+**To run the dock:**
 
-Then install the native build dependencies:
+- Quickshell
+- Kirigami
+- Kirigami Addons
+- QQC2 Desktop Style
+- KSvg
+- KService
+- Plasma Workspace
+- Plasma Activities Stats
 
-```bash
-sudo dnf install cmake ninja-build gcc-c++ extra-cmake-modules \
-  qt6-qtbase-devel qt6-qtdeclarative-devel qt6-qttools-devel \
-  kf6-kio-devel kf6-kservice-devel kf6-kcoreaddons-devel kf6-kconfig-devel \
-  kf6-kwindowsystem-devel plasma-activities-stats-devel wayland-devel
-```
+**To build the native components:**
 
-The runtime also needs `kbuildsycoca6` to refresh KDE's service cache when the
-window backend is registered; Fedora provides it through `kf6-kservice`.
-Validation additionally uses `python3-dbus`, `python3-gobject`, `dbus-daemon`,
-`desktop-file-utils` and `update-desktop-database`. These are reported as
-validation tools, not as requirements for running the dock.
+- CMake
+- Ninja
+- A C++17 compiler
+- Extra CMake Modules
+- Qt 6 Base, Declarative and Tools development files
+- KF6 KIO, Service, CoreAddons, Config and WindowSystem development files
+- Plasma Activities Stats development files
+- Wayland client development files, scanner and protocols
 
-`./scripts-user/setup.sh --check-deps --install-missing` offers to install
-missing packages with `sudo` for Fedora, Debian/Ubuntu or Arch. It prints the
-command first and never runs it without confirmation. Install and build also
-offer this when required dependencies are missing.
+The runtime also needs `kbuildsycoca6` from KService. Validation tests separately
+need Python 3, D-Bus Python bindings, PyGObject, `dbus-daemon`,
+`desktop-file-utils` and `update-desktop-database`; these are not runtime
+requirements.
+
+Use `./scripts-user/setup.sh --check-deps` to inspect the current environment.
+Adding `--install-missing` additionally offers the distribution-specific install
+command for Fedora, Debian/Ubuntu or Arch and asks before running it.
 
 If the native build fails, the assistant writes a timestamped log under the
 user's Documents directory (`punchi-dock-quickshell-setup-*.log`) with the
@@ -345,10 +358,9 @@ existing preferences. See [KConfig](https://api.kde.org/kconfig-index.html).
 
 ## Compatibility and validation
 
-The initial target is Linux with KDE Plasma/KWin on Wayland. The observed
-development environment is Fedora 44 with KDE Plasma/KWin 6.7.5, Quickshell
-0.2.1, Qt 6.11.2 and KDE Frameworks 6.31.0. Kirigami Addons 1.13.1 and Wayland
-1.26.0 complete the tested runtime. Quickshell and Qt must be ABI-compatible;
+The initial target is Linux with KDE Plasma/KWin on Wayland. See
+[Compatibility at a glance](#compatibility-at-a-glance) for the validated
+versions and candidate distributions. Quickshell and Qt must be ABI-compatible;
 other combinations, distributions, X11 and other compositors require their own
 validation.
 
@@ -374,10 +386,9 @@ Punchi Dock Quickshell's personal settings file; our own format updates must mig
 Broad update compatibility remains a maintenance goal, not an established
 guarantee of this prototype.
 
-For the 0.1.0 snapshot, configuration and compilation passed, as did 11 of 12
-CTest groups. The enabled `settings_reload` test failed: the startup panel-mode
-override was reapplied after an engine reload instead of preserving the changed
-mode. This remains a known issue recorded in the [changelog](CHANGELOG.md).
+Automated checks can be timing-sensitive. During one complete-suite run the
+`settings_reload` probe timed out and then passed when run alone. The changelog
+records the current validation scope and known gaps.
 
 An isolated Wayland session probe passed startup, duplicate prevention, rendering,
 hide/reopen and scoped restoration. Automated checks do not establish final

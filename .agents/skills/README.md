@@ -19,4 +19,5 @@ from Punchi Dock Rust; Quickshell/KDE-specific workflows are new.
 - [quickshell-development](quickshell-development/SKILL.md)
 - [review-cycle](review-cycle/SKILL.md)
 - [safe-removal-review](safe-removal-review/SKILL.md)
+- [selection-emphasis](selection-emphasis/SKILL.md)
 - [testing](testing/SKILL.md)

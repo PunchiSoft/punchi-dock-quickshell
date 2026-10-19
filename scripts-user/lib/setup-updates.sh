@@ -163,6 +163,14 @@ punchi_check_updates() {
             updated_commit="$(git -C "$root" log -1 --format='%h %s' HEAD \
                 2>/dev/null || true)"
             punchi_success "Checkout updated to ${updated_commit:-the latest commit}."
+            local install_status=0
+            if [[ "$mode" == "prompt" ]] \
+                && declare -F punchi_action_install >/dev/null 2>&1; then
+                if punchi_confirm "Rebuild and install now? [y/N]: " n; then
+                    punchi_action_install || install_status=$?
+                    return "$install_status"
+                fi
+            fi
             punchi_info "Run Install or update to rebuild and refresh the installed copy."
         fi
     elif (( ahead > 0 )); then

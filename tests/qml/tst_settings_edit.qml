@@ -22,6 +22,13 @@ TestCase {
         }
     }
     Component {
+        id: emptyItemsWindowFixture
+        SettingsWindow {
+            settings: ShellSettings { pinnedIds: [] }
+            applicationCatalog: DockFixtureModel {}
+        }
+    }
+    Component {
         id: itemManagementWindowFixture
         SettingsWindow {
             settings: ShellSettings {}
@@ -216,9 +223,11 @@ TestCase {
         const pins = createTemporaryObject(pinsFixture, test)
         pins.pinnedIds = Qt.binding(() => window.settings.pinnedIds)
         verify(!up.enabled)
-        verify(down.enabled)
+        verify(!down.enabled)
+        compare(list.currentIndex, -1)
         const files = control(window, "configuredItem-files")
         mouseClick(files)
+        verify(down.enabled)
         verify(!control(window, "configuredItem-terminal").hoverEnabled)
         mouseClick(down)
         compare(view.settings.pinnedIds[1], "files")
@@ -310,6 +319,82 @@ TestCase {
         compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
         mouseClick(control(window, "applyDockSettings"))
         verify(window.settings.pinnedIds.indexOf("item:trash") >= 0)
+        window.close()
+    }
+    function test_itemDetailsFollowSelectionAndReflow(): void {
+        const window = createTemporaryObject(itemManagementWindowFixture, test)
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "itemsSettingsPage"))
+        const panel = control(window, "dockItemDetails")
+        const list = control(window, "settingsDockItems")
+        const title = control(window, "itemDetailsTitle")
+        const type = control(window, "itemDetailsType")
+        verify(control(window, "itemDetailsNote").visible)
+        verify(!title.visible)
+        verify(!type.visible)
+        compare(list.currentIndex, -1)
+        verify(panel.mapToItem(view, 0, 0).x > list.mapToItem(view, 0, 0).x)
+        verify(panel.width > list.width)
+
+        mouseClick(control(window, "configuredItem-files"))
+        tryCompare(title, "text", "Files")
+        compare(type.text, "Application")
+        verify(!control(window, "itemDetailsNote").visible)
+
+        list.positionViewAtIndex(list.count - 1, ListView.Contain)
+        verify(waitForRendering(list))
+        mouseClick(control(window, "configuredItem-item:trash"))
+        tryCompare(title, "text", "Trash")
+        compare(type.text, "Trash")
+        verify(!control(window, "containerFolderPath").visible)
+
+        list.positionViewAtIndex(list.count - 2, ListView.Contain)
+        verify(waitForRendering(list))
+        mouseClick(control(window, "configuredItem-item:downloads"))
+        tryCompare(title, "text", "Downloads")
+        compare(type.text, "Folder")
+        verify(control(window, "containerFolderPath").visible)
+        verify(control(window, "folderViewSetting").visible)
+        verify(control(window, "containerFolderPath").mapToItem(panel, 0, 0).x >= 0)
+        const chooseFolder = control(window, "containerChooseFolder")
+        const folderView = control(window, "folderViewSetting")
+        compare(chooseFolder.width, folderView.width)
+        verify(Math.abs(chooseFolder.mapToItem(panel, 0, 0).x
+            - folderView.mapToItem(panel, 0, 0).x) <= 1)
+        mouseClick(control(window, "configureDockItem"))
+        tryCompare(control(window, "folderViewSetting"), "activeFocus", true)
+
+        window.width = window.minimumWidth
+        tryVerify(function() {
+            return panel.mapToItem(view, 0, 0).y > list.mapToItem(view, 0, 0).y
+        })
+        window.close()
+    }
+    function test_sidebarCategoriesPlaceIconAboveLabel(): void {
+        const window = openWindow()
+        for (const name of ["itemsSettingsPage", "generalSettingsPage", "aboutSettingsPage"]) {
+            const button = control(window, name)
+            const icon = findChild(button, "categoryIcon")
+            const label = findChild(button, "categoryLabel")
+            verify(icon !== null && label !== null, name)
+            verify(!button.hoverEnabled, name)
+            verify(icon.width >= Kirigami.Units.iconSizes.large)
+            verify(icon.mapToItem(button, 0, 0).y + icon.height
+                <= label.mapToItem(button, 0, 0).y)
+            compare(label.text, button.text)
+            compare(label.horizontalAlignment, Text.AlignHCenter)
+        }
+        window.close()
+    }
+    function test_emptyItemsShowsDetailsNote(): void {
+        const window = createTemporaryObject(emptyItemsWindowFixture, test)
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        mouseClick(control(window, "itemsSettingsPage"))
+        verify(control(window, "itemDetailsNote").visible)
+        verify(!control(window, "itemDetailsTitle").visible)
         window.close()
     }
 }

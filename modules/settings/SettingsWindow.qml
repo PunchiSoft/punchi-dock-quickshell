@@ -18,7 +18,10 @@ Window {
     minimumHeight: Kirigami.Units.gridUnit * 14
     color: view.palette.window
     function open(): void {
-        if (!visible) editor.begin()
+        if (!visible) {
+            editor.begin()
+            view.clearSelection()
+        }
         show(); raise(); requestActivate(); Qt.callLater(view.focusFirst)
     }
     function keepFocusVisible(): void {

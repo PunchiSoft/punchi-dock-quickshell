@@ -39,6 +39,7 @@ Pane {
         else aboutPage.focusFirst()
     }
     function cancelAddingItem(restoreFocus: bool): void { itemsPage.cancelAddItem(restoreFocus) }
+    function clearSelection(): void { itemsPage.clearSelection() }
     function ensureFocusedVisible(control: Item): void {
         if ((currentPage !== 1 && currentPage !== 2) || !control) return
         const page = currentPage === 1 ? generalPage : aboutPage
@@ -77,7 +78,7 @@ Pane {
                     Layout.fillWidth: true
                     Layout.bottomMargin: Kirigami.Units.largeSpacing
                 }
-                ItemDelegate {
+                SettingsCategoryButton {
                     objectName: "itemsSettingsPage"
                     Layout.fillWidth: true
                     text: qsTr("Items")
@@ -88,7 +89,7 @@ Pane {
                     ButtonGroup.group: navigation
                     onClicked: { root.currentPage = 0; itemsPage.focusFirst() }
                 }
-                ItemDelegate {
+                SettingsCategoryButton {
                     objectName: "generalSettingsPage"
                     Layout.fillWidth: true
                     text: qsTr("General")
@@ -100,7 +101,7 @@ Pane {
                     onClicked: { root.currentPage = 1; generalPage.focusFirst() }
                 }
                 Item { Layout.fillHeight: true }
-                ItemDelegate {
+                SettingsCategoryButton {
                     objectName: "aboutSettingsPage"
                     Layout.fillWidth: true
                     text: qsTr("About")
