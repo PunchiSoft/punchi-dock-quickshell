@@ -13,6 +13,7 @@ from Punchi Dock Rust; Quickshell/KDE-specific workflows are new.
 - [modification-cycle](modification-cycle/SKILL.md)
 - [notice-copy-approval](notice-copy-approval/SKILL.md)
 - [preflight-security-review](preflight-security-review/SKILL.md)
+- [publication-review](publication-review/SKILL.md)
 - [qml-ui-creation](qml-ui-creation/SKILL.md)
 - [qt-kde-reference](qt-kde-reference/SKILL.md)
 - [quickshell-development](quickshell-development/SKILL.md)
