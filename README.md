@@ -4,13 +4,14 @@
 
 <p align="center"><strong>An animated, configurable dock for KDE Plasma, built with Quickshell and native Qt/KDE integration.</strong></p>
 
-> **Project status: under construction (alpha).**
+> [!WARNING]
+> **Under construction — actively changing.**
 >
-> Punchi Dock Quickshell is under active construction. Expect breaking changes
-> to behavior, configuration and the native API. It has only been tested on the
-> maintainer's Fedora/KDE Plasma Wayland machine; other distributions, X11 and
-> other compositors are unvalidated. There is no stable release, package,
-> support commitment or compatibility guarantee yet.
+> Punchi Dock Quickshell is under constant development. Expect breaking changes
+> to behavior, configuration, native APIs and documentation without migration.
+> It has only been tested on the maintainer's Fedora/KDE Plasma Wayland machine;
+> other distributions, X11 and other compositors are unvalidated. There is no
+> stable release, package, support commitment or compatibility guarantee yet.
 
 Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
