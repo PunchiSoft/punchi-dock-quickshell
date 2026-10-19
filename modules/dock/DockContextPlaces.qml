@@ -44,6 +44,7 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.preferredHeight: Math.min(files.implicitHeight, measurement.implicitHeight * 8)
         implicitWidth: files.implicitWidth
+        contentWidth: availableWidth
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         ColumnLayout {

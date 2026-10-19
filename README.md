@@ -12,9 +12,10 @@
 > Punchi Dock Quickshell is under constant development. Expect breaking changes
 > to behavior, configuration, native APIs and documentation without migration.
 > Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland is the primary validated
-> environment. Arch Linux (rolling, KDE current as of 2026-10-19) compiles and
-> starts but still needs complete runtime and visual validation. Other
-> distributions, X11 and other compositors are unvalidated. There is no
+> environment. Arch Linux (rolling, checked 2026-10-19: Plasma/KWin 6.8.0,
+> Qt 6.12.0, KF6 6.31.0, Quickshell 0.3.2) has a prior build/start record, but
+> complete runtime and visual validation for this exact set is still pending.
+> Other distributions, X11 and other compositors are unvalidated. There is no
 > stable release, package, support commitment or compatibility guarantee yet.
 
 Punchi Dock Quickshell combines animated magnification, configurable application
@@ -26,7 +27,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.23**. The first Git snapshot was published as
+**Current delivery:** **0.1.24**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -147,7 +148,7 @@ not register a second window backend.
 | Status | Environment / family | Plasma | KWin | Qt | KF6 | Quickshell | Distributions / notes |
 |:---:|---|---|---|---|---|---|---|
 | ✅ | Fedora KDE 44 | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | — |
-| 🟡 | Arch Linux (rolling) | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | KDE current 2026-10-19; Mesa/Zink warnings |
+| 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Arch repository versions checked 2026-10-19; not a compatibility claim for this exact set; Mesa/Zink warnings; runtime validation pending |
 | ⚪ | Fedora/RHEL family | — | — | — | — | — | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE |
 | ⚪ | Debian/Ubuntu family | — | — | — | — | — | Debian KDE, Kubuntu, KDE neon, Tuxedo OS, MX Linux KDE |
 | ⚪ | Arch family | — | — | — | — | — | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE |
@@ -159,6 +160,9 @@ not register a second window backend.
 
 Only Fedora 44 has the complete automated validation graph. List based on the
 [KDE Community wiki — Distributions](https://community.kde.org/Distributions).
+Plasma 6.8.0 was released on 2026-10-14. The Fedora row keeps the validated
+6.7.5 set; Arch repositories carry 6.8.0, but that exact combination still needs
+runtime and visual validation.
 
 The setup assistant reports dependencies in two groups. Distribution-specific
 package names and install commands stay in `scripts-user/`; this list names the

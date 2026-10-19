@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.24 — 2026-10-19
+
+- Make Places rows fill the available context-menu width instead of shrinking
+  the hover/highlight background to their text width. Add a regression that
+  compares a Places row against the section header width.
+- Record current Arch rolling package versions checked on 2026-10-19
+  (Plasma/KWin 6.8.0, Qt 6.12.0, KF6 6.31.0, Quickshell 0.3.2) while keeping
+  Fedora 44 as the validated 6.7.5 set and marking the Arch combination as
+  pending runtime and visual validation.
+
 ## 0.1.23 — 2026-10-19
 
 - Align dock context-menu rows with the installed KDE `MenuItem` style:

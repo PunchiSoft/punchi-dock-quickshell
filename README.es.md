@@ -12,11 +12,12 @@
 > Punchi Dock Quickshell está en desarrollo constante. Puede haber cambios de
 > comportamiento, configuración, API nativas y documentación sin migración.
 > Fedora 44 con KDE Plasma/KWin 6.7.5 en Wayland es el entorno principal
-> validado. Arch Linux (rolling, KDE actualizado al 2026-10-19) compila y
-> arranca, pero aún necesita validación completa de ejecución y visual. Otras
-> distribuciones, X11 y otros compositores no están validados. Todavía no hay
-> una versión estable, paquete oficial, compromiso de soporte ni garantía de
-> compatibilidad.
+> validado. Arch Linux (rolling, comprobado el 2026-10-19: Plasma/KWin 6.8.0,
+> Qt 6.12.0, KF6 6.31.0, Quickshell 0.3.2) tiene un registro previo de
+> compilación/arranque, pero la validación completa de ejecución y visual para
+> este conjunto exacto sigue pendiente. Otras distribuciones, X11 y otros
+> compositores no están validados. Todavía no hay una versión estable, paquete
+> oficial, compromiso de soporte ni garantía de compatibilidad.
 
 Punchi Dock Quickshell combina magnificación animada, lanzadores de aplicaciones
 configurables, acciones contextuales de KDE y preferencias persistentes. Se
@@ -27,7 +28,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.23**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.24**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -153,7 +154,7 @@ un segundo backend de ventanas.
 | Estado | Entorno / familia | Plasma | KWin | Qt | KF6 | Quickshell | Distribuciones / notas |
 |:---:|---|---|---|---|---|---|---|
 | ✅ | Fedora KDE 44 | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | — |
-| 🟡 | Arch Linux (rolling) | ⏳ | ⏳ | ⏳ | ⏳ | ⏳ | KDE actualizado al 2026-10-19; avisos de Mesa/Zink |
+| 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versiones de los repositorios Arch comprobadas el 2026-10-19; no es una declaración de compatibilidad para este conjunto exacto; avisos de Mesa/Zink; validación de ejecución pendiente |
 | ⚪ | Familia Fedora/RHEL | — | — | — | — | — | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE |
 | ⚪ | Familia Debian/Ubuntu | — | — | — | — | — | Debian KDE, Kubuntu, KDE neon, Tuxedo OS, MX Linux KDE |
 | ⚪ | Familia Arch | — | — | — | — | — | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE |
@@ -165,6 +166,9 @@ un segundo backend de ventanas.
 
 Solo Fedora 44 tiene el grafo de validación automatizada completo. Lista basada
 en la [wiki de distribuciones de KDE Community](https://community.kde.org/Distributions).
+Plasma 6.8.0 se publicó el 2026-10-14. La fila de Fedora conserva el conjunto
+validado 6.7.5; los repositorios de Arch incluyen 6.8.0, pero esa combinación
+exacta aún necesita validación de ejecución y visual.
 
 El asistente informa las dependencias en dos grupos. Los nombres de paquetes y
 los comandos de instalación de cada distribución permanecen en `scripts-user/`;

@@ -82,6 +82,8 @@ TestCase {
         verify(!findChild(menu.mainItem, "forgetRecentAction").visible)
         const header = findChild(menu.mainItem, "placesSectionHeader")
         compare(header.text, "Places")
+        const firstPlace = findChild(menu.mainItem, "place-file:///owned/home")
+        compare(firstPlace.width, header.width)
         const more = findChild(menu.mainItem, "morePlacesAction")
         compare(more.text, "3 more Places…")
         activate(more)
