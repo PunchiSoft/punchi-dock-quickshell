@@ -33,3 +33,12 @@ cannot load adapters that import Quickshell, so keep this check in a `qs` probe.
 Qt Quick Tests fail on warnings in executed paths. Runtime probes must also
 assert that Quickshell output has no `WARN`, `Warning:`, `ERROR`, or `Error:`
 lines; a warning on an unexecuted path needs its own synthetic invocation.
+
+## KDE capability and version tests
+
+When a change uses a feature new to Plasma 6.8 or another newer KDE release,
+first probe the installed capability and keep a fallback for every still-supported
+version. Record the tested Plasma/KWin/Qt/KF6 versions and distinguish an optional
+6.8 path from the project's declared minimum. Do not silently raise the minimum,
+skip an existing behavioral test, or treat offscreen success as native-session
+validation. Changing the minimum version requires explicit user authorization.

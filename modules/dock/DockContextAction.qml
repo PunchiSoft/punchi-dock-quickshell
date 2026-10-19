@@ -20,19 +20,22 @@ ItemDelegate {
     implicitWidth: metrics.advanceWidth(text) + icon.width + spacing + leftPadding + rightPadding
         + (submenu ? icon.width + spacing : 0)
     palette.windowText: Kirigami.Theme.textColor
+    readonly property bool emphasized: root.enabled && (root.hovered || root.down)
     FontMetrics { id: metrics; font: root.font }
     contentItem: RowLayout {
         spacing: root.spacing
         Kirigami.Icon {
             Native.IconThemeRefresh.enabled: true
             source: root.icon.name
+            selected: root.down
             Layout.preferredWidth: root.icon.width
             Layout.preferredHeight: root.icon.height
         }
         Label {
             text: root.text
             font: root.font
-            color: root.enabled ? Kirigami.Theme.textColor : Kirigami.Theme.disabledTextColor
+            color: !root.enabled ? Kirigami.Theme.disabledTextColor
+                : root.down ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
             elide: Text.ElideRight
             Layout.fillWidth: true
         }
@@ -46,10 +49,11 @@ ItemDelegate {
     }
     background: Rectangle {
         radius: Kirigami.Units.cornerRadius
-        color: root.enabled && (root.hovered || root.down)
-            ? Qt.alpha(Kirigami.Theme.highlightColor, 0.2) : "transparent"
-        border.width: root.visualFocus ? 2 : 0
-        border.color: Kirigami.Theme.highlightColor
+        opacity: (root.emphasized || root.visualFocus) ? 1 : 0
+        color: root.emphasized ? (root.down ? Kirigami.Theme.focusColor
+            : Qt.alpha(Kirigami.Theme.focusColor, 0.3)) : "transparent"
+        border.color: Kirigami.Theme.focusColor
+        border.width: (root.emphasized || root.visualFocus) ? 1 : 0
     }
     Keys.onReturnPressed: if (root.enabled) root.clicked()
     Keys.onEnterPressed: if (root.enabled) root.clicked()

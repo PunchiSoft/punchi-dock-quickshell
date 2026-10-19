@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.23 — 2026-10-19
+
+- Align dock context-menu rows with the installed KDE `MenuItem` style:
+  `focusColor` hover and press fill, a 1px focus border, the native corner
+  radius and the native frame-contrast body border, while keeping keyboard
+  focus as a separate outline.
+- Isolate KDE Places and recent-file bookmark stores from the writable test
+  data home so `places_runtime` cannot modify the real user
+  `user-places.xbel`. Keep the public menu shape and tail contract intact.
+- Document the native-first KDE policy and Plasma 6.8 capability review in the
+  project skills without raising the declared minimum or claiming unverified
+  6.8 support.
+
 ## 0.1.22 — 2026-10-19
 
 - Add an optional **Start with KDE Plasma** switch to General settings. Apply or

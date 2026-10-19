@@ -7,7 +7,8 @@ import org.kde.kirigami as Kirigami
 AntialiasedSurface {
     id: root
     property color fillColor: Kirigami.Theme.backgroundColor
-    property color strokeColor: Qt.alpha(Kirigami.Theme.textColor, 0.2)
+    property color strokeColor: Kirigami.ColorUtils.linearInterpolation(
+        Kirigami.Theme.backgroundColor, Kirigami.Theme.textColor, Kirigami.Theme.frameContrast)
     property real borderWidth: Kirigami.Units.smallSpacing / 4
     property real cornerRadius: Kirigami.Units.cornerRadius * 2
     property real tailHeight: Kirigami.Units.largeSpacing

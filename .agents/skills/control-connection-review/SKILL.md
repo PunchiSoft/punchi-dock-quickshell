@@ -9,6 +9,11 @@ Define the input, expected effect, active consumer, timing, units, and condition
 Trace control signal → service → KDE adapter/provider →
 state notification → rendered or system result.
 
+Confirm that the chain uses the native KDE provider before accepting a custom
+substitute. A QML imitation, shell command or successful window does not prove
+that KDE behavior is followed. If a native path is unavailable, classify the
+fallback as intentional and record the version/capability gap and evidence limits.
+
 Classify a chain as verified, statically connected, partial, disconnected,
 nonreactive, intentional exception, or insufficient evidence. Finding references
 or saving a value alone does not establish behavior.

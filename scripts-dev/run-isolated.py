@@ -40,6 +40,10 @@ def main():
         excluded_entries = {
             'applications', 'services', 'kservices5', 'kservices6',
             'desktop-directories', 'mime', 'dbus-1', 'kactivitymanagerd',
+            # KBookmarkManager and recent-file providers write these stores.
+            'user-places.xbel', 'user-places.xbel.bak',
+            'user-places.xbel.tbcache', 'recently-used.xbel',
+            'recently-used.xbel.bak',
         }
         user_data = Path(data_home)
         if user_data.is_dir():

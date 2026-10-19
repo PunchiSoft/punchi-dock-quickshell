@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Window
 import QtTest
+import org.kde.kirigami as Kirigami
 import "../../modules/dock"
 
 TestCase {
@@ -32,12 +33,16 @@ TestCase {
         tryCompare(unpin, "hovered", true)
         compare(configure.background.color.a, 0)
         verify(unpin.background.color.a > 0)
+        fuzzyCompare(unpin.background.color.a, 0.3, 0.001)
+        compare(unpin.background.border.color, Kirigami.Theme.focusColor)
+        compare(unpin.background.border.width, 1)
         compare(configure.background.border.width, 0)
         // Keyboard focus remains explicit and actionable, independently of hover.
         keyClick(Qt.Key_Backtab)
         keyClick(Qt.Key_Tab)
         tryCompare(configure, "visualFocus", true)
         verify(configure.background.border.width > 0)
+        verify(configure.background.opacity > 0)
         const requested = createTemporaryQmlObject('import QtTest; SignalSpy { signalName: "settingsRequested" }', test)
         requested.target = content
         keyClick(Qt.Key_Return)

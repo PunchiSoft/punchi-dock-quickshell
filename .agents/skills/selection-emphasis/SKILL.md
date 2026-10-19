@@ -41,13 +41,18 @@ hardcoded accent color that ignores the user's scheme.
      the native behavior.
 2. Prefer native `ItemDelegate`, `ListView`, Kirigami controls and the user's
    QQC2 Desktop Style. Let the style paint checked, highlighted and focus states.
-3. Never hardcode colors. Use the active theme roles:
+3. In menus, follow the installed `org.kde.desktop` `MenuItem` contract: hover and
+   highlight use `Kirigami.Theme.focusColor` at 0.3 with a 1px focus border,
+   press uses solid `focusColor`, and text/icon switch to highlighted colors on
+   press. Keep keyboard focus as a separate outline; do not turn focus into a
+   hover fill. Verify against the installed style because Union may differ.
+4. Never hardcode colors. Use the active theme roles:
    `Kirigami.Theme.highlightColor`, `highlightedTextColor`, `textColor`,
    `backgroundColor`, `focusColor` and `disabledTextColor`. For symbolic icons,
    use `Kirigami.Icon.color`.
-4. Preserve `Kirigami.Theme.colorSet` and `Kirigami.Theme.inherit`; do not reset
+5. Preserve `Kirigami.Theme.colorSet` and `Kirigami.Theme.inherit`; do not reset
    the theme on a child to force a specific look.
-5. Verify the user's light and dark schemes and a non-default accent color.
+6. Verify the user's light and dark schemes and a non-default accent color.
    Check selected text/icon contrast and that keyboard focus remains visible.
 
 ## Implementation patterns

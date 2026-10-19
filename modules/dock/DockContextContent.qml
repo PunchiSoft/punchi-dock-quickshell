@@ -102,6 +102,7 @@ Item {
         pointerY: root.pointerY
         tailEdge: root.tailEdge
         tailHeight: root.pointerHeight
+        cornerRadius: Kirigami.Units.cornerRadius
     }
     ColumnLayout {
         id: rows
