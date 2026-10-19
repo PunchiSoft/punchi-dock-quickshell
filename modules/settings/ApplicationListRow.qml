@@ -9,6 +9,10 @@ import Punchi.Kde as Native
 ItemDelegate {
     id: root
     property string iconName
+    // A selection is the single primary emphasis. Do not add a second
+    // background or frame on another row while the pointer moves.
+    property bool selectionActive: false
+    hoverEnabled: !root.selectionActive
     contentItem: RowLayout {
         spacing: Kirigami.Units.largeSpacing
         Kirigami.Icon {

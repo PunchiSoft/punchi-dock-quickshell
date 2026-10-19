@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.17 — 2026-10-19
+
+- Suppress pointer-hover emphasis while a settings list has a selected item, so
+  selection and hover do not render competing backgrounds.
+- Record the single-emphasis rule in the UI and accessibility skills.
+
 ## 0.1.16 — 2026-10-19
 
 - Show PunchiSoft as the project author and refresh the version displayed in the

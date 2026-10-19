@@ -132,6 +132,7 @@ ColumnLayout {
                 objectName: "applicationResult-" + appId
                 width: ListView.view.width
                 text: name
+                selectionActive: root.controller.selectedAppId.length > 0
                 highlighted: root.controller.selectedAppId === appId
                 onClicked: root.selectionRequested(appId)
                 Keys.onReturnPressed: root.selectionRequested(appId)

@@ -210,6 +210,7 @@ ColumnLayout {
                         objectName: "configuredItem-" + appId
                         width: ListView.view.width
                         text: title
+                        selectionActive: editor.selectedAppId.length > 0
                         highlighted: editor.selectedAppId === appId
                         onClicked: editor.select(appId)
                         Keys.onReturnPressed: editor.select(appId)

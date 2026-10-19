@@ -41,6 +41,7 @@ TestCase {
     }
     Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
     Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
+    Component { id: applicationRowFixture; ApplicationListRow {} }
 
     function init(): void {
         // Offscreen QPA cannot raise a real window; keep its diagnostic visible.
@@ -196,6 +197,13 @@ TestCase {
         tryCompare(control(window, "visibilityMode"), "activeFocus", true)
         window.close()
     }
+    function test_applicationRowSuppressesHoverWhenSelectionIsActive(): void {
+        const row = createTemporaryObject(applicationRowFixture, test)
+        verify(row !== null)
+        verify(row.hoverEnabled)
+        row.selectionActive = true
+        verify(!row.hoverEnabled)
+    }
     function test_reorderButtonsPendingApplyAndDiscard(): void {
         const window = createTemporaryObject(populatedWindowFixture, test)
         window.open()
@@ -211,6 +219,7 @@ TestCase {
         verify(down.enabled)
         const files = control(window, "configuredItem-files")
         mouseClick(files)
+        verify(!control(window, "configuredItem-terminal").hoverEnabled)
         mouseClick(down)
         compare(view.settings.pinnedIds[1], "files")
         compare(list.currentIndex, 1)
