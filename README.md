@@ -26,7 +26,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.21**. The first Git snapshot was published as
+**Current delivery:** **0.1.22**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -55,6 +55,9 @@ package-name adjustments and their own validation.
   and KDE Places navigation for eligible file-manager launchers.
 - Dock settings for icon size, magnification, bounce, reduced motion and
   visibility: Always visible, Hide automatically, Dodge windows or Windows go below.
+- An optional **Start with KDE Plasma** switch that writes or removes a
+  Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
+  sign-in; an entry owned by another tool is never overwritten or deleted.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
 - Downloads with Grid, List and Detail folder views, navigation inside a themed
   balloon, and native KDE file opening.
@@ -106,7 +109,7 @@ Without arguments it opens a menu:
 | Check dependencies | `./scripts-user/setup.sh --check-deps` | Reports runtime, build, validation and KDE checks. Qt tools are also found outside `PATH` in the distribution Qt bin directory. Fedora package names are validated; Debian/Ubuntu and Arch mappings are best-effort. |
 | Check for updates | `./scripts-user/setup.sh --check-updates` | Fetches the configured Git remote and reports ahead/behind counts, the upstream declared version and the installed copy version. It only reads unless `--pull` is passed. |
 | Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Runs `git pull --ff-only` after the check when the checkout is behind. It refuses modified tracked files and never rebases, resets or stashes. The menu asks before pulling and then offers to rebuild and install; `--pull` never installs. |
-| Uninstall | `./scripts-user/setup.sh --uninstall` | Stops this project, restores owned KWin settings and removes the user-local installation. `build/` is kept unless `--remove-build` is passed. |
+| Uninstall | `./scripts-user/setup.sh --uninstall` | Stops this project, restores owned KWin settings, removes a Punchi-owned autostart entry and removes the user-local installation. `build/` is kept unless `--remove-build` is passed. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Shows commands, paths and README locations. |
 
 `setup.sh` belongs to the repository and is not a standalone download:
@@ -238,8 +241,9 @@ Keep the foreground terminal open. To stop, press Ctrl+C there, or use another t
 ```
 
 Plasma stays running. The dock coexists with the existing desktop and does not
-replace Plasma panels, settings, autostart, or session services. The restore
-script selects only this project's Quickshell configuration.
+replace Plasma panels, settings, or session services. Its optional autostart
+entry is a per-user file owned by Punchi Dock Quickshell. The restore script
+selects only this project's Quickshell configuration.
 
 ## Dock configuration
 
@@ -294,10 +298,11 @@ does not provide a complete, verified installation.
 
 The setup assistant writes an install manifest and a marker file inside the
 install root. `--uninstall` stops only configurations rooted at this checkout and
-at that install root, restores owned KWin settings, and removes only
-manifest-listed files. It keeps the source checkout, `build/`, the legacy
-`punchi-shell.json` backup and any KWin recovery record. The current preferences
-file is deleted only after a separate confirmation or an explicit
+at that install root, restores owned KWin settings, removes only a Punchi-owned
+autostart entry, and removes only manifest-listed files. It keeps the source
+checkout, `build/`, the legacy `punchi-shell.json` backup and any KWin recovery
+record. The current preferences file is deleted only after a separate
+confirmation or an explicit
 `--remove-settings`. `--remove-build` also deletes `build/`; `--keep-build`
 remains as a compatibility alias for the default.
 

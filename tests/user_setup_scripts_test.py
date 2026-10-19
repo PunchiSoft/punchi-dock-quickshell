@@ -425,6 +425,38 @@ def check_update_check(root: Path) -> None:
         assert '0.1.22' in (source / 'CMakeLists.txt').read_text()
 
 
+def check_autostart_uninstall(root: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix='punchi-autostart-uninstall-') as temporary:
+        home = Path(temporary)
+        config = home / 'config'
+        autostart = config / 'autostart'
+        autostart.mkdir(parents=True)
+        foreign = autostart / 'punchi-dock-quickshell.desktop'
+        foreign.write_text('[Desktop Entry]\nName=Foreign\n')
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_CONFIG_HOME': str(config),
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+        })
+        command = (
+            f'punchi_project_root="{root}"; '
+            f'source "{root}/scripts-user/lib/setup-common.sh"; '
+            f'source "{root}/scripts-user/lib/setup-install.sh"; '
+            'punchi_remove_autostart')
+        foreign_result = subprocess.run(['bash', '-c', command], cwd=root, env=environment,
+                                        capture_output=True, text=True, check=False, timeout=20)
+        assert foreign_result.returncode == 0, foreign_result.stdout + foreign_result.stderr
+        assert foreign.exists(), 'A foreign autostart entry was removed'
+        foreign.write_text('[Desktop Entry]\nName=Punchi Dock Quickshell\n'
+                           'X-Punchi-Dock-Quickshell-Owned=true\n')
+        owned_result = subprocess.run(['bash', '-c', command], cwd=root, env=environment,
+                                      capture_output=True, text=True, check=False, timeout=20)
+        assert owned_result.returncode == 0, owned_result.stdout + owned_result.stderr
+        assert not foreign.exists(), 'The Punchi-owned autostart entry was kept'
+
+
 def check_git_missing(root: Path) -> None:
     bash = shutil.which('bash') or '/bin/bash'
     tr = shutil.which('tr')
@@ -526,6 +558,7 @@ def main() -> int:
     check_build_failure_log(root)
     check_update_check(root)
     check_git_missing(root)
+    check_autostart_uninstall(root)
     print('User setup scripts: syntax, help, menu, maps, Qt tools, logs, '
           'restore, instance guard and update check passed.')
     return 0

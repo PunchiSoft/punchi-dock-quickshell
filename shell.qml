@@ -11,5 +11,11 @@ import "services"
 ShellRoot {
     Dock { id: dock; configuring: settingsWindow.visible; onSettingsRequested: settingsWindow.open() }
     SettingsStore { settings: dock.preferences }
-    SettingsWindow { id: settingsWindow; settings: dock.preferences; applicationCatalog: dock.applicationCatalog }
+    AutostartService { id: autostart }
+    SettingsWindow {
+        id: settingsWindow
+        settings: dock.preferences
+        applicationCatalog: dock.applicationCatalog
+        autostart: autostart
+    }
 }

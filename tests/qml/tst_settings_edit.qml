@@ -11,7 +11,23 @@ TestCase {
     id: test
     name: "SettingsEditing"
     when: windowShown
-    Component { id: fixture; SettingsWindow { settings: ShellSettings {} } }
+    Component {
+        id: fixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            autostart: QtObject {
+                objectName: "autostartService"
+                property bool active: false
+                property bool draftEnabled: false
+                property bool enabled: false
+                property bool available: true
+                readonly property bool dirty: active && draftEnabled !== enabled
+                function begin(): void { active = true; draftEnabled = enabled }
+                function cancel(): void { active = false; draftEnabled = enabled }
+                function apply(): bool { enabled = draftEnabled; return true }
+            }
+        }
+    }
     Component {
         id: populatedWindowFixture
         // This fixture covers the original eight application rows. Special-item
@@ -170,6 +186,35 @@ TestCase {
         compare(pins.count, 1)
         compare(editor.draft.pinnedIds.length, 1)
         verify(!editor.dirty)
+    }
+    function test_autostartToggleDraftApplyAndClose(): void {
+        const window = openWindow()
+        const service = findChild(window, "autostartService")
+        verify(service !== null)
+        const toggle = control(window, "startWithPlasma")
+        verify(toggle.enabled)
+        verify(!toggle.checked)
+        mouseClick(toggle)
+        verify(toggle.checked)
+        verify(service.dirty)
+        verify(window.hasPendingChanges)
+        // Close must discard the draft without changing the committed state.
+        mouseClick(control(window, "closeDockSettings"))
+        tryCompare(window, "visible", false)
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        verify(!toggle.checked)
+        verify(!window.hasPendingChanges)
+        verify(!service.enabled)
+        mouseClick(toggle)
+        mouseClick(control(window, "applyDockSettings"))
+        verify(service.enabled)
+        verify(!window.hasPendingChanges)
+        mouseClick(toggle)
+        mouseClick(control(window, "applyDockSettings"))
+        verify(!service.enabled)
+        verify(!window.hasPendingChanges)
+        window.close()
     }
     function test_sidebarAndFooterGeometry(): void {
         const window = openWindow()

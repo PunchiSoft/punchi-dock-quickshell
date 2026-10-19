@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.22 — 2026-10-19
+
+- Add an optional **Start with KDE Plasma** switch to General settings. Apply or
+  Accept writes an owned
+  `$XDG_CONFIG_HOME/autostart/punchi-dock-quickshell.desktop` entry that launches
+  `scripts-user/launcher.sh start`; Close discards the pending switch. The entry
+  uses `OnlyShowIn=KDE;`, `X-KDE-autostart-phase=2` and takes effect at the next
+  Plasma sign-in.
+- Preserve foreign autostart files. The switch is disabled when the exact path
+  exists without the Punchi ownership marker, and uninstall removes only a
+  Punchi-owned entry.
+- Add a Quickshell runtime regression for owned enable/disable and foreign-file
+  preservation, plus a settings component regression for the draft/Apply/Close
+  lifecycle.
+
 ## 0.1.21 — 2026-10-19
 
 - Add a contextual details pane to Items settings. The dock list and the pane

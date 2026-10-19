@@ -10,6 +10,7 @@ import "../../config/PanelModes.js" as PanelModes
 ColumnLayout {
     id: root
     required property ShellSettings settings
+    property var autostart: null
     function focusFirst(): void { visibilityControl.forceActiveFocus() }
     spacing: Kirigami.Units.largeSpacing
     Kirigami.Heading { text: qsTr("General"); level: 1 }
@@ -73,6 +74,17 @@ ColumnLayout {
             currentIndex: PanelModes.modes.indexOf(PanelModes.effective(root.settings.panelMode))
             Accessible.name: visibilityLabel.text
             onActivated: root.settings.panelMode = PanelModes.modes[currentIndex]
+        }
+    }
+    RowLayout {
+        Layout.fillWidth: true
+        Label { id: autostartLabel; text: qsTr("Start with KDE Plasma"); Layout.fillWidth: true }
+        Switch {
+            objectName: "startWithPlasma"
+            Accessible.name: autostartLabel.text
+            enabled: root.autostart !== null && root.autostart.available
+            checked: root.autostart !== null && root.autostart.draftEnabled
+            onToggled: if (root.autostart !== null) root.autostart.draftEnabled = checked
         }
     }
     ToolSeparator { orientation: Qt.Horizontal; Layout.fillWidth: true }

@@ -12,6 +12,7 @@ Pane {
     objectName: "dockSettingsView"
     required property ShellSettings settings
     property var applicationCatalog: null
+    property var autostart: null
     property int currentPage: 1
     property bool hasPendingChanges: false
     readonly property bool addingItem: itemsPage.addingItem
@@ -146,6 +147,7 @@ Pane {
                         DockGeneralSettings {
                             id: generalPage
                             settings: root.settings
+                            autostart: root.autostart
                             width: generalViewport.width
                         }
                     }

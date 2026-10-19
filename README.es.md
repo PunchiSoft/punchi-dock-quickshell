@@ -27,7 +27,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.21**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.22**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -59,6 +59,10 @@ necesitan ajustes de nombres de paquetes y su propia validación.
 - Ajustes del dock para tamaño de iconos, magnificación, rebote, movimiento
   reducido y visibilidad: Always visible, Hide automatically, Dodge windows o
   Windows go below.
+- Un interruptor opcional **Start with KDE Plasma** que crea o elimina una
+  entrada de autostart XDG propiedad de Punchi. La entrada surte efecto en el
+  siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se
+  sobrescribe ni se elimina.
 - Navegación por teclado y edición de ajustes pendientes mediante Apply, Accept y
   Close.
 - Downloads con vistas Grid, List y Detail, navegación dentro de un globo temático
@@ -112,7 +116,7 @@ Sin argumentos abre un menú:
 | Check dependencies | `./scripts-user/setup.sh --check-deps` | Informa las comprobaciones de runtime, compilación, validación y KDE. Las herramientas Qt también se buscan fuera de `PATH` en el directorio bin de Qt de la distribución. Los nombres de paquetes de Fedora están validados; las equivalencias de Debian/Ubuntu y Arch son de mejor esfuerzo. |
 | Check for updates | `./scripts-user/setup.sh --check-updates` | Consulta el remoto Git configurado e informa cuántos commits estás por delante/detrás, la versión declarada en el upstream y la versión de la copia instalada. Solo lee, salvo que se use `--pull`. |
 | Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Ejecuta `git pull --ff-only` después de la comprobación cuando el checkout está detrás. Se niega si hay archivos rastreados modificados y nunca hace rebase, reset ni stash. El menú pregunta antes de hacer el pull y después ofrece reconstruir e instalar; `--pull` nunca instala. |
-| Uninstall | `./scripts-user/setup.sh --uninstall` | Detiene este proyecto, restaura los ajustes de KWin propios y elimina la instalación local del usuario. `build/` se conserva salvo que se use `--remove-build`. |
+| Uninstall | `./scripts-user/setup.sh --uninstall` | Detiene este proyecto, restaura los ajustes de KWin propios, elimina una entrada de autostart propiedad de Punchi y elimina la instalación local del usuario. `build/` se conserva salvo que se use `--remove-build`. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Muestra comandos, rutas y ubicaciones del README. |
 
 `setup.sh` pertenece al repositorio y no es una descarga independiente: instalar
@@ -247,9 +251,10 @@ usa otra terminal:
 ```
 
 Plasma sigue ejecutándose. El dock convive con el escritorio existente y no
-reemplaza paneles, ajustes, autostart ni servicios de sesión de Plasma. El script
-de restauración selecciona únicamente la configuración de Quickshell de este
-proyecto.
+reemplaza paneles, ajustes ni servicios de sesión de Plasma. Su entrada de
+autostart opcional es un archivo por usuario propiedad de Punchi Dock
+Quickshell. El script de restauración selecciona únicamente la configuración de
+Quickshell de este proyecto.
 
 ## Configuración del dock
 
@@ -307,10 +312,11 @@ proporciona una instalación completa y verificada.
 
 El asistente escribe un manifiesto y un archivo marcador dentro de la raíz de
 instalación. `--uninstall` detiene solo las configuraciones cuyo origen es este
-checkout y esa raíz, restaura los ajustes de KWin propios y elimina únicamente
-los archivos del manifiesto. Conserva el checkout, `build/`, la copia
-`punchi-shell.json` heredada y cualquier registro de recuperación de KWin. El
-archivo de preferencias actual se elimina solo tras una confirmación separada o
+checkout y esa raíz, restaura los ajustes de KWin propios, elimina únicamente
+una entrada de autostart propiedad de Punchi y borra solo los archivos del
+manifiesto. Conserva el checkout, `build/`, la copia `punchi-shell.json` heredada
+y cualquier registro de recuperación de KWin. El archivo de preferencias actual
+se elimina solo tras una confirmación separada o
 con `--remove-settings`. `--remove-build` también elimina `build/`; `--keep-build`
 sigue existiendo como alias de compatibilidad del comportamiento por defecto.
 

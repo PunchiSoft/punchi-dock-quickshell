@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.21 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.22 LANGUAGES C CXX)
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -192,6 +192,9 @@ if(BUILD_TESTING)
     set_tests_properties(autohide_edge PROPERTIES TIMEOUT 45)
     find_program(QUICKSHELL_EXECUTABLE NAMES qs REQUIRED)
     find_program(DBUS_RUN_SESSION_EXECUTABLE NAMES dbus-run-session REQUIRED)
+    add_test(NAME autostart_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/autostart_runtime_test.py ${QUICKSHELL_EXECUTABLE})
     add_test(NAME icon_theme_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
@@ -284,7 +287,7 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
-    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts PROPERTIES TIMEOUT 45)
+    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts autostart_runtime PROPERTIES TIMEOUT 45)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 endif()

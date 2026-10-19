@@ -9,7 +9,9 @@ Window {
     id: root
     required property ShellSettings settings
     property var applicationCatalog: null
+    property var autostart: null
     readonly property bool hasPendingChanges: editor.dirty
+        || (autostart !== null && autostart.dirty)
     title: qsTr("Punchi Dock Quickshell — Dock settings")
     visible: false
     width: view.implicitWidth
@@ -20,6 +22,7 @@ Window {
     function open(): void {
         if (!visible) {
             editor.begin()
+            if (autostart !== null) autostart.begin()
             view.clearSelection()
         }
         show(); raise(); requestActivate(); Qt.callLater(view.focusFirst)
@@ -30,17 +33,28 @@ Window {
     onActiveFocusItemChanged: keepFocusVisible()
     onWidthChanged: keepFocusVisible()
     onHeightChanged: keepFocusVisible()
-    onClosing: { view.cancelAddingItem(false); editor.cancel() }
+    onClosing: {
+        view.cancelAddingItem(false)
+        if (autostart !== null) autostart.cancel()
+        editor.cancel()
+    }
     SettingsEditService { id: editor; settings: root.settings }
     Shortcut { sequence: "Escape"; enabled: !view.addingItem; onActivated: root.close() }
     SettingsView {
         id: view
         anchors.fill: parent
         settings: editor.draft
-        hasPendingChanges: editor.dirty
+        autostart: root.autostart
+        hasPendingChanges: root.hasPendingChanges
         applicationCatalog: root.applicationCatalog
-        onApplyRequested: editor.apply()
-        onAcceptRequested: { editor.apply(); root.close() }
+        onApplyRequested: {
+            editor.apply()
+            if (root.autostart !== null) root.autostart.apply()
+        }
+        onAcceptRequested: {
+            editor.apply()
+            if (root.autostart === null || root.autostart.apply()) root.close()
+        }
         onCloseRequested: root.close()
     }
 }

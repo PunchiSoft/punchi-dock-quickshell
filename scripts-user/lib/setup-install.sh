@@ -256,6 +256,19 @@ punchi_remove_launcher() {
     punchi_success "Removed the application-menu launcher."
 }
 
+punchi_remove_autostart() {
+    local config_home="${XDG_CONFIG_HOME:-$HOME/.config}"
+    local entry="$config_home/autostart/punchi-dock-quickshell.desktop"
+
+    [[ -e "$entry" || -L "$entry" ]] || return 0
+    if ! grep -qx 'X-Punchi-Dock-Quickshell-Owned=true' "$entry" 2>/dev/null; then
+        punchi_warning "The autostart entry does not belong to Punchi Dock Quickshell and was kept: $entry"
+        return 0
+    fi
+    rm -f -- "$entry"
+    punchi_success "Removed the Punchi-owned autostart entry."
+}
+
 punchi_remove_installed_files() {
     local install_root="${1:?install root is required}"
     local marker=""
@@ -384,6 +397,7 @@ punchi_uninstall_local() {
 
     punchi_stop_owned_configurations "$install_root" || return 1
     punchi_remove_launcher "$install_root"
+    punchi_remove_autostart
 
     local files_status=0
     punchi_remove_installed_files "$install_root" || files_status=1
