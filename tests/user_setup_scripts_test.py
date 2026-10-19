@@ -264,6 +264,176 @@ def check_build_failure_log(root: Path) -> None:
         assert 'simulated compiler failure' in logs[0].read_text()
 
 
+def check_qt_tool_resolution(root: Path) -> None:
+    bash = shutil.which('bash') or '/bin/bash'
+    with tempfile.TemporaryDirectory(prefix='punchi-qt-tools-test-') as temporary:
+        base = Path(temporary)
+        qt_bin = base / 'qt' / 'bin'
+        qt_bin.mkdir(parents=True)
+        fake_tool = qt_bin / 'qtpaths6'
+        fake_tool.write_text('#!/usr/bin/env bash\nexit 0\n')
+        fake_tool.chmod(0o755)
+        empty_path = base / 'empty-path'
+        empty_path.mkdir()
+
+        environment = os.environ.copy()
+        environment.update({
+            'PATH': str(empty_path),
+            'PUNCHI_QT_BIN_DIRS': str(qt_bin),
+            'NO_COLOR': '1',
+            'TERM': 'dumb',
+        })
+        result = subprocess.run(
+            [bash, '-c',
+             f'set -euo pipefail; punchi_project_root="{root}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-deps.sh"; '
+             'punchi_resolve_command qtpaths6'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert result.stdout.strip() == str(fake_tool), result.stdout
+
+
+def check_update_check(root: Path) -> None:
+    git = shutil.which('git')
+    if not git:
+        return
+
+    with tempfile.TemporaryDirectory(prefix='punchi-updates-test-') as temporary:
+        base = Path(temporary)
+        remote = base / 'remote.git'
+        source = base / 'source'
+        clone = base / 'clone'
+        home = base / 'home'
+        home.mkdir()
+
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_DATA_HOME': str(home / 'data'),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'GIT_AUTHOR_NAME': 'Punchi Test',
+            'GIT_AUTHOR_EMAIL': 'test@example.invalid',
+            'GIT_COMMITTER_NAME': 'Punchi Test',
+            'GIT_COMMITTER_EMAIL': 'test@example.invalid',
+            'GIT_CONFIG_GLOBAL': os.devnull,
+            'GIT_CONFIG_SYSTEM': os.devnull,
+            'NO_COLOR': '1',
+            'TERM': 'dumb',
+        })
+
+        def git_run(*arguments: str, cwd: Path) -> subprocess.CompletedProcess:
+            result = subprocess.run(
+                [git, *arguments], cwd=cwd, env=environment,
+                capture_output=True, text=True, check=False, timeout=30)
+            assert result.returncode == 0, result.stdout + result.stderr
+            return result
+
+        def write_version(target: Path, version: str) -> None:
+            (target / 'CMakeLists.txt').write_text(
+                'project(punchi-dock-quickshell VERSION '
+                f'{version} LANGUAGES C CXX)\n')
+
+        git_run('init', '--bare', '-b', 'main', str(remote), cwd=base)
+        git_run('init', '-b', 'main', str(source), cwd=base)
+        write_version(source, '0.1.20')
+        git_run('add', 'CMakeLists.txt', cwd=source)
+        git_run('commit', '-m', 'local checkout', cwd=source)
+        git_run('remote', 'add', 'origin', str(remote), cwd=source)
+        git_run('push', '-u', 'origin', 'main', cwd=source)
+        git_run('clone', str(remote), str(clone), cwd=base)
+        write_version(clone, '0.1.21')
+        git_run('add', 'CMakeLists.txt', cwd=clone)
+        git_run('commit', '-m', 'upstream delivery', cwd=clone)
+        git_run('push', 'origin', 'main', cwd=clone)
+
+        before = git_run('rev-parse', 'HEAD', cwd=source).stdout.strip()
+        result = subprocess.run(
+            ['bash', '-c',
+             f'set -euo pipefail; punchi_project_root="{source}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_check_updates'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=60)
+        combined = result.stdout + result.stderr
+        assert result.returncode == 0, combined
+        assert '1 commit(s) behind origin/main' in combined, combined
+        assert '0.1.21' in combined, combined
+        assert 'git pull --ff-only' in combined, combined
+
+        after = git_run('rev-parse', 'HEAD', cwd=source).stdout.strip()
+        assert before == after, 'The update check must not pull or rewrite HEAD'
+
+        write_version(source, '0.1.20 locally edited')
+        dirty = subprocess.run(
+            ['bash', '-c',
+             f'punchi_project_root="{source}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_check_updates pull'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=60)
+        dirty_output = dirty.stdout + dirty.stderr
+        assert dirty.returncode != 0, dirty_output
+        assert 'Refusing to pull' in dirty_output, dirty_output
+        assert git_run('rev-parse', 'HEAD', cwd=source).stdout.strip() == before
+
+        git_run('checkout', '--', 'CMakeLists.txt', cwd=source)
+        pulled = subprocess.run(
+            ['bash', '-c',
+             f'punchi_project_root="{source}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_check_updates pull'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=60)
+        pulled_output = pulled.stdout + pulled.stderr
+        assert pulled.returncode == 0, pulled_output
+        assert 'Checkout updated' in pulled_output, pulled_output
+        assert git_run('rev-parse', 'HEAD', cwd=source).stdout.strip() \
+            == git_run('rev-parse', 'HEAD', cwd=clone).stdout.strip()
+        assert '0.1.21' in (source / 'CMakeLists.txt').read_text()
+
+
+def check_git_missing(root: Path) -> None:
+    bash = shutil.which('bash') or '/bin/bash'
+    tr = shutil.which('tr')
+    if not tr:
+        return
+    with tempfile.TemporaryDirectory(prefix='punchi-git-missing-test-') as temporary:
+        base = Path(temporary)
+        restricted = base / 'bin'
+        restricted.mkdir()
+        (restricted / 'tr').symlink_to(tr)
+        os_release = base / 'os-release'
+        os_release.write_text(
+            'ID=fedora\n'
+            'PRETTY_NAME="Fedora Linux 44"\n')
+        environment = os.environ.copy()
+        environment.update({
+            'PATH': str(restricted),
+            'PUNCHI_OS_RELEASE_FILE': str(os_release),
+            'NO_COLOR': '1',
+            'TERM': 'dumb',
+        })
+        result = subprocess.run(
+            [bash, '-c',
+             f'punchi_project_root="{root}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_check_updates check'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, combined
+        assert 'require git' in combined, combined
+        assert 'sudo dnf install git' in combined, combined
+        assert 'never installs git automatically' in combined, combined
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     scripts = sorted((root / 'scripts-user').rglob('*.sh'))
@@ -284,19 +454,21 @@ def main() -> int:
 
     help_result = run_script(root, setup, '--help')
     assert help_result.returncode == 0, help_result.stderr
-    for option in ('--install', '--check-deps', '--uninstall', '--start',
-                   '--instructions', '--prefix', '--remove-build'):
+    for option in ('--install', '--check-deps', '--check-updates', '--pull',
+                   '--uninstall', '--start', '--instructions', '--prefix',
+                   '--remove-build'):
         assert option in help_result.stdout, option
 
     start_help = run_script(root, start, '--help')
     assert start_help.returncode == 0, start_help.stderr
     assert 'setup.sh' in start_help.stdout
 
-    menu = run_script(root, setup, '--no-color', input_text='8\n')
+    menu = run_script(root, setup, '--no-color', input_text='9\n')
     assert menu.returncode == 0, menu.stderr
     for label in (
         'Install or update',
         'Check runtime and build dependencies',
+        'Check for updates',
         'Uninstall',
         'Instructions and README',
     ):
@@ -315,12 +487,20 @@ def main() -> int:
     assert invalid_missing.returncode != 0
     assert 'requires --check-deps' in invalid_missing.stderr
 
+    invalid_pull = run_script(root, setup, '--pull', '--yes')
+    assert invalid_pull.returncode != 0
+    assert 'requires --check-updates' in invalid_pull.stderr
+
     check_single_instance_guard(root, start)
     check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
     check_dependency_maps(root)
+    check_qt_tool_resolution(root)
     check_failure_log(root)
     check_build_failure_log(root)
-    print('User setup scripts: syntax, help, menu, maps, build log, restore and instance guard passed.')
+    check_update_check(root)
+    check_git_missing(root)
+    print('User setup scripts: syntax, help, menu, maps, Qt tools, logs, '
+          'restore, instance guard and update check passed.')
     return 0
 
 

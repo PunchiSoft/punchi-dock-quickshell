@@ -182,32 +182,62 @@ punchi_missing_packages() {
     done < <(punchi_package_group "$family" "$group")
 }
 
+punchi_qt_bin_directories() {
+    local -a directories=()
+    local directory=""
+    local probe=""
+    if [[ -n "${PUNCHI_QT_BIN_DIRS:-}" ]]; then
+        IFS=':' read -r -a directories <<<"${PUNCHI_QT_BIN_DIRS}"
+    fi
+    directories+=(
+        /usr/lib/qt6/bin
+        /usr/lib64/qt6/bin
+        /usr/lib/x86_64-linux-gnu/qt6/bin
+        /usr/lib/aarch64-linux-gnu/qt6/bin
+    )
+    for probe in qtpaths6 qtpaths qmake6 qmake; do
+        command -v "$probe" >/dev/null 2>&1 || continue
+        directory="$("$probe" --query QT_INSTALL_BINS 2>/dev/null || true)"
+        if [[ -z "$directory" ]]; then
+            directory="$("$probe" -query QT_INSTALL_BINS 2>/dev/null || true)"
+        fi
+        if [[ -n "$directory" && -d "$directory" ]]; then
+            directories+=("$directory")
+        fi
+        break
+    done
+    printf '%s\n' "${directories[@]}"
+}
+
 punchi_resolve_command() {
     local name="${1:?command name is required}"
     local candidate=""
+    local directory=""
     local -a candidates=()
     case "$name" in
         c++) candidates=(c++ g++ clang++) ;;
-        qtpaths6) candidates=(qtpaths6 qtpaths) ;;
-        qmllint)
-            candidates=(qmllint qmllint6 /usr/lib64/qt6/bin/qmllint /usr/lib/qt6/bin/qmllint)
-            ;;
-        qmltestrunner)
-            candidates=(qmltestrunner qmltestrunner6 /usr/lib64/qt6/bin/qmltestrunner /usr/lib/qt6/bin/qmltestrunner)
-            ;;
+        qtpaths6) candidates=(qtpaths6 qtpaths6-qt6 qtpaths) ;;
+        qmllint) candidates=(qmllint qmllint6) ;;
+        qmltestrunner) candidates=(qmltestrunner qmltestrunner6) ;;
         *) candidates=("$name") ;;
     esac
     for candidate in "${candidates[@]}"; do
-        if [[ "$candidate" == /* ]]; then
-            if [[ -x "$candidate" ]]; then
-                printf '%s\n' "$candidate"
-                return 0
-            fi
-        elif command -v "$candidate" >/dev/null 2>&1; then
+        if command -v "$candidate" >/dev/null 2>&1; then
             printf '%s\n' "$candidate"
             return 0
         fi
     done
+    case "$name" in
+        qtpaths6|qmllint|qmltestrunner)
+            while IFS= read -r directory; do
+                [[ -n "$directory" ]] || continue
+                if [[ -x "$directory/$name" ]]; then
+                    printf '%s\n' "$directory/$name"
+                    return 0
+                fi
+            done < <(punchi_qt_bin_directories)
+            ;;
+    esac
     return 1
 }
 
@@ -281,6 +311,17 @@ punchi_dependency_report() {
     else
         printf '  [warning] no active KDE Plasma/KWin session detected\n'
         punchi_warning "Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland and will not run on other desktops."
+    fi
+
+    punchi_heading "Update check"
+    local git_path=""
+    if git_path="$(punchi_resolve_command git)"; then
+        printf '  [ok]      %-16s %s\n' git "$git_path"
+    else
+        printf '  [missing] %-16s\n' git
+        punchi_info "Optional: needed only by Check for updates."
+        punchi_info "Install it yourself with: $(punchi_git_install_hint)"
+        punchi_info "The setup script never installs git automatically."
     fi
 
     local manager=""

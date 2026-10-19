@@ -12,6 +12,8 @@ source "$punchi_setup_script_dir/lib/setup-common.sh"
 source "$punchi_setup_script_dir/lib/setup-deps.sh"
 # shellcheck source=lib/setup-install.sh
 source "$punchi_setup_script_dir/lib/setup-install.sh"
+# shellcheck source=lib/setup-updates.sh
+source "$punchi_setup_script_dir/lib/setup-updates.sh"
 
 trap punchi_setup_cleanup EXIT
 
@@ -20,6 +22,7 @@ PUNCHI_START_AFTER=0
 PUNCHI_REMOVE_SETTINGS=0
 PUNCHI_REMOVE_BUILD=0
 PUNCHI_INSTALL_MISSING=0
+PUNCHI_PULL=0
 PUNCHI_ASSUME_YES="${PUNCHI_ASSUME_YES:-0}"
 
 show_help() {
@@ -37,6 +40,8 @@ Actions (choose one):
   --build             Check/offer dependencies and build without installing.
   --check-deps        Report runtime, build and validation dependencies. With
                       --install-missing, offer to install missing packages.
+  --check-updates     Fetch the configured Git remote and report whether this
+                      checkout is behind. It only reads unless --pull is used.
   --uninstall         Stop this project, restore owned KDE settings and remove
                       the user-local installation. Build output is kept by
                       default.
@@ -56,6 +61,10 @@ Options:
   --install-missing   With --check-deps, offer to install missing packages for
                       the detected distribution. It never runs without
                       confirmation; non-Fedora package maps are best-effort.
+  --pull              With --check-updates, run git pull --ff-only when the
+                      checkout is behind. It refuses when tracked files have
+                      modifications and never rebases, resets or stashes. The
+                      interactive menu asks before pulling.
   -y, --yes           Assume yes for confirmations. The interactive menu still
                       asks separately before deleting preferences.
   -j, --jobs N        Parallel build jobs. Default: detected CPU count.
@@ -298,14 +307,15 @@ interactive_menu() {
         printf '\n'
         punchi_muted "Maintenance"
         printf '%s\n' '  [4] Check runtime and build dependencies'
-        printf '%s\n' '  [5] Uninstall'
+        printf '%s\n' '  [5] Check for updates'
+        printf '%s\n' '  [6] Uninstall'
         printf '\n'
         punchi_muted "Help"
-        printf '%s\n' '  [6] Instructions and README'
-        printf '%s\n' '  [7] Command-line options'
-        printf '%s\n' '  [8] Exit'
+        printf '%s\n' '  [7] Instructions and README'
+        printf '%s\n' '  [8] Command-line options'
+        printf '%s\n' '  [9] Exit'
         printf '\n'
-        printf '%s' 'Select an option [1-8]: '
+        printf '%s' 'Select an option [1-9]: '
         read -r choice || break
 
         case "$choice" in
@@ -326,18 +336,22 @@ interactive_menu() {
                 punchi_pause
                 ;;
             5)
-                punchi_action_uninstall || true
+                punchi_check_updates prompt || true
                 punchi_pause
                 ;;
             6)
-                show_quick_instructions
+                punchi_action_uninstall || true
                 punchi_pause
                 ;;
             7)
+                show_quick_instructions
+                punchi_pause
+                ;;
+            8)
                 show_help
                 punchi_pause
                 ;;
-            8|q|Q)
+            9|q|Q)
                 punchi_info "Setup closed."
                 return 0
                 ;;
@@ -363,6 +377,7 @@ parse_args() {
             --install|--update) set_action install; shift ;;
             --build) set_action build; shift ;;
             --check-deps) set_action check_deps; shift ;;
+            --check-updates|--updates) set_action check_updates; shift ;;
             --uninstall) set_action uninstall; shift ;;
             --instructions) set_action instructions; shift ;;
             --start) PUNCHI_START_AFTER=1; shift ;;
@@ -370,6 +385,7 @@ parse_args() {
             --remove-build) PUNCHI_REMOVE_BUILD=1; shift ;;
             --keep-build) PUNCHI_REMOVE_BUILD=0; shift ;;
             --install-missing) PUNCHI_INSTALL_MISSING=1; shift ;;
+            --pull) PUNCHI_PULL=1; shift ;;
             -y|--yes) PUNCHI_ASSUME_YES=1; shift ;;
             --no-color) NO_COLOR=1; shift ;;
             --prefix)
@@ -411,6 +427,9 @@ parse_args() {
     if (( PUNCHI_INSTALL_MISSING == 1 )) && [[ "$PUNCHI_ACTION" != "check_deps" ]]; then
         punchi_die "--install-missing requires --check-deps."
     fi
+    if (( PUNCHI_PULL == 1 )) && [[ "$PUNCHI_ACTION" != "check_updates" ]]; then
+        punchi_die "--pull requires --check-updates."
+    fi
 }
 
 punchi_detect_installed_prefix() {
@@ -442,6 +461,13 @@ main() {
         install) punchi_action_install ;;
         build) punchi_action_build ;;
         check_deps) punchi_action_dependencies "$PUNCHI_INSTALL_MISSING" ;;
+        check_updates)
+            if (( PUNCHI_PULL == 1 )); then
+                punchi_check_updates pull
+            else
+                punchi_check_updates check
+            fi
+            ;;
         uninstall) punchi_action_uninstall ;;
         instructions) show_quick_instructions ;;
         start) punchi_start_installed_or_checkout ;;

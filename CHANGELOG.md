@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.20 — 2026-10-19
+
+- Add a "Check for updates" menu entry and `--check-updates` option. It fetches
+  the configured Git remote once, reports ahead/behind counts, the upstream
+  declared version and the installed copy version, and suggests
+  `git pull --ff-only`. The menu asks before pulling; `--pull` performs the
+  fast-forward pull non-interactively. It refuses modified tracked files and
+  never rebases, resets, stashes, rebuilds or reinstalls on its own. Git stays
+  optional: the dependency report flags it only for update checks and prints
+  the distribution install command instead of installing it.
+- Resolve `qtpaths6`, `qmllint` and `qmltestrunner` from the distribution Qt bin
+  directory when they are not on `PATH`, including `/usr/lib/qt6/bin`,
+  `/usr/lib64/qt6/bin` and Debian multiarch paths, plus `QT_INSTALL_BINS` and
+  the `PUNCHI_QT_BIN_DIRS` override. Arch no longer reports these tools as
+  missing when they are installed.
+
 ## 0.1.19 — 2026-10-19
 
 - Keep install/update and build-only from starting the dock implicitly. The

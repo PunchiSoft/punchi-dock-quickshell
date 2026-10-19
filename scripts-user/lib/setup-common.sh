@@ -78,6 +78,17 @@ punchi_sanitize_text() {
     printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037\177'
 }
 
+punchi_git_install_hint() {
+    local family=""
+    family="$(punchi_distro_family "$(punchi_distro_id)" "$(punchi_distro_like)")"
+    case "$family" in
+        fedora) printf '%s\n' 'sudo dnf install git' ;;
+        debian) printf '%s\n' 'sudo apt-get install git' ;;
+        arch) printf '%s\n' 'sudo pacman -S git' ;;
+        *) printf '%s\n' 'install the git package with your distribution package manager' ;;
+    esac
+}
+
 punchi_project_version() {
     local version=""
     if [[ -r "$punchi_project_root/CMakeLists.txt" ]]; then

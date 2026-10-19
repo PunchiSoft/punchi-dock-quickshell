@@ -22,7 +22,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.19**. The first Git snapshot was published as
+**Current delivery:** **0.1.20**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -97,9 +97,17 @@ Without arguments it opens a menu:
 | Install or update | `./scripts-user/setup.sh --install` | Checks dependencies, offers to install missing packages, builds the native components and installs the runtime for the current user. |
 | Build only | `./scripts-user/setup.sh --build` | Checks dependencies, offers to install missing packages and builds `build/` without installing. |
 | Start the dock | `./scripts-user/setup.sh --start` | Starts the installed copy, or the source checkout when no installation exists. |
-| Check dependencies | `./scripts-user/setup.sh --check-deps` | Reports runtime, build, validation and KDE checks. Fedora package names are validated; Debian/Ubuntu and Arch mappings are best-effort. |
+| Check dependencies | `./scripts-user/setup.sh --check-deps` | Reports runtime, build, validation and KDE checks. Qt tools are also found outside `PATH` in the distribution Qt bin directory. Fedora package names are validated; Debian/Ubuntu and Arch mappings are best-effort. |
+| Check for updates | `./scripts-user/setup.sh --check-updates` | Fetches the configured Git remote and reports ahead/behind counts, the upstream declared version and the installed copy version. It only reads unless `--pull` is passed. |
+| Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Runs `git pull --ff-only` after the check when the checkout is behind. It refuses modified tracked files and never rebases, resets or stashes. The menu asks before pulling. |
 | Uninstall | `./scripts-user/setup.sh --uninstall` | Stops this project, restores owned KWin settings and removes the user-local installation. `build/` is kept unless `--remove-build` is passed. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Shows commands, paths and README locations. |
+
+`setup.sh` belongs to the repository and is not a standalone download:
+installing or building needs the checkout's `CMakeLists.txt`, `modules/`,
+`adapters/` and `services/`. Git is optional and only used by Check for
+updates. When it is missing, the assistant prints the install command for the
+detected distribution and never installs git by itself.
 
 The user-local installation is written to
 `${XDG_DATA_HOME:-$HOME/.local/share}/punchi-dock-quickshell`, or to the path
