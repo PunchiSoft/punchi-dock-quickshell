@@ -12,15 +12,28 @@ punchi_build_checkout() {
     fi
 
     local jobs=""
+    local transcript=""
     jobs="$(punchi_job_count)"
+    transcript="$(mktemp "${TMPDIR:-/tmp}/punchi-build.XXXXXX")"
+    punchi_register_cleanup "$transcript"
+
     punchi_info "Configuring the native KDE components with Ninja ($jobs jobs)..."
-    cmake -S "$punchi_project_root" -B "$build_dir" -G Ninja
-    punchi_info "Building..."
-    cmake --build "$build_dir" --parallel "$jobs"
+    if ! {
+        cmake -S "$punchi_project_root" -B "$build_dir" -G Ninja
+        punchi_info "Building..."
+        cmake --build "$build_dir" --parallel "$jobs"
+    } 2>&1 | tee "$transcript"; then
+        punchi_write_failure_log "build" "$transcript" || true
+        punchi_error "Build failed. Review the output above or the failure log."
+        return 1
+    fi
 
     if ! punchi_build_artifacts_ready; then
-        punchi_die "The build finished without the expected native artifacts."
+        punchi_write_failure_log "build" "$transcript" || true
+        punchi_error "The build finished without the expected native artifacts."
+        return 1
     fi
+    rm -f -- "$transcript"
     punchi_success "Native components and QML plugin built in $build_dir."
 }
 
@@ -72,12 +85,18 @@ punchi_write_launcher() {
     local install_root="${1:?install root is required}"
     local launcher=""
     local applications_dir=""
-    local exec_path="$install_root/scripts-user/start.sh"
+    local exec_path="$install_root/scripts-user/launcher.sh"
+    local stop_path="$install_root/scripts-user/restore-kde.sh"
+    local settings_path="$install_root/scripts-user/settings.sh"
+    local temporary=""
 
     launcher="$(punchi_launcher_path)"
     applications_dir="$(dirname "$launcher")"
-    mkdir -p "$applications_dir"
-    {
+    if ! mkdir -p "$applications_dir"; then
+        return 1
+    fi
+    temporary="${launcher}.tmp.$$"
+    if ! {
         printf '%s\n' '[Desktop Entry]'
         printf '%s\n' 'Type=Application'
         printf '%s\n' 'Version=1.0'
@@ -89,9 +108,26 @@ punchi_write_launcher() {
         printf '%s\n' 'Terminal=false'
         printf '%s\n' 'Categories=Utility;'
         printf '%s\n' 'StartupNotify=false'
+        printf '%s\n' 'Actions=Stop;Settings;'
         printf 'X-Punchi-Install-Root=%s\n' "$install_root"
-    } > "$launcher"
-    chmod 0644 "$launcher"
+        printf '\n%s\n' '[Desktop Action Stop]'
+        printf '%s\n' 'Name=Stop Punchi Dock Quickshell'
+        printf 'Exec=%s\n' "$(punchi_desktop_exec_quote "$stop_path")"
+        printf '\n%s\n' '[Desktop Action Settings]'
+        printf '%s\n' 'Name=Open Dock Settings'
+        printf 'Exec=%s\n' "$(punchi_desktop_exec_quote "$settings_path")"
+    } > "$temporary"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    if ! chmod 0644 "$temporary"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
+    if ! mv -- "$temporary" "$launcher"; then
+        rm -f -- "$temporary"
+        return 1
+    fi
 
     if command -v update-desktop-database >/dev/null 2>&1; then
         update-desktop-database "$applications_dir" >/dev/null 2>&1 || true
@@ -148,11 +184,23 @@ punchi_install_local() {
         fi
         punchi_die "Could not move the staged installation into place."
     fi
+
+    if ! punchi_write_launcher "$install_root"; then
+        punchi_error "Could not write the application-menu launcher."
+        rm -rf -- "$install_root"
+        if [[ -n "$old_install" ]]; then
+            if mv -- "$old_install" "$install_root"; then
+                punchi_warning "The previous installation was restored."
+            else
+                punchi_error "The previous installation could not be restored: $old_install"
+            fi
+        fi
+        return 1
+    fi
     if [[ -n "$old_install" ]]; then
         rm -rf -- "$old_install"
     fi
 
-    punchi_write_launcher "$install_root"
     punchi_success "Installed Punchi Dock Quickshell $version for this user."
     printf '  Install root: %s\n' "$install_root"
     printf '  Start with:   %s/scripts-user/start.sh\n' "$install_root"
@@ -282,6 +330,7 @@ punchi_remove_build_output() {
     fi
     rm -rf -- "$build_dir"
     punchi_success "Removed build output: $build_dir"
+    punchi_info "Run the Build action or ./scripts-user/setup.sh --build to recreate it."
 }
 
 punchi_remove_preferences() {
@@ -323,7 +372,7 @@ punchi_remove_preferences() {
 }
 
 punchi_uninstall_local() {
-    local remove_build="${1:-1}"
+    local remove_build="${1:-0}"
     local remove_settings="${2:-0}"
     local install_root=""
     local state_record=""

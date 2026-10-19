@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=Punchi Dock Quickshell
+Comment=Animated dock for KDE Plasma built with Quickshell
+Exec=punchi-dock-quickshell
+TryExec=punchi-dock-quickshell
+Icon=punchi-dock-quickshell
+Terminal=false
+Categories=Utility;
+StartupNotify=false
+Actions=Stop;Settings;
+
+[Desktop Action Stop]
+Name=Stop Punchi Dock Quickshell
+Exec=punchi-dock-quickshell stop
+
+[Desktop Action Settings]
+Name=Open Dock Settings
+Exec=punchi-dock-quickshell settings

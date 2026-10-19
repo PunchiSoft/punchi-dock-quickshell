@@ -2,6 +2,14 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Dependency reporting for the user setup assistant.
 
+punchi_kde_session_detected() {
+    if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* || "${KDE_FULL_SESSION:-}" == "true" ]]; then
+        return 0
+    fi
+    command -v pgrep >/dev/null 2>&1 || return 1
+    pgrep -x plasmashell >/dev/null 2>&1 && pgrep -x kwin_wayland >/dev/null 2>&1
+}
+
 punchi_fedora_runtime_packages() {
     printf '%s\n' \
         quickshell \
@@ -9,6 +17,7 @@ punchi_fedora_runtime_packages() {
         kf6-kirigami-addons \
         kf6-qqc2-desktop-style \
         kf6-ksvg \
+        kf6-kservice \
         plasma-workspace \
         plasma-activities-stats
 }
@@ -40,12 +49,101 @@ punchi_fedora_validation_packages() {
         desktop-file-utils
 }
 
+punchi_debian_runtime_packages() {
+    printf '%s\n' \
+        quickshell \
+        qml6-module-org-kde-kirigami \
+        qml6-module-org-kde-qqc2desktopstyle \
+        qml6-module-org-kde-ksvg \
+        qml6-module-org-kde-kirigamiaddons-components \
+        qml6-module-org-kde-kservice \
+        plasma-workspace \
+        plasma-activities-stats
+}
+
+punchi_debian_build_packages() {
+    printf '%s\n' \
+        cmake \
+        ninja-build \
+        g++ \
+        extra-cmake-modules \
+        qt6-base-dev \
+        qt6-declarative-dev \
+        qt6-tools-dev \
+        qt6-tools-dev-tools \
+        libkf6kio-dev \
+        libkf6service-dev \
+        libkf6coreaddons-dev \
+        libkf6config-dev \
+        libkf6windowsystem-dev \
+        libplasmaactivitiesstats-dev \
+        libwayland-dev \
+        libwayland-bin \
+        wayland-protocols
+}
+
+punchi_debian_validation_packages() {
+    printf '%s\n' \
+        python3 \
+        python3-dbus \
+        python3-gi \
+        dbus \
+        desktop-file-utils
+}
+
+punchi_arch_runtime_packages() {
+    printf '%s\n' \
+        quickshell \
+        kirigami \
+        kirigami-addons \
+        qqc2-desktop-style \
+        ksvg \
+        kservice \
+        plasma-workspace \
+        plasma-activities-stats
+}
+
+punchi_arch_build_packages() {
+    printf '%s\n' \
+        base-devel \
+        cmake \
+        ninja \
+        extra-cmake-modules \
+        qt6-base \
+        qt6-declarative \
+        qt6-tools \
+        kio \
+        kservice \
+        kcoreaddons \
+        kconfig \
+        kwindowsystem \
+        plasma-activities-stats \
+        wayland \
+        wayland-protocols
+}
+
+punchi_arch_validation_packages() {
+    printf '%s\n' \
+        python \
+        python-dbus \
+        python-gobject \
+        dbus \
+        desktop-file-utils
+}
+
 punchi_package_group() {
-    local group="${1:?package group is required}"
-    case "$group" in
-        runtime) punchi_fedora_runtime_packages ;;
-        build) punchi_fedora_build_packages ;;
-        validation) punchi_fedora_validation_packages ;;
+    local family="${1:?distribution family is required}"
+    local group="${2:?package group is required}"
+    case "$family:$group" in
+        fedora:runtime) punchi_fedora_runtime_packages ;;
+        fedora:build) punchi_fedora_build_packages ;;
+        fedora:validation) punchi_fedora_validation_packages ;;
+        debian:runtime) punchi_debian_runtime_packages ;;
+        debian:build) punchi_debian_build_packages ;;
+        debian:validation) punchi_debian_validation_packages ;;
+        arch:runtime) punchi_arch_runtime_packages ;;
+        arch:build) punchi_arch_build_packages ;;
+        arch:validation) punchi_arch_validation_packages ;;
         *) return 1 ;;
     esac
 }
@@ -81,7 +179,7 @@ punchi_missing_packages() {
         if ! punchi_package_installed "$package" "$family"; then
             printf '%s\n' "$package"
         fi
-    done < <(punchi_package_group "$group")
+    done < <(punchi_package_group "$family" "$group")
 }
 
 punchi_resolve_command() {
@@ -116,9 +214,9 @@ punchi_resolve_command() {
 punchi_command_group() {
     local group="${1:?command group is required}"
     case "$group" in
-        runtime) printf '%s\n' qs ;;
+        runtime) printf '%s\n' qs kbuildsycoca6 plasmashell kwin_wayland ;;
         build) printf '%s\n' cmake ninja c++ pkg-config wayland-scanner qtpaths6 ;;
-        validation) printf '%s\n' qmllint qmltestrunner python3 dbus-run-session ;;
+        validation) printf '%s\n' qmllint qmltestrunner python3 dbus-run-session update-desktop-database ;;
         *) return 1 ;;
     esac
 }
@@ -177,25 +275,44 @@ punchi_dependency_report() {
         || validation_status=1
     punchi_report_python_modules || validation_status=1
 
-    if [[ "$family" == "fedora" ]] && command -v rpm >/dev/null 2>&1; then
+    punchi_heading "KDE Plasma/KWin"
+    if punchi_kde_session_detected; then
+        printf '  [ok]      active KDE Plasma/KWin session\n'
+    else
+        printf '  [warning] no active KDE Plasma/KWin session detected\n'
+        punchi_warning "Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland and will not run on other desktops."
+    fi
+
+    local manager=""
+    local label=""
+    local validated=0
+    case "$family" in
+        fedora) manager=rpm; label=Fedora; validated=1 ;;
+        debian) manager=dpkg-query; label=Debian/Ubuntu; validated=0 ;;
+        arch) manager=pacman; label=Arch; validated=0 ;;
+    esac
+    if [[ -n "$manager" ]] && command -v "$manager" >/dev/null 2>&1; then
+        if (( validated == 0 )); then
+            punchi_warning "Package names for $label are best-effort and have not been validated by this project."
+        fi
         local group=""
         local package=""
         local missing=0
         for group in runtime build validation; do
-            punchi_muted "Fedora packages: $group"
+            punchi_muted "$label packages: $group"
             while IFS= read -r package; do
                 [[ -n "$package" ]] || continue
-                if punchi_package_installed "$package" fedora; then
+                if punchi_package_installed "$package" "$family"; then
                     printf '  [ok]      %s\n' "$package"
                 else
                     printf '  [missing] %s\n' "$package"
                     missing=1
                     [[ "$group" == "validation" ]] || status=1
                 fi
-            done < <(punchi_package_group "$group")
+            done < <(punchi_package_group "$family" "$group")
         done
         if (( missing == 0 )); then
-            punchi_success "All checked Fedora packages are installed."
+            punchi_success "All checked $label packages are installed."
         fi
     else
         punchi_information_about_packages
@@ -209,6 +326,8 @@ punchi_dependency_report() {
 
 punchi_information_about_packages() {
     punchi_info "Package-name checks are validated only on Fedora 44."
+    punchi_info "Debian/Ubuntu and Arch mappings are best-effort; verify names"
+    punchi_info "with your distribution before installing them."
     punchi_info "On other distributions, install the Quickshell, Qt 6, KF6 and"
     punchi_info "Wayland development equivalents, then run this check again."
 }
@@ -232,19 +351,35 @@ punchi_dependency_check() {
         punchi_warning "Required dependencies are missing."
     fi
 
-    if (( offer_install == 1 )) && [[ "$family" == "fedora" ]]; then
-        punchi_offer_fedora_dependency_install "$status"
+    if (( offer_install == 1 )) && [[ "$family" != "unsupported" ]] \
+        && (( status != 0 )); then
+        punchi_offer_dependency_install "$family" "$status"
+        if (( status != 0 )); then
+            punchi_rule
+            punchi_info "Re-checking dependencies..."
+            status=0
+            punchi_dependency_report "$family" || status=1
+            punchi_rule
+            if (( status == 0 )); then
+                punchi_success "Required runtime and build dependencies are present."
+            else
+                punchi_warning "Required dependencies are still missing."
+            fi
+        fi
     fi
     return "$status"
 }
 
-punchi_offer_fedora_dependency_install() {
-    local status="${1:-1}"
+punchi_offer_dependency_install() {
+    local family="${1:?distribution family is required}"
+    local status="${2:-1}"
     local -a missing=()
+    local -a install_command=()
+    local -a update_command=()
     local package=""
+    local label=""
 
     [[ "$status" != "0" ]] || return 0
-    command -v dnf >/dev/null 2>&1 || return 0
 
     while IFS= read -r package; do
         if [[ -n "$package" ]]; then
@@ -252,15 +387,42 @@ punchi_offer_fedora_dependency_install() {
         fi
     done < <(
         {
-            punchi_missing_packages runtime fedora
-            punchi_missing_packages build fedora
+            punchi_missing_packages runtime "$family"
+            punchi_missing_packages build "$family"
         } | sort -u
     )
     (( ${#missing[@]} > 0 )) || return 0
 
-    printf 'Install the missing packages with:\n  sudo dnf install'
-    printf ' %q' "${missing[@]}"
+    case "$family" in
+        fedora)
+            label="Fedora"
+            install_command=(sudo dnf install "${missing[@]}")
+            ;;
+        debian)
+            label="Debian/Ubuntu"
+            update_command=(sudo apt-get update)
+            install_command=(sudo apt-get install -y "${missing[@]}")
+            ;;
+        arch)
+            label="Arch"
+            install_command=(sudo pacman -S --needed "${missing[@]}")
+            ;;
+        *)
+            return 0
+            ;;
+    esac
+
+    if [[ "$family" != "fedora" ]]; then
+        punchi_warning "The $label package mapping is best-effort and unvalidated."
+    fi
+    printf 'Install the missing packages with:\n  '
+    if (( ${#update_command[@]} > 0 )); then
+        printf '%q ' "${update_command[@]}"
+        printf '&& '
+    fi
+    printf '%q ' "${install_command[@]}"
     printf '\n'
+
     if ! command -v sudo >/dev/null 2>&1; then
         punchi_info "sudo is not available; run the command above as an administrator."
         return 0
@@ -269,6 +431,9 @@ punchi_offer_fedora_dependency_install() {
         punchi_info "No packages were installed."
         return 0
     fi
-    sudo dnf install "${missing[@]}" || return 1
+    if (( ${#update_command[@]} > 0 )); then
+        "${update_command[@]}" || return 1
+    fi
+    "${install_command[@]}" || return 1
     punchi_success "Package installation finished. Re-run the dependency check."
 }

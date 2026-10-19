@@ -16,10 +16,9 @@ source "$punchi_setup_script_dir/lib/setup-install.sh"
 trap punchi_setup_cleanup EXIT
 
 PUNCHI_ACTION=""
-PUNCHI_INTERACTIVE=0
 PUNCHI_START_AFTER=0
 PUNCHI_REMOVE_SETTINGS=0
-PUNCHI_REMOVE_BUILD=1
+PUNCHI_REMOVE_BUILD=0
 PUNCHI_INSTALL_MISSING=0
 PUNCHI_ASSUME_YES="${PUNCHI_ASSUME_YES:-0}"
 
@@ -28,16 +27,21 @@ show_help() {
 Usage: scripts-user/setup.sh [options]
 
 Punchi Dock Quickshell setup assistant. With no options it opens the
-interactive menu.
+interactive menu. This project requires KDE Plasma/KWin on Wayland; it will
+not run on other desktops.
 
 Actions (choose one):
-  --install           Build the checkout and install it for the current user.
+  --install           Check/offer dependencies, build the checkout and install
+                      it for the current user.
   --update            Alias for --install.
-  --build             Configure and build the checkout without installing.
-  --check-deps        Report runtime, build and validation dependencies.
-  --uninstall         Stop this project, restore owned KDE settings, remove
-                      build output and the user-local installation.
-  --start             Start the dock.
+  --build             Check/offer dependencies and build without installing.
+  --check-deps        Report runtime, build and validation dependencies. With
+                      --install-missing, offer to install missing packages.
+  --uninstall         Stop this project, restore owned KDE settings and remove
+                      the user-local installation. Build output is kept by
+                      default.
+  --start             Start the dock. With --install or --build, start after
+                      the action finishes.
   --instructions      Show quick start instructions and README locations.
   -h, --help          Show this help.
 
@@ -46,9 +50,12 @@ Options:
                       \${XDG_DATA_HOME:-\$HOME/.local/share}/punchi-dock-quickshell
   --remove-settings   With --uninstall, also delete the current preferences
                       file. The interactive menu asks separately.
-  --keep-build        With --uninstall, keep the checkout's build/ directory.
-  --install-missing   With --check-deps, offer to install missing Fedora
-                      packages. It never runs without confirmation.
+  --remove-build      With --uninstall, also remove the checkout's build/
+                      directory.
+  --keep-build        Kept for compatibility; build output is kept by default.
+  --install-missing   With --check-deps, offer to install missing packages for
+                      the detected distribution. It never runs without
+                      confirmation; non-Fedora package maps are best-effort.
   -y, --yes           Assume yes for confirmations. The interactive menu still
                       asks separately before deleting preferences.
   -j, --jobs N        Parallel build jobs. Default: detected CPU count.
@@ -61,6 +68,8 @@ show_header() {
     local family=""
     local source_line=""
     local install_root=""
+    local installed_version=""
+    local version_file=""
 
     version="$(punchi_project_version)"
     family="$(punchi_distro_family "$(punchi_distro_id)" "$(punchi_distro_like)")"
@@ -72,12 +81,29 @@ show_header() {
     else
         source_line="Installed copy"
     fi
+    version_file="$install_root/$(punchi_install_version_name)"
+    if [[ "$install_root" != "invalid or unsafe" && -r "$version_file" ]]; then
+        installed_version="$(head -n 1 "$version_file")"
+    fi
 
     punchi_rule
     punchi_heading "Punchi Dock Quickshell · Setup"
     printf 'Version %s | %s | %s\n' "$version" "$(punchi_system_name)" "$(uname -m)"
     printf 'Distribution family: %s | %s\n' "$family" "$source_line"
+    if punchi_kde_session_detected; then
+        printf '%s\n' 'Session: KDE Plasma/KWin'
+    else
+        printf '%s\n' 'Session: KDE Plasma/KWin not detected (required)'
+    fi
     printf 'Install root: %s\n' "$install_root"
+    if [[ -n "$installed_version" ]]; then
+        if punchi_source_checkout_available && [[ "$installed_version" != "$version" ]]; then
+            printf 'Installed copy: %s (outdated; source is %s)\n' \
+                "$installed_version" "$version"
+        else
+            printf 'Installed copy: %s\n' "$installed_version"
+        fi
+    fi
     punchi_rule
 }
 
@@ -87,9 +113,10 @@ show_quick_instructions() {
     punchi_heading "Instructions"
     cat <<EOF
 Guided setup
-  Run this menu, choose "Check runtime and build dependencies", then choose
-  "Install or update". The installer builds the native KDE components and
-  copies the runtime into the user install root.
+  Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland and will not run
+  on another desktop. Run this menu, choose "Check runtime and build
+  dependencies", then choose "Install or update". The installer builds the
+  native KDE components and copies the runtime into the user install root.
 
 Start and return to KDE
   Start:           $punchi_project_root/scripts-user/start.sh
@@ -105,6 +132,9 @@ Panel modes
 Preferences
   ${XDG_CONFIG_HOME:-\$HOME/.config}/punchi-dock-quickshell.json
   Uninstall keeps this file unless you confirm its removal separately.
+
+Build failures
+  A timestamped log is written under the user's Documents directory.
 
 Documentation
   README: $readme
@@ -140,6 +170,17 @@ punchi_start_installed_or_checkout() {
     if [[ -x "$installed_start" \
         && -f "$install_root/build/qml/Punchi/Kde/libpunchikdeplugin.so" \
         && -x "$install_root/build/punchi-window-state" ]]; then
+        local installed_version=""
+        local source_version=""
+        local version_file="$install_root/$(punchi_install_version_name)"
+        if [[ -r "$version_file" ]]; then
+            installed_version="$(head -n 1 "$version_file")"
+            source_version="$(punchi_project_version)"
+            if [[ -n "$installed_version" && "$installed_version" != "$source_version" ]]; then
+                punchi_warning "The installed copy is $installed_version; the source checkout is $source_version."
+                punchi_info "Run Install/update to refresh it if you want the newer build."
+            fi
+        fi
         punchi_info "Starting the installed copy from $install_root"
         exec "$installed_start" "$@"
     fi
@@ -158,20 +199,22 @@ punchi_action_install() {
         punchi_info "Run this menu from the cloned repository."
         return 1
     fi
-    if ! punchi_dependency_check 0; then
+    if ! punchi_dependency_check 1; then
         punchi_warning "Resolve the required dependencies before building."
         punchi_info "Choose \"Check runtime and build dependencies\" for details."
         return 1
     fi
     punchi_build_checkout || return 1
-    punchi_install_local || return 1
+    if ! punchi_install_local; then
+        punchi_write_failure_log "install" "" || true
+        punchi_error "Installation failed. Review the output above or the failure log."
+        return 1
+    fi
 
     if (( PUNCHI_START_AFTER == 1 )); then
         punchi_start_installed_or_checkout
-    elif (( PUNCHI_INTERACTIVE == 1 )) && [[ -t 0 ]]; then
-        if punchi_confirm "Start the installed dock now? [Y/n]: " y; then
-            punchi_start_installed_or_checkout
-        fi
+    else
+        punchi_info "Installation finished. Use \"Start the dock\" when you want to open it."
     fi
     return 0
 }
@@ -181,7 +224,7 @@ punchi_action_build() {
         punchi_error "Build actions require the source checkout."
         return 1
     fi
-    if ! punchi_dependency_check 0; then
+    if ! punchi_dependency_check 1; then
         punchi_warning "Resolve the required dependencies before building."
         punchi_info "Choose \"Check runtime and build dependencies\" for details."
         return 1
@@ -190,11 +233,8 @@ punchi_action_build() {
     if (( PUNCHI_START_AFTER == 1 )); then
         punchi_info "Starting the source checkout from $punchi_project_root"
         exec "$punchi_project_root/scripts-user/start.sh"
-    elif (( PUNCHI_INTERACTIVE == 1 )) && [[ -t 0 ]]; then
-        if punchi_confirm "Start the source-checkout dock now? [Y/n]: " y; then
-            punchi_info "Starting the source checkout from $punchi_project_root"
-            exec "$punchi_project_root/scripts-user/start.sh"
-        fi
+    else
+        punchi_info "Build finished. Use \"Start the dock\" when you want to open it."
     fi
     return 0
 }
@@ -215,13 +255,21 @@ punchi_action_uninstall() {
         printf '  - %s\n' "$punchi_project_root/build"
     fi
     if punchi_source_checkout_available; then
-        punchi_info "The source checkout and personal preferences are kept by default."
+        punchi_info "The source checkout and build output are kept by default."
     else
         punchi_info "Personal preferences are kept by default."
     fi
     if ! punchi_confirm "Continue with uninstall? [y/N]: " n; then
         punchi_info "Uninstall cancelled."
         return 0
+    fi
+
+    if (( PUNCHI_REMOVE_BUILD == 0 )) && punchi_source_checkout_available \
+        && [[ -d "$punchi_project_root/build" ]] \
+        && [[ -t 0 ]] && [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]]; then
+        if punchi_confirm "Also remove the source checkout's build/ directory? [y/N]: " n; then
+            PUNCHI_REMOVE_BUILD=1
+        fi
     fi
 
     local status=0
@@ -238,7 +286,6 @@ punchi_action_uninstall() {
 
 interactive_menu() {
     local choice=""
-    PUNCHI_INTERACTIVE=1
     while true; do
         show_header
         printf '\n'
@@ -320,6 +367,7 @@ parse_args() {
             --instructions) set_action instructions; shift ;;
             --start) PUNCHI_START_AFTER=1; shift ;;
             --remove-settings) PUNCHI_REMOVE_SETTINGS=1; shift ;;
+            --remove-build) PUNCHI_REMOVE_BUILD=1; shift ;;
             --keep-build) PUNCHI_REMOVE_BUILD=0; shift ;;
             --install-missing) PUNCHI_INSTALL_MISSING=1; shift ;;
             -y|--yes) PUNCHI_ASSUME_YES=1; shift ;;

@@ -73,6 +73,7 @@ def check_single_instance_guard(root: Path, start: Path) -> None:
             'XDG_CONFIG_HOME': str(home / 'config'),
             'XDG_STATE_HOME': str(home / 'state'),
             'PUNCHI_RUNTIME_DIR': str(runtime),
+            'PUNCHI_ALLOW_NON_KDE': '1',
             'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
             'TERM': 'dumb',
             'NO_COLOR': '1',
@@ -119,6 +120,150 @@ def check_single_instance_guard(root: Path, start: Path) -> None:
         assert '/tmp/punchi-other' in combined
 
 
+def check_dependency_maps(root: Path) -> None:
+    common = root / 'scripts-user/lib/setup-common.sh'
+    library = root / 'scripts-user/lib/setup-deps.sh'
+    result = subprocess.run(
+        ['bash', '-c',
+         f'source "{common}"; source "{library}"; '
+         'punchi_package_group debian runtime; echo ---; '
+         'punchi_package_group arch build; echo ---; '
+         'punchi_distro_family ubuntu debian'],
+        cwd=root, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    debian, arch, family = result.stdout.split('---')
+    assert 'quickshell' in debian
+    assert 'qml6-module-org-kde-kirigami' in debian
+    assert 'qt6-base' in arch
+    assert 'extra-cmake-modules' in arch
+    assert family.strip() == 'debian'
+
+
+def check_failure_log(root: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix='punchi-log-test-') as temporary:
+        home = Path(temporary)
+        transcript = home / 'build.log'
+        transcript.write_text('compiler output for the failure\n')
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'PUNCHI_INSTALL_PREFIX': str(home / 'install'),
+            'NO_COLOR': '1',
+            'TERM': 'dumb',
+        })
+        result = subprocess.run(
+            ['bash', '-c',
+             f'set -euo pipefail; punchi_project_root="{root}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-deps.sh"; '
+             f'punchi_write_failure_log build "{transcript}"'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+        logs = list((home / 'Documents').glob('punchi-dock-quickshell-setup-*.log'))
+        assert len(logs) == 1, logs
+        content = logs[0].read_text()
+        assert 'Punchi Dock Quickshell setup failure' in content
+        assert 'Action: build' in content
+        assert 'compiler output for the failure' in content
+
+
+def check_restore_active_instance(root: Path, restore: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix='punchi-restore-test-') as temporary:
+        home = Path(temporary)
+        fake_bin = home / 'bin'
+        fake_bin.mkdir()
+        qs_log = home / 'qs.log'
+        backend_log = home / 'backend.log'
+        fake_qs = fake_bin / 'qs'
+        fake_qs.write_text(
+            '#!/usr/bin/env bash\n'
+            f'printf "%s\\n" "$*" >> "{qs_log}"\n'
+            'if [[ "${1:-}" == "list" ]]; then\n'
+            f'    if [[ "${{3:-}}" == "{home / "active"}" ]]; then\n'
+            f'        if [[ -f "{home / "killed"}" ]]; then echo "[]"; else echo \'[{{"id":"active"}}]\'; fi\n'
+            '    else\n'
+            '        echo "[]"\n'
+            '    fi\n'
+            '    exit 0\n'
+            'fi\n'
+            'if [[ "${1:-}" == "kill" ]]; then\n'
+            f'    touch "{home / "killed"}"\n'
+            '    exit 0\n'
+            'fi\n'
+            'exit 0\n')
+        fake_qs.chmod(0o755)
+
+        active = home / 'active'
+        (active / 'scripts-user').mkdir(parents=True)
+        (active / 'build').mkdir()
+        (active / 'shell.qml').write_text('import "modules/dock"\n')
+        (active / 'scripts-user/restore-kde.sh').write_text('#!/usr/bin/env bash\n')
+        backend = active / 'build/punchi-window-state'
+        backend.write_text(
+            '#!/usr/bin/env bash\n'
+            f'printf "%s\\n" "$*" >> "{backend_log}"\n')
+        backend.chmod(0o755)
+
+        runtime = home / 'runtime'
+        lock_dir = runtime / f'punchi-dock-quickshell-{os.getuid()}'
+        lock_dir.mkdir(parents=True)
+        (lock_dir / 'instance.path').write_text(str(active) + '\n')
+
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'XDG_RUNTIME_DIR': str(runtime),
+            'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+            'NO_COLOR': '1',
+            'TERM': 'dumb',
+        })
+        result = subprocess.run(
+            ['bash', str(restore)], cwd=root, env=environment,
+            capture_output=True, text=True, check=False, timeout=20)
+        assert result.returncode == 0, result.stdout + result.stderr
+        qs_content = qs_log.read_text()
+        assert f'kill --path {active}' in qs_content
+        assert '--restore-desktop-settings' in backend_log.read_text()
+        assert f'kill --path {root}' not in qs_content
+
+
+def check_build_failure_log(root: Path) -> None:
+    with tempfile.TemporaryDirectory(prefix='punchi-build-fail-test-') as temporary:
+        home = Path(temporary)
+        fake_bin = home / 'bin'
+        fake_bin.mkdir()
+        fake_cmake = fake_bin / 'cmake'
+        fake_cmake.write_text('#!/usr/bin/env bash\nprintf "simulated compiler failure\\n" >&2\nexit 1\n')
+        fake_cmake.chmod(0o755)
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'PUNCHI_INSTALL_PREFIX': str(home / 'install'),
+            'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+            'NO_COLOR': '1',
+            'TERM': 'dumb',
+        })
+        result = subprocess.run(
+            ['bash', '-c',
+             f'set -euo pipefail; punchi_project_root="{root}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-deps.sh"; '
+             f'source "{root}/scripts-user/lib/setup-install.sh"; '
+             'if punchi_build_checkout; then exit 10; fi'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        assert result.returncode == 0, result.stdout + result.stderr
+        logs = list((home / 'Documents').glob('punchi-dock-quickshell-setup-*.log'))
+        assert len(logs) == 1, logs
+        assert 'simulated compiler failure' in logs[0].read_text()
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     scripts = sorted((root / 'scripts-user').rglob('*.sh'))
@@ -140,7 +285,7 @@ def main() -> int:
     help_result = run_script(root, setup, '--help')
     assert help_result.returncode == 0, help_result.stderr
     for option in ('--install', '--check-deps', '--uninstall', '--start',
-                   '--instructions', '--prefix'):
+                   '--instructions', '--prefix', '--remove-build'):
         assert option in help_result.stdout, option
 
     start_help = run_script(root, start, '--help')
@@ -171,7 +316,11 @@ def main() -> int:
     assert 'requires --check-deps' in invalid_missing.stderr
 
     check_single_instance_guard(root, start)
-    print('User setup scripts: syntax, help, menu and instance guard passed.')
+    check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
+    check_dependency_maps(root)
+    check_failure_log(root)
+    check_build_failure_log(root)
+    print('User setup scripts: syntax, help, menu, maps, build log, restore and instance guard passed.')
     return 0
 
 

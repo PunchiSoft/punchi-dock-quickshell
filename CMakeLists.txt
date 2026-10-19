@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.18 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.19 LANGUAGES C CXX)
+include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus)
@@ -70,6 +71,41 @@ target_link_libraries(punchi_task_identity PUBLIC Qt6::Gui KF6::Service KF6::Cor
 target_link_libraries(punchi-window-state PRIVATE punchi_task_identity)
 qt_add_resources(punchi-window-state "window_models" PREFIX "/"
     FILES adapters/kde/window-state/WindowModels.qml)
+
+set(PUNCHI_INSTALL_DATADIR "${CMAKE_INSTALL_DATADIR}/punchi-dock-quickshell")
+install(FILES shell.qml DESTINATION "${PUNCHI_INSTALL_DATADIR}")
+install(DIRECTORY modules components services config assets
+    DESTINATION "${PUNCHI_INSTALL_DATADIR}")
+install(DIRECTORY adapters/kde
+    DESTINATION "${PUNCHI_INSTALL_DATADIR}/adapters"
+    FILES_MATCHING PATTERN "*.qml")
+install(DIRECTORY "${CMAKE_BINARY_DIR}/qml/Punchi"
+    DESTINATION "${PUNCHI_INSTALL_DATADIR}/qml")
+install(TARGETS punchi-window-state
+    RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}/punchi-dock-quickshell")
+install(FILES
+    scripts-user/start.sh
+    scripts-user/restore-kde.sh
+    scripts-user/settings.sh
+    scripts-user/launcher.sh
+    DESTINATION "${PUNCHI_INSTALL_DATADIR}/scripts-user"
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+        GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+install(PROGRAMS scripts-user/installed-launcher.sh
+    DESTINATION "${CMAKE_INSTALL_BINDIR}"
+    RENAME punchi-dock-quickshell)
+install(FILES scripts-user/punchi-dock-quickshell.desktop
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/applications")
+install(FILES assets/icons/punchi-dock-quickshell.svg
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/icons/hicolor/scalable/apps")
+install(FILES README.md LICENSE NOTICE.md CHANGELOG.md CONTRIBUTING.md SECURITY.md
+    DESTINATION "${PUNCHI_INSTALL_DATADIR}")
+
+configure_file("${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+    "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake" @ONLY)
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_BINARY_DIR}/cmake_uninstall.cmake")
+
 include(CTest)
 
 if(BUILD_TESTING)
@@ -244,5 +280,20 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/foundation_test.py)
     add_test(NAME user_setup_scripts COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
+    add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
+    add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
     set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts PROPERTIES TIMEOUT 45)
+    set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
+    set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 endif()
+
+set(CPACK_PACKAGE_NAME "punchi-dock-quickshell")
+set(CPACK_PACKAGE_VENDOR "PunchiSoft")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Animated dock for KDE Plasma built with Quickshell")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}")
+set(CPACK_GENERATOR "TGZ")
+include(CPack)

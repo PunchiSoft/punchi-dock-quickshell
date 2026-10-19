@@ -26,6 +26,21 @@ if ! command -v qs >/dev/null 2>&1; then
     exit 1
 fi
 
+punchi_kde_session_detected() {
+    if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* || "${KDE_FULL_SESSION:-}" == "true" ]]; then
+        return 0
+    fi
+    command -v pgrep >/dev/null 2>&1 || return 1
+    pgrep -x plasmashell >/dev/null 2>&1 && pgrep -x kwin_wayland >/dev/null 2>&1
+}
+
+if [[ "${PUNCHI_ALLOW_NON_KDE:-0}" != "1" ]] && ! punchi_kde_session_detected; then
+    printf '%s\n' 'Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland.' >&2
+    printf 'Detected XDG_CURRENT_DESKTOP=%s. The dock will not run on another desktop.\n' \
+        "${XDG_CURRENT_DESKTOP:-unknown}" >&2
+    exit 1
+fi
+
 punchi_running() {
     local path="${1:?path is required}"
     local output=""
@@ -119,15 +134,26 @@ if existing_root="$(existing_registration_root)"; then
 fi
 
 export PUNCHI_DOCK_MODE="$panel_mode"
-if [[ ! -f "$project_root/build/qml/Punchi/Kde/libpunchikdeplugin.so" ]]; then
+qml_root="$project_root/build/qml"
+if [[ ! -f "$qml_root/Punchi/Kde/libpunchikdeplugin.so" ]]; then
+    qml_root="$project_root/qml"
+fi
+if [[ ! -f "$qml_root/Punchi/Kde/libpunchikdeplugin.so" ]]; then
     printf '%s\n' 'Build the KDE launcher first: cmake -S . -B build && cmake --build build' >&2
     exit 1
 fi
-export QML_IMPORT_PATH="$project_root/build/qml${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
-if [[ ! -x "$project_root/build/punchi-window-state" ]]; then
+backend="$project_root/build/punchi-window-state"
+if [[ ! -x "$backend" ]]; then
+    backend="$project_root/../../libexec/punchi-dock-quickshell/punchi-window-state"
+fi
+if [[ ! -x "$backend" ]]; then
+    backend="$project_root/../../lib/punchi-dock-quickshell/punchi-window-state"
+fi
+if [[ ! -x "$backend" ]]; then
     printf '%s\n' 'Build the KDE window backend first: cmake -S . -B build && cmake --build build' >&2
     exit 1
 fi
-"$project_root/build/punchi-window-state" --register
-export PUNCHI_WINDOW_BACKEND="$project_root/build/punchi-window-state"
+export QML_IMPORT_PATH="$qml_root${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
+"$backend" --register
+export PUNCHI_WINDOW_BACKEND="$backend"
 exec qs --path "$project_root" --no-duplicate

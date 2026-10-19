@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.19 — 2026-10-19
+
+- Keep install/update and build-only from starting the dock implicitly. The
+  setup menu returns after the action; use Start the dock or `--start` to launch
+  it, so the installer no longer takes over the terminal.
+- Keep the source checkout's `build/` directory when uninstalling. Removal now
+  requires `--remove-build` or a separate confirmation in the menu.
+- Offer to install missing dependencies before building, with Fedora,
+  Debian/Ubuntu and Arch package maps. Non-Fedora mappings remain best-effort.
+- Require and report KDE Plasma/KWin explicitly, and refuse to start the dock
+  outside an active KDE session.
+- Write a timestamped build-failure log under the user's Documents directory.
+- Make `restore-kde.sh` stop the active Punchi Dock instance from either the
+  checkout or the user-local installation.
+- Check `kbuildsycoca6`, show stale installed versions in the menu, and keep the
+  previous installation available for rollback when launcher writing fails.
+- Route the application-menu entry through `launcher.sh`, which logs startup
+  output, notifies on failure and provides Stop and Settings actions.
+- Add an isolated install/uninstall regression test.
+- Add CMake install rules, an `uninstall` target, a relocatable installed
+  launcher, a desktop entry, an icon and a portable CPack TGZ configuration.
+
 ## 0.1.18 — 2026-10-19
 
 - Added `scripts-user/setup.sh`, a guided menu and non-interactive commands for

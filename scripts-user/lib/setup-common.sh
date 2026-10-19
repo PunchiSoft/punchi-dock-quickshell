@@ -155,6 +155,81 @@ punchi_system_name() {
     punchi_sanitize_text "$value"
 }
 
+punchi_documents_dir() {
+    local documents=""
+    local config_file=""
+    local key=""
+    local value=""
+
+    if command -v xdg-user-dir >/dev/null 2>&1; then
+        documents="$(xdg-user-dir DOCUMENTS 2>/dev/null || true)"
+    fi
+    if [[ -z "$documents" || "$documents" != /* || "$documents" == "$HOME" ]]; then
+        config_file="${XDG_CONFIG_HOME:-$HOME/.config}/user-dirs.dirs"
+        if [[ -r "$config_file" ]]; then
+            while IFS='=' read -r key value; do
+                [[ "$key" == "XDG_DOCUMENTS_DIR" ]] || continue
+                value="${value%\"}"
+                value="${value#\"}"
+                value="${value//\$HOME/$HOME}"
+                documents="$value"
+                break
+            done < "$config_file"
+        fi
+    fi
+    if [[ -z "$documents" || "$documents" != /* || "$documents" == "$HOME" ]]; then
+        documents="$HOME/Documents"
+    fi
+    printf '%s\n' "$documents"
+}
+
+punchi_write_failure_log() {
+    local action="${1:?action is required}"
+    local transcript="${2:-}"
+    local documents=""
+    local file=""
+    local install_root=""
+    local kde_status="no"
+
+    documents="$(punchi_documents_dir)"
+    if ! mkdir -p "$documents"; then
+        punchi_warning "Could not create the Documents directory: $documents"
+        return 1
+    fi
+    if ! file="$(mktemp "$documents/punchi-dock-quickshell-setup-$(date +%Y%m%d-%H%M%S)-XXXXXX.log")"; then
+        punchi_warning "Could not create a failure log in $documents."
+        return 1
+    fi
+    install_root="$(punchi_install_root 2>/dev/null || printf '%s' 'invalid')"
+    if punchi_kde_session_detected; then
+        kde_status="yes"
+    fi
+    if ! {
+        printf 'Punchi Dock Quickshell setup failure\n'
+        printf 'Date: %s\n' "$(date --iso-8601=seconds 2>/dev/null || date)"
+        printf 'Action: %s\n' "$action"
+        printf 'Version: %s\n' "$(punchi_project_version)"
+        printf 'Distribution: %s\n' "$(punchi_system_name)"
+        printf 'Distribution family: %s\n' \
+            "$(punchi_distro_family "$(punchi_distro_id)" "$(punchi_distro_like)")"
+        printf 'KDE session detected: %s\n' "$kde_status"
+        printf 'Source root: %s\n' "$punchi_project_root"
+        printf 'Install root: %s\n' "$install_root"
+        printf '\n--- output ---\n'
+        if [[ -n "$transcript" && -r "$transcript" ]]; then
+            tail -n 4000 "$transcript"
+        else
+            printf 'No captured output was available.\n'
+        fi
+    } > "$file"; then
+        punchi_warning "Could not write the failure log: $file"
+        return 1
+    fi
+    chmod 600 "$file" 2>/dev/null || true
+    printf 'Failure log: %s\n' "$file" >&2
+    return 0
+}
+
 punchi_job_count() {
     local jobs="${PUNCHI_JOBS:-}"
     if [[ -z "$jobs" ]]; then
