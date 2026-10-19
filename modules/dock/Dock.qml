@@ -309,6 +309,8 @@ PanelWindow {
         canLaunchNewWindow: contextService.canLaunchNewWindow
         canPin: contextService.canPin
         pinned: contextService.pinned
+        windowActions: runningApps.revision >= 0 ? runningApps.windowActions(contextMenu.appId) : ({})
+        virtualDesktops: runningApps.virtualDesktops
         trashItem: contextMenu.appId === "item:trash"
         canEmptyTrash: trash.canEmpty
         onSettingsRequested: root.settingsRequested()
@@ -322,6 +324,10 @@ PanelWindow {
         onNewWindowRequested: contextService.openNewWindow()
         onPinRequested: contextService.pin()
         onUnpinRequested: contextService.unpin()
+        onWindowActionRequested: function(action, virtualDesktop) {
+            if (runningApps.windowActivation.requestWindowAction(contextMenu.appId, action, virtualDesktop) === 0)
+                console.warn("Punchi Dock Quickshell: window action request rejected:", action)
+        }
         onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
         onFolderSortRequested: function(appId, sortMode) { settings.setContainerSortMode(appId, sortMode) }
         onFolderLayoutRequested: function(appId, layout) { settings.setContainerLayout(appId, layout) }

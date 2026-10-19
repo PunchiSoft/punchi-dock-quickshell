@@ -6,6 +6,7 @@ import org.kde.taskmanager as TaskManager
 QtObject {
     id: root
     readonly property TaskManager.ActivityInfo activityInfo: TaskManager.ActivityInfo {}
+    readonly property TaskManager.VirtualDesktopInfo virtualDesktopInfo: TaskManager.VirtualDesktopInfo {}
     // Running markers include minimized windows and other desktops/activities.
     readonly property TaskManager.TasksModel allTasks: TaskManager.TasksModel {
         groupMode: TaskManager.TasksModel.GroupDisabled

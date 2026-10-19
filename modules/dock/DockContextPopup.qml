@@ -28,6 +28,8 @@ Popup {
     property bool canLaunchNewWindow: false
     property bool canPin: false
     property bool pinned: false
+    property var windowActions: ({})
+    property var virtualDesktops: []
     property bool trashItem: false
     property bool canEmptyTrash: false
     property bool preparingToShow: false
@@ -57,6 +59,7 @@ Popup {
     signal newWindowRequested()
     signal unpinRequested()
     signal pinRequested()
+    signal windowActionRequested(string action, var virtualDesktop)
     parent: hostWindow ? hostWindow.contentItem : null
     popupType: Popup.Item
     modal: false
@@ -129,6 +132,8 @@ Popup {
         canLaunchNewWindow: root.canLaunchNewWindow
         canPin: root.canPin
         pinned: root.pinned
+        windowActions: root.windowActions
+        virtualDesktops: root.virtualDesktops
         trashItem: root.trashItem
         dockBackground: root.dockBackground
         folderItem: root.folderContainer !== null
@@ -157,6 +162,10 @@ Popup {
         onForgetRecentRequested: { root.forgetRecentRequested(); root.dismiss() }
         onNewWindowRequested: { root.newWindowRequested(); root.dismiss() }
         onPinRequested: { root.dismiss(); root.pinRequested() }
+        onWindowActionRequested: function(action, virtualDesktop) {
+            root.dismiss()
+            root.windowActionRequested(action, virtualDesktop)
+        }
         // Dismiss before removing the anchor's model row.
         onUnpinRequested: { root.dismiss(); root.unpinRequested() }
         onSettingsRequested: { root.dismiss(); root.settingsRequested() }

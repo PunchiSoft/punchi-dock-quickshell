@@ -14,10 +14,15 @@ Pane {
     property var applicationCatalog: null
     property int currentPage: 1
     property bool hasPendingChanges: false
-    readonly property bool addingItem: addDialog.visible
+    readonly property bool addingItem: itemsPage.addingItem
     signal applyRequested()
     signal acceptRequested()
     signal closeRequested()
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.addingItem
+        onActivated: root.cancelAddingItem(true)
+    }
     Kirigami.Theme.inherit: false
     Kirigami.Theme.colorSet: Kirigami.Theme.Window
     palette.window: Kirigami.Theme.backgroundColor
@@ -33,7 +38,7 @@ Pane {
         else if (currentPage === 1) generalPage.focusFirst()
         else aboutPage.focusFirst()
     }
-    function closeDialogs(): void { addDialog.close(); pinService.cancel() }
+    function cancelAddingItem(restoreFocus: bool): void { itemsPage.cancelAddItem(restoreFocus) }
     function ensureFocusedVisible(control: Item): void {
         if ((currentPage !== 1 && currentPage !== 2) || !control) return
         const page = currentPage === 1 ? generalPage : aboutPage
@@ -51,24 +56,6 @@ Pane {
             viewport.contentY = Math.max(0, Math.min(maximum, point.y + control.height + margin - viewport.height))
     }
     ApplicationPinService { id: pinService; settings: root.settings; catalog: root.applicationCatalog }
-    AddDockItemDialog {
-        id: addDialog
-        controller: pinService
-        settings: itemsPage.settings
-        hostItem: root
-        onSearchRequested: function(text) { pinService.search(text) }
-        onSelectionRequested: function(appId) { pinService.select(appId) }
-        onAddRequested: {
-            if (itemType === "application") {
-                if (pinService.accept()) close()
-            } else if (itemType === "container") {
-                if (itemsPage.pinContainer(containerPath, containerLayout)) close()
-            } else if (itemsPage.pinTrash()) {
-                close()
-            }
-        }
-        onClosed: { pinService.cancel(); itemsPage.focusFirst() }
-    }
     ButtonGroup { id: navigation }
     RowLayout {
         anchors.fill: parent
@@ -140,13 +127,7 @@ Pane {
                     id: itemsPage
                     settings: root.settings
                     applicationCatalog: root.applicationCatalog
-                    onAddRequested: {
-                        pinService.begin()
-                        addDialog.itemType = "application"
-                        addDialog.containerPath = ""
-                        addDialog.containerLayout = "grid"
-                        addDialog.open()
-                    }
+                    applicationController: pinService
                 }
                 ScrollView {
                     id: generalScroll

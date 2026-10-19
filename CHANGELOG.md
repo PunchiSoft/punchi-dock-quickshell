@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.1.15 — 2026-10-19
+
+- Keep Add Item inside the Items settings page, replacing only the item-content
+  area while preserving the sidebar, toolbar and settings footer.
+- Add Plasma task-window actions to the application context menu, gated by live
+  window capabilities and virtual-desktop state from KDE's task model.
+- Accept KDE's transient empty virtual-desktop names so the window backend stays
+  available during startup.
+- Restore the dock's Open Trash entry point in the real KDE adapter.
 
 ## 0.1.14 — 2026-10-14
 

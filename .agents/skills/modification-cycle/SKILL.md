@@ -16,5 +16,7 @@ template when first needed. Stage boundaries live in the local `docs/roadmap.md`
 Proceed with already authorized work; ask only for missing decisions that affect
 the result. Apply domain skills when their implementation stage begins.
 Validate after editing, without running a full suite merely to open a record.
-Close only the completed scope and distinguish implementation from pending
-runtime or user validation. No legacy plasmoid gate is implied by this workflow.
+When the change adds or edits a service → adapter call, run the `testing`
+skill's synthetic adapter contract probe before other checks. Close only the
+completed scope and distinguish implementation from pending runtime or user
+validation. No legacy plasmoid gate is implied by this workflow.

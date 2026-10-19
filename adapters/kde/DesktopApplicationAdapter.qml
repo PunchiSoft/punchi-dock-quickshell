@@ -26,6 +26,7 @@ QtObject {
         return nativeLauncher.launchAction(desktopId, actionId)
     }
     function canLaunchNewWindow(desktopId: string): bool { return nativeLauncher.canLaunchNewWindow(desktopId) }
+    function openTrash(): bool { return nativeLauncher.openTrash() }
     function openDownloads(): bool { return nativeLauncher.openDownloads() }
     function openFolderLocation(location: url): bool { return nativeLauncher.openFolderLocation(location) }
     function openFolderPath(path: string): bool { return nativeLauncher.openFolderPath(path) }

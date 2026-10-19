@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QHash>
 #include <QTimer>
+#include <QVariant>
 #include <QtQml/qqmlregistration.h>
 
 // Command domain over the provider-owned pipe; no window indices leave KDE.
@@ -20,11 +21,13 @@ public:
     bool acceptResult(const QJsonObject &object);
     Q_INVOKABLE int requestActivate(const QString &desktopId);
     Q_INVOKABLE int requestNewInstance(const QString &desktopId);
+    Q_INVOKABLE int requestWindowAction(const QString &desktopId, const QString &action,
+        const QVariant &virtualDesktop = {});
 signals:
     void changed();
     void finished(int requestId, const QString &desktopId, const QString &status);
 private:
-    struct Pending { QString desktopId; QTimer *timer; };
+    struct Pending { QString desktopId; QString action; QTimer *timer; };
     void complete(int requestId, const QString &status);
     int request(const QString &desktopId, const QString &type);
     QProcess *m_process;

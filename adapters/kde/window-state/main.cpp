@@ -2,6 +2,7 @@
 #include "registration.h"
 #include "snapshot.h"
 #include "windowactivation.h"
+#include "windowtaskactions.h"
 #include "commandreader.h"
 #include "../native/kwinminimizeeffect.h"
 #include <QGuiApplication>
@@ -18,6 +19,7 @@
 
 class WindowObserver : public QObject
 {
+    Q_OBJECT
 public:
     explicit WindowObserver(QObject *parent) : QObject(parent) {}
     ~WindowObserver() override {
@@ -56,6 +58,8 @@ public:
                     self->m_object->property("allTasks").value<QObject *>()) : nullptr;
                 self->m_visibleModel = self->m_object ? qobject_cast<QAbstractItemModel *>(
                     self->m_object->property("visibleTasks").value<QObject *>()) : nullptr;
+                self->m_virtualDesktopInfo = self->m_object
+                    ? self->m_object->property("virtualDesktopInfo").value<QObject *>() : nullptr;
                 if (!self->m_model || !self->m_model->roleNames().values().contains("AppId")
                     || !self->m_model->roleNames().values().contains("IsWindow")) {
                     qWarning() << "KDE task model unavailable";
@@ -71,6 +75,15 @@ public:
                     connect(model, &QAbstractItemModel::dataChanged, self, update);
                     connect(model, &QAbstractItemModel::modelReset, self, update);
                 }
+                if (self->m_virtualDesktopInfo) {
+                    for (const auto *signal : {"numberOfDesktopsChanged()", "desktopIdsChanged()",
+                            "desktopNamesChanged()", "currentDesktopChanged()"}) {
+                        const int signalIndex = self->m_virtualDesktopInfo->metaObject()->indexOfSignal(signal);
+                        if (signalIndex >= 0) QObject::connect(self->m_virtualDesktopInfo,
+                            self->m_virtualDesktopInfo->metaObject()->method(signalIndex), self,
+                            self->metaObject()->method(self->metaObject()->indexOfSlot("schedule()")));
+                    }
+                }
                 connect(KWindowSystem::self(), &KWindowSystem::showingDesktopChanged, self, update);
                 self->m_available = true;
                 self->publish();
@@ -78,8 +91,12 @@ public:
         wl_callback_add_listener(m_sync, &syncListener, this);
         wl_display_flush(native->display());
     }
-    void activate(const QJsonObject &request) {
-        const auto reply = activateWindowRequest(m_model, m_available, request);
+    void dispatch(const QJsonObject &request) {
+        const auto desktops = m_virtualDesktopInfo
+            ? m_virtualDesktopInfo->property("desktopIds").toList() : QVariantList();
+        const QJsonObject reply = request.value(QStringLiteral("type")).toString() == QLatin1String("window-action")
+            ? windowActionRequest(m_model, m_available, desktops, request)
+            : activateWindowRequest(m_model, m_available, request);
         if (reply.isEmpty()) { QCoreApplication::exit(2); return; }
         send(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n');
     }
@@ -88,12 +105,14 @@ private:
         if (std::fwrite(message.constData(), 1, message.size(), stdout) != size_t(message.size())) QCoreApplication::quit();
         std::fflush(stdout);
     }
+private slots:
     void schedule() {
         if (m_pending) return;
         m_pending = true;
         // Plasma settles newly created-window positions before deciding overlap.
         QTimer::singleShot(10, this, [this]() { m_pending = false; publish(); });
     }
+private:
     void publish() {
         const bool ready = m_available && m_model && m_model->rowCount() <= 4096;
         const QStringList ids = ready ? runningDesktopIds(*m_model) : QStringList();
@@ -101,6 +120,14 @@ private:
         auto object = QJsonDocument::fromJson(windowStateSnapshot(ready && ids.size() <= 1024, ids,
             windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()),
             applications)).object();
+        if (ready && m_virtualDesktopInfo) {
+            const auto actions = windowActionsSnapshot(m_model, ids.size() <= 1024,
+                m_virtualDesktopInfo->property("desktopIds").toList(),
+                m_virtualDesktopInfo->property("desktopNames").toStringList(),
+                m_virtualDesktopInfo->property("currentDesktop"));
+            object.insert(QStringLiteral("windowActions"), actions.value(QStringLiteral("applications")));
+            object.insert(QStringLiteral("virtualDesktops"), actions.value(QStringLiteral("desktops")));
+        }
         object.insert(QStringLiteral("activationAvailable"), ready && supportsWindowActivation(m_model));
         const QByteArray snapshot = QJsonDocument(object).toJson(QJsonDocument::Compact) + '\n';
         if (snapshot == m_previous) return;
@@ -117,6 +144,7 @@ private:
     std::unique_ptr<QObject> m_object;
     QAbstractItemModel *m_model = nullptr;
     QAbstractItemModel *m_visibleModel = nullptr;
+    QObject *m_virtualDesktopInfo = nullptr;
 };
 
 int main(int argc, char **argv)
@@ -136,7 +164,8 @@ int main(int argc, char **argv)
     app.setDesktopFileName(QStringLiteral("org.punchi.Shell.WindowState"));
     app.setQuitOnLastWindowClosed(false);
     WindowObserver observer(&app);
-    WindowCommandReader commands([&](const QJsonObject &request) { observer.activate(request); }, &app);
+    WindowCommandReader commands([&](const QJsonObject &request) { observer.dispatch(request); }, &app);
     QTimer::singleShot(0, &observer, [&]() { observer.start(); });
     return app.exec();
 }
+#include "main.moc"

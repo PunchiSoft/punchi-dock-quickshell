@@ -14,6 +14,7 @@ QtObject {
     readonly property bool configured: backend.enabled
     readonly property list<string> desktopIds: backend.desktopIds
     readonly property var applicationEntries: backend.applicationEntries
+    readonly property var virtualDesktops: backend.virtualDesktops
     readonly property var windowActivation: backend.windowActivation
     readonly property var visibilityState: backend.visibilityState
     readonly property int revision: backend.revision + (catalog ? catalog.revision : 0)
@@ -25,4 +26,5 @@ QtObject {
         return appId.startsWith(prefix) ? backend.isRunning(appId.slice(prefix.length)) : false
     }
     function isRunningDesktop(desktopId: string): bool { return backend.isRunning(desktopId) }
+    function windowActions(desktopId: string): var { return backend.windowActions(desktopId) }
 }

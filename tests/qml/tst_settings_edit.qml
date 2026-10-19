@@ -270,14 +270,14 @@ TestCase {
         compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
 
         mouseClick(control(window, "addDockItem"))
-        let dialog = findChild(view, "addDockItemDialog")
-        verify(dialog !== null)
-        tryCompare(dialog, "opened", true)
-        dialog.itemType = "container"
-        dialog.containerPath = "/tmp/punchi-pending-container"
-        dialog.containerLayout = "detail"
-        mouseClick(control(dialog, "confirmAddItem"))
-        tryCompare(dialog, "visible", false)
+        let page = findChild(view, "addDockItemPage")
+        verify(page !== null)
+        tryCompare(view, "addingItem", true)
+        page.itemType = "container"
+        page.containerPath = "/tmp/punchi-pending-container"
+        page.containerLayout = "detail"
+        mouseClick(findChild(page, "confirmAddItem"))
+        tryCompare(view, "addingItem", false)
         const addedContainer = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)
         verify(addedContainer.length > 0)
         compare(view.settings.container(addedContainer).layout, "detail")
@@ -290,13 +290,13 @@ TestCase {
 
         mouseClick(control(window, "itemsSettingsPage"))
         mouseClick(control(window, "addDockItem"))
-        dialog = findChild(view, "addDockItemDialog")
-        verify(dialog !== null)
-        tryCompare(dialog, "opened", true)
-        dialog.itemType = "trash"
-        verify(control(dialog, "confirmAddItem").enabled)
-        mouseClick(control(dialog, "confirmAddItem"))
-        tryCompare(dialog, "visible", false)
+        page = findChild(view, "addDockItemPage")
+        verify(page !== null)
+        tryCompare(view, "addingItem", true)
+        page.itemType = "trash"
+        verify(findChild(page, "confirmAddItem").enabled)
+        mouseClick(findChild(page, "confirmAddItem"))
+        tryCompare(view, "addingItem", false)
         verify(view.settings.pinnedIds.indexOf("item:trash") >= 0)
         compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
         mouseClick(control(window, "applyDockSettings"))

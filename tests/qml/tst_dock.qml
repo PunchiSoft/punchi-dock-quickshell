@@ -225,6 +225,54 @@ TestCase {
         compare(action.visible, false)
     }
 
+    function test_nativeWindowActionsFollowTaskCapabilitiesAndDesktopCount() {
+        const view = createView()
+        const content = view.testContent
+        content.visible = true
+        content.dockBackground = false
+        content.windowActions = {available: true, desktopChangeable: true, virtualDesktops: ["desktop-1"],
+            onAllDesktops: false, movable: true, resizable: false, maximizable: true, maximized: false,
+            minimizable: true, minimized: false, keepAbove: false, keepBelow: false,
+            fullscreenable: true, fullscreen: false, canSetNoBorder: false, noBorder: false,
+            canHideFromCapture: true, excludedFromCapture: false, closable: true}
+        content.virtualDesktops = [
+            {id: "desktop-1", name: "Desktop 1", current: true},
+            {id: "desktop-2", name: "Desktop 2", current: false}
+        ]
+        const actions = findChild(content, "dockWindowActions")
+        const moveDesktop = findChild(content, "moveToDesktopSubmenu")
+        const more = findChild(content, "moreWindowActionsSubmenu")
+        const spy = createTemporaryQmlObject(
+            'import QtTest; SignalSpy { signalName: "windowActionRequested" }', test)
+        spy.target = content
+        verify(actions !== null && moveDesktop !== null && more !== null)
+        verify(moveDesktop.visible && more.visible)
+        compare(findChild(content, "windowAction-resize").visible, false)
+        moveDesktop.clicked()
+        compare(actions.openSubmenu, "desktops")
+        compare(findChild(content, "virtualDesktop-desktop-2").visible, true)
+        findChild(content, "virtualDesktop-desktop-2").clicked()
+        compare(spy.signalArguments[0][0], "desktop")
+        compare(spy.signalArguments[0][1], "desktop-2")
+        more.clicked()
+        compare(actions.openSubmenu, "window")
+        verify(findChild(content, "windowAction-move").enabled)
+        compare(findChild(content, "windowAction-resize").enabled, false)
+        verify(findChild(content, "windowAction-hide-capture").visible)
+        const keepAbove = findChild(content, "windowAction-keep-above")
+        keepAbove.clicked()
+        compare(spy.signalArguments[1][0], "keep-above")
+        compare(findChild(content, "closeWindowAction").enabled, true)
+        // KDE can publish desktop names one snapshot late; show a positional fallback.
+        content.virtualDesktops = [
+            {id: "desktop-1", name: "", current: true},
+            {id: "desktop-2", name: "", current: false}
+        ]
+        compare(findChild(content, "virtualDesktop-desktop-2").text, "Desktop 2")
+        content.virtualDesktops = [{id: "desktop-1", name: "Desktop 1", current: true}]
+        tryCompare(moveDesktop, "visible", false)
+    }
+
     function test_globalDockControlsNeverAppearInItemContextMenus() {
         const view = createView()
         const content = view.testContent

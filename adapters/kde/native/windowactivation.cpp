@@ -29,6 +29,34 @@ int WindowActivation::requestNewInstance(const QString &desktopId)
     return request(desktopId, QStringLiteral("new-instance"));
 }
 
+int WindowActivation::requestWindowAction(const QString &desktopId, const QString &action,
+    const QVariant &virtualDesktop)
+{
+    static const QSet<QString> actions{
+        QStringLiteral("desktop"), QStringLiteral("move"), QStringLiteral("resize"),
+        QStringLiteral("maximize"), QStringLiteral("minimize"), QStringLiteral("keep-above"),
+        QStringLiteral("keep-below"), QStringLiteral("fullscreen"), QStringLiteral("no-border"),
+        QStringLiteral("hide-capture"), QStringLiteral("close"), QStringLiteral("grouping"), QStringLiteral("new-desktop")};
+    if (!actions.contains(action)) return 0;
+    const QString id = normalizedApplicationId(desktopId);
+    if (!m_available || id.isEmpty() || m_process->state() != QProcess::Running
+        || m_pending.size() >= 64 || m_process->bytesToWrite() > 16384) return 0;
+    do { m_nextId = m_nextId == INT_MAX ? 1 : m_nextId + 1; } while (m_pending.contains(m_nextId));
+    QJsonObject payload{{QStringLiteral("version"), 1}, {QStringLiteral("type"), QStringLiteral("window-action")},
+        {QStringLiteral("requestId"), m_nextId}, {QStringLiteral("desktopId"), id}, {QStringLiteral("action"), action}};
+    if (virtualDesktop.isValid()) payload.insert(QStringLiteral("desktop"), QJsonValue::fromVariant(virtualDesktop));
+    const auto bytes = QJsonDocument(payload).toJson(QJsonDocument::Compact) + '\n';
+    if (m_process->write(bytes) != bytes.size()) return 0;
+    auto *timer = new QTimer(this);
+    timer->setSingleShot(true);
+    timer->setInterval(3000);
+    const int requestId = m_nextId;
+    connect(timer, &QTimer::timeout, this, [this, requestId]() { complete(requestId, QStringLiteral("unavailable")); });
+    m_pending.insert(requestId, {id, action, timer});
+    timer->start();
+    return requestId;
+}
+
 int WindowActivation::request(const QString &desktopId, const QString &type)
 {
     const QString id = normalizedApplicationId(desktopId);
@@ -44,7 +72,7 @@ int WindowActivation::request(const QString &desktopId, const QString &type)
     timer->setInterval(3000);
     const int requestId = m_nextId;
     connect(timer, &QTimer::timeout, this, [this, requestId]() { complete(requestId, QStringLiteral("unavailable")); });
-    m_pending.insert(requestId, {id, timer});
+    m_pending.insert(requestId, {id, {}, timer});
     timer->start();
     return requestId;
 }
@@ -66,17 +94,22 @@ bool WindowActivation::acceptResult(const QJsonObject &object)
     const double number = numberValue.toDouble();
     const QString desktopId = object.value(QStringLiteral("desktopId")).toString();
     const QString status = object.value(QStringLiteral("status")).toString();
+    const QString type = object.value(QStringLiteral("type")).toString();
+    const QString action = object.value(QStringLiteral("action")).toString();
+    const bool windowAction = type == QLatin1String("window-action-result");
     if (object.value(QStringLiteral("version")).toInt() != 1
-        || object.value(QStringLiteral("type")).toString() != QLatin1String("activation-result")
+        || (type != QLatin1String("activation-result") && !windowAction)
         || !numberValue.isDouble() || !std::isfinite(number) || number < 1 || number > INT_MAX
         || std::floor(number) != number || normalizedApplicationId(desktopId) != desktopId || desktopId.isEmpty()
-        || (status != QLatin1String("activated") && status != QLatin1String("minimized") && status != QLatin1String("not-found")
+        || (windowAction != !action.isEmpty())
+        || (status != QLatin1String("requested") && status != QLatin1String("activated") && status != QLatin1String("minimized") && status != QLatin1String("not-found")
             && status != QLatin1String("starting") && status != QLatin1String("new-instance")
             && status != QLatin1String("unavailable") && status != QLatin1String("rejected"))) return false;
     const int requestId = int(number);
     // Late responses to expired requests are harmless; never launch from them.
     if (!m_pending.contains(requestId)) return true;
-    if (m_pending.value(requestId).desktopId != desktopId) return false;
+    if (m_pending.value(requestId).desktopId != desktopId
+        || m_pending.value(requestId).action != (windowAction ? action : QString())) return false;
     complete(requestId, status);
     return true;
 }

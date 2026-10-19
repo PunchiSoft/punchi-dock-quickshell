@@ -96,14 +96,14 @@ ShellRoot {
             }
             view.currentPage = 0
             probe.find(view, "addDockItem").clicked()
-            const dialog = probe.find(view, "addDockItemDialog")
-            if (!dialog || !dialog.visible || dialog.width <= 0 || dialog.height <= 0
-                || dialog.contentItem.Window.window !== window) {
+            const page = probe.find(view, "addDockItemPage")
+            if (!page || !page.visible || page.width <= 0 || page.height <= 0
+                || page.Window.window !== window) {
                 console.error("PUNCHI_THEME_FAILED editor host"); Qt.quit(); return
             }
-            dialog.selectionRequested("files")
+            page.selectionRequested("files")
             window.close()
-            if (dialog.controller.selectedAppId !== "") {
+            if (page.controller.selectedAppId !== "") {
                 console.error("PUNCHI_THEME_FAILED draft survived close"); Qt.quit(); return
             }
             if (window.visible) { console.error("PUNCHI_THEME_FAILED close"); Qt.quit(); return }

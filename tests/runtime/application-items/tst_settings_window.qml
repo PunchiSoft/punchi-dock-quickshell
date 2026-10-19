@@ -33,10 +33,10 @@ TestCase {
         const add = findChild(view, "addDockItem")
         verify(add.enabled)
         mouseClick(add)
-        const dialog = findChild(view, "addDockItemDialog")
-        tryCompare(dialog, "opened", true)
-        verify(dialog.width > 0 && dialog.height > 0, "geometry " + [dialog.width, dialog.height, dialog.implicitHeight, dialog.hostWidth, dialog.hostHeight, dialog.parent].join(" / "))
-        return dialog
+        const page = findChild(view, "addDockItemPage")
+        tryCompare(view, "addingItem", true)
+        verify(page.visible && page.width > 0 && page.height > 0)
+        return page
     }
     function selectOwned(dialog: var): void {
         const search = findChild(dialog, "applicationSearch")
@@ -102,7 +102,7 @@ TestCase {
         view.currentPage = 0
         tryVerify(function() { return window.applicationCatalog.application("desktop:punchi-add-sentinel.desktop").installed === true })
         const dialog = openEditor(view)
-        verify(waitForRendering(dialog.contentItem))
+        verify(waitForRendering(dialog))
         const search = findChild(dialog, "applicationSearch")
         const results = findChild(dialog, "applicationResultsScroll")
         const nameLabel = findChild(dialog, "applicationNameLabel")
@@ -111,8 +111,8 @@ TestCase {
         const name = findChild(dialog, "applicationNameValue")
         const icon = findChild(dialog, "applicationPreviewIcon")
         const description = findChild(dialog, "applicationDescriptionValue")
-        function position(item) { return item.mapToItem(dialog.contentItem, 0, 0) }
-        verify(results.height >= Kirigami.Units.gridUnit * 12)
+        function position(item) { return item.mapToItem(dialog, 0, 0) }
+        verify(results.height >= Kirigami.Units.gridUnit * 6)
         verify(Math.abs(position(nameLabel).x - position(search).x) <= 1)
         compare(position(nameLabel).x, position(iconLabel).x)
         compare(position(nameLabel).x, position(descriptionLabel).x)
@@ -120,7 +120,7 @@ TestCase {
         compare(position(name).x, position(description).x)
         verify(position(nameLabel).y > results.y + results.height)
         const add = findChild(dialog, "confirmAddItem")
-        const discard = findChild(dialog, "discardAddItem")
+        const discard = findChild(dialog, "cancelAddItem")
         verify(position(add).y > position(description).y + description.height)
         verify(position(discard).x > position(add).x)
         compare(name.text, "")
@@ -132,6 +132,25 @@ TestCase {
         compare(position(name).x, position(icon).x)
         mouseClick(discard)
         tryCompare(dialog, "visible", false)
+        window.close()
+    }
+
+    function test_pickerReplacesOnlyItemsContentArea() {
+        const window = createTemporaryObject(settingsWindowFixture, test)
+        window.open()
+        const view = findChild(window.contentItem, "dockSettingsView")
+        view.currentPage = 0
+        const page = openEditor(view)
+        verify(findChild(view, "settingsSidebar").visible)
+        verify(findChild(view, "itemsSettingsPage").visible)
+        verify(findChild(view, "generalSettingsPage").visible)
+        verify(findChild(view, "dockItemToolbar").visible)
+        verify(findChild(view, "applyDockSettings").visible)
+        verify(!findChild(view, "settingsDockItems").visible)
+        verify(page.Window.window === window)
+        mouseClick(findChild(page, "cancelAddItem"))
+        tryCompare(view, "addingItem", false)
+        verify(findChild(view, "settingsDockItems").visible)
         window.close()
     }
 

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.14 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.15 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus)
@@ -62,6 +62,7 @@ target_include_directories(punchikde PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/na
 target_link_libraries(punchikde PRIVATE punchi_edge_protocols)
 add_executable(punchi-window-state adapters/kde/window-state/main.cpp
     adapters/kde/window-state/registration.cpp adapters/kde/window-state/windowactivation.cpp
+    adapters/kde/window-state/windowtaskactions.cpp
     adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
 target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml Qt6::DBus KF6::ConfigCore KF6::Service KF6::WindowSystem PkgConfig::WaylandClient)
 add_library(punchi_task_identity STATIC adapters/kde/window-state/taskidentity.cpp)
@@ -114,7 +115,7 @@ if(BUILD_TESTING)
     add_executable(window_activation_test tests/window_activation_test.cpp
         adapters/kde/window-state/windowactivation.cpp
         adapters/kde/native/runningapplications.cpp adapters/kde/native/windowactivation.cpp
-        adapters/kde/native/windowvisibilitystate.cpp)
+        adapters/kde/native/windowvisibilitystate.cpp adapters/kde/window-state/windowtaskactions.cpp)
     target_include_directories(window_activation_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(window_activation_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     target_link_libraries(window_activation_test PRIVATE punchi_task_identity)
@@ -175,6 +176,11 @@ if(BUILD_TESTING)
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/trash_runtime_test.py)
     set_tests_properties(trash_runtime PROPERTIES TIMEOUT 45)
+    add_test(NAME adapter_contract COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/adapter_contract_runtime_test.py)
+    set_tests_properties(adapter_contract PROPERTIES TIMEOUT 45)
     add_test(NAME application_media COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py

@@ -4,15 +4,22 @@
 
 <p align="center"><strong>An animated, configurable dock for KDE Plasma, built with Quickshell and native Qt/KDE integration.</strong></p>
 
+> **Project status: alpha — under construction.**
+>
+> Expect breaking changes to behavior, configuration and the native API.
+> Punchi Dock Quickshell has only been tested on the maintainer's Fedora/KDE
+> Plasma Wayland machine; other distributions, X11 and other compositors are
+> unvalidated. There is no stable release, package, support commitment or
+> compatibility guarantee yet.
+
 Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
-**Development status:** early prototype. Current delivery: **0.1.14**.
-The first Git snapshot was published as `0.1.0`, equivalent to `0.1.00` under
-the current delivery counter. Each delivery commit advances the counter once;
-see the [changelog](CHANGELOG.md). Compatibility and validation limits are
-documented below.
+**Current delivery:** **0.1.15**. The first Git snapshot was published as
+`0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
+delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
+Compatibility and validation limits are documented below.
 
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md)
 
@@ -30,8 +37,8 @@ their own validation.
   launchers provide the initial configuration.
 - Native application launching through KService and KIO, with Wayland activation
   integration. Normal clicks activate an existing KDE window or minimize an
-  eligible active window before considering a launch; `docs/window-activation.md`
-  records its validation limits.
+  eligible active window before considering a launch; activation remains
+  limited to the validated environment described below.
 - Startup launch coordination, window cycling, known running unpinned applications
   and middle-click New Window through KDE.
 - Launcher context menus with KDE desktop actions, recent documents, unpinning
@@ -40,12 +47,22 @@ their own validation.
   visibility: Always visible, Hide automatically, Dodge windows or Windows go below.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
 - Downloads with Grid, List and Detail folder views, navigation inside a themed
-  balloon, and native KDE file opening; see `docs/folder-containers.md`.
+  balloon, and native KDE file opening.
 
 Running-application indicators and existing-window activation are implemented
 with isolated validation; physical KDE checks remain pending. A separate panel,
-an application-launcher surface
-and additional controls remain future work. See `docs/roadmap.md`.
+an application-launcher surface and additional controls remain future work.
+
+## Known limitations
+
+- Alpha software: behavior, configuration and native APIs may change without
+  migration.
+- Validated only on one Fedora/KDE Plasma Wayland machine; X11, other
+  distributions and other compositors are untested.
+- Source builds only; no packages, tags or release binaries.
+- Window activation, KWin cursor feedback and multi-monitor behavior still need
+  broader real-session validation.
+- English UI only for now.
 
 ## Run and return to KDE
 
@@ -82,13 +99,13 @@ cmake --build build
 
 The start script registers this build's hidden KDE window-state backend and
 refreshes the application service cache. A themed dot marks pinned apps with open
-windows. See `docs/running-applications.md` for scope, cleanup and
-live-session validation limits.
+windows. Running indicators and live-session behavior remain under validation;
+see [Known limitations](#known-limitations).
 
 To try panel behavior, use `./scripts-user/start.sh reserve` (Always visible),
 `./scripts-user/start.sh dodge-windows` (hide on window overlap), or
 `./scripts-user/start.sh overlay` (above windows without reservation). An explicit
-mode switches a running instance. See `docs/panel-modes.md`.
+mode switches a running instance.
 
 Use `./scripts-user/start.sh autohide` to try automatic hiding and bottom-edge
 reveal. This mode does not detect window overlap.
@@ -108,8 +125,7 @@ script selects only this project's Quickshell configuration.
 Right-click the dock and choose Configure Dock to open its settings.
 With Punchi Dock Quickshell running, `./scripts-user/settings.sh` also opens the window.
 Apply saves pending changes without closing; Accept saves and closes; Close
-discards pending changes. Preferences persist independently of Plasma. See
-`docs/settings.md` for controls and storage.
+discards pending changes. Preferences persist independently of Plasma.
 
 Preferences are stored separately for each operating-system user in
 `$XDG_CONFIG_HOME/punchi-dock-quickshell.json`, or `~/.config/punchi-dock-quickshell.json` when
@@ -149,7 +165,7 @@ libraries and QML modules used by the project, and both compiled native componen
 the `Punchi.Kde` QML plugin and `punchi-window-state` backend. KDE integrations
 include KIO, KService, KWindowSystem, Activities Stats, Kirigami, TaskManager and
 the Plasma MPRIS module. Building from source also needs the development packages
-and tools listed in `docs/development.md`.
+listed above.
 Sharing only `shell.qml`, or copying a build directory to another distribution,
 does not provide a complete, verified installation.
 
@@ -223,15 +239,18 @@ mode. This remains a known issue recorded in the [changelog](CHANGELOG.md).
 An isolated Wayland session probe passed startup, duplicate prevention, rendering,
 hide/reopen and scoped restoration. Automated checks do not establish final
 visual quality, fractional scaling, multi-monitor behavior, screen-reader support,
-or native KDE startup cursor feedback. See `docs/development.md` and the historical
-`docs/stage-1.md`, `docs/stage-2.md` and `docs/stage-3.md` records for evidence
-and limits.
+or native KDE startup cursor feedback. The changelog records the current
+validation scope and known gaps.
 
 ## Development
 
 This QML configuration runs in Quickshell. CMake builds the native KDE adapters
-and organizes validation. See `docs/development.md`
-for commands and [AGENTS.md](AGENTS.md) for project rules.
+and organizes validation. See [AGENTS.md](AGENTS.md) for project rules. After
+configuring the project, run the complete validation graph with:
+
+```bash
+ctest --test-dir build --output-on-failure
+```
 
 ## Modular structure
 

@@ -65,10 +65,10 @@ TestCase {
         const add = findChild(view, "addDockItem")
         verify(add.enabled)
         mouseClick(add)
-        const dialog = findChild(view, "addDockItemDialog")
-        tryCompare(dialog, "opened", true)
-        verify(dialog.width > 0 && dialog.height > 0, "geometry " + [dialog.width, dialog.height, dialog.implicitHeight, dialog.hostWidth, dialog.hostHeight, dialog.parent].join(" / "))
-        return dialog
+        const page = findChild(view, "addDockItemPage")
+        tryCompare(view, "addingItem", true)
+        verify(page.visible && page.width > 0 && page.height > 0)
+        return page
     }
     function selectOwned(dialog: var): void {
         const search = findChild(dialog, "applicationSearch")
@@ -94,7 +94,7 @@ TestCase {
             selectOwned(dialog)
             verify(findChild(dialog, "confirmAddItem").enabled)
             compare(window.settings.pinnedIds.join(","), initial)
-            mouseClick(findChild(dialog, "discardAddItem"))
+            mouseClick(findChild(dialog, "cancelAddItem"))
             tryCompare(dialog, "visible", false)
             compare(window.settings.pinnedIds.join(","), initial)
             tryCompare(findChild(view, "addDockItem"), "activeFocus", true)
@@ -156,7 +156,7 @@ TestCase {
         dialog.itemType = "trash"
         verify(!findChild(dialog, "confirmAddItem").enabled,
             "the default Trash cannot be added twice")
-        mouseClick(findChild(dialog, "discardAddItem"))
+        mouseClick(findChild(dialog, "cancelAddItem"))
         tryCompare(dialog, "visible", false)
         const trashRow = findChild(view, "configuredItem-item:trash")
         verify(trashRow !== null)
@@ -173,7 +173,7 @@ TestCase {
         dialog.itemType = "container"
         dialog.containerPath = "/tmp/punchi-discarded-container"
         dialog.containerLayout = "list"
-        mouseClick(findChild(dialog, "discardAddItem"))
+        mouseClick(findChild(dialog, "cancelAddItem"))
         tryCompare(dialog, "visible", false)
         compare(window.settings.containers.length, 1)
         verify(!window.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0))

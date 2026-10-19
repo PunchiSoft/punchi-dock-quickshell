@@ -46,15 +46,25 @@ bool RunningApplications::isRunning(const QString &desktopId) const
 {
     return m_available && m_ids.contains(normalized(desktopId));
 }
-void RunningApplications::update(bool available, const QSet<QString> &ids, const QVariantList &applicationEntries)
+QVariantMap RunningApplications::windowActions(const QString &desktopId) const
+{
+    return m_available ? m_windowActions.value(normalized(desktopId)).toMap() : QVariantMap();
+}
+void RunningApplications::update(bool available, const QSet<QString> &ids, const QVariantList &applicationEntries,
+    const QVariantMap &windowActions, const QVariantList &virtualDesktops)
 {
     if (!available) { m_visibility.clear(); m_activation.setAvailable(false); }
     const QSet<QString> next = available ? ids : QSet<QString>();
     const QVariantList nextEntries = available ? applicationEntries : QVariantList();
-    if (available == m_available && next == m_ids && nextEntries == m_applicationEntries) return;
+    const QVariantMap nextWindowActions = available ? windowActions : QVariantMap();
+    const QVariantList nextDesktops = available ? virtualDesktops : QVariantList();
+    if (available == m_available && next == m_ids && nextEntries == m_applicationEntries
+        && nextWindowActions == m_windowActions && nextDesktops == m_virtualDesktops) return;
     m_available = available;
     m_ids = next;
     m_applicationEntries = nextEntries;
+    m_windowActions = nextWindowActions;
+    m_virtualDesktops = nextDesktops;
     m_revision = m_revision == INT_MAX ? 0 : m_revision + 1;
     emit changed();
 }
@@ -95,7 +105,8 @@ void RunningApplications::consume()
         const auto document = QJsonDocument::fromJson(line, &error);
         const auto object = document.object();
         if (error.error == QJsonParseError::NoError && document.isObject()
-            && object.value(QStringLiteral("type")).toString() == QLatin1String("activation-result")) {
+            && (object.value(QStringLiteral("type")).toString() == QLatin1String("activation-result")
+                || object.value(QStringLiteral("type")).toString() == QLatin1String("window-action-result"))) {
             if (!m_activation.acceptResult(object)) { stop(); return; }
             continue;
         }
@@ -106,7 +117,9 @@ void RunningApplications::consume()
             || (object.contains(QStringLiteral("applications"))
                 && !object.value(QStringLiteral("applications")).isArray())
             || (object.contains(QStringLiteral("activationAvailable"))
-                && !object.value(QStringLiteral("activationAvailable")).isBool())) { stop(); return; }
+                && !object.value(QStringLiteral("activationAvailable")).isBool())
+            || (object.contains(QStringLiteral("windowActions")) && !object.value(QStringLiteral("windowActions")).isObject())
+            || (object.contains(QStringLiteral("virtualDesktops")) && !object.value(QStringLiteral("virtualDesktops")).isArray())) { stop(); return; }
         const auto array = object.value(QStringLiteral("desktopIds")).toArray();
         if (array.size() > 1024) { stop(); return; }
         QSet<QString> ids;
@@ -135,7 +148,47 @@ void RunningApplications::consume()
         }
         for (auto it = uniqueApplications.cbegin(); it != uniqueApplications.cend(); ++it)
             applications.append(it.value());
-        update(object.value(QStringLiteral("available")).toBool(), ids, applications);
+        QVariantMap windowActions;
+        const auto windowActionObject = object.value(QStringLiteral("windowActions")).toObject();
+        if (windowActionObject.size() > 1024) { stop(); return; }
+        for (auto it = windowActionObject.begin(); it != windowActionObject.end(); ++it) {
+            const QString id = normalized(it.key());
+            if (id.isEmpty() || !ids.contains(id) || !it.value().isObject()) { stop(); return; }
+            const auto state = it.value().toObject();
+            static const QStringList boolKeys{"available", "movable", "resizable", "maximizable", "maximized",
+                "minimizable", "minimized", "keepAbove", "keepBelow", "fullscreenable", "fullscreen",
+                "canSetNoBorder", "noBorder", "canHideFromCapture", "excludedFromCapture", "closable", "desktopChangeable",
+                "onAllDesktops", "groupable"};
+            QVariantMap values;
+            for (const auto &key : boolKeys) {
+                if (!state.value(key).isBool()) { stop(); return; }
+                values.insert(key, state.value(key).toBool());
+            }
+            const auto assigned = state.value(QStringLiteral("virtualDesktops"));
+            if (!assigned.isArray() || assigned.toArray().size() > 128) { stop(); return; }
+            QVariantList assignedIds;
+            for (const auto desktop : assigned.toArray()) {
+                if (!(desktop.isString() || desktop.isDouble())) { stop(); return; }
+                assignedIds.append(desktop.toVariant());
+            }
+            values.insert(QStringLiteral("virtualDesktops"), assignedIds);
+            windowActions.insert(id, values);
+        }
+        QVariantList virtualDesktops;
+        const auto desktopArray = object.value(QStringLiteral("virtualDesktops")).toArray();
+        if (desktopArray.size() > 128) { stop(); return; }
+        for (const auto desktop : desktopArray) {
+            if (!desktop.isObject()) { stop(); return; }
+            const auto value = desktop.toObject();
+            const auto desktopId = value.value(QStringLiteral("id"));
+            const auto name = value.value(QStringLiteral("name")).toString().trimmed();
+            // KDE publishes desktop names after the first snapshot; an empty name is valid.
+            if (!(desktopId.isString() || desktopId.isDouble()) || name.size() > 128
+                || !value.value(QStringLiteral("current")).isBool()) { stop(); return; }
+            virtualDesktops.append(QVariantMap{{QStringLiteral("id"), desktopId.toVariant()},
+                {QStringLiteral("name"), name}, {QStringLiteral("current"), value.value(QStringLiteral("current")).toBool()}});
+        }
+        update(object.value(QStringLiteral("available")).toBool(), ids, applications, windowActions, virtualDesktops);
         if (m_available) m_visibility.accept(object.value(QStringLiteral("visibility")).toObject());
         m_activation.setAvailable(m_available && object.value(QStringLiteral("activationAvailable")).toBool());
     }

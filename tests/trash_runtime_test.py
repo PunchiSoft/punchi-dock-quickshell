@@ -23,6 +23,7 @@ import Quickshell
 import Punchi.Kde as Native
 import "services"
 import "modules/dock"
+import "adapters/kde"
 ShellRoot {
     id: probe
     property int stage: 0
@@ -41,6 +42,11 @@ ShellRoot {
     }
     QtObject { id: launch; function openTrash(): bool { return true } }
     TrashService { id: trash; state: state; launcher: launch }
+    // The fake launcher proves TrashService behavior; the real adapter guards
+    // the method surface Dock.qml injects. Never invoke it here: openTrash()
+    // would launch the user's file manager.
+    DesktopApplicationAdapter { id: realLauncher }
+    TrashService { id: realTrash; state: state; launcher: realLauncher }
     Window { visible: true; width: 480; height: 320 }
     TrashConfirmationWindow {
         id: confirmation
@@ -61,6 +67,9 @@ ShellRoot {
                 items.trashTitle = "Owned Trash"
                 if (dockPins.get(0).title !== "Owned Trash" || settingsPins.get(0).title !== "Owned Trash") {
                     probe.reject("late item title did not reach both projections"); return
+                }
+                if (typeof realLauncher.openTrash !== "function" || typeof realTrash.open !== "function") {
+                    probe.reject("real adapter is missing the TrashService entry point"); return
                 }
                 if (!trash.requestEmpty()) { probe.reject("request refused"); return }
                 probe.stage++

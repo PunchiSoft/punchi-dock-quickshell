@@ -20,6 +20,8 @@ Item {
     property bool canLaunchNewWindow: false
     property bool canPin: false
     property bool pinned: false
+    property var windowActions: ({})
+    property var virtualDesktops: []
     property bool trashItem: false
     property bool dockBackground: false
     property bool folderItem: false
@@ -45,6 +47,7 @@ Item {
     signal newWindowRequested()
     signal unpinRequested()
     signal pinRequested()
+    signal windowActionRequested(string action, var virtualDesktop)
     signal settingsRequested()
     signal closeRequested()
     signal openTrashRequested()
@@ -72,6 +75,7 @@ Item {
         placesContent.visible ? placesContent.implicitWidth + contentPadding * 2 : 0,
         dockBackground ? dockAutoHideAction.implicitWidth + contentPadding * 2 : 0,
         mediaContent.visible ? mediaContent.implicitWidth + contentPadding * 2 : 0,
+        windowActionsContent.visible ? windowActionsContent.implicitWidth + contentPadding * 2 : 0,
         canLaunchNewWindow ? newWindowAction.implicitWidth + contentPadding * 2 : 0,
         canPin ? pinAction.implicitWidth + contentPadding * 2 : 0,
         pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
@@ -232,6 +236,15 @@ Item {
                     onClicked: root.actionRequested(modelData.actionId)
                 }
             }
+        }
+        DockContextWindowActions {
+            id: windowActionsContent
+            objectName: "dockWindowActions"
+            Layout.fillWidth: true
+            windowActions: root.windowActions
+            virtualDesktops: root.virtualDesktops
+            visible: !!root.windowActions.available
+            onActionRequested: function(action, virtualDesktop) { root.windowActionRequested(action, virtualDesktop) }
         }
         DockContextAction {
             id: newWindowAction

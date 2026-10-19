@@ -27,7 +27,7 @@ Window {
     onActiveFocusItemChanged: keepFocusVisible()
     onWidthChanged: keepFocusVisible()
     onHeightChanged: keepFocusVisible()
-    onClosing: { view.closeDialogs(); editor.cancel() }
+    onClosing: { view.cancelAddingItem(false); editor.cancel() }
     SettingsEditService { id: editor; settings: root.settings }
     Shortcut { sequence: "Escape"; enabled: !view.addingItem; onActivated: root.close() }
     SettingsView {

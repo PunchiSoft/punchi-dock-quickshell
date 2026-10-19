@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QProcess>
 #include <QSet>
+#include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 #include <QQmlParserStatus>
 #include "windowvisibilitystate.h"
@@ -19,6 +20,7 @@ class RunningApplications : public QObject, public QQmlParserStatus
     Q_PROPERTY(int revision READ revision NOTIFY changed)
     Q_PROPERTY(QStringList desktopIds READ desktopIds NOTIFY changed)
     Q_PROPERTY(QVariantList applicationEntries READ applicationEntries NOTIFY changed)
+    Q_PROPERTY(QVariantList virtualDesktops READ virtualDesktops NOTIFY changed)
     Q_PROPERTY(WindowVisibilityState *visibilityState READ visibilityState CONSTANT)
     Q_PROPERTY(WindowActivation *windowActivation READ windowActivation CONSTANT)
 public:
@@ -30,11 +32,13 @@ public:
     int revision() const { return m_revision; }
     QStringList desktopIds() const { auto ids = m_ids.values(); ids.sort(); return ids; }
     QVariantList applicationEntries() const { return m_applicationEntries; }
+    QVariantList virtualDesktops() const { return m_virtualDesktops; }
     WindowVisibilityState *visibilityState() { return &m_visibility; }
     WindowActivation *windowActivation() { return &m_activation; }
     void setExecutable(const QString &value);
     void setEnabled(bool value);
     Q_INVOKABLE bool isRunning(const QString &desktopId) const;
+    Q_INVOKABLE QVariantMap windowActions(const QString &desktopId) const;
     void classBegin() override {}
     void componentComplete() override { m_complete = true; restart(); }
 signals:
@@ -45,12 +49,15 @@ private:
     void restart();
     void stop();
     void consume();
-    void update(bool available, const QSet<QString> &ids = {}, const QVariantList &applicationEntries = {});
+    void update(bool available, const QSet<QString> &ids = {}, const QVariantList &applicationEntries = {},
+        const QVariantMap &windowActions = {}, const QVariantList &virtualDesktops = {});
     QProcess m_process;
     QString m_executable;
     QByteArray m_buffer;
     QSet<QString> m_ids;
     QVariantList m_applicationEntries;
+    QVariantMap m_windowActions;
+    QVariantList m_virtualDesktops;
     WindowVisibilityState m_visibility;
     WindowActivation m_activation;
     bool m_enabled = false;
