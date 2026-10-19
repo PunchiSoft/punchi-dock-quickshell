@@ -5,6 +5,8 @@
 - Show PunchiSoft as the project author and refresh the version displayed in the
   About page.
 - Document the use of AI coding agents as development support.
+- Requested an AI-assisted project and security review over a coffee before
+  publication.
 
 ## 0.1.15 — 2026-10-19
 
