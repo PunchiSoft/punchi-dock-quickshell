@@ -17,7 +17,7 @@ Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, KDE context actions, and persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
-**Current delivery:** **0.1.17**. The first Git snapshot was published as
+**Current delivery:** **0.1.18**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -65,7 +65,7 @@ an application-launcher surface and additional controls remain future work.
   broader real-session validation.
 - English UI only for now.
 
-## Run and return to KDE
+## Install, run and return to KDE
 
 Clone the repository and enter the checkout:
 
@@ -74,9 +74,44 @@ git clone https://github.com/PunchiSoft/punchi-dock-quickshell.git
 cd punchi-dock-quickshell
 ```
 
-### Tested environment
+### Guided setup
 
-The current build has been exercised on:
+Run the setup assistant:
+
+```bash
+./scripts-user/setup.sh
+```
+
+Without arguments it opens a menu:
+
+| Menu option | Non-interactive action | Effect |
+|---|---|---|
+| Install or update | `./scripts-user/setup.sh --install` | Checks dependencies, builds the native components and installs the runtime for the current user. |
+| Build only | `./scripts-user/setup.sh --build` | Configures and builds `build/` without installing. |
+| Start the dock | `./scripts-user/setup.sh --start` | Starts the installed copy, or the source checkout when no installation exists. |
+| Check dependencies | `./scripts-user/setup.sh --check-deps` | Reports runtime, build and validation tools. Fedora package names are checked; other distributions use command checks. |
+| Uninstall | `./scripts-user/setup.sh --uninstall` | Stops this project, restores owned KWin settings, removes `build/` and the user-local installation. |
+| Instructions and README | `./scripts-user/setup.sh --instructions` | Shows commands, paths and README locations. |
+
+The user-local installation is written to
+`${XDG_DATA_HOME:-$HOME/.local/share}/punchi-dock-quickshell`, or to the path
+passed with `--prefix`. The assistant also writes
+`${XDG_DATA_HOME:-$HOME/.local/share}/applications/punchi-dock-quickshell.desktop`,
+so the dock appears in the application menu. Installation never uses `sudo` or
+writes system directories. The source checkout remains the build source.
+
+`./scripts-user/start.sh` remains the direct foreground launcher. `setup.sh`
+uses the same build and restore scripts, so the existing start, panel-mode and
+restore behavior is unchanged.
+
+Only one Punchi Dock Quickshell instance runs at a time across the source
+checkout and the user-local installation. Starting one while the other is
+running reports the active path and the restore script that stops it; it does
+not register a second window backend.
+
+### Validated Fedora 44 setup
+
+The current build has been exercised only on this environment:
 
 | Component | Tested version |
 |---|---|
@@ -91,7 +126,8 @@ The current build has been exercised on:
 These are the tested versions, not guaranteed minimums. Other versions require
 their own validation.
 
-Install Quickshell and the runtime QML modules:
+The dependency check uses these Fedora package groups. Install the runtime and
+QML modules first:
 
 ```bash
 sudo dnf install quickshell kf6-kirigami kf6-kirigami-addons \
@@ -107,17 +143,31 @@ sudo dnf install cmake ninja-build gcc-c++ extra-cmake-modules \
   kf6-kwindowsystem-devel plasma-activities-stats-devel wayland-devel
 ```
 
-This provides the Quickshell runtime, Kirigami QML modules, Plasma TaskManager
-and MPRIS modules (`plasma-workspace`), CMake/Ninja/C++ build tools, Qt and KDE
-development libraries, and Wayland headers used by the native adapters. Package
-availability can vary with Fedora release.
+Validation additionally uses `python3-dbus`, `python3-gobject`, `dbus-daemon`
+and `desktop-file-utils`. These are reported as validation tools, not as
+requirements for running the dock.
 
-Configure, compile the native KDE plugin and window-state helper, then start the
-Quickshell configuration:
+`./scripts-user/setup.sh --check-deps --install-missing` offers to install
+missing Fedora packages with `sudo`. It prints the command first and never runs
+it without confirmation.
+
+### Other distributions
+
+Quickshell uses private Qt APIs, so its binary must match the Qt version it was
+built for. Other distributions need their own Quickshell/Qt package combination
+and their own validation. The assistant checks the required commands
+(`qs`, `cmake`, `ninja`, a C++ compiler, `pkg-config`, `wayland-scanner`,
+`qtpaths6` and the Qt validation tools) and reports what is missing. It only
+maps those checks to Fedora package names; install the equivalent Quickshell,
+Qt 6, KF6 and Wayland development packages with your package manager.
+
+X11 and other compositors remain unvalidated.
+
+### Start and stop
+
+Start the dock in the foreground:
 
 ```bash
-cmake -S . -B build -G Ninja
-cmake --build build
 ./scripts-user/start.sh
 ```
 
@@ -178,10 +228,11 @@ mode. The current file format is version 6 and accepts versions 1 to 5 through m
 
 ## Installation and sharing
 
-The current installation route is the source-checkout workflow above. This is
-not a `.plasmoid` package: Quickshell runs the QML interface as a separate
-application alongside Plasma. Quickshell supports named configurations and
-running a configuration directly from a directory with `--path`.
+The supported installation route is the source checkout plus the guided
+user-local installation above. This is not a `.plasmoid` package: Quickshell
+runs the QML interface as a separate application alongside Plasma. Quickshell
+supports named configurations and running a configuration directly from a
+directory with `--path`.
 See its [configuration guide](https://quickshell.org/docs/v0.2.1/guide/introduction/).
 
 A complete installation needs compatible Quickshell/Qt packages, the KDE runtime
@@ -193,6 +244,14 @@ listed above.
 Sharing only `shell.qml`, or copying a build directory to another distribution,
 does not provide a complete, verified installation.
 
+The setup assistant writes an install manifest and a marker file inside the
+install root. `--uninstall` stops only configurations rooted at this checkout and
+at that install root, restores owned KWin settings, and removes only
+manifest-listed files. It keeps the source checkout, the legacy `punchi-shell.json`
+backup and any KWin recovery record. The current preferences file is deleted only
+after a separate confirmation or an explicit `--remove-settings`. `--keep-build`
+preserves `build/`.
+
 The distribution approach discussed for future releases is:
 
 - Publish source with reproducible build instructions.
@@ -202,9 +261,9 @@ The distribution approach discussed for future releases is:
 - Keep program updates separate from personal settings, and make uninstalling
   the program distinct from explicitly removing personal preferences.
 
-These packaging and launcher steps are planned, not available release artifacts.
-The repository does not currently provide a finished end-user installer or a
-validated cross-distribution binary package.
+These distribution packages are planned, not available release artifacts. The
+repository does not currently provide a validated cross-distribution binary
+package, tags or releases.
 
 ## Growing into a modular shell
 

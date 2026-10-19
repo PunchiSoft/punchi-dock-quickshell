@@ -9,6 +9,22 @@
 #include <QStandardPaths>
 #include <QDebug>
 
+namespace {
+bool isPunchiRegistration(const QByteArray &content)
+{
+    bool desktopEntry = false;
+    bool name = false;
+    bool interfaces = false;
+    for (const auto &line : content.split('\n')) {
+        if (line == "[Desktop Entry]") desktopEntry = true;
+        else if (line == "Name=Punchi Dock Quickshell Window State"
+            || line == "Name=Punchi Shell Window State") name = true;
+        else if (line == "X-KDE-Wayland-Interfaces=org_kde_plasma_window_management") interfaces = true;
+    }
+    return desktopEntry && name && interfaces;
+}
+}
+
 int registerWindowBackend(bool remove)
 {
     const auto desktopEntry = [](QString name, QString executable) {
@@ -41,22 +57,7 @@ int registerWindowBackend(bool remove)
             if (!remove) return 0;
             if (!existing.remove()) return 1;
             changed = true;
-        } else {
-            QDir projectRoot = QFileInfo(executable).dir();
-            const bool isRenamedCheckout = projectRoot.dirName() == QStringLiteral("build")
-                && projectRoot.cdUp() && projectRoot.dirName() == QStringLiteral("punchi-dock-quickshell")
-                && projectRoot.cdUp();
-            if (!isRenamedCheckout) {
-                qCritical() << "Window backend registration collision";
-                return 1;
-            }
-            const QString oldExecutable = projectRoot.filePath(
-                QStringLiteral("punchi-shell/build/punchi-window-state"));
-            const QByteArray legacy = desktopEntry(QStringLiteral("Punchi Shell Window State"), oldExecutable);
-            if (legacy.isEmpty() || content != legacy) {
-                qCritical() << "Window backend registration collision";
-                return 1;
-            }
+        } else if (isPunchiRegistration(content)) {
             if (remove) {
                 if (!existing.remove()) return 1;
             } else {
@@ -65,6 +66,9 @@ int registerWindowBackend(bool remove)
                     return 1;
             }
             changed = true;
+        } else {
+            qCritical() << "Window backend registration collision";
+            return 1;
         }
     } else {
         if (remove) return 0;

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.1.18 — 2026-10-19
+
+- Added `scripts-user/setup.sh`, a guided menu and non-interactive commands for
+  install/update, build-only, start, dependency checks, uninstall and help.
+- Added a reversible per-user installation under
+  `${XDG_DATA_HOME:-$HOME/.local/share}/punchi-dock-quickshell`, an application-menu
+  launcher, an install manifest and an uninstall flow that stops only this
+  project's configurations and restores owned KWin settings.
+- Added Fedora dependency checks for runtime, build and validation packages,
+  plus command checks that work on other distributions without claiming their
+  package names are validated.
+- Enforced a single Punchi Dock Quickshell instance across the source checkout
+  and the user-local installation, and allowed the active installation to
+  refresh its own window-backend registration without accepting unrelated files.
+- Kept `start.sh` as the direct foreground launcher and documented its panel
+  modes through `--help`.
+- Reworked the README installation sections and the `scripts-user` overview so
+  the setup path and its limits are explicit.
+
 ## 0.1.17 — 2026-10-19
 
 - Suppress pointer-hover emphasis while a settings list has a selected item, so

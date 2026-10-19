@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.17 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.18 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus)
@@ -242,5 +242,7 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/window_capability_test.py)
     add_test(NAME project_foundation COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/foundation_test.py)
-    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation PROPERTIES TIMEOUT 45)
+    add_test(NAME user_setup_scripts COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
+    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts PROPERTIES TIMEOUT 45)
 endif()

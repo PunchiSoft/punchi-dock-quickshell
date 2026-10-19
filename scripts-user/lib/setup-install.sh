@@ -1,0 +1,361 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Build, user-local installation and uninstallation helpers.
+
+punchi_build_checkout() {
+    punchi_source_checkout_available \
+        || punchi_die "Build and install actions require the source checkout."
+
+    local build_dir="$punchi_project_root/build"
+    if [[ -L "$build_dir" ]]; then
+        punchi_die "Refusing a symbolic link as the build directory: $build_dir"
+    fi
+
+    local jobs=""
+    jobs="$(punchi_job_count)"
+    punchi_info "Configuring the native KDE components with Ninja ($jobs jobs)..."
+    cmake -S "$punchi_project_root" -B "$build_dir" -G Ninja
+    punchi_info "Building..."
+    cmake --build "$build_dir" --parallel "$jobs"
+
+    if ! punchi_build_artifacts_ready; then
+        punchi_die "The build finished without the expected native artifacts."
+    fi
+    punchi_success "Native components and QML plugin built in $build_dir."
+}
+
+punchi_copy_runtime_tree() {
+    local staging="${1:?staging directory is required}"
+    local directory=""
+    local file=""
+    local relative=""
+
+    cp -a -- "$punchi_project_root/shell.qml" "$staging/"
+    for directory in modules components services config assets; do
+        cp -a -- "$punchi_project_root/$directory" "$staging/"
+    done
+
+    mkdir -p "$staging/adapters/kde"
+    while IFS= read -r file; do
+        relative="${file#"$punchi_project_root"/}"
+        mkdir -p "$staging/$(dirname "$relative")"
+        cp -a -- "$file" "$staging/$relative"
+    done < <(find "$punchi_project_root/adapters/kde" -type f -name '*.qml' -print)
+
+    mkdir -p "$staging/build/qml"
+    cp -a -- "$punchi_project_root/build/qml/Punchi" "$staging/build/qml/"
+    cp -a -- "$punchi_project_root/build/punchi-window-state" "$staging/build/"
+    cp -a -- "$punchi_project_root/scripts-user" "$staging/"
+    for file in README.md LICENSE NOTICE.md CHANGELOG.md CONTRIBUTING.md SECURITY.md; do
+        [[ -f "$punchi_project_root/$file" ]] \
+            && cp -a -- "$punchi_project_root/$file" "$staging/"
+    done
+}
+
+punchi_write_install_manifest() {
+    local staging="${1:?staging directory is required}"
+    local manifest=""
+    local temporary=""
+
+    manifest="$staging/$(punchi_install_manifest_name)"
+    temporary="$(mktemp "${TMPDIR:-/tmp}/punchi-install-manifest.XXXXXX")"
+    (
+        cd "$staging"
+        find . \( -type f -o -type l \) -print \
+            | sed 's|^\./||' \
+            | sort
+    ) > "$temporary"
+    mv -- "$temporary" "$manifest"
+}
+
+punchi_write_launcher() {
+    local install_root="${1:?install root is required}"
+    local launcher=""
+    local applications_dir=""
+    local exec_path="$install_root/scripts-user/start.sh"
+
+    launcher="$(punchi_launcher_path)"
+    applications_dir="$(dirname "$launcher")"
+    mkdir -p "$applications_dir"
+    {
+        printf '%s\n' '[Desktop Entry]'
+        printf '%s\n' 'Type=Application'
+        printf '%s\n' 'Version=1.0'
+        printf '%s\n' 'Name=Punchi Dock Quickshell'
+        printf '%s\n' 'Comment=Animated dock for KDE Plasma built with Quickshell'
+        printf 'Exec=%s\n' "$(punchi_desktop_exec_quote "$exec_path")"
+        printf 'TryExec=%s\n' "$exec_path"
+        printf 'Icon=%s\n' "$install_root/assets/icons/punchi-dock-quickshell.svg"
+        printf '%s\n' 'Terminal=false'
+        printf '%s\n' 'Categories=Utility;'
+        printf '%s\n' 'StartupNotify=false'
+        printf 'X-Punchi-Install-Root=%s\n' "$install_root"
+    } > "$launcher"
+    chmod 0644 "$launcher"
+
+    if command -v update-desktop-database >/dev/null 2>&1; then
+        update-desktop-database "$applications_dir" >/dev/null 2>&1 || true
+    fi
+    punchi_success "Application-menu launcher written to $launcher."
+}
+
+punchi_install_local() {
+    punchi_source_checkout_available \
+        || punchi_die "User-local install requires the source checkout."
+    punchi_build_artifacts_ready \
+        || punchi_die "Build the project before installing it."
+
+    local install_root=""
+    local parent=""
+    local staging=""
+    local old_install=""
+    local marker=""
+    local version=""
+
+    install_root="$(punchi_install_root)" || return 1
+    parent="$(dirname "$install_root")"
+    marker="$(punchi_install_marker_name)"
+    version="$(punchi_project_version)"
+
+    mkdir -p "$parent"
+    if [[ -L "$install_root" ]]; then
+        punchi_die "Refusing to replace a symbolic link: $install_root"
+    fi
+    if [[ -e "$install_root" && ! -f "$install_root/$marker" ]]; then
+        punchi_die "Refusing to replace an unmarked directory: $install_root"
+    fi
+
+    staging="$(mktemp -d "$parent/.punchi-dock-quickshell.staging.XXXXXX")"
+    punchi_register_cleanup "$staging"
+
+    punchi_info "Staging the user-local installation..."
+    punchi_copy_runtime_tree "$staging"
+    {
+        printf '%s\n' 'format=1'
+        printf '%s\n' 'name=punchi-dock-quickshell'
+        printf 'version=%s\n' "$version"
+    } > "$staging/$marker"
+    printf '%s\n' "$version" > "$staging/$(punchi_install_version_name)"
+    punchi_write_install_manifest "$staging"
+
+    if [[ -e "$install_root" ]]; then
+        old_install="$parent/.punchi-dock-quickshell.old.$$"
+        mv -- "$install_root" "$old_install"
+    fi
+    if ! mv -- "$staging" "$install_root"; then
+        if [[ -n "$old_install" ]]; then
+            mv -- "$old_install" "$install_root"
+        fi
+        punchi_die "Could not move the staged installation into place."
+    fi
+    if [[ -n "$old_install" ]]; then
+        rm -rf -- "$old_install"
+    fi
+
+    punchi_write_launcher "$install_root"
+    punchi_success "Installed Punchi Dock Quickshell $version for this user."
+    printf '  Install root: %s\n' "$install_root"
+    printf '  Start with:   %s/scripts-user/start.sh\n' "$install_root"
+    printf '  Stop with:    %s/scripts-user/restore-kde.sh\n' "$install_root"
+}
+
+punchi_restore_path() {
+    local path="${1:?configuration path is required}"
+    local restore="$path/scripts-user/restore-kde.sh"
+
+    if [[ -f "$restore" ]]; then
+        punchi_info "Stopping the configuration at $path and restoring owned KDE settings..."
+        if [[ -x "$restore" ]]; then
+            "$restore" || return 1
+        else
+            bash "$restore" || return 1
+        fi
+    elif punchi_running_path "$path"; then
+        punchi_error "No restore script was found for the running configuration: $path"
+        return 1
+    fi
+}
+
+punchi_stop_owned_configurations() {
+    local install_root="${1:?install root is required}"
+    local restore_status=0
+
+    punchi_restore_path "$install_root" || restore_status=1
+    if [[ "$punchi_project_root" != "$install_root" ]]; then
+        punchi_restore_path "$punchi_project_root" || restore_status=1
+    fi
+
+    if (( restore_status != 0 )); then
+        punchi_error "KDE settings could not be restored. Uninstallation was stopped."
+        punchi_error "Fix the reported restore error and run the uninstall action again."
+        return 1
+    fi
+}
+
+punchi_remove_launcher() {
+    local install_root="${1:?install root is required}"
+    local launcher=""
+    local recorded=""
+
+    launcher="$(punchi_launcher_path)"
+    [[ -e "$launcher" || -L "$launcher" ]] || return 0
+    recorded="$(sed -n 's/^X-Punchi-Install-Root=//p' "$launcher" 2>/dev/null | head -n 1)"
+    if [[ "$recorded" != "$install_root" ]]; then
+        punchi_warning "The launcher does not belong to this install root and was kept: $launcher"
+        return 0
+    fi
+    rm -f -- "$launcher"
+    punchi_success "Removed the application-menu launcher."
+}
+
+punchi_remove_installed_files() {
+    local install_root="${1:?install root is required}"
+    local marker=""
+    local manifest=""
+    local line=""
+    local target=""
+    local resolved=""
+    local leftover=0
+
+    if [[ -L "$install_root" ]]; then
+        punchi_die "Refusing to uninstall a symbolic link: $install_root"
+    fi
+    if [[ ! -e "$install_root" ]]; then
+        punchi_info "No user-local installation was found at $install_root."
+        return 0
+    fi
+
+    marker="$install_root/$(punchi_install_marker_name)"
+    manifest="$install_root/$(punchi_install_manifest_name)"
+    if [[ ! -f "$marker" ]]; then
+        punchi_die "Refusing to remove an unmarked directory: $install_root"
+    fi
+
+    if [[ -f "$manifest" ]]; then
+        while IFS= read -r line; do
+            [[ -n "$line" && "$line" != /* ]] || continue
+            case "$line" in
+                ..|../*|*/../*|*/..) continue ;;
+            esac
+            target="$install_root/$line"
+            resolved="$(realpath -m -- "$target" 2>/dev/null || true)"
+            case "$resolved" in
+                "$install_root"/*) rm -f -- "$target" ;;
+                *) punchi_warning "Skipped an unexpected manifest path: $line" ;;
+            esac
+        done < "$manifest"
+    else
+        punchi_warning "The install manifest is missing; only the launcher will be removed."
+        leftover=1
+    fi
+
+    rm -f -- "$manifest" "$marker"
+    find "$install_root" -depth -type d -empty -delete 2>/dev/null || true
+
+    if [[ -e "$install_root" ]]; then
+        punchi_warning "Some files were not listed in the manifest and were kept:"
+        find "$install_root" -maxdepth 3 -type f -print 2>/dev/null | head -n 20
+        leftover=1
+    else
+        punchi_success "Removed the user-local installation."
+    fi
+    return "$leftover"
+}
+
+punchi_remove_build_output() {
+    local build_dir="$punchi_project_root/build"
+    local cached_source=""
+
+    if [[ ! -e "$build_dir" && ! -L "$build_dir" ]]; then
+        punchi_info "No build output was found in $build_dir."
+        return 0
+    fi
+    if [[ -L "$build_dir" ]]; then
+        punchi_die "Refusing to remove a symbolic link: $build_dir"
+    fi
+    if [[ -f "$build_dir/CMakeCache.txt" ]]; then
+        cached_source="$(sed -n 's/^CMAKE_HOME_DIRECTORY:INTERNAL=//p' \
+            "$build_dir/CMakeCache.txt" | head -n 1)"
+        if [[ -n "$cached_source" && "$cached_source" != "$punchi_project_root" ]]; then
+            punchi_die "Refusing to remove build output from another source tree: $build_dir"
+        fi
+    fi
+    rm -rf -- "$build_dir"
+    punchi_success "Removed build output: $build_dir"
+}
+
+punchi_remove_preferences() {
+    local requested="${1:-0}"
+    local prompt="${2:-1}"
+    local config=""
+    local legacy=""
+
+    config="$(punchi_config_path)"
+    legacy="$(punchi_legacy_config_path)"
+
+    if (( requested == 0 )); then
+        punchi_info "Preferences kept: $config"
+        if [[ -e "$legacy" || -L "$legacy" ]]; then
+            punchi_info "Legacy backup kept: $legacy"
+        fi
+        return 0
+    fi
+
+    if [[ ! -e "$config" && ! -L "$config" ]]; then
+        punchi_info "No current preferences file was found at $config."
+        if [[ -e "$legacy" || -L "$legacy" ]]; then
+            punchi_info "Legacy backup kept: $legacy"
+        fi
+        return 0
+    fi
+
+    if [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]] && (( prompt == 1 )); then
+        if ! punchi_confirm "Delete $config? This cannot be undone. [y/N]: " n; then
+            punchi_info "Preferences kept: $config"
+            return 0
+        fi
+    fi
+    rm -f -- "$config"
+    punchi_success "Removed preferences: $config"
+    if [[ -e "$legacy" || -L "$legacy" ]]; then
+        punchi_info "Legacy backup kept: $legacy"
+    fi
+}
+
+punchi_uninstall_local() {
+    local remove_build="${1:-1}"
+    local remove_settings="${2:-0}"
+    local install_root=""
+    local state_record=""
+
+    install_root="$(punchi_install_root)" || return 1
+    punchi_heading "Uninstall"
+    printf 'Install root: %s\n' "$install_root"
+    printf 'Source root:  %s\n' "$punchi_project_root"
+
+    punchi_stop_owned_configurations "$install_root" || return 1
+    punchi_remove_launcher "$install_root"
+
+    local files_status=0
+    punchi_remove_installed_files "$install_root" || files_status=1
+
+    if punchi_source_checkout_available; then
+        if (( remove_build == 1 )); then
+            punchi_remove_build_output || files_status=1
+        else
+            punchi_info "Build output kept: $punchi_project_root/build"
+        fi
+    else
+        punchi_info "The installed runtime includes its build artifacts."
+    fi
+
+    punchi_remove_preferences "$remove_settings"
+
+    state_record="${XDG_STATE_HOME:-$HOME/.local/state}/punchi-dock-quickshell/owned-settings.json"
+    if [[ -e "$state_record" || -L "$state_record" ]]; then
+        punchi_warning "KWin recovery record kept for a later restore: $state_record"
+    fi
+
+    punchi_info "The source checkout itself was not removed."
+    return "$files_status"
+}

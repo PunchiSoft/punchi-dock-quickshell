@@ -28,13 +28,28 @@ def main():
     # Read user-installed icon assets without writing into the user's data home.
     data_home = env.get('XDG_DATA_HOME', str(Path.home() / '.local/share'))
     data_dirs = env.get('XDG_DATA_DIRS', '/usr/local/share:/usr/share')
-    env['XDG_DATA_DIRS'] = os.pathsep.join((data_home, data_dirs))
     with tempfile.TemporaryDirectory(prefix='punchi-shell-test-') as temporary:
         root = Path(temporary)
         for kind in ('CONFIG', 'CACHE', 'DATA', 'STATE', 'RUNTIME'):
             directory = root / kind.lower()
             directory.mkdir(mode=0o700)
             env[f'XDG_{kind}_HOME' if kind != 'RUNTIME' else 'XDG_RUNTIME_DIR'] = str(directory)
+        # Expose user assets such as icons and color schemes without exposing
+        # user service entries: a real applications/ copy would shadow
+        # test-owned registrations.
+        excluded_entries = {
+            'applications', 'services', 'kservices5', 'kservices6',
+            'desktop-directories', 'mime', 'dbus-1', 'kactivitymanagerd',
+        }
+        user_data = Path(data_home)
+        if user_data.is_dir():
+            for entry in user_data.iterdir():
+                if entry.name in excluded_entries:
+                    continue
+                destination = root / 'data' / entry.name
+                if not destination.exists() and not destination.is_symlink():
+                    destination.symlink_to(entry)
+        env['XDG_DATA_DIRS'] = os.pathsep.join((str(root / 'data'), data_dirs))
         env['QT_QUICK_CONTROLS_STYLE'] = 'Basic'
         native_imports = str(Path(__file__).resolve().parents[1] / 'build/qml')
         env['QML_IMPORT_PATH'] = os.pathsep.join(filter(None, (native_imports, env.get('QML_IMPORT_PATH', ''))))

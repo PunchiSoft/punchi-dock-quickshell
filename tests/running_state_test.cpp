@@ -212,6 +212,9 @@ private slots:
             return process.exitCode();
         };
         QCOMPARE(run(QStringLiteral("--restore-desktop-settings")), 0);
+        // KService compares directory and cache timestamps; separate the
+        // initial cache load from the registration rebuild deterministically.
+        QTest::qWait(1100);
         QCOMPARE(run(QStringLiteral("--register")), 0);
         QFile migrated(path);
         QVERIFY(migrated.open(QIODevice::ReadOnly));
@@ -228,6 +231,18 @@ private slots:
         QVERIFY(matches.first()->noDisplay());
         QCOMPARE(matches.first()->property<QStringList>(QStringLiteral("X-KDE-Wayland-Interfaces")),
                  QStringList{QStringLiteral("org_kde_plasma_window_management")});
+        QCOMPARE(run(QStringLiteral("--unregister")), 0);
+        QVERIFY(!QFileInfo::exists(path));
+        const QByteArray otherInstallation = QStringLiteral("[Desktop Entry]\nType=Application\n"
+            "Name=Punchi Dock Quickshell Window State\nNoDisplay=true\nTerminal=false\n"
+            "Exec=\"/tmp/punchi-other/build/punchi-window-state\"\n"
+            "X-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n").toUtf8();
+        write(path, otherInstallation);
+        QCOMPARE(run(QStringLiteral("--register")), 0);
+        QFile replaced(path);
+        QVERIFY(replaced.open(QIODevice::ReadOnly));
+        QVERIFY(replaced.readAll().contains(QStringLiteral(PUNCHI_TEST_BACKEND).toUtf8()));
+        replaced.close();
         QCOMPARE(run(QStringLiteral("--unregister")), 0);
         QVERIFY(!QFileInfo::exists(path));
         write(path, "unrelated existing desktop entry\n");
