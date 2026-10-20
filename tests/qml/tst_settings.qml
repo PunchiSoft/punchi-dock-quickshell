@@ -100,7 +100,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 7)
+        compare(data.version, 9)
         compare(data.containers.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -108,5 +108,36 @@ TestCase {
         restored.containers = []
         verify(restored.restore(data))
         compare(restored.containers.length, 2)
+    }
+    function test_containerHiddenEntries() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        const id = settings.addContainer("/tmp/owned", "owned", "folder")
+        compare(settings.containerHiddenEntries(id), [])
+        // The list holds entry names only, so a stored value cannot name a path.
+        verify(settings.setContainerHiddenEntries(id, ["skip.txt", "photo.jpg"]))
+        compare(settings.containerHiddenEntries(id), ["skip.txt", "photo.jpg"])
+        compare(settings.setContainerHiddenEntries(id, ["skip.txt", "photo.jpg"]), false)
+        compare(settings.setContainerHiddenEntries(id, ["../escape"]), false)
+        compare(settings.setContainerHiddenEntries(id, ["nested/file"]), false)
+        compare(settings.containerHiddenEntries(id), ["skip.txt", "photo.jpg"])
+        // Every other container edit keeps the selection.
+        verify(settings.setContainerPath(id, "/tmp/other"))
+        verify(settings.setContainerLayout(id, "list"))
+        verify(settings.setContainerSortMode(id, "name"))
+        compare(settings.containerHiddenEntries(id), ["skip.txt", "photo.jpg"])
+        // An empty list means "show everything".
+        verify(settings.setContainerHiddenEntries(id, []))
+        compare(settings.containerHiddenEntries(id), [])
+        // The profile round-trips the field and a schema-8 profile keeps none.
+        verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.version, 9)
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore(data))
+        compare(restored.containerHiddenEntries(id), ["skip.txt"])
+        data.version = 8
+        const legacy = createTemporaryObject(settingsFixture, test)
+        verify(legacy.restore(data))
+        compare(legacy.containerHiddenEntries(id), [])
     }
 }

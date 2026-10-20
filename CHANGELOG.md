@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.33 — 2026-10-20
+
+- Rework **Add item to Dock** for applications. The result list stays closed until
+  the name is typed or the search button is pressed, and it hangs from the typing
+  row instead of the label column, so the form below keeps its place.
+- Add a theme icon chooser to both item editors: a dialog with the categories the
+  theme declares, a search field, captioned tiles and OK/Cancel. It opens from an
+  application's icon button and from a popup container's, applies only on **OK**,
+  and stores the chosen name per item (schema 8) with the application icon as
+  fallback.
+- Let a folder container keep entries out of its popup. The editor and the item
+  details pane list the folder with one check box per entry, an unchecked entry is
+  stored by name (schema 9), files that arrive later still appear, and **Show all**
+  clears the list. The editor lists nothing until a folder is chosen.
+- Enumerate the icon theme in a native catalog that scans off the GUI thread,
+  caches the result per theme under `$XDG_CACHE_HOME/punchi-dock-quickshell`, and
+  reports each repeated Qt SVG warning once instead of once per paint.
+
 ## 0.1.32 — 2026-10-20
 
 - Fix every folder activation from the folder popup. The dock asked KDE for a

@@ -63,23 +63,35 @@ ColumnLayout {
         addPage.containerTitle = qsTr("Folder")
         addPage.containerIcon = "folder"
         addPage.containerLayout = "grid"
+        addPage.containerHiddenEntries = []
         addingItem = true
         Qt.callLater(addPage.focusFirst)
     }
-    function cancelAddItem(restoreFocus: bool): void {
+    // Discard clears the draft but keeps the page open, so the user can start
+    // over without leaving the editor.
+    function resetAddDraft(focusForm: bool): void {
         if (applicationController) applicationController.cancel()
         addPage.itemType = "application"
         addPage.containerPath = ""
         addPage.containerTitle = qsTr("Folder")
         addPage.containerIcon = "folder"
         addPage.containerLayout = "grid"
+        addPage.containerHiddenEntries = []
+        if (focusForm) Qt.callLater(addPage.focusFirst)
+    }
+    function cancelAddItem(restoreFocus: bool): void {
+        // Leave the editor first: the draft reset must never keep the page on
+        // screen if one of its bindings fails.
         addingItem = false
+        resetAddDraft(false)
         if (restoreFocus) Qt.callLater(addButton.forceActiveFocus)
     }
     function acceptAddItem(): void {
         let accepted = false
         if (addPage.itemType === "application") accepted = applicationController.accept()
-        else if (addPage.itemType === "container") accepted = pinContainer(addPage.containerPath, addPage.containerTitle, addPage.containerIcon, addPage.containerLayout)
+        else if (addPage.itemType === "container") accepted = pinContainer(addPage.containerPath,
+            addPage.containerTitle, addPage.containerIcon, addPage.containerLayout,
+            addPage.containerHiddenEntries)
         else if (addPage.itemType === "trash") accepted = pinTrash()
         if (!accepted) return
         if (addPage.itemType !== "application") applicationController.cancel()
@@ -89,7 +101,7 @@ ColumnLayout {
         addPage.containerIcon = "folder"
         Qt.callLater(focusFirst)
     }
-    function pinContainer(path: string, title: var, icon: var, layout: var): bool {
+    function pinContainer(path: string, title: var, icon: var, layout: var, hiddenEntries: var): bool {
         if (root.settings.pinnedIds.length >= 32) return false
         let containerTitle = root.folderName(path)
         let containerIcon = "folder"
@@ -103,6 +115,8 @@ ColumnLayout {
         }
         const id = root.settings.addContainer(path, containerTitle, containerIcon, containerLayout)
         if (id.length === 0) return false
+        if (hiddenEntries && hiddenEntries.length > 0)
+            root.settings.setContainerHiddenEntries(id, hiddenEntries)
         const pins = root.settings.pinnedIds.slice()
         if (pins.indexOf(id) >= 0) return false
         // Trash stays last, matching the default profile order.
@@ -182,7 +196,8 @@ ColumnLayout {
         }
         Item { Layout.fillWidth: true }
     }
-    PinnedApplications { id: entries; catalog: root.applicationCatalog; pinnedIds: root.settings.pinnedIds }
+    PinnedApplications { id: entries; catalog: root.applicationCatalog
+        pinnedIds: root.settings.pinnedIds; iconOverrides: root.settings.iconOverrides }
     Connections {
         target: entries
         function onRowsMoved() { root.orderRevision++ }
@@ -280,6 +295,8 @@ ColumnLayout {
                     containerPath: root.selectedContainer ? String(root.selectedContainer.path) : ""
                     fanAvailable: root.settings.fanSupported
                     browseSubfolders: root.settings.containerBrowseSubfolders(editor.selectedAppId)
+                    hiddenEntries: editor.selectedAppId.length > 0
+                        ? root.settings.containerHiddenEntries(editor.selectedAppId) : []
                     containerLayout: root.selectedContainer
                         ? root.settings.effectiveContainerLayout(editor.selectedAppId) : "grid"
                     onChooseFolderRequested: folderDialog.open()
@@ -288,6 +305,9 @@ ColumnLayout {
                     }
                     onBrowseSubfoldersSelected: function(enabled) {
                         root.settings.setContainerBrowseSubfolders(editor.selectedAppId, enabled)
+                    }
+                    onHiddenEntriesSelected: function(names) {
+                        root.settings.setContainerHiddenEntries(editor.selectedAppId, names)
                     }
                 }
             }
@@ -306,7 +326,9 @@ ColumnLayout {
             settings: root.settings
             onSearchRequested: function(text) { root.applicationController.search(text) }
             onSelectionRequested: function(appId) { root.applicationController.select(appId) }
+            onIconRequested: function(iconName) { root.applicationController.chooseIcon(iconName) }
             onAddRequested: root.acceptAddItem()
+            onDiscardRequested: root.resetAddDraft(true)
             onCancelRequested: root.cancelAddItem(true)
         }
     }

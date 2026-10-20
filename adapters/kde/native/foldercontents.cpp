@@ -6,13 +6,38 @@
 #include <QDir>
 #include <QCollator>
 #include <QDateTime>
+#include <QSet>
 
 class FolderContents::FolderSortModel : public KDirSortFilterProxyModel
 {
 public:
     explicit FolderSortModel(QObject *parent = nullptr) : KDirSortFilterProxyModel(parent) {}
     QString mode = QStringLiteral("modified");
+    // Names the popup must skip. Filtering lives in the proxy so the model the
+    // settings preview reads stays complete.
+    void setHidden(const QSet<QString> &names)
+    {
+        if (hidden == names) return;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+        beginFilterChange();
+        hidden = names;
+        endFilterChange(Direction::Rows);
+#else
+        hidden = names;
+        invalidateFilter();
+#endif
+    }
 protected:
+    bool filterAcceptsRow(int row, const QModelIndex &parent) const override
+    {
+        if (!KDirSortFilterProxyModel::filterAcceptsRow(row, parent)) return false;
+        if (hidden.isEmpty()) return true;
+        const auto index = sourceModel()->index(row, 0, parent);
+        const auto item = index.data(KDirModel::FileItemRole).value<KFileItem>();
+        return item.isNull() || !hidden.contains(item.text());
+    }
+    QSet<QString> hidden;
+
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override
     {
         if (mode != QLatin1String("created")) return KDirSortFilterProxyModel::lessThan(left, right);
@@ -50,6 +75,24 @@ FolderContents::FolderContents(QObject *parent) : QIdentityProxyModel(parent)
     connect(this, &QAbstractItemModel::modelReset, this, &FolderContents::changed);
     connect(this, &QAbstractItemModel::layoutChanged, this, &FolderContents::changed);
     connect(this, &QAbstractItemModel::dataChanged, this, &FolderContents::changed);
+}
+void FolderContents::setHiddenEntries(const QStringList &names)
+{
+    // The stored list is untrusted input: bound it and drop anything that could
+    // name a path instead of a sibling entry.
+    QStringList bounded;
+    for (const auto &name : names) {
+        if (name.isEmpty() || name.size() > 200 || name == QLatin1String(".")
+            || name == QLatin1String("..") || name.contains(QLatin1Char('/'))
+            || name.contains(QLatin1Char('\\')))
+            continue;
+        if (!bounded.contains(name)) bounded.append(name);
+        if (bounded.size() >= 2000) break;
+    }
+    if (bounded == m_hiddenEntries) return;
+    m_hiddenEntries = bounded;
+    m_sorted->setHidden(QSet<QString>(bounded.cbegin(), bounded.cend()));
+    emit hiddenEntriesChanged();
 }
 void FolderContents::setSortMode(const QString &mode)
 {

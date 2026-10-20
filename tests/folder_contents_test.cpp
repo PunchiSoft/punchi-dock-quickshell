@@ -105,6 +105,48 @@ private slots:
         QCOMPARE(contents.get(2).value("entryName").toString(), "small.txt");
         contents.setActive(false);
     }
+    void hiddenNamesFilterTheListingWithoutHidingThemFromSettings() {
+        QTemporaryDir owned;
+        QVERIFY(owned.isValid());
+        write(owned.filePath("keep.txt"));
+        write(owned.filePath("skip.txt"));
+        QVERIFY(QDir(owned.path()).mkdir("nested"));
+
+        FolderContents contents;
+        QAbstractItemModelTester tester(&contents, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        FolderEntriesModel grid;
+        grid.setContents(&contents);
+        contents.setLocation(QUrl::fromLocalFile(owned.path()));
+        contents.setActive(true);
+        QTRY_VERIFY(!contents.loading());
+        QCOMPARE(contents.count(), 3);
+        QCOMPARE(grid.rowCount(), 4);
+
+        contents.setHiddenEntries({QStringLiteral("skip.txt")});
+        QCOMPARE(contents.hiddenEntries(), QStringList({QStringLiteral("skip.txt")}));
+        QCOMPARE(contents.count(), 2);
+        QCOMPARE(grid.rowCount(), 3);
+        for (int row = 0; row < contents.count(); ++row)
+            QVERIFY(contents.get(row).value("entryName").toString() != "skip.txt");
+        QVERIFY(contents.indexOfUrl(QUrl::fromLocalFile(owned.filePath("skip.txt"))) < 0);
+        QVERIFY(contents.indexOfUrl(QUrl::fromLocalFile(owned.filePath("keep.txt"))) >= 0);
+
+        // Names that could leave the folder are refused instead of stored.
+        contents.setHiddenEntries({QStringLiteral("../keep.txt"), QStringLiteral(""),
+            QStringLiteral(".."), QStringLiteral("keep.txt"), QStringLiteral("keep.txt")});
+        QCOMPARE(contents.hiddenEntries(), QStringList({QStringLiteral("keep.txt")}));
+        QCOMPARE(contents.count(), 2);
+
+        // A cleared list shows everything again, so new files need no new choice.
+        contents.setHiddenEntries({});
+        QVERIFY(contents.hiddenEntries().isEmpty());
+        QCOMPARE(contents.count(), 3);
+        write(owned.filePath("added.txt"));
+        QTRY_COMPARE(contents.count(), 4);
+        contents.setHiddenEntries({QStringLiteral("added.txt")});
+        QCOMPARE(contents.count(), 3);
+        contents.setActive(false);
+    }
     void rejectRemoteUrlsAndReportMissingFolders() {
         QTemporaryDir owned;
         FolderContents contents;

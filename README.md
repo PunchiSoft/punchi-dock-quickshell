@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.32**. The first Git snapshot was published as
+**Current delivery:** **0.1.33**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -289,9 +289,12 @@ Without a saved file, the application uses the defaults in
 These are prototype defaults, not a guarantee that every preset application is
 installed. Changing settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
-mode. The current file format is version 7 and accepts versions 1 to 6 through
-migration. Version 7 adds the recent-applications switch and visible count;
-missing fields in older profiles default to enabled with five applications.
+mode. The current file format is version 9 and accepts versions 1 to 8 through
+migration. Version 7 adds the recent-applications switch and visible count,
+version 8 stores the icon chosen for a pinned application, and version 9 the
+folder entries a container keeps out of its popup; missing fields in older
+profiles default to enabled, five applications, the application icon and an
+unfiltered folder listing.
 
 ## Installation and sharing
 

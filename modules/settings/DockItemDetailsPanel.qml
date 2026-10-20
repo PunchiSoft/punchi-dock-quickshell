@@ -20,6 +20,8 @@ Pane {
     // A folder container can be told whether selecting a directory enters it.
     // Applications and Trash have no subfolders, so the switch stays away.
     property bool browseSubfolders: true
+    // Entries the container popup skips; empty shows everything.
+    property var hiddenEntries: []
     readonly property var layoutLabels: root.fanAvailable
         ? [qsTr("Grid"), qsTr("List"), qsTr("Detail"), qsTr("Fan")]
         : [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
@@ -28,6 +30,7 @@ Pane {
     signal chooseFolderRequested()
     signal layoutSelected(string layout)
     signal browseSubfoldersSelected(bool enabled)
+    signal hiddenEntriesSelected(var names)
 
     readonly property bool hasSelection: itemId.length > 0
     readonly property bool trashSelected: itemId === "item:trash"
@@ -132,6 +135,16 @@ Pane {
                     // container stays the source of truth.
                     checked = Qt.binding(function() { return root.browseSubfolders })
                 }
+            }
+            FolderEntrySelection {
+                objectName: "detailsEntrySelection"
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.topMargin: Kirigami.Units.mediumSpacing
+                Layout.minimumHeight: Kirigami.Units.gridUnit * 8
+                folderPath: root.containerPath
+                hiddenEntries: root.hiddenEntries
+                onEntriesChosen: function(names) { root.hiddenEntriesSelected(names) }
             }
         }
 

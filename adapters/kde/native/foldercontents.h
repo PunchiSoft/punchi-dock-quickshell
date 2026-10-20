@@ -23,6 +23,10 @@ class FolderContents : public QIdentityProxyModel
     Q_PROPERTY(int count READ count NOTIFY entriesChanged)
     Q_PROPERTY(int revision READ revision NOTIFY entriesChanged)
     Q_PROPERTY(QString sortMode READ sortMode WRITE setSortMode NOTIFY sortModeChanged)
+    // File names this listing skips. Empty shows every entry, so a container
+    // that receives new files keeps showing them without a new choice.
+    Q_PROPERTY(QStringList hiddenEntries READ hiddenEntries WRITE setHiddenEntries
+        NOTIFY hiddenEntriesChanged)
 public:
     enum Role { EntryUrl = Qt::UserRole + 400, EntryName, EntryIcon, Directory, Description };
     explicit FolderContents(QObject *parent = nullptr);
@@ -37,6 +41,8 @@ public:
     int revision() const { return m_revision; }
     QString sortMode() const { return m_sortMode; }
     void setSortMode(const QString &mode);
+    QStringList hiddenEntries() const { return m_hiddenEntries; }
+    void setHiddenEntries(const QStringList &names);
     QHash<int, QByteArray> roleNames() const override;
     QVariant data(const QModelIndex &index, int role) const override;
     Q_INVOKABLE QVariantMap get(int row) const;
@@ -49,6 +55,7 @@ Q_SIGNALS:
     void stateChanged();
     void entriesChanged();
     void sortModeChanged();
+    void hiddenEntriesChanged();
 private:
     void refresh();
     void changed();
@@ -57,6 +64,7 @@ private:
     FolderSortModel *m_sorted = nullptr;
     QString m_sortMode;
     QUrl m_location;
+    QStringList m_hiddenEntries;
     bool m_active = false, m_loading = false;
     QString m_error;
     int m_revision = 0;

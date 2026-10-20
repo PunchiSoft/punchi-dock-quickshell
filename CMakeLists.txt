@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.32 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.33 LANGUAGES C CXX)
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus)
+find_package(Qt6 REQUIRED COMPONENTS Quick Qml DBus Concurrent)
 find_package(KF6KIO REQUIRED)
 find_package(KF6Service REQUIRED)
 find_package(KF6CoreAddons REQUIRED)
@@ -46,6 +46,7 @@ qt_add_qml_module(punchikde
     SOURCES adapters/kde/native/desktoplauncher.h adapters/kde/native/desktoplauncher.cpp
         adapters/kde/native/popupblurcontroller.h adapters/kde/native/popupblurcontroller.cpp
         adapters/kde/native/iconthemerefresh.h adapters/kde/native/iconthemerefresh.cpp
+        adapters/kde/native/iconthemecatalog.h adapters/kde/native/iconthemecatalog.cpp
         adapters/kde/native/foldercontents.h adapters/kde/native/foldercontents.cpp
         adapters/kde/native/desktopentry.h
         adapters/kde/native/recentdocuments.h adapters/kde/native/recentdocuments.cpp
@@ -61,7 +62,7 @@ qt_add_qml_module(punchikde
         adapters/kde/native/windowactivation.h adapters/kde/native/windowactivation.cpp
         adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp
         adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
-target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
+target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
 # The QML plugin loads the implementation library from a relative path so that
 # the user-local copy and the packaging layout never resolve it through the
 # source build directory, which is replaced on every rebuild.
@@ -165,6 +166,13 @@ if(BUILD_TESTING)
     target_link_libraries(recent_applications_model_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml)
     add_test(NAME recent_applications_model COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_model_test>)
+    add_executable(icon_theme_catalog_test tests/icon_theme_catalog_test.cpp
+        adapters/kde/native/iconthemecatalog.cpp)
+    target_include_directories(icon_theme_catalog_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(icon_theme_catalog_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml
+        Qt6::Concurrent KF6::ConfigCore)
+    add_test(NAME icon_theme_catalog COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:icon_theme_catalog_test>)
     add_executable(recent_applications_tracking_test tests/recent_applications_tracking_test.cpp
         adapters/kde/native/recentapplicationsadapter.cpp)
     target_include_directories(recent_applications_tracking_test PRIVATE ${CMAKE_SOURCE_DIR})

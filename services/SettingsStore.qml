@@ -54,6 +54,7 @@ Scope {
         function onReducedMotionChanged() { root.save() }
         function onBounceEnabledChanged() { root.save() }
         function onPinnedIdsChanged() { root.save() }
+        function onIconOverridesChanged() { root.save() }
         function onContainersChanged() { root.save() }
     }
     function initialize(previous: string): void {

@@ -68,6 +68,10 @@ Popup {
         id: listing
         sortMode: root.container && ["name", "size", "modified", "created", "kind"].indexOf(root.container.sortMode) >= 0
             ? root.container.sortMode : "modified"
+        // Entries the owner kept out of this container. An empty list shows the
+        // folder as it is, so new files appear without another choice.
+        hiddenEntries: root.container && Array.isArray(root.container.hiddenEntries)
+            ? root.container.hiddenEntries : []
     }
     FolderNavigationController {
         id: navigator

@@ -254,7 +254,8 @@ PanelWindow {
         source: runningApps.visibilityState
         region: restingGeometry.region
     }
-    PinnedApplications { id: fixtureModel; catalog: itemCatalog; pinnedIds: settings.pinnedIds }
+    PinnedApplications { id: fixtureModel; catalog: itemCatalog; pinnedIds: settings.pinnedIds
+        iconOverrides: settings.iconOverrides }
     RecentApplications {
         id: recentApplications
         settings: settings
