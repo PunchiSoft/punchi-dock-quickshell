@@ -28,5 +28,6 @@ ShellRoot {
         applicationCatalog: dock.applicationCatalog
         autostart: autostart
         license: licenseDocument
+        recentApplications: dock.recentApplications
     }
 }

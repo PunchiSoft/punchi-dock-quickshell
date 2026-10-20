@@ -15,6 +15,7 @@ PanelWindow {
     id: root
     property alias preferences: settings
     readonly property alias applicationCatalog: itemCatalog
+    readonly property alias recentApplications: recentApplications
     property bool configuring: false
     DockConfigurationController { hostWindow: root; active: root.configuring }
     signal settingsRequested()

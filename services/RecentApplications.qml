@@ -26,10 +26,14 @@ QtObject {
         return excluded
     }
     readonly property bool available: history.available
+    readonly property bool trackingEnabled: history.trackingEnabled
+    // KDE history is the only source; without a running service or with
+    // application tracking disabled the list stays empty.
+    readonly property bool usable: available && trackingEnabled
     readonly property int count: selection.count
     readonly property var items: selection.items
     function recordAccess(appId: string): void {
-        if (!root.available || !root.catalog) return
+        if (!root.usable || !root.catalog) return
         const row = root.catalog.application(appId)
         if (row && row.desktopId) root.history.recordAccess(row.desktopId)
     }

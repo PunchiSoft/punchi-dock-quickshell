@@ -65,6 +65,26 @@ TestCase {
     Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
     Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
     Component { id: applicationRowFixture; ApplicationListRow {} }
+    Component {
+        id: untrackedRecentFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            recentApplications: QtObject {
+                property bool available: true
+                property bool trackingEnabled: false
+            }
+        }
+    }
+    Component {
+        id: trackedRecentFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            recentApplications: QtObject {
+                property bool available: true
+                property bool trackingEnabled: true
+            }
+        }
+    }
 
     function init(): void {
         // Offscreen QPA cannot raise a real window; keep its diagnostic visible.
@@ -235,6 +255,33 @@ TestCase {
         mouseClick(control(window, "applyDockSettings"))
         verify(!window.settings.recentApplicationsEnabled)
         verify(!window.hasPendingChanges)
+        window.close()
+    }
+    function test_recentApplicationsWithoutKdeTracking(): void {
+        const window = createTemporaryObject(untrackedRecentFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const toggle = control(window, "recentApplicationsEnabled")
+        const count = control(window, "recentApplicationsCount")
+        const note = control(window, "recentApplicationsUnavailableNote")
+        verify(!toggle.enabled)
+        verify(!count.enabled)
+        verify(note.visible)
+        verify(note.text.length > 0)
+        window.close()
+    }
+    function test_recentApplicationsWithKdeTracking(): void {
+        const window = createTemporaryObject(trackedRecentFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const toggle = control(window, "recentApplicationsEnabled")
+        const count = control(window, "recentApplicationsCount")
+        const note = control(window, "recentApplicationsUnavailableNote")
+        verify(toggle.enabled)
+        verify(count.enabled)
+        verify(!note.visible)
         window.close()
     }
     function test_sidebarAndFooterGeometry(): void {

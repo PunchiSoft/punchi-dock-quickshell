@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.26 — 2026-10-20
+
+- Detect when KDE is configured not to remember applications
+  (`what-to-remember=2` in `kactivitymanagerd-pluginsrc`) and watch that file so
+  the state follows external changes. Recent-application settings disable their
+  switch and count and show a short note explaining how to enable KDE tracking,
+  instead of leaving controls that cannot have an effect. Skip notifying KDE of
+  dock launches while it would discard those events.
+- Clarify in the README and the local records that the recent list depends on
+  KDE activity history and that existing history is not recovered by enabling
+  tracking.
+
 ## 0.1.25 — 2026-10-20
 
 - Add optional recent KDE activity applications as dock launchers, with a

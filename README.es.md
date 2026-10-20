@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.25**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.26**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -68,7 +68,9 @@ propia validación.
   sobrescribe ni se elimina.
 - **Aplicaciones recientes** opcionales del historial de actividad de KDE,
   mostradas como lanzadores adicionales del dock con una cantidad configurable.
-  Se excluyen las aplicaciones fijadas y las que tienen ventanas abiertas.
+  Se excluyen las aplicaciones fijadas y las que tienen ventanas abiertas. La
+  lista necesita que KDE recuerde el uso de aplicaciones: si KDE está
+  configurado para no hacerlo, los ajustes del dock explican cómo activarlo.
 - Navegación por teclado y edición de ajustes pendientes mediante Apply, Accept y
   Close.
 - Downloads con vistas Grid, List y Detail, navegación dentro de un globo temático

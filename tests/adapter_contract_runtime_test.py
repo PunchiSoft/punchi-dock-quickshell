@@ -67,7 +67,8 @@ ShellRoot {
         probe.checkMethods(recent, "RecentDocumentsAdapter", ["forget"])
         probe.checkProperties(recent, "RecentDocumentsAdapter", ["sourceModel", "desktopId", "count"])
         probe.checkMethods(recentApplications, "RecentApplicationsAdapter", ["recordAccess"])
-        probe.checkProperties(recentApplications, "RecentApplicationsAdapter", ["enabled", "available"])
+        probe.checkProperties(recentApplications, "RecentApplicationsAdapter",
+                            ["enabled", "available", "trackingEnabled"])
         probe.checkProperties(recentApplicationsSelection, "RecentApplicationsSelection",
             ["sourceModel", "enabled", "maximumItems", "excludedStorageIds", "count", "items"])
         probe.checkMethods(places, "FilePlacesAdapter", ["enterGroup", "leaveGroup"])

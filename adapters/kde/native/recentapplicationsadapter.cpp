@@ -1,21 +1,75 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "recentapplicationsadapter.h"
 
+#include <KConfig>
+#include <KConfigGroup>
 #include <KService>
 #include <KSycoca>
 #include <PlasmaActivities/Consumer>
 #include <PlasmaActivities/ResourceInstance>
 #include <PlasmaActivities/Stats/ResultModel>
 #include <PlasmaActivities/Stats/Terms>
+#include <QFileInfo>
+#include <QFileSystemWatcher>
+#include <QStandardPaths>
 #include <QUrl>
+
+namespace {
+// Matches kactivitymanagerd's StatsPlugin::WhatToRemember: AllApplications = 0,
+// SpecificApplications = 1, NoApplications = 2.
+constexpr int NoApplications = 2;
+constexpr auto ScoringGroup = "Plugin-org.kde.ActivityManager.Resources.Scoring";
+constexpr auto WhatToRemember = "what-to-remember";
+}
 
 RecentApplicationsAdapter::RecentApplicationsAdapter(QObject *parent)
     : QIdentityProxyModel(parent)
+    , m_configPath(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation)
+          + QStringLiteral("/kactivitymanagerd-pluginsrc"))
+    , m_configWatcher(new QFileSystemWatcher(this))
 {
+    // KConfigWatcher depends on a session-bus notification the writer must
+    // send, so watch the file KDE rewrites instead and fall back to the
+    // directory for atomic replacement.
+    connect(m_configWatcher, &QFileSystemWatcher::fileChanged, this, [this]() {
+        reloadTracking();
+        watchConfiguration();
+    });
+    connect(m_configWatcher, &QFileSystemWatcher::directoryChanged, this, [this]() {
+        reloadTracking();
+        watchConfiguration();
+    });
+    watchConfiguration();
+    reloadTracking();
     connect(KSycoca::self(), &KSycoca::databaseChanged, this, [this]() {
         m_applications.clear();
         if (rowCount() > 0) emit dataChanged(index(0, 0), index(rowCount() - 1, 0), {StorageIdRole, NameRole, IconRole});
     });
+}
+
+void RecentApplicationsAdapter::watchConfiguration()
+{
+    const QString directory = QFileInfo(m_configPath).absolutePath();
+    if (QFileInfo::exists(m_configPath) && !m_configWatcher->files().contains(m_configPath))
+        m_configWatcher->addPath(m_configPath);
+    if (!m_configWatcher->directories().contains(directory)) m_configWatcher->addPath(directory);
+}
+
+void RecentApplicationsAdapter::reloadTracking()
+{
+    // A fresh KConfig reads the file instead of reusing a cached state whose
+    // change detection can miss a same-size rewrite within the same second.
+    const KConfig config(QStringLiteral("kactivitymanagerd-pluginsrc"));
+    const KConfigGroup group(&config, QString::fromLatin1(ScoringGroup));
+    const bool enabled = group.readEntry(WhatToRemember, 0) != NoApplications;
+    if (m_trackingEnabled == enabled) return;
+    m_trackingEnabled = enabled;
+    emit trackingEnabledChanged();
+}
+
+bool RecentApplicationsAdapter::trackingEnabled() const
+{
+    return m_trackingEnabled;
 }
 
 bool RecentApplicationsAdapter::enabled() const
