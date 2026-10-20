@@ -27,9 +27,9 @@ QtObject {
     }
     readonly property bool available: history.available
     readonly property bool trackingEnabled: history.trackingEnabled
-    // KDE history is the only source; without a running service or with
-    // application tracking disabled the list stays empty.
-    readonly property bool usable: available && trackingEnabled
+    // Recording is about KDE, not about showing the list: a hidden list can
+    // still keep the history complete for when it is shown again.
+    readonly property bool recordingEnabled: available && trackingEnabled
     readonly property int count: selection.count
     readonly property var items: selection.items
     function setTrackingEnabled(enabled: bool): bool {
@@ -39,7 +39,7 @@ QtObject {
         return history.openTrackingSettings()
     }
     function recordAccess(appId: string): void {
-        if (!root.usable || !root.catalog) return
+        if (!root.recordingEnabled || !root.catalog) return
         const row = root.catalog.application(appId)
         if (row && row.desktopId) root.history.recordAccess(row.desktopId)
     }

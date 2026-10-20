@@ -13,6 +13,9 @@ class RecentApplicationsAdapter : public QIdentityProxyModel
 {
     Q_OBJECT
     QML_ELEMENT
+    // `enabled` controls whether the visible history is built; `available`
+    // reports the KDE history service on its own, so turning the dock list off
+    // never makes the service look absent.
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
     Q_PROPERTY(bool available READ available NOTIFY availabilityChanged)
     Q_PROPERTY(bool trackingEnabled READ trackingEnabled NOTIFY trackingEnabledChanged)

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.30 — 2026-10-20
+
+- Fix the recent-applications switch becoming permanently disabled after it was
+  turned off. The card gated its own switch on a service state that disabling the
+  list made false, so only editing the configuration file or Reset defaults
+  restored it. Dock controls no longer depend on KDE's tracking preference: the
+  note appears while KDE saves no history, and the switches stay usable.
+- Keep the Activities consumer for the adapter's lifetime so `available`
+  describes the KDE history service instead of the dock's display preference.
+  Hiding the list now stops only the history query; dock launches keep being
+  reported to KDE, so the list is complete when it is shown again.
+- Replace the regression that asserted the disabled controls with cases that
+  hide and show the list again and check that KDE's preference never disables a
+  dock control.
+
 ## 0.1.29 — 2026-10-20
 
 - Add Punchi Menu's hover pulse to dock popups. Context-menu rows, Places,

@@ -78,6 +78,20 @@ TestCase {
             }
         }
     }
+    // Mirrors the adapter whenever the dock list is hidden: the history service
+    // is not queried, so `available` reports false.
+    Component {
+        id: hiddenRecentFixture
+        SettingsWindow {
+            settings: ShellSettings { recentApplicationsEnabled: false }
+            recentApplications: QtObject {
+                property bool available: false
+                property bool trackingEnabled: true
+                function setTrackingEnabled(enabled: bool): bool { trackingEnabled = enabled; return true }
+                function openTrackingSettings(): bool { return true }
+            }
+        }
+    }
     Component {
         id: trackedRecentFixture
         SettingsWindow {
@@ -267,6 +281,30 @@ TestCase {
         verify(!window.hasPendingChanges)
         window.close()
     }
+    function test_hiddenRecentApplicationsCanBeShownAgain(): void {
+        const window = createTemporaryObject(hiddenRecentFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const view = control(window, "dockSettingsView")
+        const toggle = control(window, "recentApplicationsEnabled")
+        const count = control(window, "recentApplicationsCount")
+        const note = control(window, "recentApplicationsUnavailableNote")
+        // Hiding the list must never disable its own switch.
+        verify(toggle.enabled)
+        verify(!toggle.checked)
+        verify(!count.enabled)
+        // KDE still records history, so its note stays hidden.
+        verify(!note.visible)
+        mouseClick(toggle)
+        verify(toggle.checked)
+        verify(view.settings.recentApplicationsEnabled)
+        verify(count.enabled)
+        mouseClick(toggle)
+        verify(!toggle.checked)
+        verify(toggle.enabled)
+        window.close()
+    }
     function test_recentApplicationsWithoutKdeTracking(): void {
         const window = createTemporaryObject(untrackedRecentFixture, test)
         window.open()
@@ -275,8 +313,11 @@ TestCase {
         const toggle = control(window, "recentApplicationsEnabled")
         const count = control(window, "recentApplicationsCount")
         const note = control(window, "recentApplicationsUnavailableNote")
-        verify(!toggle.enabled)
-        verify(!count.enabled)
+        // KDE's own preference never disables the dock's switches; it only
+        // explains why the list stays empty.
+        verify(toggle.enabled)
+        verify(toggle.checked)
+        verify(count.enabled)
         verify(note.visible)
         verify(note.text.length > 0)
         const kdeRow = control(window, "recentApplicationsKdeRow")
