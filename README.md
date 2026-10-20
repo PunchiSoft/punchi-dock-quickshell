@@ -151,15 +151,15 @@ not register a second window backend.
 
 ### Compatibility at a glance
 
-| Status | Distributions (KDE editions) | Plasma | KWin | Qt | KF6 | Quickshell | Notes |
+| Status | KDE distributions / editions | Plasma | KWin | Qt | KF6 | Quickshell | Notes |
 |:---:|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | Versions checked 2026-10-20 |
-| 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versions checked 2026-10-19; build and initial start tested; prolonged-use and full visual validation pending; Mesa/Zink warnings; not a compatibility claim for this exact set |
-| ⚪ | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | Untested |
-| ⚪ | KDE neon, Kubuntu | — | — | — | — | — | KDE Plasma editions only; untested |
-| ⚪ | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE | — | — | — | — | — | Untested |
+| 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versions checked 2026-10-19; build and initial start tested; prolonged-use and full visual validation pending; Mesa/Zink warnings; not a compatibility claim for this exact set |
+| ⚪ | Nobara KDE, Fedora Kinoite (immutable KDE Plasma), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | Untested |
+| ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | Untested |
+| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | Untested |
 | ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | Untested |
-| ⚪ | KaOS, Solus KDE | — | — | — | — | — | Untested |
+| ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | Untested |
 | ❌ | — | — | — | — | — | — | X11 is out of scope; non-KDE compositors are unsupported |
 
 ✅ validated · 🟡 builds/starts, validation pending · ⚪ untested, same family · ❌ unsupported · ⏳ pending · — not applicable.

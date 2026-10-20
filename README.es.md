@@ -157,15 +157,15 @@ un segundo backend de ventanas.
 
 ### Compatibilidad de un vistazo
 
-| Estado | Distribuciones (ediciones KDE) | Plasma | KWin | Qt | KF6 | Quickshell | Notas |
+| Estado | Distribuciones / ediciones KDE | Plasma | KWin | Qt | KF6 | Quickshell | Notas |
 |:---:|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | Versiones comprobadas el 2026-10-20 |
-| 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versiones comprobadas el 2026-10-19; compilación e inicio inicial probados; falta validar uso prolongado y comportamiento visual; avisos de Mesa/Zink; no es una declaración de compatibilidad para toda instalación de Arch |
-| ⚪ | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | No probadas |
-| ⚪ | KDE neon, Kubuntu | — | — | — | — | — | Solo ediciones KDE Plasma; no probadas |
-| ⚪ | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE | — | — | — | — | — | No probadas |
+| 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versiones comprobadas el 2026-10-19; compilación e inicio inicial probados; falta validar uso prolongado y comportamiento visual; avisos de Mesa/Zink; no es una declaración de compatibilidad para toda instalación de Arch |
+| ⚪ | Nobara KDE, Fedora Kinoite (KDE Plasma inmutable), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | No probadas |
+| ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | No probadas |
+| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | No probadas |
 | ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | No probadas |
-| ⚪ | KaOS, Solus KDE | — | — | — | — | — | No probadas |
+| ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | No probadas |
 | ❌ | — | — | — | — | — | — | X11 está fuera del alcance; otros compositores no KDE no están soportados |
 
 ✅ validado · 🟡 compila/arranca, validación pendiente · ⚪ no probado, misma familia · ❌ no soportado · ⏳ pendiente · — no aplica.
