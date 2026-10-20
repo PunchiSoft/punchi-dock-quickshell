@@ -361,5 +361,6 @@ punchi_source_checkout_available() {
 
 punchi_build_artifacts_ready() {
     [[ -f "$punchi_project_root/build/qml/Punchi/Kde/libpunchikdeplugin.so" \
+        && -f "$punchi_project_root/build/libpunchikde.so" \
         && -x "$punchi_project_root/build/punchi-window-state" ]]
 }

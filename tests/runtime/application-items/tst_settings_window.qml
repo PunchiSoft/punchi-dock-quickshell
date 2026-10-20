@@ -18,6 +18,9 @@ TestCase {
             id: window
             settings: ShellSettings {}
             applicationCatalog: Native.DockItemCatalog { applications: ApplicationCatalog {} trashTitle: "Owned Trash" }
+            license: QtObject {
+                readonly property string text: "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n"
+            }
             readonly property PinnedApplications livePins: PinnedApplications {
                 catalog: window.applicationCatalog
                 pinnedIds: window.settings.pinnedIds
@@ -168,7 +171,7 @@ TestCase {
         const repository = findChild(aboutPage, "aboutRepositoryLink")
         const help = findChild(aboutPage, "aboutHelpLink")
         const authors = findChild(aboutPage, "aboutAuthors")
-        compare(name.text, "Punchi Dock Quickshell 0.1.24")
+        compare(name.text, "Punchi Dock Quickshell 0.1.27")
         compare(logo.status, Image.Ready)
         compare(repository.url, "https://github.com/PunchiSoft/punchi-dock-quickshell")
         compare(repository.horizontalAlignment, Text.AlignLeft)
@@ -177,6 +180,29 @@ TestCase {
         compare(help.text, "Report an issue")
         compare(authors.text, "PunchiSoft")
         verify(!window.hasPendingChanges)
+        window.close()
+    }
+
+    function test_aboutLicenseDocumentStaysInTheWindow() {
+        const window = createTemporaryObject(settingsWindowFixture, test)
+        window.open()
+        const view = findChild(window.contentItem, "dockSettingsView")
+        view.currentPage = 2
+        const aboutPage = findChild(view, "settingsAboutPage")
+        verify(waitForRendering(aboutPage))
+        const readLicense = findChild(aboutPage, "aboutReadLicense")
+        verify(readLicense.enabled)
+        mouseClick(readLicense)
+        const dialog = findChild(view, "aboutLicenseDialog")
+        verify(dialog !== null)
+        tryCompare(dialog, "visible", true)
+        tryCompare(view, "aboutDialogOpen", true)
+        const licenseText = findChild(dialog, "aboutLicenseText")
+        verify(licenseText.text.indexOf("GNU GENERAL PUBLIC LICENSE") === 0)
+        keyClick(Qt.Key_Escape)
+        tryCompare(dialog, "visible", false)
+        tryCompare(view, "aboutDialogOpen", false)
+        verify(window.visible)
         window.close()
     }
 }

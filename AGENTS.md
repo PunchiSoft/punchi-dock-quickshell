@@ -114,12 +114,15 @@ Record the actual versions tested. Do not inherit plasmoid compatibility claims,
 ABI proxies, package commands, version sequence, or lint baselines. Quickshell
 uses private Qt APIs; pair its binary with the Qt version it was built for.
 Do not silently raise an agreed minimum or claim distro/compositor support from
-one machine. X11 and other compositors are unvalidated until tested.
+one machine. X11 is out of scope and no support work is planned; other
+compositors remain unvalidated until tested.
 
 ## Work and security
 
 Read instructions, inspect files and Git state when present, and preserve unrelated
 work. Use `modification-cycle` for features and `review-cycle` for reported bugs.
+Use `commit-push-versioning` whenever a commit or push is requested; derive
+application version changes from the newest delivery in `CHANGELOG.md`.
 Record scope and evidence before changing code; do not start with a full suite.
 Apply domain skills as their stages begin, then validate after implementation.
 
@@ -179,7 +182,8 @@ Do not advance the counter for repository metadata or documentation-only commits
 or comment-, formatting- and wording-only edits. Keep these commits marked as
 `chore:` or `docs:`; the declared delivery version stays unchanged.
 
-The current delivery is `0.1.24`. Before a commit that advances the counter,
-increment the latest declared counter once and update CMake, README, CHANGELOG and
-the local `docs/versioning.md` record consistently. Keep configuration schema
-and QML module API versions separate from the application delivery version.
+The current delivery is `0.1.27`. The newest delivery heading in `CHANGELOG.md`
+is authoritative for the counter. Before a behavior-changing commit, advance it
+once and update CMake, the About page, README, CHANGELOG and the local
+`docs/versioning.md` record consistently. Keep configuration schema and QML
+module API versions separate from the application delivery version.

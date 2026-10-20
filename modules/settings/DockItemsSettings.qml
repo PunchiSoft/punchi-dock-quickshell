@@ -18,7 +18,7 @@ ColumnLayout {
     readonly property bool canRemoveSelected: editor.canRemove
     // The details pane sits beside the list when the page is wide enough and
     // stacks below it in a narrow window.
-    readonly property bool wide: width >= Kirigami.Units.gridUnit * 28
+    readonly property bool wide: width >= Kirigami.Units.gridUnit * 34
     readonly property var selectedEntry: {
         root.orderRevision
         const id = editor.selectedAppId
@@ -210,7 +210,8 @@ ColumnLayout {
                 columns: root.wide ? 2 : 1
                 columnSpacing: Kirigami.Units.largeSpacing
                 rowSpacing: Kirigami.Units.largeSpacing
-                ScrollView {
+                SettingsCardFrame {
+                    objectName: "settingsListFrame"
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Layout.minimumWidth: 0
@@ -218,43 +219,51 @@ ColumnLayout {
                     // Keep the list compact in the side-by-side layout so the
                     // contextual pane gets the remaining width. When the pane
                     // stacks below, the list may use the full page width.
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 15
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 17
                     Layout.maximumWidth: root.wide
-                        ? Kirigami.Units.gridUnit * 15 : Number.POSITIVE_INFINITY
+                        ? Kirigami.Units.gridUnit * 17 : Number.POSITIVE_INFINITY
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 10
-                    clip: true
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                    ListView {
-                        id: items
-                        objectName: "settingsDockItems"
-                        model: entries
-                        activeFocusOnTab: true
-                        Accessible.name: qsTr("Dock items")
-                        currentIndex: {
-                            root.orderRevision
-                            root.settings.pinnedIds
-                            for (let row = 0; row < entries.count; ++row)
-                                if (entries.get(row).appId === editor.selectedAppId) return row
-                            return -1
-                        }
-                        onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
-                        // A model move can briefly leave the view's cursor at its old row.
-                        // Keyboard intent follows the editor's selected application identity.
-                        Keys.onUpPressed: if (count > 0) editor.select(entries.get(Math.max(0, editor.selectedIndex - 1)).appId)
-                        Keys.onDownPressed: if (count > 0) editor.select(entries.get(Math.min(count - 1, editor.selectedIndex + 1)).appId)
-                        boundsBehavior: Flickable.StopAtBounds
-                        delegate: ApplicationListRow {
-                            required property int index
-                            required property string appId
-                            required property string title
-                            required iconName
-                            objectName: "configuredItem-" + appId
-                            width: ListView.view.width
-                            text: title
-                            selectionActive: editor.selectedAppId.length > 0
-                            highlighted: editor.selectedAppId === appId
-                            onClicked: editor.select(appId)
-                            Keys.onReturnPressed: editor.select(appId)
+                    // The system widget style paints its own scrollbar groove
+                    // inside this view; keep that groove off the rounded frame
+                    // border instead of tracing a second vertical rule.
+                    ScrollView {
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.mediumSpacing
+                        clip: true
+                        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                        ListView {
+                            id: items
+                            objectName: "settingsDockItems"
+                            model: entries
+                            activeFocusOnTab: true
+                            Accessible.name: qsTr("Dock items")
+                            currentIndex: {
+                                root.orderRevision
+                                root.settings.pinnedIds
+                                for (let row = 0; row < entries.count; ++row)
+                                    if (entries.get(row).appId === editor.selectedAppId) return row
+                                return -1
+                            }
+                            onCurrentIndexChanged: if (currentIndex >= 0) positionViewAtIndex(currentIndex, ListView.Contain)
+                            // A model move can briefly leave the view's cursor at its old row.
+                            // Keyboard intent follows the editor's selected application identity.
+                            Keys.onUpPressed: if (count > 0) editor.select(entries.get(Math.max(0, editor.selectedIndex - 1)).appId)
+                            Keys.onDownPressed: if (count > 0) editor.select(entries.get(Math.min(count - 1, editor.selectedIndex + 1)).appId)
+                            boundsBehavior: Flickable.StopAtBounds
+                            delegate: ApplicationListRow {
+                                required property int index
+                                required property string appId
+                                required property string title
+                                required iconName
+                                objectName: "configuredItem-" + appId
+                                width: ListView.view.width
+                                text: title
+                                rowIndex: index
+                                selectionActive: editor.selectedAppId.length > 0
+                                highlighted: editor.selectedAppId === appId
+                                onClicked: editor.select(appId)
+                                Keys.onReturnPressed: editor.select(appId)
+                            }
                         }
                     }
                 }
@@ -263,7 +272,7 @@ ColumnLayout {
                     Layout.fillWidth: true
                     Layout.fillHeight: root.wide
                     Layout.minimumWidth: 0
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 13
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 17
                     itemId: editor.selectedAppId
                     itemTitle: root.detailsTitle
                     itemIconName: root.detailsIcon

@@ -15,6 +15,18 @@ class DockApplicationsTest : public QObject {
         item->setData(id,App); item->setData(desktop,Desktop); item->setData(id,Title);
         item->setData("application-x-executable",Icon); item->setData(installed,Installed); model.appendRow(item);
     }
+    static void appendRecent(QStandardItemModel &model, const QString &storageId, const QString &name,
+        const QString &icon) {
+        auto *item = new QStandardItem;
+        item->setData(storageId, Qt::UserRole + 1);
+        item->setData(name, Qt::UserRole + 2);
+        item->setData(icon, Qt::UserRole + 3);
+        model.appendRow(item);
+    }
+    static void initializeRecent(QStandardItemModel &model) {
+        model.setItemRoleNames({{Qt::UserRole + 1, "storageId"}, {Qt::UserRole + 2, "name"},
+            {Qt::UserRole + 3, "icon"}});
+    }
 private slots:
     void pinsRunningMutationAndSourceLifetime() {
         QStandardItemModel pins, catalog; initialize(pins); initialize(catalog);
@@ -48,6 +60,30 @@ private slots:
         auto *temporary=new QStandardItemModel; initialize(*temporary); append(*temporary,"temporary","temporary.desktop");
         dock.setPinned(temporary); QTRY_COMPARE(dock.get(0).value("appId").toString(),"temporary");
         delete temporary; QTRY_COMPARE(dock.rowCount(),0);
+    }
+    void recentRowsAreDeduplicatedAndAppendedBeforeSpecials() {
+        QStandardItemModel pins, catalog, recent;
+        initialize(pins); initialize(catalog); initializeRecent(recent);
+        append(pins, "files", "org.kde.dolphin.desktop");
+        append(catalog, "files", "org.kde.dolphin.desktop");
+        append(catalog, "browser", "org.mozilla.firefox.desktop");
+        appendRecent(recent, "org.kde.dolphin.desktop", "Dolphin recent", "folder");
+        appendRecent(recent, "org.kde.kate.desktop", "Kate recent", "kate");
+        appendRecent(recent, "org.kde.kate.desktop", "Kate duplicate", "kate-duplicate");
+        DockApplicationsModel dock;
+        QAbstractItemModelTester tester(&dock, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        dock.setPinned(&pins);
+        dock.setCatalog(&catalog);
+        dock.setRecent(&recent);
+        dock.setRunningDesktopIds({"org.mozilla.firefox"});
+        QTRY_COMPARE(dock.rowCount(), 3);
+        QCOMPARE(dock.get(0).value("appId").toString(), "files");
+        QCOMPARE(dock.get(1).value("appId").toString(), "browser");
+        QCOMPARE(dock.get(2).value("appId").toString(), "desktop:org.kde.kate.desktop");
+        QCOMPARE(dock.get(2).value("title").toString(), "Kate recent");
+        QCOMPARE(dock.get(2).value("iconName").toString(), "kate");
+        recent.removeRows(1, 2);
+        QTRY_COMPARE(dock.rowCount(), 2);
     }
 };
 QTEST_GUILESS_MAIN(DockApplicationsTest)

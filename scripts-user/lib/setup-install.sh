@@ -57,6 +57,7 @@ punchi_copy_runtime_tree() {
 
     mkdir -p "$staging/build/qml"
     cp -a -- "$punchi_project_root/build/qml/Punchi" "$staging/build/qml/"
+    cp -a -- "$punchi_project_root/build/libpunchikde.so" "$staging/build/"
     cp -a -- "$punchi_project_root/build/punchi-window-state" "$staging/build/"
     cp -a -- "$punchi_project_root/scripts-user" "$staging/"
     for file in README.md LICENSE NOTICE.md CHANGELOG.md CONTRIBUTING.md SECURITY.md; do
@@ -166,6 +167,10 @@ punchi_install_local() {
 
     punchi_info "Staging the user-local installation..."
     punchi_copy_runtime_tree "$staging"
+    if [[ ! -f "$staging/build/libpunchikde.so" ]]; then
+        rm -rf -- "$staging"
+        punchi_die "The staged installation is missing the native QML library."
+    fi
     {
         printf '%s\n' 'format=1'
         printf '%s\n' 'name=punchi-dock-quickshell'

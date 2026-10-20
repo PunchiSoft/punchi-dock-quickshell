@@ -66,14 +66,20 @@ TestCase {
         compare(settings.pinnedIds.length, 10)
         compare(settings.pinnedIds[8], "item:downloads")
         compare(settings.pinnedIds[9], "item:trash")
+        compare(settings.recentApplicationsEnabled, true)
+        compare(settings.recentApplicationsCount, 5)
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
         data.pinnedIds = ["terminal"]
         data.reducedMotion = true
         data.panelMode = "desktop"
+        data.recentApplicationsEnabled = false
+        data.recentApplicationsCount = 8
         compare(settings.restore(data), true)
         compare(settings.effectiveReducedMotion, true)
         compare(settings.pinnedIds[0], "terminal")
         compare(settings.panelMode, "dodge-windows")
+        compare(settings.recentApplicationsEnabled, false)
+        compare(settings.recentApplicationsCount, 8)
     }
     function test_folderContainers() {
         const settings = createTemporaryObject(settingsFixture, test)
@@ -94,7 +100,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 6)
+        compare(data.version, 7)
         compare(data.containers.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))

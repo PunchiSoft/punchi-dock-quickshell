@@ -19,6 +19,7 @@ punchi_fedora_runtime_packages() {
         kf6-ksvg \
         kf6-kservice \
         plasma-workspace \
+        plasma-activities \
         plasma-activities-stats
 }
 
@@ -36,6 +37,7 @@ punchi_fedora_build_packages() {
         kf6-kcoreaddons-devel \
         kf6-kconfig-devel \
         kf6-kwindowsystem-devel \
+        plasma-activities-devel \
         plasma-activities-stats-devel \
         wayland-devel
 }
@@ -58,6 +60,7 @@ punchi_debian_runtime_packages() {
         qml6-module-org-kde-kirigamiaddons-components \
         qml6-module-org-kde-kservice \
         plasma-workspace \
+        libplasmaactivities6 \
         plasma-activities-stats
 }
 
@@ -76,6 +79,7 @@ punchi_debian_build_packages() {
         libkf6coreaddons-dev \
         libkf6config-dev \
         libkf6windowsystem-dev \
+        libplasmaactivities-dev \
         libplasmaactivitiesstats-dev \
         libwayland-dev \
         libwayland-bin \
@@ -100,6 +104,7 @@ punchi_arch_runtime_packages() {
         ksvg \
         kservice \
         plasma-workspace \
+        plasma-activities \
         plasma-activities-stats
 }
 
@@ -117,6 +122,7 @@ punchi_arch_build_packages() {
         kcoreaddons \
         kconfig \
         kwindowsystem \
+        plasma-activities \
         plasma-activities-stats \
         wayland \
         wayland-protocols

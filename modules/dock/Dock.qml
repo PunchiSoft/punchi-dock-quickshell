@@ -15,6 +15,7 @@ PanelWindow {
     id: root
     property alias preferences: settings
     readonly property alias applicationCatalog: itemCatalog
+    readonly property alias recentApplications: recentApplications
     property bool configuring: false
     DockConfigurationController { hostWindow: root; active: root.configuring }
     signal settingsRequested()
@@ -254,10 +255,17 @@ PanelWindow {
         region: restingGeometry.region
     }
     PinnedApplications { id: fixtureModel; catalog: itemCatalog; pinnedIds: settings.pinnedIds }
+    RecentApplications {
+        id: recentApplications
+        settings: settings
+        catalog: itemCatalog
+        runningDesktopIds: runningApps.desktopIds
+    }
     Native.DockApplicationsModel {
         id: dockItems
         pinned: fixtureModel
         catalog: itemCatalog
+        recent: recentApplications.selection
         runningDesktopIds: runningApps.available ? runningApps.desktopIds : []
         runningApplications: runningApps.available ? runningApps.applicationEntries : []
     }
@@ -373,6 +381,22 @@ PanelWindow {
         onLaunchCompleted: function(desktopId, success, error) {
             if (!success) console.warn("Punchi Dock Quickshell: new window failed:", desktopId, error)
         }
+    }
+    Connections {
+        target: launcher
+        function onLaunchDispatched(appId) { recentApplications.recordAccess(appId) }
+    }
+    Connections {
+        target: contextLauncher
+        function onLaunchDispatched(appId) { recentApplications.recordAccess(appId) }
+    }
+    Connections {
+        target: newInstanceLauncher
+        function onLaunchDispatched(appId) { recentApplications.recordAccess(appId) }
+    }
+    Connections {
+        target: activation
+        function onActivationDispatched(appId) { recentApplications.recordAccess(appId) }
     }
 
     FolderContainerPopup {

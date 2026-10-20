@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.1.27 — 2026-10-20
+
+- Add a **Remember application history in KDE** switch to the recent
+  applications card. It writes only the two public states of
+  `what-to-remember` (`0` all applications, `2` none) with the KConfig notify
+  flag so `kactivitymanagerd` reloads immediately, and leaves KDE's
+  per-application allow/block lists untouched.
+- Add a **KDE recent files options** row that opens the `kcm_recentFiles`
+  module, keep the reference note while KDE saves no history, and cover the
+  writes, preserved lists, disabled controls and switch gesture with native and
+  QML regressions.
+
+## 0.1.26 — 2026-10-20
+
+- Detect when KDE is configured not to remember applications
+  (`what-to-remember=2` in `kactivitymanagerd-pluginsrc`) and watch that file so
+  the state follows external changes. Recent-application settings disable their
+  switch and count and show a short note explaining how to enable KDE tracking,
+  instead of leaving controls that cannot have an effect. Skip notifying KDE of
+  dock launches while it would discard those events.
+- Clarify in the README and the local records that the recent list depends on
+  KDE activity history and that existing history is not recovered by enabling
+  tracking.
+
+## 0.1.25 — 2026-10-20
+
+- Add optional recent KDE activity applications as dock launchers, with a
+  configurable count and exclusions for pinned and running applications.
+- Refresh settings pages with shared card, row and separator components, and
+  show the bundled license inside the About view.
+- Package the native QML implementation library with user-local installs and
+  configure relative library lookup for installed and CMake layouts.
+- Record Fedora 44's Plasma 6.7.5/KWin 6.7.5 validation, clarify that Arch's
+  successful initial start still needs prolonged-use validation, and mark X11
+  as out of scope with no planned support work.
+
 ## 0.1.24 — 2026-10-19
 
 - Make Places rows fill the available context-menu width instead of shrinking

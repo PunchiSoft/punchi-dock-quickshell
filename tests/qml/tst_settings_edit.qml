@@ -65,6 +65,36 @@ TestCase {
     Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
     Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
     Component { id: applicationRowFixture; ApplicationListRow {} }
+    Component {
+        id: untrackedRecentFixture
+        SettingsWindow {
+            id: untrackedRecentWindow
+            property int trackingCalls: 0
+            settings: ShellSettings {}
+            recentApplications: QtObject {
+                property bool available: true
+                property bool trackingEnabled: false
+                function openTrackingSettings(): bool { untrackedRecentWindow.trackingCalls += 1; return true }
+            }
+        }
+    }
+    Component {
+        id: trackedRecentFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            recentApplications: QtObject {
+                property bool available: true
+                property bool trackingEnabled: true
+                property var trackingRequests: []
+                function setTrackingEnabled(enabled: bool): bool {
+                    trackingEnabled = enabled
+                    trackingRequests = trackingRequests.concat([enabled])
+                    return true
+                }
+                function openTrackingSettings(): bool { return true }
+            }
+        }
+    }
 
     function init(): void {
         // Offscreen QPA cannot raise a real window; keep its diagnostic visible.
@@ -216,12 +246,80 @@ TestCase {
         verify(!window.hasPendingChanges)
         window.close()
     }
+    function test_recentApplicationsSettings(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        const toggle = control(window, "recentApplicationsEnabled")
+        const count = control(window, "recentApplicationsCount")
+        verify(toggle.checked)
+        compare(count.value, 5)
+        verify(count.enabled)
+        count.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_Up)
+        compare(view.settings.recentApplicationsCount, 6)
+        mouseClick(toggle)
+        verify(!toggle.checked)
+        verify(!view.settings.recentApplicationsEnabled)
+        verify(!count.enabled)
+        verify(window.hasPendingChanges)
+        mouseClick(control(window, "applyDockSettings"))
+        verify(!window.settings.recentApplicationsEnabled)
+        verify(!window.hasPendingChanges)
+        window.close()
+    }
+    function test_recentApplicationsWithoutKdeTracking(): void {
+        const window = createTemporaryObject(untrackedRecentFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const toggle = control(window, "recentApplicationsEnabled")
+        const count = control(window, "recentApplicationsCount")
+        const note = control(window, "recentApplicationsUnavailableNote")
+        verify(!toggle.enabled)
+        verify(!count.enabled)
+        verify(note.visible)
+        verify(note.text.length > 0)
+        const kdeRow = control(window, "recentApplicationsKdeRow")
+        const kdeButton = control(window, "recentApplicationsKdeSettings")
+        verify(kdeRow.visible)
+        verify(kdeButton.enabled)
+        mouseClick(kdeButton)
+        compare(window.trackingCalls, 1)
+        window.close()
+    }
+    function test_recentApplicationsWithKdeTracking(): void {
+        const window = createTemporaryObject(trackedRecentFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const toggle = control(window, "recentApplicationsEnabled")
+        const count = control(window, "recentApplicationsCount")
+        const note = control(window, "recentApplicationsUnavailableNote")
+        verify(toggle.enabled)
+        verify(count.enabled)
+        verify(!note.visible)
+        const tracking = control(window, "recentApplicationsTracking")
+        verify(tracking.checked)
+        const service = window.recentApplications
+        mouseClick(tracking)
+        compare(service.trackingRequests.length, 1)
+        compare(service.trackingRequests[0], false)
+        verify(!tracking.checked)
+        service.trackingEnabled = true
+        tryCompare(tracking, "checked", true)
+        window.close()
+    }
     function test_sidebarAndFooterGeometry(): void {
         const window = openWindow()
         const view = control(window, "dockSettingsView")
         const sidebar = control(window, "settingsSidebar")
+        const divider = control(window, "settingsSidebarDivider")
         const main = control(window, "settingsMainContent")
-        compare(sidebar.width, Kirigami.Units.gridUnit * 8)
+        compare(sidebar.width, Kirigami.Units.gridUnit * 12)
+        verify(sidebar.background.radius > 0,
+            "the sidebar panel keeps the rounded settings surface")
+        verify(sidebar.x + sidebar.width <= divider.x)
+        verify(divider.x + divider.width <= main.x)
         verify(sidebar.x + sidebar.width <= main.x)
         verify(main.width > sidebar.width * 2)
         mouseClick(control(window, "itemsSettingsPage"))
@@ -376,6 +474,10 @@ TestCase {
         const list = control(window, "settingsDockItems")
         const title = control(window, "itemDetailsTitle")
         const type = control(window, "itemDetailsType")
+        // The default window is capped by the test screen width; request the
+        // wide layout explicitly before checking the side-by-side composition.
+        window.width = Kirigami.Units.gridUnit * 54
+        verify(waitForRendering(window.contentItem))
         verify(control(window, "itemDetailsNote").visible)
         verify(!title.visible)
         verify(!type.visible)
@@ -417,7 +519,7 @@ TestCase {
         })
         window.close()
     }
-    function test_sidebarCategoriesPlaceIconAboveLabel(): void {
+    function test_sidebarCategoriesPlaceIconBeforeLabel(): void {
         const window = openWindow()
         for (const name of ["itemsSettingsPage", "generalSettingsPage", "aboutSettingsPage"]) {
             const button = control(window, name)
@@ -425,12 +527,55 @@ TestCase {
             const label = findChild(button, "categoryLabel")
             verify(icon !== null && label !== null, name)
             verify(!button.hoverEnabled, name)
-            verify(icon.width >= Kirigami.Units.iconSizes.large)
-            verify(icon.mapToItem(button, 0, 0).y + icon.height
-                <= label.mapToItem(button, 0, 0).y)
+            const cursor = findChild(button, "categoryCursor")
+            verify(cursor !== null, name)
+            compare(cursor.cursorShape, Qt.PointingHandCursor)
+            mouseMove(button)
+            tryCompare(cursor, "hovered", true)
+            verify(icon.width >= Kirigami.Units.iconSizes.smallMedium)
+            verify(icon.mapToItem(button, icon.width, 0).x
+                <= label.mapToItem(button, 0, 0).x)
             compare(label.text, button.text)
-            compare(label.horizontalAlignment, Text.AlignHCenter)
+            compare(label.horizontalAlignment, Text.AlignLeft)
         }
+        window.close()
+    }
+    function collect(item: var, name: string, found: var): void {
+        if (item.objectName === name) found.push(item)
+        const children = item.data || item.children
+        if (!children) return
+        for (let index = 0; index < children.length; ++index)
+            collect(children[index], name, found)
+    }
+    function test_generalPageGroupsRowsIntoCards(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "generalSettingsPage"))
+        compare(view.currentPage, 1)
+        const frames = []
+        collect(view, "settingsCardFrame", frames)
+        const rows = []
+        collect(view, "settingsRow", rows)
+        const blockSeparators = []
+        collect(view, "settingsSeparator", blockSeparators)
+        verify(frames.length >= 4, "every group owns one card frame")
+        verify(rows.length >= 6, "every preference row is a settings row")
+        verify(blockSeparators.length >= 1)
+        for (const frame of frames) {
+            verify(frame.radius > 0)
+            compare(frame.border.width, 1)
+            // The fill must not vanish into the page background, which is what
+            // happens when a card only paints the theme background color.
+            verify(!Qt.colorEqual(frame.color, view.palette.window),
+                "the card fill stays visible against the page background")
+        }
+        const row = rows[0]
+        const separator = findChild(row, "settingsRowSeparator")
+        verify(separator !== null)
+        verify(separator.x >= row.leftPadding, "the separator is inset to the row text")
+        fuzzyCompare(separator.y + separator.height, row.height, 1)
+        // The last row of a group closes the card without a trailing line.
+        verify(rows.some(candidate => !candidate.showSeparator))
         window.close()
     }
     function test_emptyItemsShowsDetailsNote(): void {

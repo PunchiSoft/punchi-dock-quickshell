@@ -15,6 +15,7 @@
 *.so
 *.o
 *.a
+/*.d
 *.qm
 *.qsb
 __pycache__/
