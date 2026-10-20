@@ -39,7 +39,8 @@ function validContainers(containers) {
             && validContainerPath(entry.path)
             && typeof entry.title === "string" && typeof entry.icon === "string"
             && (entry.layout === undefined || validLayout(entry.layout))
-            && (entry.sortMode === undefined || ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0)))
+            && (entry.sortMode === undefined || ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0)
+            && (entry.browseSubfolders === undefined || typeof entry.browseSubfolders === "boolean")))
         return false
     return new Set(containers.map(entry => entry.id)).size === containers.length
 }

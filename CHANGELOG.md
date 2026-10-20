@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.31 — 2026-10-20
+
+- Add a per-container **Browse subfolders** switch to the folder details pane.
+  With it on, selecting a directory enters it, as before; with it off, the same
+  selection opens the directory in the file manager, so every entry still leads
+  somewhere. Existing profiles keep entering subfolders, and the switch is
+  offered only for folder containers, never for the Trash entry.
+- Make the fan a leaf in every case: selecting a directory opens it in the file
+  manager instead of replacing the arc with its contents, whatever the
+  container's switch says.
+
 ## 0.1.30 — 2026-10-20
 
 - Fix the recent-applications switch becoming permanently disabled after it was

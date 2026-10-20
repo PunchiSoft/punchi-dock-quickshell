@@ -34,7 +34,7 @@ QtObject {
     // QStandardPaths, so the built-in Downloads container needs no stored path.
     // The built-in container keeps its historical item id; containers added
     // later use item:folder:<id>.
-    property var containers: [{id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads", layout: "grid", sortMode: "modified"}]
+    property var containers: [{id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads", layout: "grid", sortMode: "modified", browseSubfolders: true}]
     // Compatibility accessor for existing scripts and schema-3/4 profiles.
     // Container layout is stored on each item; this mirrors the built-in one.
     property string downloadsView: "grid"
@@ -78,7 +78,8 @@ QtObject {
         let suffix = containers.length
         while (containers.some(entry => entry.id === "folder-" + suffix)) ++suffix
         const id = "folder-" + suffix
-        containers = containers.concat([{id, path, title, icon: icon.length > 0 ? icon : "folder", layout, sortMode: "modified"}])
+        containers = containers.concat([{id, path, title, icon: icon.length > 0 ? icon : "folder", layout,
+            sortMode: "modified", browseSubfolders: true}])
         return "item:folder:" + id
     }
     function removeContainer(appId: string): bool {
@@ -97,7 +98,8 @@ QtObject {
             if (entry.id !== id || entry.path === path) return entry
             changed = true
             return {id: entry.id, path, title: entry.title, icon: entry.icon,
-                layout: entry.layout || "grid", sortMode: entry.sortMode || "modified"}
+                layout: entry.layout || "grid", sortMode: entry.sortMode || "modified",
+                browseSubfolders: entry.browseSubfolders !== false}
         })
         return changed
     }
@@ -110,9 +112,31 @@ QtObject {
             found = true
             if (entry.layout === layout) return entry
             return {id: entry.id, path: entry.path, title: entry.title,
-                icon: entry.icon, layout, sortMode: entry.sortMode || "modified"}
+                icon: entry.icon, layout, sortMode: entry.sortMode || "modified",
+                browseSubfolders: entry.browseSubfolders !== false}
         })
         return found
+    }
+
+    function setContainerBrowseSubfolders(appId: string, enabled: bool): bool {
+        const id = containerIdOf(appId)
+        if (id.length === 0) return false
+        let changed = false
+        containers = containers.map(entry => {
+            if (entry.id !== id || (entry.browseSubfolders !== false) === enabled) return entry
+            changed = true
+            return {id: entry.id, path: entry.path, title: entry.title,
+                icon: entry.icon, layout: entry.layout || "grid",
+                sortMode: entry.sortMode || "modified", browseSubfolders: enabled}
+        })
+        return changed
+    }
+
+    // A container enters the subfolders it lists only while its owner keeps the
+    // switch on; the fan never enters them, whatever the switch says.
+    function containerBrowseSubfolders(appId: string): bool {
+        const entry = container(appId)
+        return !entry || entry.browseSubfolders !== false
     }
 
     function setContainerSortMode(appId: string, sortMode: string): bool {
@@ -124,7 +148,8 @@ QtObject {
             found = true
             if (entry.sortMode === sortMode) return entry
             return {id: entry.id, path: entry.path, title: entry.title,
-                icon: entry.icon, layout: entry.layout || "grid", sortMode}
+                icon: entry.icon, layout: entry.layout || "grid", sortMode,
+                browseSubfolders: entry.browseSubfolders !== false}
         })
         return found
     }
@@ -145,7 +170,8 @@ QtObject {
                     ? entry.layout : (entry.id === "downloads"
                         ? (hasLegacyDownloadsView ? legacyDownloadsView : "grid") : "grid"),
                 sortMode: data.version >= 6 && ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0
-                    ? entry.sortMode : "modified"}))
+                    ? entry.sortMode : "modified",
+                browseSubfolders: entry.browseSubfolders !== false}))
         } else if (hasLegacyDownloadsView && legacyDownloadsView !== downloadsView) {
             setContainerLayout("item:downloads", legacyDownloadsView)
         }

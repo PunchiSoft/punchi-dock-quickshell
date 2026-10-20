@@ -17,6 +17,9 @@ Pane {
     // The arc unfolds from the row that faces the panel, so a vertical dock
     // offers the three flat presentations only.
     property bool fanAvailable: true
+    // A folder container can be told whether selecting a directory enters it.
+    // Applications and Trash have no subfolders, so the switch stays away.
+    property bool browseSubfolders: true
     readonly property var layoutLabels: root.fanAvailable
         ? [qsTr("Grid"), qsTr("List"), qsTr("Detail"), qsTr("Fan")]
         : [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
@@ -24,6 +27,7 @@ Pane {
         ? ["grid", "list", "detail", "fan"] : ["grid", "list", "detail"]
     signal chooseFolderRequested()
     signal layoutSelected(string layout)
+    signal browseSubfoldersSelected(bool enabled)
 
     readonly property bool hasSelection: itemId.length > 0
     readonly property bool trashSelected: itemId === "item:trash"
@@ -113,6 +117,21 @@ Pane {
                 currentIndex: root.layoutModes.indexOf(root.containerLayout)
                 Accessible.name: qsTr("Folder view")
                 onActivated: root.layoutSelected(root.layoutModes[currentIndex])
+            }
+            Switch {
+                id: browseSubfoldersSwitch
+                objectName: "containerBrowseSubfolders"
+                Layout.fillWidth: true
+                Layout.topMargin: Kirigami.Units.smallSpacing
+                text: qsTr("Browse subfolders")
+                Accessible.name: qsTr("Browse subfolders")
+                checked: root.browseSubfolders
+                onToggled: {
+                    root.browseSubfoldersSelected(checked)
+                    // The gesture breaks the declarative binding; the stored
+                    // container stays the source of truth.
+                    checked = Qt.binding(function() { return root.browseSubfolders })
+                }
             }
         }
 
