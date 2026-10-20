@@ -13,8 +13,10 @@ Pane {
     required property ShellSettings settings
     property var applicationCatalog: null
     property var autostart: null
+    property var license: null
     property int currentPage: 1
     property bool hasPendingChanges: false
+    property bool aboutDialogOpen: false
     readonly property bool addingItem: itemsPage.addingItem
     signal applyRequested()
     signal acceptRequested()
@@ -30,7 +32,7 @@ Pane {
     palette.windowText: Kirigami.Theme.textColor
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.largeSpacing * 2
-    implicitWidth: Kirigami.Units.gridUnit * 44
+    implicitWidth: Kirigami.Units.gridUnit * 54
     // Preserve enough preferred height for the unified item picker.
     implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
         generalPage.implicitHeight + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
@@ -61,17 +63,20 @@ Pane {
     ButtonGroup { id: navigation }
     RowLayout {
         anchors.fill: parent
-        spacing: Kirigami.Units.largeSpacing
+        spacing: 0
         Pane {
             objectName: "settingsSidebar"
             Layout.fillHeight: true
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 8
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 8
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 12
             padding: Kirigami.Units.smallSpacing
             Kirigami.Theme.inherit: false
-            Kirigami.Theme.colorSet: Kirigami.Theme.View
-            background: Rectangle { color: Kirigami.Theme.backgroundColor }
+            Kirigami.Theme.colorSet: Kirigami.Theme.Window
+            background: Rectangle {
+                radius: Kirigami.Units.cornerRadius * 2
+                color: Kirigami.Theme.alternateBackgroundColor
+            }
             ColumnLayout {
                 anchors.fill: parent
                 spacing: Kirigami.Units.mediumSpacing
@@ -115,10 +120,21 @@ Pane {
                 }
             }
         }
+        Rectangle {
+            objectName: "settingsSidebarDivider"
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            Layout.topMargin: Kirigami.Units.cornerRadius * 2
+            Layout.bottomMargin: Kirigami.Units.cornerRadius * 2
+            color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
+                Kirigami.Theme.textColor.b, 0.12)
+            Accessible.ignored: true
+        }
         ColumnLayout {
             objectName: "settingsMainContent"
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.leftMargin: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.largeSpacing
             StackLayout {
                 Layout.fillWidth: true
@@ -169,6 +185,8 @@ Pane {
                             id: aboutPage
                             objectName: "settingsAboutPage"
                             width: parent.width
+                            licenseText: root.license ? root.license.text : ""
+                            onLicenseReadRequested: licenseDialog.open()
                         }
                     }
                 }
@@ -188,5 +206,11 @@ Pane {
                 Button { objectName: "closeDockSettings"; text: qsTr("Close"); onClicked: root.closeRequested() }
             }
         }
+    }
+    LicenseDialog {
+        id: licenseDialog
+        licenseText: root.license ? root.license.text : ""
+        onVisibleChanged: root.aboutDialogOpen = licenseDialog.visible
+        onClosed: if (root.currentPage === 2) aboutPage.focusLicenseButton()
     }
 }

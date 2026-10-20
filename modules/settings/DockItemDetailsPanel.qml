@@ -28,16 +28,9 @@ Pane {
     }
 
     padding: Kirigami.Units.largeSpacing
-    Kirigami.Theme.inherit: false
-    Kirigami.Theme.colorSet: Kirigami.Theme.View
     Accessible.role: Accessible.Pane
     Accessible.name: qsTr("Item details")
-    background: Rectangle {
-        color: Kirigami.Theme.backgroundColor
-        radius: Kirigami.Units.smallSpacing
-        border.width: 1
-        border.color: Kirigami.Theme.disabledTextColor
-    }
+    background: SettingsCardFrame {}
 
     ColumnLayout {
         anchors.fill: parent

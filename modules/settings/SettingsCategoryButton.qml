@@ -8,19 +8,24 @@ import org.kde.kirigami as Kirigami
 ItemDelegate {
     id: root
     // A settings category is always current, so the selected fill is the only
-    // primary emphasis. Pointer hover must not paint a second background.
+    // primary emphasis. Pointer hover must not paint a second background; the
+    // pointing-hand cursor is the only pointer feedback.
     hoverEnabled: false
+    HoverHandler {
+        objectName: "categoryCursor"
+        cursorShape: Qt.PointingHandCursor
+    }
     readonly property color contentColor: root.checked || root.highlighted
         ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
     Accessible.name: root.text
-    contentItem: ColumnLayout {
-        spacing: Kirigami.Units.smallSpacing
+    contentItem: RowLayout {
+        spacing: Kirigami.Units.mediumSpacing
         Kirigami.Icon {
             objectName: "categoryIcon"
             source: root.icon.name
-            Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: Kirigami.Units.iconSizes.large
-            Layout.preferredHeight: Kirigami.Units.iconSizes.large
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
             color: root.contentColor
             Accessible.ignored: true
         }
@@ -29,8 +34,9 @@ ItemDelegate {
             Layout.fillWidth: true
             text: root.text
             textFormat: Text.PlainText
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.Wrap
+            horizontalAlignment: Text.AlignLeft
+            elide: Text.ElideRight
+            wrapMode: Text.NoWrap
             font: root.font
             color: root.contentColor
         }

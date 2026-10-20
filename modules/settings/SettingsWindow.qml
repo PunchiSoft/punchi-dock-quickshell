@@ -10,13 +10,14 @@ Window {
     required property ShellSettings settings
     property var applicationCatalog: null
     property var autostart: null
+    property var license: null
     readonly property bool hasPendingChanges: editor.dirty
         || (autostart !== null && autostart.dirty)
     title: qsTr("Punchi Dock Quickshell — Dock settings")
     visible: false
-    width: view.implicitWidth
+    width: Math.min(view.implicitWidth, Screen.width - Kirigami.Units.gridUnit * 2)
     height: Math.min(view.implicitHeight, Screen.height * 0.85)
-    minimumWidth: Kirigami.Units.gridUnit * 34
+    minimumWidth: Math.min(Kirigami.Units.gridUnit * 40, Screen.width - Kirigami.Units.gridUnit * 2)
     minimumHeight: Kirigami.Units.gridUnit * 14
     color: view.palette.window
     function open(): void {
@@ -39,12 +40,17 @@ Window {
         editor.cancel()
     }
     SettingsEditService { id: editor; settings: root.settings }
-    Shortcut { sequence: "Escape"; enabled: !view.addingItem; onActivated: root.close() }
+    Shortcut {
+        sequence: "Escape"
+        enabled: !view.addingItem && !view.aboutDialogOpen
+        onActivated: root.close()
+    }
     SettingsView {
         id: view
         anchors.fill: parent
         settings: editor.draft
         autostart: root.autostart
+        license: root.license
         hasPendingChanges: root.hasPendingChanges
         applicationCatalog: root.applicationCatalog
         onApplyRequested: {

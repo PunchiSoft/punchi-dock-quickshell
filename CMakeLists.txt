@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.24 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.25 LANGUAGES C CXX)
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -10,6 +10,7 @@ find_package(KF6CoreAddons REQUIRED)
 find_package(KF6Config REQUIRED)
 find_package(KF6WindowSystem 6.19 REQUIRED)
 find_package(PlasmaActivitiesStats REQUIRED)
+find_package(PlasmaActivities REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(WaylandClient REQUIRED IMPORTED_TARGET wayland-client)
 find_program(WAYLAND_SCANNER_EXECUTABLE wayland-scanner REQUIRED)
@@ -48,6 +49,8 @@ qt_add_qml_module(punchikde
         adapters/kde/native/foldercontents.h adapters/kde/native/foldercontents.cpp
         adapters/kde/native/desktopentry.h
         adapters/kde/native/recentdocuments.h adapters/kde/native/recentdocuments.cpp
+        adapters/kde/native/recentapplicationsadapter.h adapters/kde/native/recentapplicationsadapter.cpp
+        adapters/kde/native/recentapplicationsmodel.h adapters/kde/native/recentapplicationsmodel.cpp
         adapters/kde/native/fileplaces.h adapters/kde/native/fileplaces.cpp
         adapters/kde/native/applicationcatalog.h adapters/kde/native/applicationcatalog.cpp
         adapters/kde/native/dockitemcatalog.h adapters/kde/native/dockitemcatalog.cpp
@@ -58,7 +61,13 @@ qt_add_qml_module(punchikde
         adapters/kde/native/windowactivation.h adapters/kde/native/windowactivation.cpp
         adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp
         adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
-target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats)
+target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
+# The QML plugin loads the implementation library from a relative path so that
+# the user-local copy and the packaging layout never resolve it through the
+# source build directory, which is replaced on every rebuild.
+set_target_properties(punchikdeplugin PROPERTIES
+    INSTALL_RPATH "$ORIGIN:$ORIGIN/../../.."
+    BUILD_WITH_INSTALL_RPATH ON)
 target_include_directories(punchikde PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/native)
 target_link_libraries(punchikde PRIVATE punchi_edge_protocols)
 add_executable(punchi-window-state adapters/kde/window-state/main.cpp
@@ -81,6 +90,8 @@ install(DIRECTORY adapters/kde
     FILES_MATCHING PATTERN "*.qml")
 install(DIRECTORY "${CMAKE_BINARY_DIR}/qml/Punchi"
     DESTINATION "${PUNCHI_INSTALL_DATADIR}/qml")
+install(TARGETS punchikde
+    LIBRARY DESTINATION "${PUNCHI_INSTALL_DATADIR}/qml/Punchi/Kde")
 install(TARGETS punchi-window-state
     RUNTIME DESTINATION "${CMAKE_INSTALL_LIBEXECDIR}/punchi-dock-quickshell")
 install(FILES
@@ -148,6 +159,12 @@ if(BUILD_TESTING)
     target_link_libraries(dock_applications_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     add_test(NAME dock_applications COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:dock_applications_test>)
+    add_executable(recent_applications_model_test tests/recent_applications_model_test.cpp
+        adapters/kde/native/recentapplicationsmodel.cpp)
+    target_include_directories(recent_applications_model_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(recent_applications_model_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml)
+    add_test(NAME recent_applications_model COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_model_test>)
     add_executable(window_activation_test tests/window_activation_test.cpp
         adapters/kde/window-state/windowactivation.cpp
         adapters/kde/native/runningapplications.cpp adapters/kde/native/windowactivation.cpp
@@ -287,7 +304,7 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
-    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts autostart_runtime PROPERTIES TIMEOUT 45)
+    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts autostart_runtime recent_applications_model PROPERTIES TIMEOUT 45)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 endif()

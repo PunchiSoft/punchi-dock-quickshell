@@ -142,6 +142,13 @@ if [[ ! -f "$qml_root/Punchi/Kde/libpunchikdeplugin.so" ]]; then
     printf '%s\n' 'Build the KDE launcher first: cmake -S . -B build && cmake --build build' >&2
     exit 1
 fi
+# The plugin loads this library from a relative path; a build that was only
+# partially replaced would otherwise fail later with a missing QML type.
+if [[ ! -f "$qml_root/Punchi/Kde/libpunchikde.so" \
+    && ! -f "$project_root/build/libpunchikde.so" ]]; then
+    printf '%s\n' 'The native QML library is missing. Rebuild and reinstall: cmake --build build' >&2
+    exit 1
+fi
 backend="$project_root/build/punchi-window-state"
 if [[ ! -x "$backend" ]]; then
     backend="$project_root/../../libexec/punchi-dock-quickshell/punchi-window-state"

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.25 — 2026-10-20
+
+- Add optional recent KDE activity applications as dock launchers, with a
+  configurable count and exclusions for pinned and running applications.
+- Refresh settings pages with shared card, row and separator components, and
+  show the bundled license inside the About view.
+- Package the native QML implementation library with user-local installs and
+  configure relative library lookup for installed and CMake layouts.
+- Record Fedora 44's Plasma 6.7.5/KWin 6.7.5 validation, clarify that Arch's
+  successful initial start still needs prolonged-use validation, and mark X11
+  as out of scope with no planned support work.
+
 ## 0.1.24 — 2026-10-19
 
 - Make Places rows fill the available context-menu width instead of shrinking

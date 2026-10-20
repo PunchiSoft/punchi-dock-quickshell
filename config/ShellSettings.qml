@@ -22,6 +22,8 @@ QtObject {
     property bool magnificationEnabled: true
     property bool reducedMotion: false
     property bool bounceEnabled: true
+    property bool recentApplicationsEnabled: true
+    property int recentApplicationsCount: 5
     property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:downloads", "item:trash"]
     // Folder containers owned by this profile. An empty path means the user's
     // download location, which the native folder model resolves through
@@ -117,11 +119,12 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 6, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
-            reducedMotion, bounceEnabled, maximumIconScale, pinnedIds}
+        return {version: 7, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
+            reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, recentApplicationsEnabled,
+            recentApplicationsCount}
     }
     function restore(data: var): bool {
-        if (!data || [1, 2, 3, 4, 5, 6].indexOf(data.version) < 0) return false
+        if (!data || [1, 2, 3, 4, 5, 6, 7].indexOf(data.version) < 0) return false
         const hasLegacyDownloadsView = ["grid", "list", "detail"].indexOf(data.downloadsView) >= 0
         const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
         if (LauncherIds.validContainers(data.containers)) {
@@ -142,8 +145,11 @@ QtObject {
             sizePercent = data.sizePercent
         if (Number.isFinite(data.maximumIconScale) && data.maximumIconScale >= 1 && data.maximumIconScale <= 3)
             maximumIconScale = data.maximumIconScale
-        for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled"])
+        for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled", "recentApplicationsEnabled"])
             if (typeof data[key] === "boolean") this[key] = data[key]
+        if (Number.isInteger(data.recentApplicationsCount) && data.recentApplicationsCount >= 1
+                && data.recentApplicationsCount <= 20)
+            recentApplicationsCount = data.recentApplicationsCount
         if (LauncherIds.validList(data.pinnedIds)) {
             pinnedIds = data.pinnedIds.slice()
             if (data.version === 1 && pinnedIds.indexOf("item:trash") < 0
@@ -159,9 +165,10 @@ QtObject {
         return true
     }
     function reset(): void {
-        restore({version: 6, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
+        restore({version: 7, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
             maximumIconScale: 2, magnificationEnabled: true, reducedMotion: false,
-            bounceEnabled: true, containers: [{id: "downloads", path: "", title: qsTr("Downloads"),
+            bounceEnabled: true, recentApplicationsEnabled: true, recentApplicationsCount: 5,
+            containers: [{id: "downloads", path: "", title: qsTr("Downloads"),
                 icon: "folder-downloads", layout: "grid", sortMode: "modified"}],
             pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview",
                 "okular", "item:downloads", "item:trash"]})

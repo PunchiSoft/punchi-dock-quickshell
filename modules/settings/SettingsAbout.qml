@@ -8,11 +8,14 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     objectName: "settingsAboutContent"
-    readonly property string applicationVersion: "0.1.24"
+    readonly property string applicationVersion: "0.1.25"
     readonly property string repositoryUrl: "https://github.com/PunchiSoft/punchi-dock-quickshell"
     readonly property string helpUrl: repositoryUrl + "/issues"
-    readonly property string licenseUrl: "https://www.gnu.org/licenses/gpl-3.0.html"
+    property string licenseText: ""
+    readonly property bool licenseAvailable: licenseText.length > 0
+    signal licenseReadRequested()
     function focusFirst(): void { repositoryLink.forceActiveFocus(Qt.OtherFocusReason) }
+    function focusLicenseButton(): void { readLicenseButton.forceActiveFocus(Qt.OtherFocusReason) }
     spacing: 0
 
     ColumnLayout {
@@ -58,68 +61,77 @@ ColumnLayout {
             }
         }
 
-        ToolSeparator { orientation: Qt.Horizontal; Layout.fillWidth: true }
-
-        ColumnLayout {
+        SettingsCard {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-            Kirigami.Heading { text: qsTr("Website"); level: 3 }
-            Kirigami.UrlButton {
-                id: repositoryLink
-                objectName: "aboutRepositoryLink"
+            title: qsTr("Website")
+            ColumnLayout {
                 Layout.fillWidth: true
-                wrapMode: Text.WrapAnywhere
-                horizontalAlignment: Text.AlignLeft
-                url: root.repositoryUrl
+                Layout.margins: Kirigami.Units.largeSpacing
+                Kirigami.UrlButton {
+                    id: repositoryLink
+                    objectName: "aboutRepositoryLink"
+                    Layout.fillWidth: true
+                    wrapMode: Text.WrapAnywhere
+                    horizontalAlignment: Text.AlignLeft
+                    url: root.repositoryUrl
+                }
             }
         }
 
-        ColumnLayout {
+        SettingsCard {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-            Kirigami.Heading { text: qsTr("Get help"); level: 3 }
-            Kirigami.UrlButton {
-                objectName: "aboutHelpLink"
+            title: qsTr("Get help")
+            ColumnLayout {
                 Layout.fillWidth: true
-                wrapMode: Text.WrapAnywhere
-                horizontalAlignment: Text.AlignLeft
-                url: root.helpUrl
-                text: qsTr("Report an issue")
+                Layout.margins: Kirigami.Units.largeSpacing
+                Kirigami.UrlButton {
+                    objectName: "aboutHelpLink"
+                    Layout.fillWidth: true
+                    wrapMode: Text.WrapAnywhere
+                    horizontalAlignment: Text.AlignLeft
+                    url: root.helpUrl
+                    text: qsTr("Report an issue")
+                }
             }
         }
 
-        ColumnLayout {
+        SettingsCard {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-            Kirigami.Heading { text: qsTr("Copyright"); level: 3 }
-            RowLayout {
+            title: qsTr("Copyright")
+            SettingsRow {
                 Layout.fillWidth: true
-                Label { text: qsTr("License: GPL-3.0-or-later"); Layout.fillWidth: true }
+                text: qsTr("License: GPL-3.0-or-later")
+                showSeparator: false
                 Button {
+                    id: readLicenseButton
                     objectName: "aboutReadLicense"
                     text: qsTr("Read the license")
                     icon.name: "document-open"
-                    onClicked: Qt.openUrlExternally(root.licenseUrl)
+                    enabled: root.licenseAvailable
+                    onClicked: root.licenseReadRequested()
                 }
             }
         }
 
-        ColumnLayout {
+        SettingsCard {
             Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-            Kirigami.Heading { text: qsTr("Authors"); level: 3 }
-            RowLayout {
+            title: qsTr("Authors")
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-                Kirigami.Icon {
-                    source: "user-identity"
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                    Accessible.ignored: true
-                }
-                Label {
-                    objectName: "aboutAuthors"
-                    text: qsTr("PunchiSoft")
+                Layout.margins: Kirigami.Units.largeSpacing
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    Kirigami.Icon {
+                        source: "user-identity"
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        Accessible.ignored: true
+                    }
+                    Label {
+                        objectName: "aboutAuthors"
+                        text: qsTr("PunchiSoft")
+                    }
                 }
             }
         }

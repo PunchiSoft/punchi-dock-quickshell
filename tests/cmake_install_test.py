@@ -33,6 +33,7 @@ def main() -> int:
         assert backend.is_file() and os.access(backend, os.X_OK)
         assert (data_root / 'shell.qml').is_file()
         assert (data_root / 'qml/Punchi/Kde/libpunchikdeplugin.so').is_file()
+        assert (data_root / 'qml/Punchi/Kde/libpunchikde.so').is_file()
         assert (data_root / 'scripts-user/launcher.sh').is_file()
         assert 'Exec=punchi-dock-quickshell' in desktop.read_text()
 

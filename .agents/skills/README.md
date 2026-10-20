@@ -7,6 +7,7 @@ from Punchi Dock Rust; Quickshell/KDE-specific workflows are new.
 - [animations](animations/SKILL.md)
 - [architecture](architecture/SKILL.md)
 - [control-connection-review](control-connection-review/SKILL.md)
+- [commit-push-versioning](commit-push-versioning/SKILL.md)
 - [documentation](documentation/SKILL.md)
 - [kde-integration](kde-integration/SKILL.md)
 - [localization](localization/SKILL.md)

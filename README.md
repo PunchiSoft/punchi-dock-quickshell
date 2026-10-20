@@ -11,11 +11,12 @@
 >
 > Punchi Dock Quickshell is under constant development. Expect breaking changes
 > to behavior, configuration, native APIs and documentation without migration.
-> Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland is the primary validated
-> environment. Arch Linux (rolling, checked 2026-10-19: Plasma/KWin 6.8.0,
-> Qt 6.12.0, KF6 6.31.0, Quickshell 0.3.2) has a prior build/start record, but
-> complete runtime and visual validation for this exact set is still pending.
-> Other distributions, X11 and other compositors are unvalidated. There is no
+> Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked
+> 2026-10-20, is the primary validated environment. Arch Linux (rolling,
+> checked 2026-10-19: Plasma/KWin 6.8.0, Qt 6.12.0, KF6 6.31.0, Quickshell
+> 0.3.2) has a successful build and initial-start test; prolonged-use and full
+> visual validation remain pending. X11 is out of scope and no support work is
+> planned. Other distributions and compositors are unvalidated. There is no
 > stable release, package, support commitment or compatibility guarantee yet.
 
 Punchi Dock Quickshell combines animated magnification, configurable application
@@ -27,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.24**. The first Git snapshot was published as
+**Current delivery:** **0.1.25**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -35,9 +36,10 @@ Compatibility and validation limits are documented below.
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
 
 The source-checkout workflow below is the supported development installation.
-The automated setup currently covers Fedora 44 with Quickshell 0.2.1, Qt 6.11.2,
-KDE Frameworks 6.31.0 and KDE Plasma/KWin 6.7.5; other distributions need
-package-name adjustments and their own validation.
+On 2026-10-20, the automated setup and test suite were validated on Fedora 44
+with Quickshell 0.2.1, Qt 6.11.2, KDE Frameworks 6.31.0, KDE Plasma 6.7.5 and
+KWin 6.7.5. Other distributions need package-name adjustments and their own
+validation.
 
 ## Current features
 
@@ -59,6 +61,9 @@ package-name adjustments and their own validation.
 - An optional **Start with KDE Plasma** switch that writes or removes a
   Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
   sign-in; an entry owned by another tool is never overwritten or deleted.
+- Optional **recent applications** from KDE activity history, shown as extra
+  dock launchers with a configurable count. Pinned applications and
+  applications with open windows are excluded.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
 - Downloads with Grid, List and Detail folder views, navigation inside a themed
   balloon, and native KDE file opening.
@@ -72,10 +77,11 @@ an application-launcher surface and additional controls remain future work.
 - Alpha software: behavior, configuration and native APIs may change without
   migration.
 - Requires KDE Plasma/KWin on Wayland. Other desktops and compositors are not
-  supported.
-- Fedora 44 with KDE Plasma/KWin 6.7.5 on Wayland is the primary validated
-  environment. Arch Linux currently builds and starts but still needs complete
-  runtime and visual validation; X11 and other compositors are untested.
+  supported. X11 is out of scope and no support work is planned.
+- Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked
+  2026-10-20, is the primary validated environment. Arch Linux has passed a
+  build and initial-start test; prolonged-use and full visual validation remain
+  pending.
 - English UI only for now; [README.es.md](README.es.md) is a documentation
   translation.
 - Source and CMake prefix installs only; no RPM/DEB packages, tags or release
@@ -147,22 +153,22 @@ not register a second window backend.
 
 | Status | Environment / family | Plasma | KWin | Qt | KF6 | Quickshell | Distributions / notes |
 |:---:|---|---|---|---|---|---|---|
-| ✅ | Fedora KDE 44 | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | — |
-| 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Arch repository versions checked 2026-10-19; not a compatibility claim for this exact set; Mesa/Zink warnings; runtime validation pending |
+| ✅ | Fedora KDE 44 | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | Versions checked 2026-10-20 |
+| 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Arch repository versions checked 2026-10-19; build and initial start tested; prolonged-use and full visual validation pending; Mesa/Zink warnings; not a compatibility claim for this exact set |
 | ⚪ | Fedora/RHEL family | — | — | — | — | — | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE |
 | ⚪ | Debian/Ubuntu family | — | — | — | — | — | Debian KDE, Kubuntu, KDE neon, Tuxedo OS, MX Linux KDE |
 | ⚪ | Arch family | — | — | — | — | — | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE |
 | ⚪ | openSUSE | — | — | — | — | — | Tumbleweed, Leap |
 | ⚪ | Independent | — | — | — | — | — | KaOS, Solus KDE |
-| ❌ | X11 / non-KDE compositors | — | — | — | — | — | — |
+| ❌ | X11 / non-KDE compositors | — | — | — | — | — | X11 is out of scope; no support work is planned |
 
 ✅ validated · 🟡 builds/starts, validation pending · ⚪ untested, same family · ❌ unsupported · ⏳ pending · — not applicable.
 
 Only Fedora 44 has the complete automated validation graph. List based on the
 [KDE Community wiki — Distributions](https://community.kde.org/Distributions).
-Plasma 6.8.0 was released on 2026-10-14. The Fedora row keeps the validated
-6.7.5 set; Arch repositories carry 6.8.0, but that exact combination still needs
-runtime and visual validation.
+Plasma 6.8.0 was released on 2026-10-14. Arch was confirmed to build and start,
+but prolonged use and visual behavior still need validation; this is not a
+compatibility claim for every Arch installation.
 
 The setup assistant reports dependencies in two groups. Distribution-specific
 package names and install commands stay in `scripts-user/`; this list names the
@@ -177,6 +183,7 @@ software each group needs.
 - KSvg
 - KService
 - Plasma Workspace
+- Plasma Activities
 - Plasma Activities Stats
 
 **To build the native components:**
@@ -187,7 +194,7 @@ software each group needs.
 - Extra CMake Modules
 - Qt 6 Base, Declarative and Tools development files
 - KF6 KIO, Service, CoreAddons, Config and WindowSystem development files
-- Plasma Activities Stats development files
+- Plasma Activities and Plasma Activities Stats development files
 - Wayland client development files, scanner and protocols
 
 The runtime also needs `kbuildsycoca6` from KService. Validation tests separately
@@ -214,8 +221,8 @@ tools) and reports what is missing. Fedora package names are validated.
 Debian/Ubuntu (including Kubuntu) and Arch have best-effort package maps; verify
 the names with the distribution before installing them.
 
-KDE Plasma/KWin on Wayland is required. X11 and other compositors remain
-unsupported.
+KDE Plasma/KWin on Wayland is required. X11 is out of scope and no support work
+is planned; other compositors are unsupported.
 
 ### Start and stop
 
@@ -279,7 +286,9 @@ Without a saved file, the application uses the defaults in
 These are prototype defaults, not a guarantee that every preset application is
 installed. Changing settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
-mode. The current file format is version 6 and accepts versions 1 to 5 through migration.
+mode. The current file format is version 7 and accepts versions 1 to 6 through
+migration. Version 7 adds the recent-applications switch and visible count;
+missing fields in older profiles default to enabled with five applications.
 
 ## Installation and sharing
 
@@ -370,8 +379,8 @@ existing preferences. See [KConfig](https://api.kde.org/kconfig-index.html).
 The initial target is Linux with KDE Plasma/KWin on Wayland. See
 [Compatibility at a glance](#compatibility-at-a-glance) for the validated
 versions and candidate distributions. Quickshell and Qt must be ABI-compatible;
-other combinations, distributions, X11 and other compositors require their own
-validation.
+other combinations, distributions and compositors require their own validation.
+X11 is out of scope and no support work is planned.
 
 Updates to Plasma, KWin, KDE Frameworks, Qt or Quickshell can affect compatibility.
 The risk differs between maintenance updates and changes to major versions or

@@ -1,0 +1,54 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+#include <QtTest>
+#include <QStandardItemModel>
+#include <QAbstractItemModelTester>
+#include "adapters/kde/native/recentapplicationsmodel.h"
+
+class RecentApplicationsModelTest : public QObject {
+    Q_OBJECT
+    enum Role { StorageId = Qt::UserRole + 1, Name, Icon };
+    static void initialize(QStandardItemModel &model) {
+        model.setItemRoleNames({{StorageId, "storageId"}, {Name, "name"}, {Icon, "icon"}});
+    }
+    static void append(QStandardItemModel &model, const QString &storageId, const QString &name) {
+        auto *item = new QStandardItem;
+        item->setData(storageId, StorageId);
+        item->setData(name, Name);
+        item->setData("application-x-executable", Icon);
+        model.appendRow(item);
+    }
+private slots:
+    void selectionOrderMaximumExclusionsAndMutations() {
+        QStandardItemModel source;
+        initialize(source);
+        append(source, "org.kde.dolphin.desktop", "Dolphin");
+        append(source, "org.kde.kate.desktop", "Kate");
+        append(source, "org.kde.dolphin.desktop", "Dolphin duplicate");
+        append(source, "org.kde.okular.desktop", "Okular");
+        append(source, "org.kde.gwenview.desktop", "Gwenview");
+        append(source, "org.kde.ark.desktop", "Ark");
+        RecentApplicationsModel selection;
+        QAbstractItemModelTester tester(&selection, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        selection.setSourceModel(&source);
+        QCOMPARE(selection.count(), 0);
+        selection.setEnabled(true);
+        QCOMPARE(selection.count(), 5);
+        QCOMPARE(selection.items().at(0).toMap().value("storageId").toString(), "org.kde.dolphin.desktop");
+        selection.setMaximumItems(3);
+        QCOMPARE(selection.count(), 3);
+        QCOMPARE(selection.items().at(2).toMap().value("storageId").toString(), "org.kde.okular.desktop");
+        selection.setExcludedStorageIds({"org.kde.kate.desktop"});
+        QCOMPARE(selection.count(), 3);
+        QCOMPARE(selection.items().at(1).toMap().value("storageId").toString(), "org.kde.okular.desktop");
+        source.item(0)->setData("Dolphin renamed", Name);
+        QCOMPARE(selection.items().at(0).toMap().value("name").toString(), "Dolphin renamed");
+        selection.setEnabled(false);
+        QCOMPARE(selection.count(), 0);
+        selection.setEnabled(true);
+        QCOMPARE(selection.count(), 3);
+        selection.setSourceModel(nullptr);
+        QCOMPARE(selection.count(), 0);
+    }
+};
+QTEST_GUILESS_MAIN(RecentApplicationsModelTest)
+#include "recent_applications_model_test.moc"

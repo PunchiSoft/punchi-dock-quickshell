@@ -38,9 +38,17 @@ void DockApplicationsModel::setPinned(QAbstractItemModel *model)
 void DockApplicationsModel::setCatalog(QAbstractItemModel *model)
 {
     if (model == m_catalog) return;
-    if (m_catalog && m_catalog != m_pinned) disconnect(m_catalog, nullptr, this, nullptr);
+    if (m_catalog && m_catalog != m_pinned && m_catalog != m_recent) disconnect(m_catalog, nullptr, this, nullptr);
     m_catalog = model;
-    if (model != m_pinned) connectSource(model);
+    if (model != m_pinned && model != m_recent) connectSource(model);
+    schedule(); emit sourcesChanged();
+}
+void DockApplicationsModel::setRecent(QAbstractItemModel *model)
+{
+    if (model == m_recent) return;
+    if (m_recent && m_recent != m_pinned && m_recent != m_catalog) disconnect(m_recent, nullptr, this, nullptr);
+    m_recent = model;
+    if (model != m_pinned && model != m_catalog) connectSource(model);
     schedule(); emit sourcesChanged();
 }
 void DockApplicationsModel::setRunningDesktopIds(const QStringList &ids)
@@ -103,7 +111,7 @@ void DockApplicationsModel::schedule()
 }
 void DockApplicationsModel::rebuild()
 {
-    QList<Row> next, candidates;
+    QList<Row> next, runningCandidates, recentCandidates;
     QList<Row> trailingItems;
     QSet<QString> identities, appIds;
     for (int row = 0; m_pinned && row < m_pinned->rowCount(); ++row) {
@@ -119,7 +127,7 @@ void DockApplicationsModel::rebuild()
         const auto desktopId = normalizedApplicationId(field(source, "desktopId").toString());
         if (appId.isEmpty() || desktopId.isEmpty() || !field(source, "installed").toBool()
             || !m_running.contains(desktopId) || identities.contains(desktopId) || appIds.contains(appId)) continue;
-        candidates.append({appId, source, {}}); identities.insert(desktopId); appIds.insert(appId);
+        runningCandidates.append({appId, source, {}}); identities.insert(desktopId); appIds.insert(appId);
     }
     // Some real window tasks (notably Plasma applet settings) have no visible
     // desktop service. Keep them as transient entries using KDE task metadata.
@@ -133,20 +141,39 @@ void DockApplicationsModel::rebuild()
             {QStringLiteral("desktopId"), desktopId + QStringLiteral(".desktop")},
             {QStringLiteral("title"), entry.value(QStringLiteral("name"))},
             {QStringLiteral("iconName"), entry.value(QStringLiteral("iconName"))}};
-        candidates.append({appId, {}, fallback});
+        runningCandidates.append({appId, {}, fallback});
         identities.insert(desktopId); appIds.insert(appId);
+    }
+    // Recent applications are resolved application rows, not task entries.
+    // Keep their history order and skip anything already pinned or open.
+    for (int row = 0; m_recent && row < m_recent->rowCount(); ++row) {
+        const auto source = m_recent->index(row, 0);
+        const auto storageId = field(source, "storageId").toString();
+        const auto identity = normalizedApplicationId(storageId);
+        const auto appId = QStringLiteral("desktop:") + storageId;
+        if (storageId.isEmpty() || identity.isEmpty()
+            || identities.contains(identity) || appIds.contains(appId)) continue;
+        auto iconName = field(source, "icon").toString();
+        if (iconName.isEmpty()) iconName = QStringLiteral("application-x-executable");
+        const QVariantMap fallback{{QStringLiteral("appId"), appId},
+            {QStringLiteral("desktopId"), storageId},
+            {QStringLiteral("title"), field(source, "name")},
+            {QStringLiteral("iconName"), iconName}};
+        recentCandidates.append({appId, {}, fallback});
+        identities.insert(identity); appIds.insert(appId);
     }
     // Running applications join before trailing special items. A special item
     // explicitly moved into the middle retains its chosen position.
     while (!next.isEmpty() && next.last().id.startsWith(QLatin1String("item:")))
         trailingItems.prepend(next.takeLast());
-    // Keep existing transient applications in place as other windows open/close.
+    // Keep existing running applications in place as other windows open/close.
     for (const auto &previous : m_rows) {
-        for (int row = 0; row < candidates.size(); ++row) if (candidates.at(row).id == previous.id) {
-            next.append(candidates.takeAt(row)); break;
+        for (int row = 0; row < runningCandidates.size(); ++row) if (runningCandidates.at(row).id == previous.id) {
+            next.append(runningCandidates.takeAt(row)); break;
         }
     }
-    next.append(candidates);
+    next.append(runningCandidates);
+    next.append(recentCandidates);
     next.append(trailingItems);
     for (int row = m_rows.size() - 1; row >= 0; --row) {
         bool keep = false;

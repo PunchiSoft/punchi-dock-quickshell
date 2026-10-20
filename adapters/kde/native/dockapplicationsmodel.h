@@ -12,6 +12,7 @@ class DockApplicationsModel : public QAbstractListModel
     QML_ELEMENT
     Q_PROPERTY(QAbstractItemModel *pinned READ pinned WRITE setPinned NOTIFY sourcesChanged)
     Q_PROPERTY(QAbstractItemModel *catalog READ catalog WRITE setCatalog NOTIFY sourcesChanged)
+    Q_PROPERTY(QAbstractItemModel *recent READ recent WRITE setRecent NOTIFY sourcesChanged)
     Q_PROPERTY(QStringList runningDesktopIds READ runningDesktopIds WRITE setRunningDesktopIds NOTIFY sourcesChanged)
     Q_PROPERTY(QVariantList runningApplications READ runningApplications WRITE setRunningApplications NOTIFY sourcesChanged)
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
@@ -20,10 +21,12 @@ public:
     explicit DockApplicationsModel(QObject *parent = nullptr);
     QAbstractItemModel *pinned() const { return m_pinned; }
     QAbstractItemModel *catalog() const { return m_catalog; }
+    QAbstractItemModel *recent() const { return m_recent; }
     QStringList runningDesktopIds() const { return m_running; }
     QVariantList runningApplications() const { return m_runningApplications; }
     void setPinned(QAbstractItemModel *model);
     void setCatalog(QAbstractItemModel *model);
+    void setRecent(QAbstractItemModel *model);
     void setRunningDesktopIds(const QStringList &ids);
     void setRunningApplications(const QVariantList &applications);
     int rowCount(const QModelIndex &parent = {}) const override;
@@ -38,7 +41,7 @@ private:
     void connectSource(QAbstractItemModel *model);
     void schedule();
     void rebuild();
-    QPointer<QAbstractItemModel> m_pinned, m_catalog;
+    QPointer<QAbstractItemModel> m_pinned, m_catalog, m_recent;
     QStringList m_running;
     QVariantList m_runningApplications;
     QList<Row> m_rows;

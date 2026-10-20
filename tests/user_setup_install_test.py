@@ -61,6 +61,9 @@ def main() -> int:
         installed_launcher = install_root / 'scripts-user/launcher.sh'
         assert marker.is_file()
         assert manifest.is_file()
+        # The QML plugin loads this library through a relative path; the install
+        # must carry it so the copy never depends on the source build tree.
+        assert (install_root / 'build/libpunchikde.so').is_file()
         assert version_file.read_text().strip() == version
         assert installed_launcher.is_file() and os.access(installed_launcher, os.X_OK)
         assert launcher.is_file()
