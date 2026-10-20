@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.29 — 2026-10-20
+
+- Add Punchi Menu's hover pulse to dock popups. Context-menu rows, Places,
+  recent files, window actions, media controls and the folder Grid, List,
+  Detail and Fan presentations now share one hover surface: the fill fades and
+  the row pulses to 1.03 in 95 ms, returning in 125 ms, exactly like the
+  reference menu. Press travels through the same surface at 0.97, and leaving
+  mid-pulse settles at rest, so interrupted gestures always end in the correct
+  state.
+- Keep hover and keyboard focus distinct, scale row content instead of the fill
+  so the rounded surface and its ring stay crisp, derive the fade from the theme
+  short duration instead of a fixed floor, and disable scaling while reduced
+  motion is active.
+- Recover the Punchi Dock Remastered motion pack as English skills: policy,
+  fluid mechanism, audit catalog, per-frame cost and surface-effect levels,
+  adapted to Quickshell and KDE Plasma/KWin.
+
 ## 0.1.28 — 2026-10-20
 
 - Add a **Fan** presentation to folder containers. Entries unfold from the dock

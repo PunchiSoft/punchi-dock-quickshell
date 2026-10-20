@@ -110,6 +110,7 @@ ItemDelegate {
 
     contentItem: Item {
         id: rowContent
+        scale: fanHighlight.visualScale
 
         // The row turns as one rigid group about the centre of its glyph, so the
         // glyph stays on the arc and its pill travels with it.
@@ -119,15 +120,22 @@ ItemDelegate {
             angle: root.rowLean
         }
 
-        LauncherHighlight {
+        PopupRowHighlight {
+            id: fanHighlight
             objectName: "folderFanHighlight"
             x: root.iconX - Kirigami.Units.smallSpacing
             y: Math.round(Kirigami.Units.smallSpacing / 2)
             width: root.iconSize + Kirigami.Units.smallSpacing * 2
             height: Math.max(0, rowContent.height - Kirigami.Units.smallSpacing)
+            radius: Kirigami.Units.cornerRadius * 2
             hovered: root.hovered
             focused: root.visualFocus
             pressed: root.pressed
+            motionEnabled: root.motionEnabled
+            hoverOpacity: 0.2
+            selectedOpacity: 0.2
+            focusedOpacity: 0.2
+            pressedOpacity: 0.3
         }
 
         Rectangle {

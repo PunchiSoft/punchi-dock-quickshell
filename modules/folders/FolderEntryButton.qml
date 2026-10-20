@@ -5,6 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
+import "../../components"
 
 ItemDelegate {
     id: root
@@ -22,17 +23,24 @@ ItemDelegate {
     padding: Kirigami.Units.smallSpacing
     Accessible.name: text
     Accessible.description: detailed ? description : ""
-    background: Rectangle {
+    // The Grid location action marks its circular control instead of the cell.
+    readonly property bool rowFillAllowed: !(root.grid && root.locationAction)
+    background: PopupRowHighlight {
+        id: rowHighlight
         radius: root.grid ? Kirigami.Units.smallSpacing : 0
-        color: root.grid && root.locationAction ? "transparent"
-            : (root.hovered || root.visualFocus || root.highlighted)
-                ? Qt.alpha(Kirigami.Theme.highlightColor, root.grid ? 0.14 : 0.22)
-                : "transparent"
-        border.width: root.grid && root.visualFocus ? 1 : 0
-        border.color: Kirigami.Theme.highlightColor
+        hovered: root.rowFillAllowed && root.hovered
+        selected: root.rowFillAllowed && root.highlighted
+        focused: root.visualFocus
+        pressed: root.rowFillAllowed && root.down
+        motionEnabled: root.motionEnabled
+        hoverOpacity: root.grid ? 0.14 : 0.22
+        selectedOpacity: root.grid ? 0.14 : 0.22
+        focusedOpacity: root.rowFillAllowed ? (root.grid ? 0.14 : 0.22) : 0
+        focusRingWidth: root.grid ? 1 : 0
     }
     contentItem: GridLayout {
         id: entryContent
+        scale: rowHighlight.visualScale
         objectName: "folderEntryContent"
         visible: true
         columns: root.grid ? 1 : 2

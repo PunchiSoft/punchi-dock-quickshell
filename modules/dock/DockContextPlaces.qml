@@ -7,6 +7,7 @@ import org.kde.kirigami as Kirigami
 
 ColumnLayout {
     id: root
+    property bool motionEnabled: true
     property var places: null
     readonly property int count: places ? places.count : 0
     readonly property int remainingCount: places ? places.remainingCount : 0
@@ -33,6 +34,7 @@ ColumnLayout {
     }
     DockContextAction {
         id: backAction
+        motionEnabled: root.motionEnabled
         objectName: "backToPlacesAction"
         Layout.fillWidth: true
         visible: root.groupName.length > 0
@@ -55,6 +57,7 @@ ColumnLayout {
                 id: items
                 model: root.places
                 delegate: DockContextAction {
+                    motionEnabled: root.motionEnabled
                     required property string resource
                     required property string name
                     required property string iconName
@@ -78,6 +81,7 @@ ColumnLayout {
     DockContextAction { id: measurement; visible: false }
     DockContextAction {
         id: moreAction
+        motionEnabled: root.motionEnabled
         objectName: "morePlacesAction"
         Layout.fillWidth: true
         visible: root.remainingCount > 0

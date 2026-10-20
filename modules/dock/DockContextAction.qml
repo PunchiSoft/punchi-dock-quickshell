@@ -4,11 +4,13 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
+import "../../components"
 
 ItemDelegate {
     id: root
     property bool submenu: false
     property bool marked: false
+    property bool motionEnabled: true
     focusPolicy: Qt.StrongFocus
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.smallSpacing
@@ -20,10 +22,10 @@ ItemDelegate {
     implicitWidth: metrics.advanceWidth(text) + icon.width + spacing + leftPadding + rightPadding
         + (submenu ? icon.width + spacing : 0)
     palette.windowText: Kirigami.Theme.textColor
-    readonly property bool emphasized: root.enabled && (root.hovered || root.down)
     FontMetrics { id: metrics; font: root.font }
     contentItem: RowLayout {
         spacing: root.spacing
+        scale: rowHighlight.visualScale
         Kirigami.Icon {
             Native.IconThemeRefresh.enabled: true
             source: root.icon.name
@@ -47,13 +49,18 @@ ItemDelegate {
             Layout.preferredHeight: root.icon.height
         }
     }
-    background: Rectangle {
+    background: PopupRowHighlight {
+        id: rowHighlight
         radius: Kirigami.Units.cornerRadius
-        opacity: (root.emphasized || root.visualFocus) ? 1 : 0
-        color: root.emphasized ? (root.down ? Kirigami.Theme.focusColor
-            : Qt.alpha(Kirigami.Theme.focusColor, 0.3)) : "transparent"
-        border.color: Kirigami.Theme.focusColor
-        border.width: (root.emphasized || root.visualFocus) ? 1 : 0
+        hovered: root.enabled && root.hovered
+        pressed: root.enabled && root.down
+        focused: root.enabled && root.visualFocus
+        motionEnabled: root.motionEnabled
+        highlightColor: Kirigami.Theme.focusColor
+        hoverOpacity: 0.3
+        pressedOpacity: 1
+        focusRingWidth: 1
+        ringOnHover: true
     }
     Keys.onReturnPressed: if (root.enabled) root.clicked()
     Keys.onEnterPressed: if (root.enabled) root.clicked()

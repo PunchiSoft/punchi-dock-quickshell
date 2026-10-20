@@ -15,6 +15,10 @@ Item {
     property var places: null
     property var media: null
     property var settings: null
+    // Popup rows only fade and pulse when a loaded settings object confirms
+    // motion is allowed; standalone fixtures keep the instant, final state.
+    readonly property bool motionEnabled: root.settings
+        ? !root.settings.effectiveReducedMotion : false
     property var minimizeEffectController: null
     property bool usesPlaces: false
     property bool canLaunchNewWindow: false
@@ -136,6 +140,7 @@ Item {
             ]
             delegate: DockContextAction {
                 id: folderSortOption
+                motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "folderSort-" + modelData.mode
                 Layout.fillWidth: true
@@ -159,6 +164,7 @@ Item {
                 {mode: "fan", label: qsTr("Fan")}
             ]
             delegate: DockContextAction {
+                motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "folderLayout-" + modelData.mode
                 Layout.fillWidth: true
@@ -170,6 +176,7 @@ Item {
             }
         }
         DockContextAction {
+            motionEnabled: root.motionEnabled
             objectName: "openFolderAction"
             Layout.fillWidth: true
             visible: root.folderItem
@@ -180,6 +187,7 @@ Item {
         }
         DockContextAction {
             id: openTrashAction
+            motionEnabled: root.motionEnabled
             objectName: "openTrashAction"
             Layout.fillWidth: true
             visible: root.trashItem
@@ -190,6 +198,7 @@ Item {
         DockContextSeparator { visible: root.trashItem; Layout.fillWidth: true }
         DockContextAction {
             id: emptyTrashAction
+            motionEnabled: root.motionEnabled
             objectName: "emptyTrashAction"
             Layout.fillWidth: true
             visible: root.trashItem
@@ -200,6 +209,7 @@ Item {
         }
         DockContextMedia {
             id: mediaContent
+            motionEnabled: root.motionEnabled
             objectName: "dockContextMedia"
             Layout.fillWidth: true
             media: root.media
@@ -208,6 +218,7 @@ Item {
         }
         DockContextPlaces {
             id: placesContent
+            motionEnabled: root.motionEnabled
             Layout.fillWidth: true
             places: root.places
             visible: root.usesPlaces
@@ -218,6 +229,7 @@ Item {
         }
         DockContextRecentFiles {
             id: recentContent
+            motionEnabled: root.motionEnabled
             Layout.fillWidth: true
             documents: root.recentDocuments
             visible: !root.usesPlaces && count > 0
@@ -239,6 +251,7 @@ Item {
                 boundsBehavior: Flickable.StopAtBounds
                 delegate: DockContextAction {
                     id: desktopAction
+                    motionEnabled: root.motionEnabled
                     required property var modelData
                     objectName: "desktopAction-" + modelData.actionId
                     width: ListView.view.width
@@ -251,6 +264,7 @@ Item {
         }
         DockContextWindowActions {
             id: windowActionsContent
+            motionEnabled: root.motionEnabled
             objectName: "dockWindowActions"
             Layout.fillWidth: true
             windowActions: root.windowActions
@@ -260,6 +274,7 @@ Item {
         }
         DockContextAction {
             id: newWindowAction
+            motionEnabled: root.motionEnabled
             objectName: "openNewWindowAction"
             Layout.fillWidth: true
             visible: root.canLaunchNewWindow
@@ -269,6 +284,7 @@ Item {
         }
         DockContextAction {
             id: pinAction
+            motionEnabled: root.motionEnabled
             objectName: "pinDockAction"
             Layout.fillWidth: true
             visible: root.canPin && !root.pinned && !root.trashItem && !root.dockBackground
@@ -278,6 +294,7 @@ Item {
         }
         DockContextAction {
             id: unpinAction
+            motionEnabled: root.motionEnabled
             objectName: "unpinDockAction"
             Layout.fillWidth: true
             visible: root.pinned && !root.trashItem
@@ -297,6 +314,7 @@ Item {
         }
         DockContextAction {
             id: dockAutoHideAction
+            motionEnabled: root.motionEnabled
             objectName: "dockAutoHideAction"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.settings
@@ -306,6 +324,7 @@ Item {
             onClicked: root.autoHideRequested()
         }
         DockContextAction {
+            motionEnabled: root.motionEnabled
             objectName: "dockMagnificationAction"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.settings
@@ -316,6 +335,7 @@ Item {
         }
         DockContextAction {
             id: dockPositionSubmenu
+            motionEnabled: root.motionEnabled
             objectName: "dockPositionSubmenu"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.settings
@@ -331,6 +351,7 @@ Item {
                 {edge: "right", label: qsTr("Right")}
             ]
             delegate: DockContextAction {
+                motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "dockPosition-" + modelData.edge
                 Layout.fillWidth: true
@@ -343,6 +364,7 @@ Item {
         }
         DockContextAction {
             id: minimizeEffectSubmenu
+            motionEnabled: root.motionEnabled
             objectName: "minimizeEffectSubmenu"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.minimizeEffectController && root.minimizeEffectController.available
@@ -359,6 +381,7 @@ Item {
                 {effect: "other", label: qsTr("Other"), available: !!root.minimizeEffectController && root.minimizeEffectController.effect === "other"}
             ]
             delegate: DockContextAction {
+                motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "minimizeEffect-" + modelData.effect
                 Layout.fillWidth: true
@@ -373,6 +396,7 @@ Item {
         }
         DockContextAction {
             id: configureAction
+            motionEnabled: root.motionEnabled
             objectName: "configureDockAction"
             Layout.fillWidth: true
             visible: !root.trashItem
