@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.26**. The first Git snapshot was published as
+**Current delivery:** **0.1.27**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -63,9 +63,10 @@ validation.
   sign-in; an entry owned by another tool is never overwritten or deleted.
 - Optional **recent applications** from KDE activity history, shown as extra
   dock launchers with a configurable count. Pinned applications and
-  applications with open windows are excluded. The list needs KDE to remember
-  application use: when KDE is set not to, the dock settings explain how to
-  enable it.
+  applications with open windows are excluded. Dock settings include a switch
+  that writes KDE's remember-applications preference and a shortcut to KDE's
+  Recent Files options; when KDE saves no application history a short note
+  explains how to enable it.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
 - Downloads with Grid, List and Detail folder views, navigation inside a themed
   balloon, and native KDE file opening.

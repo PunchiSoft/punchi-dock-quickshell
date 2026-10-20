@@ -32,6 +32,12 @@ QtObject {
     readonly property bool usable: available && trackingEnabled
     readonly property int count: selection.count
     readonly property var items: selection.items
+    function setTrackingEnabled(enabled: bool): bool {
+        return history.setTrackingEnabled(enabled)
+    }
+    function openTrackingSettings(): bool {
+        return history.openTrackingSettings()
+    }
     function recordAccess(appId: string): void {
         if (!root.usable || !root.catalog) return
         const row = root.catalog.application(appId)

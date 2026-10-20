@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QtTest>
+#include <KConfig>
+#include <KConfigGroup>
 #include <QFile>
 #include <QTemporaryDir>
 #include "adapters/kde/native/recentapplicationsadapter.h"
@@ -14,11 +16,18 @@ class RecentApplicationsTrackingTest : public QObject {
             + QStringLiteral("/kactivitymanagerd-pluginsrc");
     }
     static void writeWhatToRemember(int value) {
+        writeConfiguration(QByteArray("what-to-remember=") + QByteArray::number(value));
+    }
+    static void writeConfiguration(const QByteArray &entries) {
         QFile file(configPath());
         QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
-        file.write(QByteArray("[") + ScoringGroup + "]\nwhat-to-remember="
-            + QByteArray::number(value) + '\n');
+        file.write(QByteArray("[") + ScoringGroup + "]\n" + entries + '\n');
         file.close();
+    }
+    static QByteArray readConfiguration() {
+        QFile file(configPath());
+        if (!file.open(QIODevice::ReadOnly)) return {};
+        return file.readAll();
     }
 private slots:
     void initTestCase() {
@@ -34,6 +43,19 @@ private slots:
         QTRY_COMPARE(adapter.trackingEnabled(), false);
         writeWhatToRemember(1);
         QTRY_COMPARE(adapter.trackingEnabled(), true);
+    }
+    void switchWritesOnlyThePublicStates() {
+        writeConfiguration("what-to-remember=1\nallowed-applications=org.kde.kate.desktop\n");
+        RecentApplicationsAdapter adapter;
+        QCOMPARE(adapter.trackingEnabled(), true);
+        QVERIFY(adapter.setTrackingEnabled(false));
+        QCOMPARE(adapter.trackingEnabled(), false);
+        QCOMPARE(readConfiguration().contains("what-to-remember=2"), true);
+        QCOMPARE(readConfiguration().contains("allowed-applications=org.kde.kate.desktop"), true);
+        QVERIFY(adapter.setTrackingEnabled(true));
+        QCOMPARE(adapter.trackingEnabled(), true);
+        QCOMPARE(readConfiguration().contains("what-to-remember=0"), true);
+        QCOMPARE(readConfiguration().contains("allowed-applications=org.kde.kate.desktop"), true);
     }
     void missingConfigurationKeepsTrackingEnabled() {
         QFile::remove(configPath());

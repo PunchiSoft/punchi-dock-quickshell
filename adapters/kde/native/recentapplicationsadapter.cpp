@@ -3,6 +3,7 @@
 
 #include <KConfig>
 #include <KConfigGroup>
+#include <KIO/ApplicationLauncherJob>
 #include <KService>
 #include <KSycoca>
 #include <PlasmaActivities/Consumer>
@@ -11,6 +12,7 @@
 #include <PlasmaActivities/Stats/Terms>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QProcess>
 #include <QStandardPaths>
 #include <QUrl>
 
@@ -169,6 +171,30 @@ QVariant RecentApplicationsAdapter::data(const QModelIndex &item, int role) cons
     case IconRole: return app.value(QStringLiteral("icon"));
     default: return {};
     }
+}
+
+bool RecentApplicationsAdapter::setTrackingEnabled(bool enabled)
+{
+    KConfig config(QStringLiteral("kactivitymanagerd-pluginsrc"));
+    KConfigGroup group(&config, QString::fromLatin1(ScoringGroup));
+    group.writeEntry(WhatToRemember, enabled ? 0 : NoApplications, KConfigBase::Notify);
+    const bool written = group.sync();
+    reloadTracking();
+    return written;
+}
+
+bool RecentApplicationsAdapter::openTrackingSettings()
+{
+    // A standalone module window matches this single preference; KDE's own
+    // desktop entry is the fallback when kcmshell6 is unavailable.
+    if (QProcess::startDetached(QStringLiteral("kcmshell6"), {QStringLiteral("kcm_recentFiles")}))
+        return true;
+    const auto service = KService::serviceByStorageId(QStringLiteral("kcm_recentFiles.desktop"));
+    if (!service || !service->isValid() || !service->isApplication() || service->exec().trimmed().isEmpty())
+        return false;
+    auto *job = new KIO::ApplicationLauncherJob(service, this);
+    job->start();
+    return true;
 }
 
 void RecentApplicationsAdapter::recordAccess(const QString &storageId)

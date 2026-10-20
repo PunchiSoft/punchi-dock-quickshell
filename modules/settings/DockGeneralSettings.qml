@@ -126,6 +126,40 @@ ColumnLayout {
             }
         }
         SettingsRow {
+            objectName: "recentApplicationsTrackingRow"
+            Layout.fillWidth: true
+            visible: root.recentApplications !== null
+            text: qsTr("Remember application history in KDE")
+            showSeparator: true
+            Switch {
+                id: trackingSwitch
+                objectName: "recentApplicationsTracking"
+                Accessible.name: qsTr("Remember application history in KDE")
+                checked: root.recentApplications !== null && root.recentApplications.trackingEnabled
+                onToggled: {
+                    const service = root.recentApplications
+                    if (service === null) return
+                    service.setTrackingEnabled(checked)
+                    // The gesture breaks the declarative binding; KDE stays the
+                    // source of truth for external changes.
+                    checked = Qt.binding(function() { return service.trackingEnabled })
+                }
+            }
+        }
+        SettingsRow {
+            objectName: "recentApplicationsKdeRow"
+            Layout.fillWidth: true
+            visible: root.recentApplications !== null
+            text: qsTr("KDE recent files options")
+            showSeparator: true
+            Button {
+                objectName: "recentApplicationsKdeSettings"
+                Accessible.name: qsTr("Open KDE Recent Files settings")
+                text: qsTr("Open settings")
+                onClicked: root.recentApplications.openTrackingSettings()
+            }
+        }
+        SettingsRow {
             Layout.fillWidth: true
             text: qsTr("Applications to show")
             showSeparator: false

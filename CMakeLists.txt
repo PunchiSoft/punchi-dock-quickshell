@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.26 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.27 LANGUAGES C CXX)
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -169,7 +169,7 @@ if(BUILD_TESTING)
         adapters/kde/native/recentapplicationsadapter.cpp)
     target_include_directories(recent_applications_tracking_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(recent_applications_tracking_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml
-        KF6::ConfigCore KF6::Service Plasma::ActivitiesStats Plasma::Activities)
+        KF6::ConfigCore KF6::Service KF6::KIOGui Plasma::ActivitiesStats Plasma::Activities)
     add_test(NAME recent_applications_tracking COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_tracking_test>)
     add_executable(window_activation_test tests/window_activation_test.cpp

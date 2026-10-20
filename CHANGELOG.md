@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.27 — 2026-10-20
+
+- Add a **Remember application history in KDE** switch to the recent
+  applications card. It writes only the two public states of
+  `what-to-remember` (`0` all applications, `2` none) with the KConfig notify
+  flag so `kactivitymanagerd` reloads immediately, and leaves KDE's
+  per-application allow/block lists untouched.
+- Add a **KDE recent files options** row that opens the `kcm_recentFiles`
+  module, keep the reference note while KDE saves no history, and cover the
+  writes, preserved lists, disabled controls and switch gesture with native and
+  QML regressions.
+
 ## 0.1.26 — 2026-10-20
 
 - Detect when KDE is configured not to remember applications

@@ -32,6 +32,11 @@ public:
     // Resolves application resources only. Never interprets history as commands.
     static QVariantMap resolveResource(const QString &resource);
     Q_INVOKABLE void recordAccess(const QString &storageId);
+    // Writes the two public states: remember all applications or none. KDE's
+    // per-application allow/block lists are preserved.
+    Q_INVOKABLE bool setTrackingEnabled(bool enabled);
+    // Opens KDE's Recent Files module, which owns the tracking preference.
+    Q_INVOKABLE bool openTrackingSettings();
 
 signals:
     void enabledChanged();

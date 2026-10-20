@@ -68,10 +68,13 @@ TestCase {
     Component {
         id: untrackedRecentFixture
         SettingsWindow {
+            id: untrackedRecentWindow
+            property int trackingCalls: 0
             settings: ShellSettings {}
             recentApplications: QtObject {
                 property bool available: true
                 property bool trackingEnabled: false
+                function openTrackingSettings(): bool { untrackedRecentWindow.trackingCalls += 1; return true }
             }
         }
     }
@@ -82,6 +85,13 @@ TestCase {
             recentApplications: QtObject {
                 property bool available: true
                 property bool trackingEnabled: true
+                property var trackingRequests: []
+                function setTrackingEnabled(enabled: bool): bool {
+                    trackingEnabled = enabled
+                    trackingRequests = trackingRequests.concat([enabled])
+                    return true
+                }
+                function openTrackingSettings(): bool { return true }
             }
         }
     }
@@ -269,6 +279,12 @@ TestCase {
         verify(!count.enabled)
         verify(note.visible)
         verify(note.text.length > 0)
+        const kdeRow = control(window, "recentApplicationsKdeRow")
+        const kdeButton = control(window, "recentApplicationsKdeSettings")
+        verify(kdeRow.visible)
+        verify(kdeButton.enabled)
+        mouseClick(kdeButton)
+        compare(window.trackingCalls, 1)
         window.close()
     }
     function test_recentApplicationsWithKdeTracking(): void {
@@ -282,6 +298,15 @@ TestCase {
         verify(toggle.enabled)
         verify(count.enabled)
         verify(!note.visible)
+        const tracking = control(window, "recentApplicationsTracking")
+        verify(tracking.checked)
+        const service = window.recentApplications
+        mouseClick(tracking)
+        compare(service.trackingRequests.length, 1)
+        compare(service.trackingRequests[0], false)
+        verify(!tracking.checked)
+        service.trackingEnabled = true
+        tryCompare(tracking, "checked", true)
         window.close()
     }
     function test_sidebarAndFooterGeometry(): void {
