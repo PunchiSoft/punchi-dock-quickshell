@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 
 ColumnLayout {
     id: root
+    property bool motionEnabled: true
     property var documents: null
     readonly property int count: documents ? documents.count : 0
     signal openRequested(string resource)
@@ -23,6 +24,7 @@ ColumnLayout {
         Repeater {
             model: root.documents
             delegate: DockContextAction {
+                motionEnabled: root.motionEnabled
                 required property string resource
                 required property string name
                 required property string iconName
@@ -38,6 +40,7 @@ ColumnLayout {
     DockContextSeparator { Layout.fillWidth: true }
     DockContextAction {
         id: forgetAction
+        motionEnabled: root.motionEnabled
         objectName: "forgetRecentAction"
         text: qsTr("Forget Recent Files")
         icon.name: "edit-clear-history"

@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 
 ColumnLayout {
     id: root
+    property bool motionEnabled: true
     property var windowActions: ({})
     property var virtualDesktops: []
     property string openSubmenu: ""
@@ -17,6 +18,7 @@ ColumnLayout {
     DockContextSeparator { visible: root.hasDesktopSubmenu || root.hasWindow; Layout.fillWidth: true }
     DockContextAction {
         id: desktopAction
+        motionEnabled: root.motionEnabled
         objectName: "moveToDesktopSubmenu"
         Layout.fillWidth: true
         visible: root.hasDesktopSubmenu
@@ -26,6 +28,7 @@ ColumnLayout {
         onClicked: root.openSubmenu = root.openSubmenu === "desktops" ? "" : "desktops"
     }
     DockContextAction {
+        motionEnabled: root.motionEnabled
         objectName: "moveToCurrentDesktopAction"
         Layout.fillWidth: true
         Layout.leftMargin: Kirigami.Units.gridUnit
@@ -43,6 +46,7 @@ ColumnLayout {
         }
     }
     DockContextAction {
+        motionEnabled: root.motionEnabled
         objectName: "allDesktopsAction"
         Layout.fillWidth: true
         Layout.leftMargin: Kirigami.Units.gridUnit
@@ -54,6 +58,7 @@ ColumnLayout {
     Repeater {
         model: root.virtualDesktops
         delegate: DockContextAction {
+            motionEnabled: root.motionEnabled
             required property var modelData
             required property int index
             objectName: "virtualDesktop-" + modelData.id
@@ -67,6 +72,7 @@ ColumnLayout {
         }
     }
     DockContextAction {
+        motionEnabled: root.motionEnabled
         objectName: "newVirtualDesktopAction"
         Layout.fillWidth: true
         Layout.leftMargin: Kirigami.Units.gridUnit
@@ -78,6 +84,7 @@ ColumnLayout {
     DockContextSeparator { visible: root.hasDesktopSubmenu && root.openSubmenu === "desktops"; Layout.fillWidth: true }
     DockContextAction {
         id: moreAction
+        motionEnabled: root.motionEnabled
         objectName: "moreWindowActionsSubmenu"
         Layout.fillWidth: true
         visible: root.hasWindow
@@ -99,6 +106,7 @@ ColumnLayout {
             {action: "hide-capture", key: "canHideFromCapture", check: "excludedFromCapture", label: qsTr("Hide from Screencast"), icon: "view-private"}
         ]
         delegate: DockContextAction {
+            motionEnabled: root.motionEnabled
             required property var modelData
             objectName: "windowAction-" + modelData.action
             Layout.fillWidth: true
@@ -115,6 +123,7 @@ ColumnLayout {
     DockContextSeparator { visible: moreAction.visible; Layout.fillWidth: true }
     DockContextAction {
         id: closeAction
+        motionEnabled: root.motionEnabled
         objectName: "closeWindowAction"
         Layout.fillWidth: true
         visible: root.hasWindow
