@@ -134,6 +134,7 @@ Popup {
         viewMode: root.container ? root.settings.effectiveContainerLayout(root.appId) : "grid"
         dockEdge: root.dockEdge
         surfaceVisible: root.visible
+        browseSubfolders: root.container ? root.settings.containerBrowseSubfolders(root.appId) : true
         maximumWidth: Math.max(1, (root.parent ? root.parent.width : Kirigami.Units.gridUnit * 36) - Kirigami.Units.largeSpacing * 2)
         maximumHeight: Math.max(1, Math.min(
             (root.parent ? root.parent.height : Kirigami.Units.gridUnit * 40) * 0.8,

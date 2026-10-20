@@ -18,6 +18,15 @@ Item {
     // Whether the popup that hosts this content is on screen, so the fan can
     // unfold only when it is going to be seen.
     property bool surfaceVisible: true
+    // Whether the container enters the subfolders it lists. The owner binds the
+    // controller to this value; the arc never enters them, because it is a leaf
+    // and opens a directory where it lives.
+    property bool browseSubfolders: true
+    Binding {
+        target: root.controller
+        property: "browseSubfolders"
+        value: root.browseSubfolders
+    }
     property real pointerX: width / 2
     property real pointerY: height / 2
     property bool blurAvailable: false
@@ -282,7 +291,7 @@ Item {
                 opened: root.surfaceVisible
                 onActivateRequested: function(index) {
                     root.controller.select(index)
-                    root.controller.activate(index)
+                    root.controller.openEntry(index)
                 }
                 onOpenLocationRequested: root.controller.openLocation()
                 onCloseRequested: root.closeRequested()

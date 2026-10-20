@@ -10,6 +10,10 @@ QtObject {
     property string rootTitle: ""
     property string title: rootTitle
     property var history: []
+    // Whether activating a directory enters it. When the owner turns this off,
+    // the same activation opens the directory in the file manager, so the entry
+    // still leads somewhere.
+    property bool browseSubfolders: true
     property url selectedUrl: ""
     property real scrollPosition: 0
     readonly property bool canGoBack: history.length > 0
@@ -34,6 +38,7 @@ QtObject {
     function activate(index: int): bool {
         const entry = contents.get(index)
         if (!entry.entryUrl) return false
+        if (entry.directory && !root.browseSubfolders) return open(entry.entryUrl)
         if (entry.directory) {
             history = history.concat([{location: contents.location, title,
                 selectedUrl: entry.entryUrl, scrollPosition}])
@@ -42,6 +47,13 @@ QtObject {
             restoreRequested()
             return true
         }
+        return open(entry.entryUrl)
+    }
+    // Fan rows are a leaf: a directory opens in the file manager instead of
+    // replacing the arc with its contents.
+    function openEntry(index: int): bool {
+        const entry = contents.get(index)
+        if (!entry.entryUrl) return false
         return open(entry.entryUrl)
     }
     function back(): void {

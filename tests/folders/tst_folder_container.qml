@@ -408,6 +408,102 @@ TestCase {
         compare(popup.contents.active, false)
         window.close()
     }
+    function test_browseSubfoldersSwitchGovernsNavigation(): void {
+        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        // Existing profiles keep entering subfolders: the switch defaults on.
+        compare(settings.container("item:downloads").browseSubfolders, true)
+        compare(settings.containerBrowseSubfolders("item:downloads"), true)
+        verify(settings.setContainerBrowseSubfolders("item:downloads", false))
+        compare(settings.container("item:downloads").browseSubfolders, false)
+        compare(settings.containerBrowseSubfolders("item:downloads"), false)
+        // An unrelated edit must not lose the switch.
+        verify(settings.setContainerLayout("item:downloads", "list"))
+        compare(settings.containerBrowseSubfolders("item:downloads"), false)
+        verify(settings.setContainerSortMode("item:downloads", "name"))
+        compare(settings.containerBrowseSubfolders("item:downloads"), false)
+        const restored = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        verify(restored.restore(settings.snapshot()))
+        compare(restored.containerBrowseSubfolders("item:downloads"), false)
+        // A stored value of another type is not a valid container.
+        verify(restored.restore({version: 7, downloadsView: "grid",
+            containers: [{id: "downloads", path: "", title: "Downloads",
+                icon: "folder-downloads", layout: "grid", sortMode: "modified"}]}))
+        compare(restored.containerBrowseSubfolders("item:downloads"), true)
+    }
+    function test_folderSelectionOpensInsteadOfEnteringWhenDisabled(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        verify(popup.contents.count >= 3)
+        verify(window.settings.setContainerBrowseSubfolders("item:downloads", false))
+        tryVerify(function() { return !popup.controller.browseSubfolders })
+        const grid = findChild(popup.contentItem, "folderGrid")
+        const nested = row(popup.contents, "nested")
+        verify(nested >= 0)
+        const entry = findChild(grid, "folderGridEntry-" + nested)
+        verify(entry !== null)
+        mouseClick(entry)
+        // The directory is opened where it lives; the popup never replaces its
+        // contents with the subfolder.
+        tryCompare(popup, "opened", false)
+        compare(window.opener.calls.length, 1)
+        verify(decodeURI(window.opener.calls[0]).endsWith("/nested"))
+        compare(popup.controller.history.length, 0)
+        window.close()
+    }
+    function test_fanNeverEntersASubfolder(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        verify(window.settings.setContainerLayout("item:downloads", "fan"))
+        tryCompare(popup.contentItem, "viewMode", "fan")
+        compare(popup.controller.browseSubfolders, true)
+        const fanView = findChild(popup.contentItem, "folderFanView")
+        tryVerify(function() { return fanView.visible && fanView.entryCount > 0 })
+        const nested = row(popup.contents, "nested")
+        verify(nested >= 0)
+        let entry = null
+        tryVerify(function() {
+            entry = findChild(fanView, "folderFanEntry-" + nested)
+            return entry !== null
+        })
+        mouseClick(entry)
+        // The arc is a leaf even with the switch on: a directory opens in the
+        // file manager and the popup closes.
+        tryCompare(popup, "opened", false)
+        compare(window.opener.calls.length, 1)
+        verify(decodeURI(window.opener.calls[0]).endsWith("/nested"))
+        compare(popup.controller.history.length, 0)
+        // The switch is untouched by the arc.
+        compare(window.settings.containerBrowseSubfolders("item:downloads"), true)
+        window.close()
+    }
+    function test_detailsPanelOffersTheSwitchOnlyForFolders(): void {
+        const fixture = createTemporaryObject(settingsFixture, test)
+        verify(waitForRendering(fixture))
+        const selector = findChild(fixture.view, "folderViewSetting")
+        verify(selector !== null)
+        // Nothing selected: the container block keeps its switch away.
+        verify(!findChild(fixture.view, "itemDetailsType").text.endsWith("Folder"))
+        mouseClick(findChild(fixture.view, "configuredItem-item:downloads"))
+        compare(findChild(fixture.view, "itemDetailsType").text, "Folder")
+        const browse = findChild(fixture.view, "containerBrowseSubfolders")
+        verify(browse !== null)
+        compare(browse.text, "Browse subfolders")
+        compare(browse.checked, true)
+        capture(fixture.view, "settings")
+        // The switch is a keyboard-reachable control: Space toggles it and the
+        // draft follows, leaving the saved profile alone until Apply.
+        browse.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_Space)
+        compare(fixture.view.settings.containerBrowseSubfolders("item:downloads"), false)
+        compare(browse.checked, false)
+        compare(fixture.editor.settings.containerBrowseSubfolders("item:downloads"), true)
+        mouseClick(findChild(fixture.view, "applyDockSettings"))
+        compare(fixture.editor.settings.containerBrowseSubfolders("item:downloads"), false)
+        // Trash has no container, so its details offer no subfolder switch.
+        mouseClick(findChild(fixture.view, "configuredItem-item:trash"))
+        compare(findChild(fixture.view, "itemDetailsType").text, "Trash")
+        compare(browse.checked, true)
+    }
     function test_listDetailFileAndRejectedDispatch(): void {
         const window = openWindow("bottom")
         chooseView(window, 1)

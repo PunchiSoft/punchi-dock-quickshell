@@ -279,11 +279,15 @@ ColumnLayout {
                     containerSelected: root.selectedContainer !== null
                     containerPath: root.selectedContainer ? String(root.selectedContainer.path) : ""
                     fanAvailable: root.settings.fanSupported
+                    browseSubfolders: root.settings.containerBrowseSubfolders(editor.selectedAppId)
                     containerLayout: root.selectedContainer
                         ? root.settings.effectiveContainerLayout(editor.selectedAppId) : "grid"
                     onChooseFolderRequested: folderDialog.open()
                     onLayoutSelected: function(layout) {
                         root.settings.setContainerLayout(editor.selectedAppId, layout)
+                    }
+                    onBrowseSubfoldersSelected: function(enabled) {
+                        root.settings.setContainerBrowseSubfolders(editor.selectedAppId, enabled)
                     }
                 }
             }
