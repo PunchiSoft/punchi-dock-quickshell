@@ -626,6 +626,35 @@ TestCase {
         verify(rows.some(candidate => !candidate.showSeparator))
         window.close()
     }
+    function test_addItemEditorGroupsFieldsIntoOneCard(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "itemsSettingsPage"))
+        mouseClick(control(window, "addDockItem"))
+        const page = control(window, "addDockItemPage")
+        tryCompare(page, "visible", true)
+        grabImage(page)
+        const card = findChild(page, "addItemFormCard")
+        verify(card !== null)
+        const frames = []
+        collect(card, "settingsCardFrame", frames)
+        compare(frames.length, 1, "the editor owns one grouped surface")
+        const frame = frames[0]
+        verify(frame.radius > 0)
+        compare(frame.border.width, 1)
+        verify(!Qt.colorEqual(frame.color, view.palette.window),
+            "the card fill stays visible against the page background")
+        verify(findChild(frame, "addItemType") !== null)
+        verify(findChild(frame, "applicationSearch") !== null)
+        // The result list overlays the form, so it cannot push the remaining
+        // fields past the card.
+        const height = page.implicitHeight
+        page.browsing = true
+        grabImage(page)
+        fuzzyCompare(page.implicitHeight, height, 1)
+        page.browsing = false
+        window.close()
+    }
     function test_emptyItemsShowsDetailsNote(): void {
         const window = createTemporaryObject(emptyItemsWindowFixture, test)
         window.open()

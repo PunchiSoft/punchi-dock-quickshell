@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.34 — 2026-10-20
+
+- Group the **Add item to Dock** fields into the rounded settings card General
+  already uses: one labeled block holds the type, name, icon, view, folder and
+  entry list, and its surface follows the active KDE color scheme.
+- Keep the form in place while the application result list is open. The list now
+  overlays the fields from the typing row instead of pushing Icon and
+  Description out of the card.
+
 ## 0.1.33 — 2026-10-20
 
 - Rework **Add item to Dock** for applications. The result list stays closed until
