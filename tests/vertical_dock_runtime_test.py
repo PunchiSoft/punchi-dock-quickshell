@@ -108,6 +108,9 @@ ShellRoot {
                 configuring:dock.configuring, tile:tile ? {x:tile.x,y:tile.y,edge:tile.dockEdge}:null,
                 folder:folder ? {visible:folder.visible,active:folder.contents.active,loading:folder.contents.loading,
                     count:folder.contents.count,view:folder.contentItem ? folder.contentItem.viewMode : 'grid',edge:folder.dockEdge}:null,
+                activationWindow:folder && folder.opener && folder.opener.activationItem
+                    ? (folder.opener.activationItem.Window.window !== null
+                        && folder.opener.activationItem.Window.window.visible) : false,
                 fan:fan ? {visible:fan.visible,width:fan.width,height:fan.height,rows:fan.totalRowCount,iconsOnRight:fan.iconsOnRight}:null})
         }
     }
@@ -146,6 +149,10 @@ ShellRoot {
                     state = wait_state(lambda s:s['folder'] and s['folder']['visible'] and not s['folder']['loading'])
                     assert state['folder']['count'] == 1 and state['folder']['active']
                     assert state['folder']['edge'] == edge
+                    # A folder activation asks KDE for a Wayland activation token
+                    # from the anchor window; an anchor that is not in a visible
+                    # window refuses every entry.
+                    assert state['activationWindow'] is True, state
                     if edge == 'bottom':
                         assert state['width'] == state['screenWidth'], state
                         assert state['dockViewX'] > 0

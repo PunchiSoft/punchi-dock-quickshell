@@ -278,7 +278,12 @@ PanelWindow {
     }
     DesktopApplicationAdapter {
         id: contextApplicationAdapter
-        activationItem: contextMenu.mainItem
+        // The anchor must live in the dock window that received the input. A
+        // popup content item has no window until its own surface opens, so
+        // anchoring to the context menu refused every folder activation and
+        // every location opened from the folder popup while the menu was
+        // closed. The window content item is always in the scene.
+        activationItem: root.contentItem
     }
     ApplicationLaunchService {
         id: contextLauncher

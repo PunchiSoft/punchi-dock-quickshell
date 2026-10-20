@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.32 — 2026-10-20
+
+- Fix every folder activation from the folder popup. The dock asked KDE for a
+  Wayland activation token from the context menu, whose content has no window
+  until that menu opens, so selecting a file, a folder or the location action
+  was refused while the menu was closed. The activation now anchors to the dock
+  window that received the input. The real Quickshell probe asserts that the
+  anchor resolves to a visible window while the popup is open.
+
 ## 0.1.31 — 2026-10-20
 
 - Add a per-container **Browse subfolders** switch to the folder details pane.
