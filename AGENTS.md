@@ -182,7 +182,7 @@ Do not advance the counter for repository metadata or documentation-only commits
 or comment-, formatting- and wording-only edits. Keep these commits marked as
 `chore:` or `docs:`; the declared delivery version stays unchanged.
 
-The current delivery is `0.1.29`. The newest delivery heading in `CHANGELOG.md`
+The current delivery is `0.1.30`. The newest delivery heading in `CHANGELOG.md`
 is authoritative for the counter. Before a behavior-changing commit, advance it
 once and update CMake, the About page, README, CHANGELOG and the local
 `docs/versioning.md` record consistently. Keep configuration schema and QML

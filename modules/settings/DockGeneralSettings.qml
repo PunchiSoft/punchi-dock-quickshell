@@ -12,10 +12,11 @@ ColumnLayout {
     required property ShellSettings settings
     property var autostart: null
     property var recentApplications: null
-    // Absent service means the fixture has no history source; keep the
-    // controls usable so settings-only tests and previews still edit values.
-    readonly property bool recentTrackingActive: root.recentApplications === null
-        || (root.recentApplications.available && root.recentApplications.trackingEnabled)
+    // The note follows KDE's own preference only. Gating a dock switch on the
+    // service state made it impossible to turn the list back on, because
+    // hiding the list is what stops the service from being queried.
+    readonly property bool kdeTrackingActive: root.recentApplications === null
+        || root.recentApplications.trackingEnabled
     function focusFirst(): void { visibilityControl.forceActiveFocus() }
     spacing: Kirigami.Units.largeSpacing
     SettingsCard {
@@ -120,7 +121,6 @@ ColumnLayout {
             Switch {
                 objectName: "recentApplicationsEnabled"
                 Accessible.name: qsTr("Show recent applications")
-                enabled: root.recentTrackingActive
                 checked: root.settings.recentApplicationsEnabled
                 onToggled: root.settings.recentApplicationsEnabled = checked
             }
@@ -169,7 +169,7 @@ ColumnLayout {
                 from: 1
                 to: 20
                 value: root.settings.recentApplicationsCount
-                enabled: root.settings.recentApplicationsEnabled && root.recentTrackingActive
+                enabled: root.settings.recentApplicationsEnabled
                 onValueModified: root.settings.recentApplicationsCount = value
             }
         }
@@ -179,7 +179,7 @@ ColumnLayout {
             Layout.leftMargin: Kirigami.Units.largeSpacing
             Layout.rightMargin: Kirigami.Units.largeSpacing
             Layout.bottomMargin: Kirigami.Units.smallSpacing
-            visible: !root.recentTrackingActive
+            visible: !root.kdeTrackingActive
             text: qsTr("KDE is not saving application history. Set System Settings → Recent Files to remember applications to fill this list.")
             textFormat: Text.PlainText
             wrapMode: Text.WordWrap

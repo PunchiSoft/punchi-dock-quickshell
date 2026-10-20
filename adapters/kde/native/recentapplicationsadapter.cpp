@@ -43,6 +43,15 @@ RecentApplicationsAdapter::RecentApplicationsAdapter(QObject *parent)
     });
     watchConfiguration();
     reloadTracking();
+    // The history service is owned for the adapter's lifetime: reporting KDE
+    // launches must not depend on whether the dock list is visible.
+    m_consumer = new KActivities::Consumer(this);
+    connect(m_consumer, &KActivities::Consumer::serviceStatusChanged, this, [this]() {
+        updateSource();
+        emit availabilityChanged();
+    });
+    connect(m_consumer, &KActivities::Consumer::currentActivityChanged, this,
+        &RecentApplicationsAdapter::updateSource);
     connect(KSycoca::self(), &KSycoca::databaseChanged, this, [this]() {
         m_applications.clear();
         if (rowCount() > 0) emit dataChanged(index(0, 0), index(rowCount() - 1, 0), {StorageIdRole, NameRole, IconRole});
@@ -83,27 +92,13 @@ void RecentApplicationsAdapter::setEnabled(bool enabled)
 {
     if (m_enabled == enabled) return;
     m_enabled = enabled;
-    if (enabled) {
-        m_consumer = new KActivities::Consumer(this);
-        connect(m_consumer, &KActivities::Consumer::serviceStatusChanged, this, [this]() {
-            updateSource();
-            emit availabilityChanged();
-        });
-        connect(m_consumer, &KActivities::Consumer::currentActivityChanged, this,
-            &RecentApplicationsAdapter::updateSource);
-    } else if (m_consumer) {
-        disconnect(m_consumer, nullptr, this, nullptr);
-        m_consumer->deleteLater();
-        m_consumer = nullptr;
-    }
     updateSource();
     emit enabledChanged();
-    emit availabilityChanged();
 }
 
 bool RecentApplicationsAdapter::available() const
 {
-    return m_enabled && m_consumer && m_consumer->serviceStatus() == KActivities::Consumer::Running;
+    return m_consumer && m_consumer->serviceStatus() == KActivities::Consumer::Running;
 }
 
 void RecentApplicationsAdapter::updateSource()
@@ -114,7 +109,7 @@ void RecentApplicationsAdapter::updateSource()
     if (previous && previous->parent() == this) previous->deleteLater();
     // Do not ask Stats to open a nonexistent database when its service is
     // absent. Service recovery and activity changes rebuild this source.
-    if (available()) {
+    if (m_enabled && available()) {
         using namespace KActivities::Stats;
         using namespace KActivities::Stats::Terms;
         // Fetch candidates, not just the visible count: pinned, open and
