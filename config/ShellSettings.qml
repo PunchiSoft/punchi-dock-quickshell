@@ -34,7 +34,10 @@ QtObject {
     // QStandardPaths, so the built-in Downloads container needs no stored path.
     // The built-in container keeps its historical item id; containers added
     // later use item:folder:<id>.
-    property var containers: [{id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads", layout: "grid", sortMode: "modified", browseSubfolders: true}]
+    property var containers: [{id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads", layout: "grid", sortMode: "modified", browseSubfolders: true, hiddenEntries: []}]
+    // Icon chosen in the item editor for a pinned application. The catalog keeps
+    // owning the desktop-entry icon; this map only overrides its presentation.
+    property var iconOverrides: ({})
     // Compatibility accessor for existing scripts and schema-3/4 profiles.
     // Container layout is stored on each item; this mirrors the built-in one.
     property string downloadsView: "grid"
@@ -53,6 +56,16 @@ QtObject {
     readonly property int waveLeaveDuration: desktopMotion.leaveDuration
     readonly property int slideDuration: desktopMotion.slideDuration
 
+    // One place that turns a stored record into the complete shape, so a new
+    // container field never has to be repeated in every setter.
+    function containerRecord(entry, patch): var {
+        const next = {id: entry.id, path: entry.path, title: entry.title, icon: entry.icon,
+            layout: entry.layout || "grid", sortMode: entry.sortMode || "modified",
+            browseSubfolders: entry.browseSubfolders !== false,
+            hiddenEntries: Array.isArray(entry.hiddenEntries) ? entry.hiddenEntries : []}
+        if (patch) Object.assign(next, patch)
+        return next
+    }
     function container(appId): var {
         const id = containerIdOf(appId)
         if (id.length === 0) return null
@@ -79,7 +92,7 @@ QtObject {
         while (containers.some(entry => entry.id === "folder-" + suffix)) ++suffix
         const id = "folder-" + suffix
         containers = containers.concat([{id, path, title, icon: icon.length > 0 ? icon : "folder", layout,
-            sortMode: "modified", browseSubfolders: true}])
+            sortMode: "modified", browseSubfolders: true, hiddenEntries: []}])
         return "item:folder:" + id
     }
     function removeContainer(appId: string): bool {
@@ -97,9 +110,7 @@ QtObject {
         containers = containers.map(entry => {
             if (entry.id !== id || entry.path === path) return entry
             changed = true
-            return {id: entry.id, path, title: entry.title, icon: entry.icon,
-                layout: entry.layout || "grid", sortMode: entry.sortMode || "modified",
-                browseSubfolders: entry.browseSubfolders !== false}
+            return containerRecord(entry, {path})
         })
         return changed
     }
@@ -111,9 +122,7 @@ QtObject {
             if (entry.id !== id) return entry
             found = true
             if (entry.layout === layout) return entry
-            return {id: entry.id, path: entry.path, title: entry.title,
-                icon: entry.icon, layout, sortMode: entry.sortMode || "modified",
-                browseSubfolders: entry.browseSubfolders !== false}
+            return containerRecord(entry, {layout})
         })
         return found
     }
@@ -125,9 +134,7 @@ QtObject {
         containers = containers.map(entry => {
             if (entry.id !== id || (entry.browseSubfolders !== false) === enabled) return entry
             changed = true
-            return {id: entry.id, path: entry.path, title: entry.title,
-                icon: entry.icon, layout: entry.layout || "grid",
-                sortMode: entry.sortMode || "modified", browseSubfolders: enabled}
+            return containerRecord(entry, {browseSubfolders: enabled})
         })
         return changed
     }
@@ -139,6 +146,24 @@ QtObject {
         return !entry || entry.browseSubfolders !== false
     }
 
+    function iconOverride(appId: string): string {
+        const name = iconOverrides ? iconOverrides[appId] : ""
+        return typeof name === "string" ? name : ""
+    }
+    function setIconOverride(appId: string, iconName: string): bool {
+        if (!LauncherIds.valid(appId) || !LauncherIds.validIconName(iconName)) return false
+        const next = Object.assign({}, iconOverrides)
+        if (iconName.length === 0) {
+            if (!(appId in next)) return false
+            delete next[appId]
+        } else {
+            if (next[appId] === iconName) return false
+            next[appId] = iconName
+        }
+        iconOverrides = next
+        return true
+    }
+
     function setContainerSortMode(appId: string, sortMode: string): bool {
         const id = containerIdOf(appId)
         if (id.length === 0 || ["name", "size", "modified", "created", "kind"].indexOf(sortMode) < 0) return false
@@ -147,20 +172,39 @@ QtObject {
             if (entry.id !== id) return entry
             found = true
             if (entry.sortMode === sortMode) return entry
-            return {id: entry.id, path: entry.path, title: entry.title,
-                icon: entry.icon, layout: entry.layout || "grid", sortMode,
-                browseSubfolders: entry.browseSubfolders !== false}
+            return containerRecord(entry, {sortMode})
         })
         return found
     }
 
+    // Entries the popup must skip, by name inside the container folder.
+    // Everything else is shown, so files that arrive later need no new choice.
+    function containerHiddenEntries(appId): var {
+        const entry = container(appId)
+        return entry && Array.isArray(entry.hiddenEntries) ? entry.hiddenEntries : []
+    }
+    function setContainerHiddenEntries(appId: string, names): bool {
+        const id = containerIdOf(appId)
+        if (id.length === 0 || !LauncherIds.validHiddenEntries(names)) return false
+        const normalized = LauncherIds.normalizeHiddenEntries(names)
+        let changed = false
+        containers = containers.map(entry => {
+            if (entry.id !== id) return entry
+            const current = Array.isArray(entry.hiddenEntries) ? entry.hiddenEntries : []
+            if (JSON.stringify(current) === JSON.stringify(normalized)) return entry
+            changed = true
+            return containerRecord(entry, {hiddenEntries: normalized})
+        })
+        return changed
+    }
+
     function snapshot(): var {
-        return {version: 7, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
-            reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, recentApplicationsEnabled,
+        return {version: 9, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
+            reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount}
     }
     function restore(data: var): bool {
-        if (!data || [1, 2, 3, 4, 5, 6, 7].indexOf(data.version) < 0) return false
+        if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9].indexOf(data.version) < 0) return false
         const hasLegacyDownloadsView = LauncherIds.validLayout(data.downloadsView)
         const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
         if (LauncherIds.validContainers(data.containers)) {
@@ -171,7 +215,9 @@ QtObject {
                         ? (hasLegacyDownloadsView ? legacyDownloadsView : "grid") : "grid"),
                 sortMode: data.version >= 6 && ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0
                     ? entry.sortMode : "modified",
-                browseSubfolders: entry.browseSubfolders !== false}))
+                browseSubfolders: entry.browseSubfolders !== false,
+                hiddenEntries: data.version >= 9 && LauncherIds.validHiddenEntries(entry.hiddenEntries)
+                    ? LauncherIds.normalizeHiddenEntries(entry.hiddenEntries) : []}))
         } else if (hasLegacyDownloadsView && legacyDownloadsView !== downloadsView) {
             setContainerLayout("item:downloads", legacyDownloadsView)
         }
@@ -187,6 +233,9 @@ QtObject {
         if (Number.isInteger(data.recentApplicationsCount) && data.recentApplicationsCount >= 1
                 && data.recentApplicationsCount <= 20)
             recentApplicationsCount = data.recentApplicationsCount
+        // An invalid map is dropped as a whole; partial trust would keep names
+        // the picker cannot render.
+        iconOverrides = LauncherIds.validIconOverrides(data.iconOverrides) ? data.iconOverrides : ({})
         if (LauncherIds.validList(data.pinnedIds)) {
             pinnedIds = data.pinnedIds.slice()
             if (data.version === 1 && pinnedIds.indexOf("item:trash") < 0
@@ -202,9 +251,10 @@ QtObject {
         return true
     }
     function reset(): void {
-        restore({version: 7, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
+        restore({version: 9, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
             maximumIconScale: 2, magnificationEnabled: true, reducedMotion: false,
             bounceEnabled: true, recentApplicationsEnabled: true, recentApplicationsCount: 5,
+            iconOverrides: {},
             containers: [{id: "downloads", path: "", title: qsTr("Downloads"),
                 icon: "folder-downloads", layout: "grid", sortMode: "modified"}],
             pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview",

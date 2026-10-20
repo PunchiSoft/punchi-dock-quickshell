@@ -5,14 +5,19 @@ ListModel {
     id: root
     required property var catalog
     required property var pinnedIds
+    // Icon chosen in the settings editor for a pinned application. The catalog
+    // row keeps the desktop-entry icon as its fallback.
+    property var iconOverrides: ({})
     function rebuild(): void {
         const next = []
         for (const id of pinnedIds || []) {
             for (let index = 0; catalog && index < catalog.count; ++index) {
                 const row = catalog.get(index)
                 if (row.appId === id) {
-                    next.push({appId: row.appId, desktopId: row.desktopId,
-                        title: row.title, iconName: row.iconName})
+                    const override = root.iconOverrides ? root.iconOverrides[id] : ""
+                    next.push({appId: row.appId, desktopId: row.desktopId, title: row.title,
+                        iconName: typeof override === "string" && override.length > 0
+                            ? override : row.iconName})
                     break
                 }
             }
@@ -40,5 +45,6 @@ ListModel {
     }
     onCatalogChanged: rebuild()
     onPinnedIdsChanged: rebuild()
+    onIconOverridesChanged: rebuild()
     Component.onCompleted: rebuild()
 }

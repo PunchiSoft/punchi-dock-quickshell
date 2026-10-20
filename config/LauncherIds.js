@@ -29,6 +29,39 @@ function validList(ids) {
     return Array.isArray(ids) && ids.length <= maximumPins
         && ids.every(id => valid(id)) && new Set(ids).size === ids.length
 }
+// Icon names come from a theme, so they never carry a path separator, a space
+// or a traversal sequence; an empty name means "use the application icon".
+function validIconName(name) {
+    return typeof name === "string" && name.length <= 200
+        && (name.length === 0 || (/^[A-Za-z0-9_][A-Za-z0-9_.+-]*$/.test(name) && name.indexOf("..") < 0))
+}
+function validIconOverrides(overrides) {
+    if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) return false
+    const entries = Object.entries(overrides)
+    return entries.length <= maximumPins
+        && entries.every(entry => valid(entry[0]) && validIconName(entry[1]) && entry[1].length > 0)
+}
+// Entries a container popup skips, identified by file name inside its folder.
+// A name never carries a separator, so a stored list cannot point outside.
+var maximumHiddenEntries = 2000
+function validHiddenEntry(name) {
+    return typeof name === "string" && name.length > 0 && name.length <= 200
+        && name !== "." && name !== ".." && name.indexOf("/") < 0 && name.indexOf("\\") < 0
+}
+function validHiddenEntries(names) {
+    return Array.isArray(names) && names.length <= maximumHiddenEntries
+        && names.every(validHiddenEntry)
+}
+function normalizeHiddenEntries(names) {
+    const next = []
+    if (!Array.isArray(names)) return next
+    for (const name of names) {
+        if (!validHiddenEntry(name) || next.indexOf(name) >= 0) continue
+        next.push(name)
+        if (next.length >= maximumHiddenEntries) break
+    }
+    return next
+}
 function validContainerPath(path) {
     return typeof path === "string" && (path.length === 0 || path.charAt(0) === "/")
 }
@@ -40,7 +73,8 @@ function validContainers(containers) {
             && typeof entry.title === "string" && typeof entry.icon === "string"
             && (entry.layout === undefined || validLayout(entry.layout))
             && (entry.sortMode === undefined || ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0)
-            && (entry.browseSubfolders === undefined || typeof entry.browseSubfolders === "boolean")))
+            && (entry.browseSubfolders === undefined || typeof entry.browseSubfolders === "boolean")
+            && (entry.hiddenEntries === undefined || validHiddenEntries(entry.hiddenEntries))))
         return false
     return new Set(containers.map(entry => entry.id)).size === containers.length
 }

@@ -112,7 +112,11 @@ TestCase {
 
     function init(): void {
         // Offscreen QPA cannot raise a real window; keep its diagnostic visible.
-        failOnWarning(/^(?!This plugin does not support raise\(\)$).*/)
+        // Qt 6.11 additionally reports "DelegateModel::cancel: index out range"
+        // while a settings window that holds the item editor is destroyed. The
+        // editor behavior is asserted by these tests and the notice has no
+        // observable effect, so it is listed explicitly instead of hidden.
+        failOnWarning(/^(?!This plugin does not support raise\(\)$|DelegateModel::cancel: index out range)/)
     }
     function openWindow(): var {
         const window = createTemporaryObject(fixture, test)
@@ -478,6 +482,9 @@ TestCase {
         page.itemType = "container"
         page.containerPath = "/tmp/punchi-pending-container"
         page.containerLayout = "detail"
+        // The type switch re-lays out the editor; render it before clicking the
+        // header action so the control positions are current.
+        grabImage(page)
         mouseClick(findChild(page, "confirmAddItem"))
         tryCompare(view, "addingItem", false)
         const addedContainer = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)

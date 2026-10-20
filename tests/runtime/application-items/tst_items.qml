@@ -60,8 +60,18 @@ TestCase {
         // The isolated bus has no systemd user manager; retain its known KIO warning.
         failOnWarning(/^(?!Failed to determine systemd version, falling back to extremely legacy forking mode\.$).*/)
     }
+    // An idle offscreen scene may produce no further frame; wait for one when
+    // available and otherwise accept a visible, laid-out view.
+    function waitForFrame(view: Item): bool {
+        const window = view.Window.window
+        if (!window) return false
+        if (waitForRendering(window.contentItem, 1000)) return true
+        return window.visible && view.visible && view.width > 0 && view.height > 0
+    }
+    // Click a control through the window: a page-local control can report a stale
+    // scene position while a layout pass is pending.
     function openEditor(view: Item): var {
-        verify(waitForRendering(view))
+        verify(waitForFrame(view))
         const add = findChild(view, "addDockItem")
         verify(add.enabled)
         mouseClick(add)
@@ -75,7 +85,9 @@ TestCase {
         mouseClick(search)
         keyClick(Qt.Key_A, Qt.ControlModifier)
         for (const character of "punchi-add-sentinel") keyClick(character)
-        const results = findChild(dialog, "applicationSearchResults")
+        const area = findChild(dialog, "applicationResultsArea")
+        tryVerify(function() { return area.active && area.item !== null })
+        const results = findChild(area.item, "applicationSearchResults")
         tryCompare(results, "count", 1)
         tryVerify(function() { return findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop") !== null })
         const row = findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop")
@@ -173,6 +185,9 @@ TestCase {
         dialog.itemType = "container"
         dialog.containerPath = "/tmp/punchi-discarded-container"
         dialog.containerLayout = "list"
+        // The type switch re-lays out the editor; render it before clicking so
+        // the control positions are current.
+        grabImage(dialog)
         mouseClick(findChild(dialog, "cancelAddItem"))
         tryCompare(dialog, "visible", false)
         compare(window.settings.containers.length, 1)

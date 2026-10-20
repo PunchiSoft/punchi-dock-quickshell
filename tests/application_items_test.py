@@ -26,6 +26,16 @@ def main():
                 f'Name=Punchi owned {suffix}\nComment=Owned application fixture\nIcon=utilities-terminal\n'
                 f'Exec=/usr/bin/python3 "{script}" "{capture}" %U\nTerminal=false\nStartupNotify=false\n'
                 f'NoDisplay={str(hidden).lower()}\n')
+        # The container editor lists a real folder. An owned Downloads location
+        # keeps the fixture out of the user's files and lets the container form
+        # and its details pane exercise the same native listing as the popup.
+        downloads = Path(os.environ['XDG_DATA_HOME']) / 'punchi-downloads'
+        downloads.mkdir()
+        (downloads / 'owned-report.txt').write_text('Owned report.\n')
+        (downloads / 'owned-photo.jpg').write_text('Owned photo.\n')
+        config = Path(os.environ['XDG_CONFIG_HOME'])
+        config.mkdir(parents=True, exist_ok=True)
+        (config / 'user-dirs.dirs').write_text(f'XDG_DOWNLOAD_DIR="{downloads}"\n')
         indexer = shutil.which('kbuildsycoca6')
         assert indexer, 'The KDE application cache builder is required for this owned fixture'
         subprocess.run([indexer, '--noincremental'], check=True, capture_output=True, text=True, timeout=10)

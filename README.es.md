@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.32**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.33**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -302,10 +302,12 @@ la aplicación usa los valores por defecto de
 Son valores prototipo, no una garantía de que todas las aplicaciones predefinidas
 estén instaladas. Cambiar ajustes con Apply o Accept guarda los valores del
 usuario; los inicios posteriores los cargan. Un modo de inicio explícito puede
-sustituir el modo de visibilidad guardado. El formato actual es la versión 7 y
-acepta las versiones 1 a 6 mediante migración. La versión 7 añade el interruptor
-de aplicaciones recientes y su cantidad visible; los perfiles anteriores sin
-esos campos usan cinco aplicaciones y quedan activados.
+sustituir el modo de visibilidad guardado. El formato actual es la versión 9 y
+acepta las versiones 1 a 8 mediante migración. La versión 7 añade el interruptor
+de aplicaciones recientes y su cantidad visible, la 8 guarda el icono elegido
+para una aplicación fijada y la 9 las entradas de carpeta que un contenedor deja
+fuera de su popup; los perfiles anteriores sin esos campos usan cinco
+aplicaciones, el icono de la aplicación y la carpeta completa.
 
 ## Instalación y distribución
 

@@ -242,6 +242,31 @@ TestCase {
         compare(title.layer.enabled, title.shadowAvailable)
         window.close()
     }
+    function test_popupSkipsEntriesTheOwnerKeptOut(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        const grid = findChild(popup.contentItem, "folderGrid")
+        const total = popup.contents.count
+        verify(total > 1)
+        verify(row(popup.contents, "old.txt") >= 0, "the owned file is listed first")
+        // The stored list hides only what it names; every other entry stays.
+        verify(window.settings.setContainerHiddenEntries("item:downloads", ["old.txt"]))
+        tryCompare(popup.contents, "count", total - 1)
+        compare(row(popup.contents, "old.txt"), -1, "the hidden entry leaves the popup")
+        verify(row(popup.contents, "newest.txt") >= 0)
+        tryCompare(grid, "count", popup.contents.count + 1)
+        verify(findChild(grid, "folderGridEntry-0") !== null)
+        // Clearing the list shows the folder as it is again.
+        verify(window.settings.setContainerHiddenEntries("item:downloads", []))
+        tryCompare(popup.contents, "count", total)
+        verify(row(popup.contents, "old.txt") >= 0)
+        // An entry the owner hid but that no longer exists is harmless.
+        verify(window.settings.setContainerHiddenEntries("item:downloads", ["missing.txt"]))
+        tryCompare(popup.contents, "count", total)
+        verify(row(popup.contents, "old.txt") >= 0, "a stale name hides nothing else")
+        window.close()
+    }
+
     function test_fanLayoutPersistsForTheContainer(): void {
         const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
         verify(settings.setContainerLayout("item:downloads", "fan"))
@@ -499,10 +524,19 @@ TestCase {
         compare(fixture.editor.settings.containerBrowseSubfolders("item:downloads"), true)
         mouseClick(findChild(fixture.view, "applyDockSettings"))
         compare(fixture.editor.settings.containerBrowseSubfolders("item:downloads"), false)
-        // Trash has no container, so its details offer no subfolder switch.
+        // Trash has no container, so its details offer no subfolder switch and
+        // no entry list.
         mouseClick(findChild(fixture.view, "configuredItem-item:trash"))
         compare(findChild(fixture.view, "itemDetailsType").text, "Trash")
         compare(browse.checked, true)
+        verify(!findChild(fixture.view, "detailsEntrySelection").visible)
+        // A folder offers the list that decides what its popup shows.
+        mouseClick(findChild(fixture.view, "configuredItem-item:downloads"))
+        const selection = findChild(fixture.view, "detailsEntrySelection")
+        verify(selection.visible)
+        const entries = findChild(selection, "folderEntrySelectionList")
+        tryVerify(function() { return entries.count > 0 })
+        compare(findChild(selection, "folderEntrySelectionCount").text, "All shown")
     }
     function test_listDetailFileAndRejectedDispatch(): void {
         const window = openWindow("bottom")
