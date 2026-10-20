@@ -114,9 +114,15 @@ void RecentApplicationsAdapter::updateSource()
         using namespace KActivities::Stats::Terms;
         // Fetch candidates, not just the visible count: pinned, open and
         // invalid entries are removed by the selection proxy first.
-        const auto query = UsedResources | RecentlyUsedFirst | Agent::any()
-            | Activity::current() | Type::any()
+        const QString activityId = historyActivityId(m_consumer->currentActivity(), m_consumer->activities());
+        const auto baseQuery = UsedResources | RecentlyUsedFirst | Agent::any() | Type::any()
             | Url::startsWith(QStringLiteral("applications:")) | Limit(128);
+        // KDE can report a running history service without a current activity,
+        // for example after a session start that never activated one. The
+        // current-activity scope would then match nothing, while every activity
+        // still keeps the launch history that the dock is meant to show.
+        const auto query = activityId.isEmpty()
+            ? baseQuery | Activity::any() : baseQuery | Activity(activityId);
         setSourceModel(new ResultModel(query, this));
         while (sourceModel()->canFetchMore({}) && sourceModel()->rowCount() < 128) {
             const int previousCount = sourceModel()->rowCount();
@@ -148,6 +154,18 @@ QVariantMap RecentApplicationsAdapter::resolveResource(const QString &resource)
     return {{QStringLiteral("storageId"), service->storageId()},
         {QStringLiteral("name"), service->name()},
         {QStringLiteral("icon"), service->icon()}};
+}
+
+QString RecentApplicationsAdapter::historyActivityId(const QString &currentActivity, const QStringList &activities)
+{
+    const QString id = currentActivity.trimmed();
+    // The all-zero UUID is KDE's null activity, reported while the service is
+    // still starting or when no activity has been activated.
+    if (id.isEmpty() || id == QStringLiteral("00000000-0000-0000-0000-000000000000")) return {};
+    // A current activity the service no longer lists is stale. Querying it
+    // cannot match, so treat it like an absent one.
+    if (!activities.isEmpty() && !activities.contains(id)) return {};
+    return id;
 }
 
 QVariant RecentApplicationsAdapter::data(const QModelIndex &item, int role) const
