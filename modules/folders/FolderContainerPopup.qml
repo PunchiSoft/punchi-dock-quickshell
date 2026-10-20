@@ -34,6 +34,9 @@ Popup {
     }
     property string dockEdge: settings.dockEdge
     readonly property bool vertical: dockEdge !== "bottom"
+    // The arc paints no surface, so it is placed from the glyph that faces the
+    // panel instead of from the middle of a card.
+    readonly property bool fanPresentation: content.viewMode === "fan"
     readonly property alias contents: listing
     readonly property alias controller: navigator
     property alias sourceItem: anchor.sourceItem
@@ -53,7 +56,10 @@ Popup {
     x: Math.max(0, Math.min((parent ? parent.width : 0) - width,
         dockEdge === "left" ? anchor.anchorGeometry.x + anchor.anchorGeometry.width + Kirigami.Units.smallSpacing
             : dockEdge === "right" ? anchor.anchorGeometry.x - width - Kirigami.Units.smallSpacing
-            : anchor.anchorGeometry.x + anchor.anchorGeometry.width / 2 - width / 2))
+            : root.fanPresentation
+                ? anchor.anchorGeometry.x + anchor.anchorGeometry.width / 2
+                    - content.fanOriginIconCenterX
+                : anchor.anchorGeometry.x + anchor.anchorGeometry.width / 2 - width / 2))
     y: vertical ? Math.max(0, Math.min((parent ? parent.height : 0) - height,
         anchor.anchorGeometry.y + anchor.anchorGeometry.height / 2 - height / 2))
         : Math.max(0, capturedBaseY + (hostWindow ? hostWindow.height - hostBaseHeight : 0)
@@ -105,7 +111,9 @@ Popup {
         // Popup.Item shares the dock's native window; hostWindow is the
         // Quickshell PanelWindow wrapper, not a QQuickWindow itself.
         window: root.parent ? root.parent.Window.window : null
-        enabled: root.visible
+        // A floating arc has no surface to blur: the effect would frost the
+        // empty rectangle around the rows.
+        enabled: root.visible && !root.fanPresentation
         geometry: Qt.rect(root.x, root.y, root.width, root.height)
         tailEdge: root.dockEdge === "left" ? "left" : root.dockEdge === "right" ? "right" : "bottom"
         pointer: Qt.point(content.pointerX, content.pointerY)
@@ -121,8 +129,11 @@ Popup {
     contentItem: FolderContainerContent {
         id: content
         controller: navigator
-        viewMode: root.container && ["grid", "list", "detail"].indexOf(root.container.layout) >= 0
-            ? root.container.layout : "grid"
+        // The arc needs a horizontal panel; a vertical one presents Grid without
+        // rewriting the container's stored presentation.
+        viewMode: root.container ? root.settings.effectiveContainerLayout(root.appId) : "grid"
+        dockEdge: root.dockEdge
+        surfaceVisible: root.visible
         maximumWidth: Math.max(1, (root.parent ? root.parent.width : Kirigami.Units.gridUnit * 36) - Kirigami.Units.largeSpacing * 2)
         maximumHeight: Math.max(1, Math.min(
             (root.parent ? root.parent.height : Kirigami.Units.gridUnit * 40) * 0.8,

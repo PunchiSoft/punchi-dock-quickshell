@@ -7,6 +7,12 @@ const presets = ["files", "terminal", "browser", "kate", "systemsettings", "disc
 // the retired pre-container id and only stays valid so old profiles load.
 const containerPrefix = "item:folder:"
 const containerIdPattern = /^[A-Za-z0-9_][A-Za-z0-9_-]{0,31}$/
+// Presentations a container can use. `fan` unfolds its entries as an arc; the
+// other three keep the flat layouts of the popup.
+const layouts = ["grid", "list", "detail", "fan"]
+function validLayout(layout) {
+    return typeof layout === "string" && layouts.indexOf(layout) >= 0
+}
 function containerId(id) {
     return typeof id === "string" && id.indexOf(containerPrefix) === 0
         ? id.slice(containerPrefix.length) : ""
@@ -32,7 +38,7 @@ function validContainers(containers) {
             && containerIdPattern.test(entry.id || "")
             && validContainerPath(entry.path)
             && typeof entry.title === "string" && typeof entry.icon === "string"
-            && (entry.layout === undefined || ["grid", "list", "detail"].indexOf(entry.layout) >= 0)
+            && (entry.layout === undefined || validLayout(entry.layout))
             && (entry.sortMode === undefined || ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0)))
         return false
     return new Set(containers.map(entry => entry.id)).size === containers.length

@@ -14,6 +14,14 @@ Pane {
     property bool containerSelected: false
     property string containerPath: ""
     property string containerLayout: "grid"
+    // The arc unfolds from the row that faces the panel, so a vertical dock
+    // offers the three flat presentations only.
+    property bool fanAvailable: true
+    readonly property var layoutLabels: root.fanAvailable
+        ? [qsTr("Grid"), qsTr("List"), qsTr("Detail"), qsTr("Fan")]
+        : [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
+    readonly property var layoutModes: root.fanAvailable
+        ? ["grid", "list", "detail", "fan"] : ["grid", "list", "detail"]
     signal chooseFolderRequested()
     signal layoutSelected(string layout)
 
@@ -101,10 +109,10 @@ Pane {
                 id: folderViewSetting
                 objectName: "folderViewSetting"
                 Layout.fillWidth: true
-                model: [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
-                currentIndex: ["grid", "list", "detail"].indexOf(root.containerLayout)
+                model: root.layoutLabels
+                currentIndex: root.layoutModes.indexOf(root.containerLayout)
                 Accessible.name: qsTr("Folder view")
-                onActivated: root.layoutSelected(["grid", "list", "detail"][currentIndex])
+                onActivated: root.layoutSelected(root.layoutModes[currentIndex])
             }
         }
 

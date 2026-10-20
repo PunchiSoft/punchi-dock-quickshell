@@ -99,6 +99,7 @@ ShellRoot {
             const tile = find(dock.contentItem,"launcher-files")
             const folder = find(dock.contentItem,"downloadsPopup")
             const view = find(dock.contentItem,"dock-view")
+            const fan = folder && folder.contentItem ? find(folder.contentItem,"folderFanView") : null
             return JSON.stringify({edge:dock.preferences.dockEdge,
                 top:dock.panelAnchors.top, bottom:dock.panelAnchors.bottom, left:dock.panelAnchors.left, right:dock.panelAnchors.right,
                 width:dock.width, height:dock.height, screenWidth:dock.screen ? dock.screen.width : 0,
@@ -106,7 +107,8 @@ ShellRoot {
                 zone:dock.exclusiveZone,
                 configuring:dock.configuring, tile:tile ? {x:tile.x,y:tile.y,edge:tile.dockEdge}:null,
                 folder:folder ? {visible:folder.visible,active:folder.contents.active,loading:folder.contents.loading,
-                    count:folder.contents.count,view:folder.container ? folder.container.layout : 'grid',edge:folder.dockEdge}:null})
+                    count:folder.contents.count,view:folder.contentItem ? folder.contentItem.viewMode : 'grid',edge:folder.dockEdge}:null,
+                fan:fan ? {visible:fan.visible,width:fan.width,height:fan.height,rows:fan.totalRowCount,iconsOnRight:fan.iconsOnRight}:null})
         }
     }
 }
@@ -148,6 +150,20 @@ ShellRoot {
                         assert state['width'] == state['screenWidth'], state
                         assert state['dockViewX'] > 0
                         assert abs(state['dockViewX'] * 2 + state['dockViewWidth'] - state['width']) < 2
+                    assert call('folderView','detail') is True
+                    wait_state(lambda s:s['folder']['view'] == 'detail')
+                    # The arc belongs to horizontal panels: it loads under the
+                    # real Quickshell process on the bottom edge, while a
+                    # vertical one keeps the stored choice and presents Grid.
+                    assert call('folderView','fan') is True
+                    if edge == 'bottom':
+                        state = wait_state(lambda s:s['folder']['view'] == 'fan'
+                            and s['fan'] and s['fan']['visible'])
+                        assert state['fan']['width'] > 0 and state['fan']['height'] > 0
+                        assert state['fan']['rows'] == state['folder']['count'] + 1
+                    else:
+                        state = wait_state(lambda s:s['folder']['view'] == 'grid')
+                        assert not state['fan'] or not state['fan']['visible']
                     assert call('folderView','detail') is True
                     wait_state(lambda s:s['folder']['view'] == 'detail')
                     assert call('toggleDownloads') is True

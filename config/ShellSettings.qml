@@ -15,6 +15,10 @@ QtObject {
     property real surfaceRadius: metrics.surfaceRadius
     property int bottomContentPadding: metrics.bottomContentPadding
     property string dockEdge: "bottom"
+    // The arc unfolds from the row that faces the panel, so it needs a horizontal
+    // one. The stored choice survives an edge change; only its presentation
+    // follows the edge, which a return to the bottom or top restores.
+    readonly property bool fanSupported: dockEdge === "bottom" || dockEdge === "top"
     property string panelMode: "overlay"
     onPanelModeChanged: {
         if (panelMode === "desktop") panelMode = PanelModes.normalize(panelMode)
@@ -37,7 +41,7 @@ QtObject {
     onDownloadsViewChanged: setContainerLayout("item:downloads", downloadsView)
     onContainersChanged: {
         const downloads = container("item:downloads")
-        if (downloads && ["grid", "list", "detail"].indexOf(downloads.layout) >= 0
+        if (downloads && LauncherIds.validLayout(downloads.layout)
                 && downloadsView !== downloads.layout)
             downloadsView = downloads.layout
     }
@@ -55,6 +59,13 @@ QtObject {
         for (const entry of containers) if (entry.id === id) return entry
         return null
     }
+    // Presentation a container really uses. A vertical panel has no near row to
+    // unfold from, so a stored fan is presented as Grid without rewriting it.
+    function effectiveContainerLayout(appId): string {
+        const entry = container(appId)
+        const layout = entry && entry.layout ? String(entry.layout) : "grid"
+        return layout === "fan" && !fanSupported ? "grid" : layout
+    }
     function containerIdOf(appId): string {
         // The built-in Downloads container keeps its historical item id.
         return appId === "item:downloads" ? "downloads" : LauncherIds.containerId(appId)
@@ -63,7 +74,7 @@ QtObject {
         if (layout === undefined) layout = "grid"
         if (containers.length >= LauncherIds.maximumPins) return ""
         if (!LauncherIds.validContainerPath(path)) return ""
-        if (["grid", "list", "detail"].indexOf(layout) < 0) return ""
+        if (!LauncherIds.validLayout(layout)) return ""
         let suffix = containers.length
         while (containers.some(entry => entry.id === "folder-" + suffix)) ++suffix
         const id = "folder-" + suffix
@@ -92,7 +103,7 @@ QtObject {
     }
     function setContainerLayout(appId: string, layout: string): bool {
         const id = containerIdOf(appId)
-        if (id.length === 0 || ["grid", "list", "detail"].indexOf(layout) < 0) return false
+        if (id.length === 0 || !LauncherIds.validLayout(layout)) return false
         let found = false
         containers = containers.map(entry => {
             if (entry.id !== id) return entry
@@ -125,12 +136,12 @@ QtObject {
     }
     function restore(data: var): bool {
         if (!data || [1, 2, 3, 4, 5, 6, 7].indexOf(data.version) < 0) return false
-        const hasLegacyDownloadsView = ["grid", "list", "detail"].indexOf(data.downloadsView) >= 0
+        const hasLegacyDownloadsView = LauncherIds.validLayout(data.downloadsView)
         const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
         if (LauncherIds.validContainers(data.containers)) {
             containers = data.containers.map(entry => ({id: entry.id, path: entry.path,
                 title: entry.title, icon: entry.icon,
-                layout: ["grid", "list", "detail"].indexOf(entry.layout) >= 0
+                layout: LauncherIds.validLayout(entry.layout)
                     ? entry.layout : (entry.id === "downloads"
                         ? (hasLegacyDownloadsView ? legacyDownloadsView : "grid") : "grid"),
                 sortMode: data.version >= 6 && ["name", "size", "modified", "created", "kind"].indexOf(entry.sortMode) >= 0

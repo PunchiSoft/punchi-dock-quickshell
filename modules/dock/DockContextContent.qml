@@ -26,6 +26,15 @@ Item {
     property bool dockBackground: false
     property bool folderItem: false
     property var folderContainer: null
+    // Presentation the popup really shows, and whether the arc can be offered at
+    // all: a vertical panel has no near row to unfold from.
+    readonly property string folderLayout: {
+        const stored = root.folderContainer && root.folderContainer.layout
+            ? String(root.folderContainer.layout) : ""
+        return stored === "fan" && root.settings && !root.settings.fanSupported
+            ? "grid" : stored
+    }
+    readonly property bool fanAvailable: !root.settings || root.settings.fanSupported
     property Item folderSortNameAction: null
     property bool canEmptyTrash: false
     property string openDockSubmenu: ""
@@ -146,15 +155,17 @@ Item {
             model: [
                 {mode: "grid", label: qsTr("Grid")},
                 {mode: "list", label: qsTr("List")},
-                {mode: "detail", label: qsTr("Detail")}
+                {mode: "detail", label: qsTr("Detail")},
+                {mode: "fan", label: qsTr("Fan")}
             ]
             delegate: DockContextAction {
                 required property var modelData
                 objectName: "folderLayout-" + modelData.mode
                 Layout.fillWidth: true
                 visible: root.folderItem
+                enabled: modelData.mode !== "fan" || root.fanAvailable
                 text: modelData.label
-                marked: !!root.folderContainer && root.folderContainer.layout === modelData.mode
+                marked: !!root.folderContainer && root.folderLayout === modelData.mode
                 onClicked: root.folderLayoutRequested(modelData.mode)
             }
         }

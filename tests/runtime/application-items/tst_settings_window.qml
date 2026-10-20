@@ -171,7 +171,7 @@ TestCase {
         const repository = findChild(aboutPage, "aboutRepositoryLink")
         const help = findChild(aboutPage, "aboutHelpLink")
         const authors = findChild(aboutPage, "aboutAuthors")
-        compare(name.text, "Punchi Dock Quickshell 0.1.27")
+        compare(name.text, "Punchi Dock Quickshell 0.1.28")
         compare(logo.status, Image.Ready)
         compare(repository.url, "https://github.com/PunchiSoft/punchi-dock-quickshell")
         compare(repository.horizontalAlignment, Text.AlignLeft)

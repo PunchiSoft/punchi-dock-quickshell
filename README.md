@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.27**. The first Git snapshot was published as
+**Current delivery:** **0.1.28**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -68,7 +68,7 @@ validation.
   Recent Files options; when KDE saves no application history a short note
   explains how to enable it.
 - Keyboard navigation and pending settings edits through Apply, Accept and Close.
-- Downloads with Grid, List and Detail folder views, navigation inside a themed
+- Downloads with Grid, List, Detail and Fan folder views, navigation inside a themed
   balloon, and native KDE file opening.
 
 Running-application indicators and existing-window activation are implemented

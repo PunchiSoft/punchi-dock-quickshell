@@ -24,6 +24,12 @@ ColumnLayout {
 
     readonly property real labelWidth: Kirigami.Units.gridUnit * 5
 
+    readonly property bool fanAvailable: settings.fanSupported
+    readonly property var containerLayoutLabels: root.fanAvailable
+        ? [qsTr("Grid"), qsTr("List"), qsTr("Detail"), qsTr("Fan")]
+        : [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
+    readonly property var containerLayoutModes: root.fanAvailable
+        ? ["grid", "list", "detail", "fan"] : ["grid", "list", "detail"]
     readonly property bool trashAlreadyPinned: settings.pinnedIds.indexOf("item:trash") >= 0
     readonly property bool canAddContainer: containerPath.length > 0
         && LauncherIds.validContainerPath(containerPath)
@@ -258,10 +264,10 @@ ColumnLayout {
             id: newContainerLayout
             objectName: "newContainerLayout"
             Layout.fillWidth: true
-            model: [qsTr("Grid"), qsTr("List"), qsTr("Detail")]
-            currentIndex: ["grid", "list", "detail"].indexOf(root.containerLayout)
+            model: root.containerLayoutLabels
+            currentIndex: root.containerLayoutModes.indexOf(root.containerLayout)
             Accessible.name: qsTr("Container view")
-            onActivated: root.containerLayout = ["grid", "list", "detail"][currentIndex]
+            onActivated: root.containerLayout = root.containerLayoutModes[currentIndex]
         }
 
         Label {
