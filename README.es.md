@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.27**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.28**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.

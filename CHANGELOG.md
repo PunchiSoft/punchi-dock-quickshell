@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.1.28 — 2026-10-20
+
+- Add a **Fan** presentation to folder containers. Entries unfold from the dock
+  icon as one arc: every row leans a little more than the one before it, the
+  room the leaned pills need is kept inside the popup instead of being clipped,
+  and the row that faces the panel stays upright. The closing row opens the
+  folder in the file manager. Only the rows paint: there is no card, title or
+  close control, and the popup is placed from the glyph that faces the panel,
+  so the arc grows out of the dock icon. Choose it in the container settings or
+  the dock context menu beside Grid, List and Detail; the choice is stored per
+  container and restored with the profile. A vertical dock has no near row to
+  unfold from, so it keeps the stored choice and presents Grid, and its menu
+  and selector do not offer the arc.
+- Keep the fan within the space the display offers by dropping whole rows, keep
+  its opening derived from one interruptible progress, and disable travel,
+  scale and partial opacity when motion is reduced. The other presentations
+  keep the balloon.
+
 ## 0.1.27 — 2026-10-20
 
 - Add a **Remember application history in KDE** switch to the recent

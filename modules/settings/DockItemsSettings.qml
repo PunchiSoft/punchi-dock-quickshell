@@ -278,7 +278,9 @@ ColumnLayout {
                     itemIconName: root.detailsIcon
                     containerSelected: root.selectedContainer !== null
                     containerPath: root.selectedContainer ? String(root.selectedContainer.path) : ""
-                    containerLayout: root.selectedContainer ? String(root.selectedContainer.layout) : "grid"
+                    fanAvailable: root.settings.fanSupported
+                    containerLayout: root.selectedContainer
+                        ? root.settings.effectiveContainerLayout(editor.selectedAppId) : "grid"
                     onChooseFolderRequested: folderDialog.open()
                     onLayoutSelected: function(layout) {
                         root.settings.setContainerLayout(editor.selectedAppId, layout)

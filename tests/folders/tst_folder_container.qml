@@ -43,6 +43,18 @@ TestCase {
         }
     }
     Component {
+        id: verticalFolderMenuFixture
+        DockContextContent {
+            folderItem: true
+            settings: ShellSettings { dockEdge: "left" }
+            folderContainer: QtObject {
+                property string title: "Owned folder"
+                property string layout: "fan"
+                property string sortMode: "modified"
+            }
+        }
+    }
+    Component {
         id: settingsFixture
         Item {
             width: 780; height: 680
@@ -201,6 +213,7 @@ TestCase {
         mouseClick(detail)
         compare(menuLayoutSpy.count, 1)
         compare(menuLayoutSpy.signalArguments[0][0], "detail")
+        verify(findChild(menu, "folderLayout-fan") !== null)
         compare(findChild(menu, "openFolderAction").text, "Open “Owned folder”")
     }
     function test_popupShowsGridContent(): void {
@@ -227,6 +240,86 @@ TestCase {
         compare(title.shadowOpacity, 0.5625)
         compare(title.shadowOffset, 0.125)
         compare(title.layer.enabled, title.shadowAvailable)
+        window.close()
+    }
+    function test_fanLayoutPersistsForTheContainer(): void {
+        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        verify(settings.setContainerLayout("item:downloads", "fan"))
+        compare(settings.container("item:downloads").layout, "fan")
+        compare(settings.downloadsView, "fan")
+        const restored = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        verify(restored.restore(settings.snapshot()))
+        compare(restored.container("item:downloads").layout, "fan")
+        compare(restored.downloadsView, "fan")
+        compare(restored.fanSupported, true)
+        // A vertical dock presents Grid without rewriting the stored choice.
+        restored.dockEdge = "left"
+        compare(restored.fanSupported, false)
+        compare(restored.effectiveContainerLayout("item:downloads"), "grid")
+        compare(restored.container("item:downloads").layout, "fan")
+        restored.dockEdge = "bottom"
+        compare(restored.effectiveContainerLayout("item:downloads"), "fan")
+        // The arc is a presentation, not a schema change: older profiles still
+        // load and keep unsupported values out of the container.
+        verify(restored.restore({version: 7, downloadsView: "fan",
+            containers: [{id: "downloads", path: "", title: "Downloads",
+                icon: "folder-downloads", layout: "fan", sortMode: "modified"}]}))
+        compare(restored.container("item:downloads").layout, "fan")
+        verify(restored.restore({version: 7, downloadsView: "grid",
+            containers: [{id: "downloads", path: "", title: "Downloads",
+                icon: "folder-downloads", layout: "unknown", sortMode: "modified"}]}))
+        compare(restored.container("item:downloads").layout, "grid")
+    }
+    function test_fanIsUnavailableOnVerticalDocks(): void {
+        const menu = createTemporaryObject(verticalFolderMenuFixture, test)
+        verify(menu !== null)
+        menuLayoutSpy.target = menu
+        menuLayoutSpy.clear()
+        const fanAction = findChild(menu, "folderLayout-fan")
+        verify(fanAction !== null)
+        verify(!fanAction.enabled)
+        // The container keeps its stored presentation, while the menu and the
+        // popup present Grid: a vertical panel has no near row to unfold from.
+        compare(String(menu.folderContainer.layout), "fan")
+        compare(menu.folderLayout, "grid")
+        verify(findChild(menu, "folderLayout-grid").marked)
+        mouseClick(fanAction)
+        compare(menuLayoutSpy.count, 0)
+    }
+    function test_popupShowsFanContent(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        verify(window.settings.setContainerLayout("item:downloads", "fan"))
+        tryCompare(popup.contentItem, "viewMode", "fan")
+        const fanView = findChild(popup.contentItem, "folderFanView")
+        verify(fanView !== null)
+        tryVerify(function() {
+            return fanView.visible && fanView.entryCount === popup.contents.count
+        })
+        verify(!findChild(popup.contentItem, "folderGrid").visible)
+        verify(!findChild(popup.contentItem, "folderList").visible)
+        verify(!findChild(popup.contentItem, "folderOpenLocation").visible)
+        compare(findChild(fanView, "folderFanList").count, popup.contents.count)
+        verify(popup.height > 0)
+        verify(popup.contentItem.tailExtent === 0)
+        // The arc paints no surface: the rows are the popup, with no chrome.
+        verify(findChild(popup.contentItem, "folderFanSurface") === null)
+        tryVerify(function() { return fanView.height === fanView.implicitHeight })
+        fuzzyCompare(popup.height, fanView.height, 1)
+        fuzzyCompare(popup.width, fanView.width, 1)
+        // It grows out of the dock icon: the row that faces the panel is
+        // centred on the glyph instead of on an empty card.
+        const iconCenter = window.source.parent.mapToItem(window.contentItem,
+            window.source.iconTopCenter)
+        fuzzyCompare(popup.x + popup.contentItem.fanOriginIconCenterX,
+            iconCenter.x, 1)
+        capture(popup.contentItem, "fan")
+        const action = findChild(fanView, "folderFanOpenLocation")
+        verify(action !== null && action.visible)
+        compare(action.Accessible.name, "Open")
+        mouseClick(action)
+        tryCompare(popup, "opened", false)
+        compare(window.opener.calls.length, 1)
         window.close()
     }
     function test_popupKeepsRowsWhenPanelWindowIsExpanded(): void {
@@ -434,6 +527,19 @@ TestCase {
         const anchor = Qt.rect(top.x - window.source.iconSize / 2, top.y, window.source.iconSize, window.source.iconSize)
         if (data.edge === "left") verify(popup.x >= anchor.x + anchor.width)
         else verify(popup.x + popup.width <= anchor.x)
+        // The arc belongs to horizontal panels: a vertical dock keeps its
+        // balloon and presents Grid even when the container stores the fan.
+        verify(window.settings.setContainerLayout("item:downloads", "fan"))
+        compare(popup.contentItem.viewMode, "grid")
+        compare(window.settings.effectiveContainerLayout("item:downloads"), "grid")
+        compare(window.settings.container("item:downloads").layout, "fan")
+        verify(surface.visible)
+        const fanView = findChild(popup.contentItem, "folderFanView")
+        verify(fanView !== null)
+        verify(!fanView.visible)
+        verify(popup.x >= 0 && popup.y >= 0)
+        verify(popup.x + popup.width <= window.width)
+        verify(popup.y + popup.height <= window.height)
         window.close()
     }
     function test_viewDraftApplyCancelAndExternalUpdates(): void {
@@ -461,6 +567,7 @@ TestCase {
         verify(selector.visible)
         selector.forceActiveFocus(Qt.TabFocusReason)
         keyClick(Qt.Key_End)
+        keyClick(Qt.Key_Up)
         keyClick(Qt.Key_Return)
         compare(fixture.view.settings.downloadsView, "detail")
         compare(fixture.editor.settings.downloadsView, "grid")
@@ -475,6 +582,35 @@ TestCase {
         mouseClick(findChild(fixture.view, "closeDockSettings"))
         compare(fixture.editor.settings.downloadsView, "list")
     }
+    function test_viewSelectorHidesTheArcOnVerticalDocks(): void {
+        const fixture = createTemporaryObject(settingsFixture, test)
+        fixture.view.settings.dockEdge = "left"
+        verify(waitForRendering(fixture))
+        mouseClick(findChild(fixture.view, "configuredItem-item:downloads"))
+        const selector = findChild(fixture.view, "folderViewSetting")
+        verify(selector.visible)
+        compare(selector.count, 3)
+        compare(selector.model[selector.count - 1], "Detail")
+        // The selector still writes a flat presentation for the container.
+        selector.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_End)
+        keyClick(Qt.Key_Return)
+        compare(fixture.view.settings.container("item:downloads").layout, "detail")
+    }
+    function test_viewSelectorOffersTheArc(): void {
+        const fixture = createTemporaryObject(settingsFixture, test)
+        verify(waitForRendering(fixture))
+        mouseClick(findChild(fixture.view, "configuredItem-item:downloads"))
+        const selector = findChild(fixture.view, "folderViewSetting")
+        verify(selector.visible)
+        compare(selector.count, 4)
+        selector.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_End)
+        keyClick(Qt.Key_Return)
+        compare(fixture.view.settings.downloadsView, "fan")
+        mouseClick(findChild(fixture.view, "applyDockSettings"))
+        compare(fixture.editor.settings.downloadsView, "fan")
+    }
     function test_settingsViewSelectorIsScopedToSelectedFolder(): void {
         const fixture = createTemporaryObject(settingsFixture, test)
         const customId = fixture.view.settings.addContainer("/tmp/owned-folder", "Owned folder", "folder")
@@ -487,6 +623,7 @@ TestCase {
         compare(selector.currentIndex, 0)
         selector.forceActiveFocus(Qt.TabFocusReason)
         keyClick(Qt.Key_End)
+        keyClick(Qt.Key_Up)
         keyClick(Qt.Key_Return)
         compare(fixture.view.settings.container(customId).layout, "detail")
         compare(fixture.view.settings.container("item:downloads").layout, "grid")
