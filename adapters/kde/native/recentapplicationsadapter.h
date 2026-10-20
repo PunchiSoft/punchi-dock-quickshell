@@ -2,6 +2,7 @@
 #pragma once
 #include <QIdentityProxyModel>
 #include <QString>
+#include <QStringList>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
@@ -34,6 +35,10 @@ public:
 
     // Resolves application resources only. Never interprets history as commands.
     static QVariantMap resolveResource(const QString &resource);
+    // Activity that scopes the history query. An empty result means KDE has no
+    // usable current activity, so history is read from every activity instead
+    // of the empty activity, which would always be empty.
+    static QString historyActivityId(const QString &currentActivity, const QStringList &activities);
     Q_INVOKABLE void recordAccess(const QString &storageId);
     // Writes the two public states: remember all applications or none. KDE's
     // per-application allow/block lists are preserved.

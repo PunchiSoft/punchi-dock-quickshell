@@ -62,6 +62,21 @@ private slots:
         RecentApplicationsAdapter adapter;
         QCOMPARE(adapter.trackingEnabled(), true);
     }
+    void historyFallsBackToEveryActivityWithoutACurrentOne() {
+        const QString activity = QStringLiteral("00b532be-8538-4aa6-827f-7c76b78952ed");
+        const QString other = QStringLiteral("11111111-2222-3333-4444-555555555555");
+        const QString nullActivity = QStringLiteral("00000000-0000-0000-0000-000000000000");
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(QString(), {}), QString());
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(nullActivity, {activity}), QString());
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(QStringLiteral("  "), {activity}), QString());
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(activity, {activity}), activity);
+        const QString padded = QStringLiteral(" ") + activity + QStringLiteral(" ");
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(padded, {activity}), activity);
+        // An activity list that has not loaded yet must not discard the current id.
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(activity, {}), activity);
+        // A stale current activity cannot match any history, so read every activity.
+        QCOMPARE(RecentApplicationsAdapter::historyActivityId(other, {activity}), QString());
+    }
 };
 QTEST_GUILESS_MAIN(RecentApplicationsTrackingTest)
 #include "recent_applications_tracking_test.moc"

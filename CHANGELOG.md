@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.35 — 2026-10-20
+
+- Keep recent KDE activity applications visible when Plasma reports no current
+  activity. The history query falls back to every activity, ordered by most
+  recent use, instead of the empty current activity that matched nothing. The
+  fallback covers reading only: KDE still records new launches while an activity
+  is active.
+
 ## 0.1.34 — 2026-10-20
 
 - Group the **Add item to Dock** fields into the rounded settings card General
