@@ -156,7 +156,7 @@ not register a second window backend.
 | ✅ | Fedora KDE 44 | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | Versions checked 2026-10-20 |
 | 🟡 | Arch Linux (rolling) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Arch repository versions checked 2026-10-19; build and initial start tested; prolonged-use and full visual validation pending; Mesa/Zink warnings; not a compatibility claim for this exact set |
 | ⚪ | Fedora/RHEL family | — | — | — | — | — | Nobara KDE, Fedora Kinoite, CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE |
-| ⚪ | Debian/Ubuntu family | — | — | — | — | — | Debian KDE, Kubuntu, KDE neon, Tuxedo OS, MX Linux KDE |
+| ⚪ | Debian/Ubuntu KDE editions only | — | — | — | — | — | KDE neon, Kubuntu (Plasma editions only) |
 | ⚪ | Arch family | — | — | — | — | — | Manjaro KDE, EndeavourOS, CachyOS, Garuda KDE |
 | ⚪ | openSUSE | — | — | — | — | — | Tumbleweed, Leap |
 | ⚪ | Independent | — | — | — | — | — | KaOS, Solus KDE |
