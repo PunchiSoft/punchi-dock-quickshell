@@ -25,6 +25,12 @@ punchi_ui_terminal_supports_unicode() {
     local descriptor="${1:?file descriptor is required}"
     local locale_name="${LC_ALL:-${LC_CTYPE:-${LANG:-}}}"
 
+    # The progress runner exports this because it renders captured output after
+    # the worker's own descriptor stopped being the terminal.
+    case "${PUNCHI_UI_UNICODE:-}" in
+        1) return 0 ;;
+        0) return 1 ;;
+    esac
     [[ "$descriptor" =~ ^[0-9]+$ ]] || return 2
     [[ -t "$descriptor" && "${TERM:-}" != "dumb" ]] || return 1
     [[ "${locale_name^^}" == *UTF-8* || "${locale_name^^}" == *UTF8* ]]

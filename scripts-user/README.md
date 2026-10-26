@@ -29,7 +29,8 @@ Documents directory.
 Install and build report each phase (`[i/N] ✓ Label: State`) and run the long
 steps behind one animated progress line that is rewritten in place. Output is
 still captured, and a failed step prints its last lines before the failure log
-is written. The boxed header and the moving bar need a UTF-8 terminal; a
+is written. The dependency check uses the same line while it collects the
+report, then replays the captured listing so the result stays on screen. The boxed header and the moving bar need a UTF-8 terminal; a
 redirected stream, `TERM=dumb` or `NO_COLOR` gets plain ASCII lines. Colors are
 used by default and disabled by `--no-color`/`NO_COLOR`. `PUNCHI_NO_PROGRESS=1`
 skips the progress presentation and prints the raw command output.

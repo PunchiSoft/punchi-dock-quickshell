@@ -23,6 +23,7 @@ punchi_progress_update() {
 punchi_progress_label() {
     case "$1" in
         prepare) printf '%s' 'Preparing environment...' ;;
+        dependencies) printf '%s' 'Checking dependencies...' ;;
         configure) printf '%s' 'Configuring CMake...' ;;
         build) printf '%s' 'Building native integration...' ;;
         stage) printf '%s' 'Assembling the user-local installation...' ;;
@@ -93,6 +94,20 @@ punchi_run_step() {
     (punchi_progress_run "$log_file" "$@")
 }
 
+# A report step produces the output the user came for. The animation owns the
+# terminal while the report is collected, then the capture is replayed so the
+# result stays visible in the transcript.
+punchi_run_report_step() {
+    local log_file="${1:?log file is required}"
+    shift
+
+    if [[ "${PUNCHI_NO_PROGRESS:-0}" == "1" ]]; then
+        "$@" 2>&1 | tee "$log_file"
+        return "${PIPESTATUS[0]}"
+    fi
+    PUNCHI_PROGRESS_REPLAY=1 punchi_run_step "$log_file" "$@"
+}
+
 punchi_progress_run() {
     local log_file="${1:?log file is required}"
     shift
@@ -113,15 +128,27 @@ punchi_progress_run() {
     local command_status=0
     local frames=('/' '-' '\' '|')
     local bar_fill='#'
+    local replay="${PUNCHI_PROGRESS_REPLAY:-0}"
     local locale_name="${LC_ALL:-${LC_CTYPE:-${LANG:-}}}"
 
     if [[ "${locale_name^^}" == *UTF-8* || "${locale_name^^}" == *UTF8* ]]; then
         bar_fill='█'
     fi
     [[ ! -t 1 || "${TERM:-}" == "dumb" ]] || tty=1
+    # The captured output is rendered later, when its file descriptor is no
+    # longer the terminal. Tell the presentation helpers which characters the
+    # real terminal supports so replayed rules match the surrounding output.
+    if (( tty )) && [[ "${locale_name^^}" == *UTF-8* || "${locale_name^^}" == *UTF8* ]]; then
+        export PUNCHI_UI_UNICODE=1
+    else
+        export PUNCHI_UI_UNICODE=0
+    fi
 
     export PUNCHI_PROGRESS_DIR
     PUNCHI_PROGRESS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/punchi-progress.XXXXXX")" || exit 1
+    # The log belongs to this run: a caller that repeats a step must not replay
+    # the previous capture as well.
+    : >"$log_file" || exit 1
 
     cleanup_progress() {
         local saved=$?
@@ -217,10 +244,18 @@ punchi_progress_run() {
         failure_symbol="XX"
     fi
 
-    if (( status == 0 )); then
+    if [[ "$replay" == "1" ]]; then
+        # The report is the result: show it instead of a frame that would repeat
+        # the caller's own success or warning line.
+        (( tty == 0 )) || printf '\r\033[2K'
+        if [[ -r "$log_file" ]]; then
+            cat -- "$log_file"
+        fi
+    elif (( status == 0 )); then
         percent=100
         label=complete
         render_progress "$success_symbol"
+        (( tty == 0 )) || printf '\n'
     else
         local failed_label="$label"
         label=failed
@@ -231,7 +266,7 @@ punchi_progress_run() {
         if [[ -r "$log_file" ]]; then
             tail -n 16 "$log_file" | LC_ALL=C tr -d '\000-\010\013-\037\177'
         fi
+        (( tty == 0 )) || printf '\n'
     fi
-    (( tty == 0 )) || printf '\n'
     exit "$status"
 }

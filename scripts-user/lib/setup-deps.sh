@@ -2,6 +2,16 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Dependency reporting for the user setup assistant.
 
+punchi_deps_dir="${BASH_SOURCE[0]%/*}"
+if [[ "$punchi_deps_dir" == "${BASH_SOURCE[0]}" ]]; then
+    punchi_deps_dir='.'
+fi
+if ! declare -F punchi_run_report_step >/dev/null 2>&1; then
+    # shellcheck source=setup-progress.sh
+    source "$punchi_deps_dir/setup-progress.sh"
+fi
+unset punchi_deps_dir
+
 punchi_kde_session_detected() {
     if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* || "${KDE_FULL_SESSION:-}" == "true" ]]; then
         return 0
@@ -300,17 +310,21 @@ punchi_dependency_report() {
     local status=0
     local validation_status=0
 
+    punchi_progress_update 25 dependencies
     punchi_heading "Runtime"
     punchi_report_command_group runtime "Required commands" 1 || status=1
 
+    punchi_progress_update 40 dependencies
     punchi_heading "Build"
     punchi_report_command_group build "Required commands" 1 || status=1
 
+    punchi_progress_update 55 dependencies
     punchi_heading "Validation tools"
     punchi_report_command_group validation "Project checks and tests" 0 \
         || validation_status=1
     punchi_report_python_modules || validation_status=1
 
+    punchi_progress_update 70 dependencies
     punchi_heading "KDE Plasma/KWin"
     if punchi_kde_session_detected; then
         printf '  [ok]      active KDE Plasma/KWin session\n'
@@ -319,6 +333,7 @@ punchi_dependency_report() {
         punchi_warning "Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland and will not run on other desktops."
     fi
 
+    punchi_progress_update 80 dependencies
     punchi_heading "Update check"
     local git_path=""
     if git_path="$(punchi_resolve_command git)"; then
@@ -379,6 +394,15 @@ punchi_information_about_packages() {
     punchi_info "Wayland development equivalents, then run this check again."
 }
 
+# Runs inside the progress runner: the report stays batched in the log while the
+# animation owns the terminal, and the caller replays it afterwards.
+punchi_dependency_worker() {
+    local family="${1:?distribution family is required}"
+
+    punchi_progress_update 20 dependencies
+    punchi_dependency_report "$family"
+}
+
 punchi_dependency_check() {
     local offer_install="${1:-0}"
     local family=""
@@ -389,7 +413,11 @@ punchi_dependency_check() {
     punchi_rule
 
     local status=0
-    punchi_dependency_report "$family" || status=1
+    local report_log=""
+    report_log="$(mktemp "${TMPDIR:-/tmp}/punchi-dependencies.XXXXXX")"
+    punchi_register_cleanup "$report_log"
+    punchi_run_report_step "$report_log" punchi_dependency_worker "$family" \
+        || status=1
 
     punchi_rule
     if (( status == 0 )); then
@@ -405,7 +433,8 @@ punchi_dependency_check() {
             punchi_rule
             punchi_info "Re-checking dependencies..."
             status=0
-            punchi_dependency_report "$family" || status=1
+            punchi_run_report_step "$report_log" punchi_dependency_worker \
+                "$family" || status=1
             punchi_rule
             if (( status == 0 )); then
                 punchi_success "Required runtime and build dependencies are present."

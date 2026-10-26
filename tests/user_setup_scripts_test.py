@@ -646,6 +646,20 @@ def check_presentation(root: Path) -> None:
         assert 'compiler output' in combined, combined
         assert log_file.read_text() == 'compiler output\n', log_file.read_text()
 
+        replay = subprocess.run(
+            [bash, '-c',
+             f'source "{root}/scripts-user/lib/setup-progress.sh"; '
+             'report() { printf "Runtime\\n[ok] qs\\n"; }; '
+             f'punchi_run_report_step "{log_file}" report'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=20)
+        assert replay.returncode == 0, replay.stdout + replay.stderr
+        replayed = replay.stdout.splitlines()
+        assert replayed[-2:] == ['Runtime', '[ok] qs'], replay.stdout
+        assert not any('Operation completed' in line for line in replayed), \
+            'The report step must not add a completion frame'
+        assert log_file.read_text() == 'Runtime\n[ok] qs\n', log_file.read_text()
+
         quiet = subprocess.run(
             [bash, '-c',
              f'source "{root}/scripts-user/lib/setup-progress.sh"; '
