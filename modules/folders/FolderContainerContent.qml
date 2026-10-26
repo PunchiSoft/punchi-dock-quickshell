@@ -111,17 +111,25 @@ Item {
     readonly property real contentHeight: root.viewMode === "grid"
         ? root.gridLayout.visibleRows * root.cellHeight
         : root.listLayout.visibleRows * root.rowHeight
-    // Width the labels ask for. Reading the revision re-measures the names when
-    // an entry is renamed or the listing changes without changing its count.
+    // Width the listing asks for. Reading the revision re-measures the names when
+    // an entry is renamed or the listing changes without changing its count. The
+    // name is capped at the resting width a row paints, and the chevron column is
+    // reserved only when a navigable directory will show it, so the surface never
+    // grows past what its rows can use.
     readonly property real listNaturalWidth: {
         const revision = root.controller.contents.revision
         if (revision < 0) return 0
         let widest = 0
+        let navigable = false
         for (let index = 0; index < root.entryCount; ++index) {
             const entry = root.controller.contents.get(index)
             widest = Math.max(widest, nameMetrics.advanceWidth(String(entry.entryName || "")))
+            if (entry.directory && !entry.locationAction) navigable = true
         }
-        return widest + root.metrics.listIconSize + Kirigami.Units.largeSpacing * 4
+        const chevron = navigable && root.browseSubfolders
+            ? Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing : 0
+        return Math.min(widest, root.metrics.maximumRestingNameWidth) + chevron
+            + root.metrics.listIconSize + Kirigami.Units.largeSpacing * 4
     }
     // Height the fan may use.
     readonly property real fanMaximumContentHeight: Math.max(0, root.maximumHeight - root.chromeHeight)

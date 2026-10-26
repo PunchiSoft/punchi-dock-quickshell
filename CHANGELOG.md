@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.42 — 2026-10-26
+
+- Size a folder list popup from what its rows can paint. The surface reserved the
+  width of the longest entry name while every label paints at most the resting
+  cap of ten glyphs, so a single long file name left a wide empty surface and a
+  selection band spanning it. The surface now asks for the capped name and
+  reserves the chevron column only while a navigable directory will paint it;
+  long names still scroll through the existing carousel on hover or focus.
+
 ## 0.1.41 — 2026-10-26
 
 - Move popup size, popup height and popup icon size out of General into their own

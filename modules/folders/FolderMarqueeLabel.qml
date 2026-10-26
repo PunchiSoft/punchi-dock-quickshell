@@ -16,6 +16,9 @@ Item {
     property bool focused: false
     property bool motionEnabled: true
     readonly property real naturalTextWidth: Math.ceil(textMetrics.advanceWidth)
+    // Resting cap of a name. The popup sizes its surface from the same probe
+    // (PopupMetrics.maximumRestingNameWidth), so the row never leaves room it
+    // cannot paint.
     readonly property real maximumRestingWidth: Math.ceil(restingMetrics.advanceWidth)
     readonly property real viewportWidth: Math.max(0, Math.min(width, maximumRestingWidth))
     readonly property bool overflowing: naturalTextWidth > viewportWidth + 0.5

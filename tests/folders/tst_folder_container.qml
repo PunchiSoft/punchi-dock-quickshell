@@ -29,6 +29,7 @@ TestCase {
         tryCompare(test, "captured", true)
     }
     SignalSpy { id: clicked; signalName: "clicked" }
+    FontMetrics { id: nameFontMetrics; font: Kirigami.Theme.defaultFont }
     SignalSpy { id: menuSortSpy; signalName: "folderSortRequested" }
     SignalSpy { id: menuLayoutSpy; signalName: "folderLayoutRequested" }
     Component { id: editingFixture; SettingsEditService { settings: ShellSettings {} } }
@@ -650,6 +651,47 @@ TestCase {
         window.close()
     }
 
+    function test_listWidthFollowsTheRestingLabelCap(): void {
+        const window = openWindow("bottom")
+        chooseView(window, 1)
+        const content = window.popup.contentItem
+        const longName = "A deliberately long folder popup filename for marquee.txt"
+        const cap = Math.ceil(nameFontMetrics.advanceWidth("MMMMMMMMMM"))
+        const nameWidth = Math.ceil(nameFontMetrics.advanceWidth(longName))
+        verify(nameWidth > cap, "the fixture name must exceed the resting cap")
+        verify(content.browseSubfolders)
+        const chevron = Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing
+        const chrome = content.inset * 2 + content.scrollGutter
+        function ask(chevronWidth: real): real {
+            return Math.min(cap, nameWidth) + chevronWidth
+                + content.metrics.listIconSize + Kirigami.Units.largeSpacing * 4
+        }
+        // The surface asks for the capped name plus the chevron column the
+        // navigable directory paints, never for the whole name.
+        fuzzyCompare(content.listNaturalWidth, ask(chevron), 1)
+        fuzzyCompare(content.implicitWidth, Math.min(content.maximumWidth,
+            Math.max(Kirigami.Units.gridUnit * 16, ask(chevron) + chrome)), 1)
+        verify(content.implicitWidth < Math.min(content.maximumWidth,
+            Math.max(Kirigami.Units.gridUnit * 16, nameWidth
+                + content.metrics.listIconSize + Kirigami.Units.largeSpacing * 4 + chrome)),
+            "the whole name must not reserve room no row can paint")
+        // Without the browser there is no chevron column to reserve.
+        verify(window.settings.setContainerBrowseSubfolders("item:downloads", false))
+        tryCompare(content, "browseSubfolders", false)
+        fuzzyCompare(content.listNaturalWidth, ask(0), 1)
+        fuzzyCompare(content.listNaturalWidth + chevron, ask(chevron), 1)
+        // A narrower surface still leaves the long name to the existing carousel.
+        const list = findChild(content, "folderList")
+        const longIndex = row(window.popup.contents, longName)
+        verify(longIndex >= 0)
+        const rowEntry = findChild(list, "folderListEntry-" + longIndex)
+        const rowLabel = findChild(rowEntry, "folderEntryNameLabel")
+        verify(rowEntry !== null && rowLabel !== null)
+        tryCompare(rowLabel, "overflowing", true)
+        mouseMove(rowEntry, rowEntry.width / 2, rowEntry.height / 2)
+        tryVerify(function() { return rowLabel.scrollOffset < -1 })
+        window.close()
+    }
     function test_popupMarqueeHonorsReducedMotion(): void {
         const window = openWindow("bottom")
         const longName = "A deliberately long folder popup filename for marquee.txt"
