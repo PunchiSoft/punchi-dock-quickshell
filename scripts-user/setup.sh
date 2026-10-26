@@ -8,6 +8,8 @@ punchi_project_root="$(cd -- "$punchi_setup_script_dir/.." && pwd)"
 
 # shellcheck source=lib/setup-common.sh
 source "$punchi_setup_script_dir/lib/setup-common.sh"
+# shellcheck source=lib/setup-progress.sh
+source "$punchi_setup_script_dir/lib/setup-progress.sh"
 # shellcheck source=lib/setup-deps.sh
 source "$punchi_setup_script_dir/lib/setup-deps.sh"
 # shellcheck source=lib/setup-install.sh
@@ -70,8 +72,10 @@ Options:
                       rebuild and install; this option never installs.
   -y, --yes           Assume yes for confirmations. The interactive menu still
                       asks separately before deleting preferences.
-  -j, --jobs N        Parallel build jobs. Default: detected CPU count.
-  --no-color          Disable ANSI colors.
+  -j, --jobs N        Parallel build jobs. Overrides the automatic count, which
+                      is the detected CPU count capped by installed RAM.
+  --no-color          Disable ANSI colors. The animated progress line also stops
+                      when stdout is redirected or TERM=dumb.
 EOF
 }
 
@@ -82,6 +86,8 @@ show_header() {
     local install_root=""
     local installed_version=""
     local version_file=""
+    local environment_line=""
+    local resources_line=""
 
     version="$(punchi_project_version)"
     family="$(punchi_distro_family "$(punchi_distro_id)" "$(punchi_distro_like)")"
@@ -98,20 +104,25 @@ show_header() {
         installed_version="$(head -n 1 "$version_file")"
     fi
 
-    punchi_rule
-    punchi_heading "Punchi Dock Quickshell · Setup"
-    printf 'Version %s | %s | %s\n' "$version" "$(punchi_system_name)" "$(uname -m)"
+    printf -v environment_line 'Version %s | %s | %s' \
+        "$version" "$(punchi_system_name)" "$(uname -m)"
+    printf -v resources_line 'RAM %s | CPU cores %s | Build jobs %s' \
+        "$(punchi_format_ram_display)" \
+        "$(punchi_cpu_core_count)" \
+        "$(punchi_job_count)"
+
+    punchi_ui_render_header "Punchi Dock Quickshell · Setup" \
+        "$environment_line" "$resources_line"
     printf 'Distribution family: %s | %s\n' "$family" "$source_line"
     if punchi_kde_session_detected; then
         printf '%s\n' 'Session: KDE Plasma/KWin'
     else
-        printf '%s\n' 'Session: KDE Plasma/KWin not detected (required)'
+        punchi_warning 'Session: KDE Plasma/KWin not detected (required)'
     fi
     printf 'Install root: %s\n' "$install_root"
     if [[ -n "$installed_version" ]]; then
         if punchi_source_checkout_available && [[ "$installed_version" != "$version" ]]; then
-            printf 'Installed copy: %s (outdated; source is %s)\n' \
-                "$installed_version" "$version"
+            punchi_warning "Installed copy: $installed_version (outdated; source is $version)"
         else
             printf 'Installed copy: %s\n' "$installed_version"
         fi
@@ -205,23 +216,52 @@ punchi_start_installed_or_checkout() {
     return 1
 }
 
+punchi_phase_dependencies() {
+    local index="${1:?phase index is required}"
+    local total="${2:?phase total is required}"
+
+    punchi_ui_render_phase_started "$index" "$total" 'Dependencies'
+    if ! punchi_dependency_check 1; then
+        punchi_ui_render_phase "$index" "$total" warning 'Dependencies' \
+            'Needs attention'
+        punchi_warning "Resolve the required dependencies before building."
+        punchi_info "Choose \"Check runtime and build dependencies\" for details."
+        return 1
+    fi
+    punchi_ui_render_phase "$index" "$total" success 'Dependencies' 'Present'
+}
+
+punchi_phase_build() {
+    local index="${1:?phase index is required}"
+    local total="${2:?phase total is required}"
+
+    punchi_ui_render_phase_started "$index" "$total" 'Build'
+    if ! punchi_build_checkout; then
+        punchi_ui_render_phase "$index" "$total" error 'Build' 'Failed'
+        return 1
+    fi
+    punchi_ui_render_phase "$index" "$total" success 'Build' 'Completed'
+}
+
 punchi_action_install() {
+    local total=3
+
     if ! punchi_source_checkout_available; then
         punchi_error "Install/update actions require the source checkout."
         punchi_info "Run this menu from the cloned repository."
         return 1
     fi
-    if ! punchi_dependency_check 1; then
-        punchi_warning "Resolve the required dependencies before building."
-        punchi_info "Choose \"Check runtime and build dependencies\" for details."
-        return 1
-    fi
-    punchi_build_checkout || return 1
+
+    punchi_phase_dependencies 1 "$total" || return 1
+    punchi_phase_build 2 "$total" || return 1
+
+    punchi_ui_render_phase_started 3 "$total" 'Install'
     if ! punchi_install_local; then
-        punchi_write_failure_log "install" "" || true
+        punchi_ui_render_phase 3 "$total" error 'Install' 'Failed'
         punchi_error "Installation failed. Review the output above or the failure log."
         return 1
     fi
+    punchi_ui_render_phase 3 "$total" success 'Install' 'Completed'
 
     if (( PUNCHI_START_AFTER == 1 )); then
         punchi_start_installed_or_checkout
@@ -232,16 +272,16 @@ punchi_action_install() {
 }
 
 punchi_action_build() {
+    local total=2
+
     if ! punchi_source_checkout_available; then
         punchi_error "Build actions require the source checkout."
         return 1
     fi
-    if ! punchi_dependency_check 1; then
-        punchi_warning "Resolve the required dependencies before building."
-        punchi_info "Choose \"Check runtime and build dependencies\" for details."
-        return 1
-    fi
-    punchi_build_checkout || return 1
+
+    punchi_phase_dependencies 1 "$total" || return 1
+    punchi_phase_build 2 "$total" || return 1
+
     if (( PUNCHI_START_AFTER == 1 )); then
         punchi_info "Starting the source checkout from $punchi_project_root"
         exec "$punchi_project_root/scripts-user/start.sh"

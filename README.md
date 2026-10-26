@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.35**. The first Git snapshot was published as
+**Current delivery:** **0.1.36**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -121,6 +121,19 @@ Without arguments it opens a menu:
 | Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Runs `git pull --ff-only` after the check when the checkout is behind. It refuses modified tracked files and never rebases, resets or stashes. The menu asks before pulling and then offers to rebuild and install; `--pull` never installs. |
 | Uninstall | `./scripts-user/setup.sh --uninstall` | Stops this project, restores owned KWin settings, removes a Punchi-owned autostart entry and removes the user-local installation. `build/` is kept unless `--remove-build` is passed. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Shows commands, paths and README locations. |
+
+The assistant reports each action as a short phase list and runs the long steps
+behind a single animated progress line that is rewritten in place. The complete
+CMake output is still recorded, and a failed step prints its last lines and
+attaches them to the failure log. Colors are used on a terminal and are
+disabled by `--no-color` or `NO_COLOR`. Redirected output, `TERM=dumb` and
+locales without UTF-8 get plain ASCII lines instead of box drawing and a moving
+bar, so logs stay readable.
+
+Build concurrency defaults to the detected CPU count capped by installed memory
+(one job below 4.5 GiB, two below 8.4 GiB, four below 16 GiB), so a small
+machine does not swap during the native build. `-j/--jobs N` overrides the
+automatic count, and `PUNCHI_NO_PROGRESS=1` keeps the raw command output.
 
 `setup.sh` belongs to the repository and is not a standalone download:
 installing or building needs the checkout's `CMakeLists.txt`, `modules/`,

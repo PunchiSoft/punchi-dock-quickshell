@@ -242,6 +242,7 @@ def check_build_failure_log(root: Path) -> None:
         environment = os.environ.copy()
         environment.update({
             'HOME': str(home),
+            'TMPDIR': str(home),
             'XDG_CONFIG_HOME': str(home / 'config'),
             'XDG_STATE_HOME': str(home / 'state'),
             'PUNCHI_INSTALL_PREFIX': str(home / 'install'),
@@ -493,6 +494,77 @@ def check_git_missing(root: Path) -> None:
         assert 'never installs git automatically' in combined, combined
 
 
+def check_presentation(root: Path) -> None:
+    """The header, the phase lines and the step runner stay machine-readable."""
+    bash = shutil.which('bash') or '/bin/bash'
+    with tempfile.TemporaryDirectory(prefix='punchi-presentation-test-') as temporary:
+        home = Path(temporary)
+        log_file = home / 'step.log'
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+            'PUNCHI_JOBS': '3',
+        })
+
+        resources = subprocess.run(
+            [bash, '-c',
+             f'punchi_project_root="{root}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             'punchi_job_count; punchi_auto_job_count; punchi_format_ram_display'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=20)
+        assert resources.returncode == 0, resources.stdout + resources.stderr
+        lines = resources.stdout.splitlines()
+        assert len(lines) == 3, resources.stdout
+        assert lines[0] == '3', resources.stdout
+        assert lines[1].isdigit() and int(lines[1]) >= 1, resources.stdout
+        assert lines[2].endswith(('GiB', 'MiB')), resources.stdout
+
+        header = subprocess.run(
+            [bash, '-c',
+             f'source "{root}/scripts-user/lib/setup-terminal-ui.sh"; '
+             'punchi_ui_render_header "Punchi Dock Quickshell · Setup" '
+             '"Version 0.1.00 | Test" "RAM 8.0 GiB | CPU cores 4 | Build jobs 2"; '
+             'punchi_ui_render_phase 1 2 success Dependencies Present'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=20)
+        assert header.returncode == 0, header.stdout + header.stderr
+        assert '\x1b' not in header.stdout, 'ANSI escapes reached a plain stream'
+        assert header.stdout.splitlines() == [
+            'Punchi Dock Quickshell · Setup',
+            'Version 0.1.00 | Test',
+            'RAM 8.0 GiB | CPU cores 4 | Build jobs 2',
+            '[1/2] OK Dependencies: Present',
+        ], header.stdout
+
+        failing = subprocess.run(
+            [bash, '-c',
+             f'source "{root}/scripts-user/lib/setup-progress.sh"; '
+             'step() { echo "compiler output"; return 4; }; '
+             f'punchi_run_step "{log_file}" step; printf "status=%s\\n" "$?"; '
+             f'cat "{log_file}"'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        combined = failing.stdout + failing.stderr
+        assert 'status=4' in combined, combined
+        assert 'compiler output' in combined, combined
+        assert log_file.read_text() == 'compiler output\n', log_file.read_text()
+
+        quiet = subprocess.run(
+            [bash, '-c',
+             f'source "{root}/scripts-user/lib/setup-progress.sh"; '
+             'step() { echo "raw output"; }; '
+             f'PUNCHI_NO_PROGRESS=1 punchi_run_step "{log_file}" step'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=20)
+        assert quiet.returncode == 0, quiet.stdout + quiet.stderr
+        assert quiet.stdout == 'raw output\n', quiet.stdout
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     scripts = sorted((root / 'scripts-user').rglob('*.sh'))
@@ -554,13 +626,14 @@ def main() -> int:
     check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
     check_dependency_maps(root)
     check_qt_tool_resolution(root)
+    check_presentation(root)
     check_failure_log(root)
     check_build_failure_log(root)
     check_update_check(root)
     check_git_missing(root)
     check_autostart_uninstall(root)
     print('User setup scripts: syntax, help, menu, maps, Qt tools, logs, '
-          'restore, instance guard and update check passed.')
+          'restore, instance guard, presentation and update check passed.')
     return 0
 
 
