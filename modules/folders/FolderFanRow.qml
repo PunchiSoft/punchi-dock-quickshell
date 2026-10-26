@@ -66,6 +66,13 @@ ItemDelegate {
     padding: 0
     spacing: 0
     hoverEnabled: true
+    // The arc is the third presentation of the same entries, so it repeats the
+    // pointing hand of the flat listings while the row can act.
+    HoverHandler {
+        objectName: "folderFanCursor"
+        enabled: root.enabled
+        cursorShape: Qt.PointingHandCursor
+    }
     activeFocusOnTab: true
     focusPolicy: Qt.StrongFocus
     opacity: root.motionEnabled ? 0.78 + 0.22 * root.safeProgress : 1

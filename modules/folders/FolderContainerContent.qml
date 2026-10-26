@@ -253,6 +253,22 @@ Item {
     }
     onGridActionSelectedChanged: root.requestCurrentIndexSync()
     onListActionSelectedChanged: root.requestCurrentIndexSync()
+    // Rows of a reparenting flickable never see a secondary click, so the gesture
+    // belongs to the container. A handler is used instead of a MouseArea because
+    // a MouseArea always publishes its own arrow cursor and would hide the hand
+    // of the row under it.
+    TapHandler {
+        objectName: "folderEntrySecondaryClick"
+        enabled: !root.fanMode
+        acceptedButtons: Qt.RightButton
+        onTapped: function(eventPoint) {
+            const view = root.viewMode === "grid" ? grid : list
+            const local = view.mapFromItem(root, eventPoint.position.x, eventPoint.position.y)
+            const index = view.indexAt(local.x + view.contentX, local.y + view.contentY)
+            if (index >= 0)
+                root.openEntryMenu(view.itemAtIndex(index), root.controller.contents.get(index))
+        }
+    }
     // The fan has no surface of its own: the rows float over the desktop and
     // only their pills and glyphs paint, like the reference stacks. The balloon
     // stays for the flat presentations.
@@ -294,6 +310,18 @@ Item {
             Layout.preferredHeight: root.fanMode
                 ? Math.max(1, root.fanContentHeight)
                 : Math.max(root.viewMode === "grid" ? root.cellHeight : root.rowHeight, root.contentHeight)
+            // The listing keeps the wheel pace it had while a pointer catcher
+            // covered it, but a handler leaves the rows' hand cursor alone.
+            WheelHandler {
+                objectName: "folderListingWheel"
+                enabled: !root.fanMode
+                acceptedDevices: PointerDevice.Mouse
+                onWheel: function(event) {
+                    const view = root.viewMode === "grid" ? grid : list
+                    if (view.contentHeight > view.height)
+                        view.flick(0, event.angleDelta.y * 2)
+                }
+            }
 
             Label {
                 anchors.centerIn: parent
@@ -435,34 +463,6 @@ Item {
                 onOpenLocationRequested: root.controller.openLocation()
                 onCloseRequested: root.closeRequested()
             }
-        }
-    }
-    // Rows of a flickable never see a secondary click, so the gesture is caught
-    // just above the listing, as the dock does for its tiles. Left clicks and
-    // hover still reach the rows; the wheel is forwarded so the listing keeps
-    // scrolling smoothly.
-    MouseArea {
-        id: entryPointer
-        anchors.fill: parent
-        anchors.margins: root.inset
-        anchors.topMargin: root.inset + header.implicitHeight + Kirigami.Units.largeSpacing
-        z: 1
-        enabled: !root.fanMode
-        acceptedButtons: Qt.RightButton
-        propagateComposedEvents: true
-        onClicked: function(mouse) {
-            if (mouse.button !== Qt.RightButton) return
-            const view = root.viewMode === "grid" ? grid : list
-            const local = view.mapFromItem(entryPointer, mouse.x, mouse.y)
-            const index = view.indexAt(local.x + view.contentX, local.y + view.contentY)
-            if (index >= 0)
-                root.openEntryMenu(view.itemAtIndex(index), root.controller.contents.get(index))
-        }
-        onWheel: function(wheel) {
-            const view = root.viewMode === "grid" ? grid : list
-            if (view.contentHeight > view.height)
-                view.flick(0, wheel.angleDelta.y * 2)
-            wheel.accepted = true
         }
     }
     FolderEntryContextMenu {

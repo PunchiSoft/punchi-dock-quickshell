@@ -28,6 +28,11 @@ Item {
         visible: root.canGoBack
         enabled: visible
         Accessible.name: text
+        HoverHandler {
+            objectName: "folderBackCursor"
+            enabled: back.enabled
+            cursorShape: Qt.PointingHandCursor
+        }
         onClicked: root.backRequested()
     }
     FolderPopupShadowLabel {
@@ -57,6 +62,10 @@ Item {
             height: width
             radius: width / 2
             color: Kirigami.Theme.negativeTextColor
+        }
+        HoverHandler {
+            objectName: "folderCloseCursor"
+            cursorShape: Qt.PointingHandCursor
         }
         onClicked: root.closeRequested()
     }

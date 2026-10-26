@@ -175,4 +175,36 @@ TestCase {
         compare(menu.topOverflow, 0)
         compare(viewport.height - dock.y, initialBaseline)
     }
+    function test_rowsOwnThePointingHandCursor() {
+        const viewport = createTemporaryObject(fixture, test)
+        verify(viewport !== null)
+        const dock = viewport.testView
+        const menu = viewport.testMenu
+        tryCompare(dock, "itemCount", 8)
+        const first = findChild(dock, "launcher-systemsettings")
+        verify(waitForRendering(dock))
+        menu.openForItem(first, first.title)
+        tryCompare(menu, "opened", true)
+        // The shared popup row declares the family hand, so every row of the
+        // context menu inherits it without repeating the declaration.
+        for (const name of ["openNewWindowAction", "configureDockAction"]) {
+            const candidate = findChild(menu.mainItem, name)
+            verify(candidate !== null, name)
+            const handler = findChild(candidate, "popupRowCursor")
+            verify(handler !== null, name)
+            compare(handler.cursorShape, Qt.PointingHandCursor, name)
+            compare(handler.enabled, candidate.enabled, name)
+        }
+        const row = findChild(menu.mainItem, "openNewWindowAction")
+        const cursor = findChild(row, "popupRowCursor")
+        mouseMove(row, row.width / 2, row.height / 2)
+        tryCompare(row, "hovered", true)
+        tryCompare(cursor, "hovered", true)
+        // A row that cannot act stops asking for the hand: its handler is
+        // disabled with the row, so it also stops reporting hover.
+        row.enabled = false
+        tryCompare(cursor, "enabled", false)
+        tryCompare(cursor, "hovered", false)
+        menu.dismiss()
+    }
 }
