@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.37 — 2026-10-26
+
+- Animate the dependency check. The report is collected behind the same
+  progress line as the other long steps — spinner plus a bar that advances by
+  section — and then replayed, so the check is visible before the listing
+  arrives. Replayed rules match the real terminal, and re-checking after an
+  installation no longer replays the previous report.
+
 ## 0.1.36 — 2026-10-26
 
 - Give the setup assistant the presentation of the main Punchi Dock project: a
