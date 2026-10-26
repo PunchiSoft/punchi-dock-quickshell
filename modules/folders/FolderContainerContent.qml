@@ -15,10 +15,12 @@ Item {
     property string viewMode: "grid"
     property real maximumWidth: Kirigami.Units.gridUnit * 36
     property real maximumHeight: Kirigami.Units.gridUnit * 30
-    // Presentation scale and grid glyph chosen in Settings. The metrics object
-    // turns them into the row and cell sizes every presentation shares.
+    // Presentation scale and one glyph per presentation, chosen in Settings.
+    // The metrics object turns them into the row and cell sizes.
     property real popupScale: 1
-    property int popupIconSize: 48
+    property int popupIconSize: 0
+    property int popupListIconSize: 0
+    property int popupFanIconSize: 0
     property string tailEdge: "bottom"
     property string dockEdge: "bottom"
     // Whether the popup that hosts this content is on screen, so the fan can
@@ -44,6 +46,8 @@ Item {
     readonly property PopupMetrics metrics: PopupMetrics {
         scale: root.popupScale
         iconSize: root.popupIconSize
+        listBaseIconSize: root.popupListIconSize
+        fanBaseIconSize: root.popupFanIconSize
     }
     readonly property bool fanMode: viewMode === "fan"
     readonly property real tailExtent: root.fanMode ? 0 : Kirigami.Units.largeSpacing
@@ -408,7 +412,7 @@ Item {
                     && root.controller.contents.error.length === 0
                 contents: root.controller.contents
                 dockEdge: root.dockEdge
-                iconSize: Math.round(root.gridIconSize)
+                iconSize: Math.round(root.metrics.fanIconSize)
                 rowLimit: 6
                 maximumContentHeight: root.fanMaximumContentHeight
                 showLabels: true

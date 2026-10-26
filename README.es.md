@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.40**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.41**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -62,8 +62,10 @@ propia validación.
 - Ajustes del dock para tamaño de iconos, magnificación, rebote, movimiento
   reducido y visibilidad: Always visible, Hide automatically, Dodge windows o
   Windows go below.
-- Ajustes de los popups para tamaño, altura y tamaño de icono, compartidos por
-  los contenedores de carpeta y los menús del dock.
+- Ajustes de los popups para tamaño, altura y tamaño de icono en su propia
+  categoría **Popups**, aplicados a los contenedores de carpeta. La cuadrícula,
+  las filas de lista/detalle y el abanico conservan tamaños de glifo
+  independientes.
 - Un interruptor opcional **Start with KDE Plasma** que crea o elimina una
   entrada de autostart XDG propiedad de Punchi. La entrada surte efecto en el
   siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se

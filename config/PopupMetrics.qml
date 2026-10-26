@@ -10,10 +10,13 @@ import org.kde.kirigami as Kirigami
 QtObject {
     id: root
 
-    // Presentation scale and grid glyph chosen in Settings. Zero means the
-    // theme's large icon, so an untouched profile inherits the platform size.
+    // Presentation scale and one base glyph per presentation, all chosen in
+    // Settings. Zero means the theme's token, so an untouched profile inherits
+    // the platform size; the scale multiplies whichever base applies.
     property real scale: 1
     property int iconSize: 0
+    property int listBaseIconSize: 0
+    property int fanBaseIconSize: 0
 
     readonly property FontMetrics labelMetrics: FontMetrics {
         font: Kirigami.Theme.defaultFont
@@ -21,9 +24,12 @@ QtObject {
     readonly property FontMetrics descriptionMetrics: FontMetrics {
         font: Kirigami.Theme.smallFont
     }
-    readonly property int listIconSize: Math.round(Kirigami.Units.iconSizes.medium * root.scale)
+    readonly property int listIconSize: Math.round((root.listBaseIconSize > 0
+        ? root.listBaseIconSize : Kirigami.Units.iconSizes.medium) * root.scale)
     readonly property int gridIconSize: Math.round((root.iconSize > 0
         ? root.iconSize : Kirigami.Units.iconSizes.large) * root.scale)
+    readonly property int fanIconSize: Math.round((root.fanBaseIconSize > 0
+        ? root.fanBaseIconSize : Kirigami.Units.iconSizes.large) * root.scale)
     readonly property int rowPadding: Kirigami.Units.smallSpacing
     readonly property real listRowHeight: root.listIconSize + root.rowPadding * 2
     readonly property real detailRowHeight: Math.max(root.listRowHeight,

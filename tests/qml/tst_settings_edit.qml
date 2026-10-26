@@ -569,7 +569,7 @@ TestCase {
     }
     function test_sidebarCategoriesPlaceIconBeforeLabel(): void {
         const window = openWindow()
-        for (const name of ["itemsSettingsPage", "generalSettingsPage", "aboutSettingsPage"]) {
+        for (const name of ["itemsSettingsPage", "generalSettingsPage", "popupSettingsPage", "aboutSettingsPage"]) {
             const button = control(window, name)
             const icon = findChild(button, "categoryIcon")
             const label = findChild(button, "categoryLabel")
@@ -586,6 +586,70 @@ TestCase {
             compare(label.text, button.text)
             compare(label.horizontalAlignment, Text.AlignLeft)
         }
+        window.close()
+    }
+    function test_popupSettingsPageOwnsPopupPresentation(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "popupSettingsPage"))
+        compare(view.currentPage, 2)
+        const popups = control(window, "settingsDockPopups")
+        tryCompare(popups, "visible", true)
+        const general = control(window, "settingsDockGeneral")
+        for (const name of ["popupScale", "popupHeight", "popupIconSize", "popupListIconSize", "popupFanIconSize"]) {
+            verify(findChild(popups, name) !== null, name)
+            verify(findChild(general, name) === null, "General must not own " + name)
+        }
+        const scale = control(window, "popupScale")
+        tryCompare(scale, "visible", true)
+        view.focusFirst()
+        tryCompare(scale, "activeFocus", true)
+        // The moved slider keeps writing the pending profile, not the live one.
+        scale.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_End)
+        compare(view.settings.popupScale, 1.3)
+        compare(window.settings.popupScale, 1)
+        window.close()
+    }
+    function test_popupIconSizeSlidersArePerPresentation(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "popupSettingsPage"))
+        compare(view.currentPage, 2)
+        const expected = {
+            popupIconSize: [24, 96, 48],
+            popupListIconSize: [24, 64, 32],
+            popupFanIconSize: [24, 56, 48]
+        }
+        for (const name in expected) {
+            const slider = control(window, name)
+            compare(slider.from, expected[name][0], name)
+            compare(slider.to, expected[name][1], name)
+            compare(slider.stepSize, 2, name)
+            compare(slider.value, expected[name][2], name)
+            const readout = control(window, name + "Value")
+            compare(readout.text, expected[name][2] + " px", name)
+            compare(control(window, name + "MinimumLabel").text, "24 px", name)
+            compare(control(window, name + "MaximumLabel").text, expected[name][1] + " px", name)
+        }
+        const fan = control(window, "popupFanIconSize")
+        fan.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_End)
+        compare(view.settings.popupFanIconSize, 56)
+        compare(view.settings.popupIconSize, 0)
+        compare(view.settings.popupListIconSize, 0)
+        compare(control(window, "popupFanIconSizeValue").text, "56 px")
+        compare(window.settings.popupFanIconSize, 0)
+        // A stored size the slider can show drives the readout, and the arrow
+        // keys keep moving in the same even step.
+        view.settings.popupListIconSize = 40
+        const list = control(window, "popupListIconSize")
+        compare(list.value, 40)
+        compare(control(window, "popupListIconSizeValue").text, "40 px")
+        list.forceActiveFocus(Qt.TabFocusReason)
+        keyClick(Qt.Key_Right)
+        compare(view.settings.popupListIconSize, 42)
+        compare(control(window, "popupListIconSizeValue").text, "42 px")
         window.close()
     }
     function collect(item: var, name: string, found: var): void {

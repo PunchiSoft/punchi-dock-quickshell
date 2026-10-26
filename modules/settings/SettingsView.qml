@@ -36,23 +36,33 @@ Pane {
     implicitWidth: Kirigami.Units.gridUnit * 54
     // Preserve enough preferred height for the unified item picker.
     implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
-        generalPage.implicitHeight + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
+        Math.max(generalPage.implicitHeight, popupsPage.implicitHeight)
+        + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
         if (currentPage === 0) itemsPage.focusFirst()
         else if (currentPage === 1) generalPage.focusFirst()
+        else if (currentPage === 2) popupsPage.focusFirst()
         else aboutPage.focusFirst()
     }
     function cancelAddingItem(restoreFocus: bool): void { itemsPage.cancelAddItem(restoreFocus) }
     function clearSelection(): void { itemsPage.clearSelection() }
+    function scrollTarget(pageIndex: int): var {
+        switch (pageIndex) {
+        case 1: return {page: generalPage, viewport: generalViewport}
+        case 2: return {page: popupsPage, viewport: popupViewport}
+        case 3: return {page: aboutPage, viewport: aboutViewport}
+        }
+        return null
+    }
     function ensureFocusedVisible(control: Item): void {
-        if ((currentPage !== 1 && currentPage !== 2) || !control) return
-        const page = currentPage === 1 ? generalPage : aboutPage
+        const target = scrollTarget(currentPage)
+        if (!control || target === null) return
         let ancestor = control
-        while (ancestor && ancestor !== page) ancestor = ancestor.parent
+        while (ancestor && ancestor !== target.page) ancestor = ancestor.parent
         if (!ancestor) return
-        const viewport = currentPage === 1 ? generalViewport : aboutViewport
+        const viewport = target.viewport
         if (!viewport) return
-        const point = control.mapToItem(page, 0, 0)
+        const point = control.mapToItem(target.page, 0, 0)
         const margin = Kirigami.Units.mediumSpacing
         const maximum = Math.max(0, viewport.contentHeight - viewport.height)
         if (point.y - margin < viewport.contentY)
@@ -107,6 +117,17 @@ Pane {
                     ButtonGroup.group: navigation
                     onClicked: { root.currentPage = 1; generalPage.focusFirst() }
                 }
+                SettingsCategoryButton {
+                    objectName: "popupSettingsPage"
+                    Layout.fillWidth: true
+                    text: qsTr("Popups")
+                    icon.name: "window-symbolic"
+                    checkable: true
+                    checked: root.currentPage === 2
+                    highlighted: checked
+                    ButtonGroup.group: navigation
+                    onClicked: { root.currentPage = 2; popupsPage.focusFirst() }
+                }
                 Item { Layout.fillHeight: true }
                 SettingsCategoryButton {
                     objectName: "aboutSettingsPage"
@@ -114,10 +135,10 @@ Pane {
                     text: qsTr("About")
                     icon.name: "help-about"
                     checkable: true
-                    checked: root.currentPage === 2
+                    checked: root.currentPage === 3
                     highlighted: checked
                     ButtonGroup.group: navigation
-                    onClicked: { root.currentPage = 2; aboutPage.focusFirst() }
+                    onClicked: { root.currentPage = 3; aboutPage.focusFirst() }
                 }
             }
         }
@@ -163,10 +184,31 @@ Pane {
                         contentHeight: generalPage.implicitHeight
                         DockGeneralSettings {
                             id: generalPage
+                            objectName: "settingsDockGeneral"
                             settings: root.settings
                             autostart: root.autostart
                             recentApplications: root.recentApplications
                             width: generalViewport.width
+                        }
+                    }
+                }
+                ScrollView {
+                    id: popupScroll
+                    objectName: "settingsPopupScroll"
+                    Layout.minimumHeight: 0
+                    clip: true
+                    contentWidth: availableWidth
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    Flickable {
+                        id: popupViewport
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: popupsPage.implicitHeight
+                        DockPopupSettings {
+                            id: popupsPage
+                            settings: root.settings
+                            width: popupViewport.width
                         }
                     }
                 }

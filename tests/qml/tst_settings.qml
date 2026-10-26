@@ -86,27 +86,37 @@ TestCase {
         compare(settings.popupScale, 1)
         // Zero means the theme's icon, so an untouched profile follows Plasma.
         compare(settings.popupIconSize, 0)
+        compare(settings.popupListIconSize, 0)
+        compare(settings.popupFanIconSize, 0)
         compare(settings.popupHeightPercent, 80)
         settings.popupScale = 1.15
         settings.popupIconSize = 64
+        settings.popupListIconSize = 40
+        settings.popupFanIconSize = 34
         settings.popupHeightPercent = 50
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 10)
+        compare(data.version, 11)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.popupScale, 1.15)
         compare(restored.popupIconSize, 64)
+        compare(restored.popupListIconSize, 40)
+        compare(restored.popupFanIconSize, 34)
         compare(restored.popupHeightPercent, 50)
         // Out-of-range values keep the profile intact instead of clamping it to
         // a size the popup cannot honour.
-        verify(restored.restore({version: 10, popupScale: 4, popupIconSize: 4,
-            popupHeightPercent: 200}))
+        verify(restored.restore({version: 11, popupScale: 4, popupIconSize: 4,
+            popupListIconSize: 200, popupFanIconSize: 8, popupHeightPercent: 200}))
         compare(restored.popupScale, 1.15)
         compare(restored.popupIconSize, 64)
+        compare(restored.popupListIconSize, 40)
+        compare(restored.popupFanIconSize, 34)
         compare(restored.popupHeightPercent, 50)
         restored.reset()
         compare(restored.popupScale, 1)
         compare(restored.popupIconSize, 0)
+        compare(restored.popupListIconSize, 0)
+        compare(restored.popupFanIconSize, 0)
         compare(restored.popupHeightPercent, 80)
     }
     function test_folderContainers() {
@@ -128,7 +138,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 10)
+        compare(data.version, 11)
         compare(data.containers.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -159,7 +169,7 @@ TestCase {
         // The profile round-trips the field and a schema-8 profile keeps none.
         verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 10)
+        compare(data.version, 11)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.containerHiddenEntries(id), ["skip.txt"])

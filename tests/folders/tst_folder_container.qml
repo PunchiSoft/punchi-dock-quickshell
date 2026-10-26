@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
+import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
 import "../../modules/folders"
 import "../../modules/dock"
@@ -966,6 +967,29 @@ TestCase {
         tryCompare(window.popup, "opened", false)
         compare(window.opener.calls.length, 1)
         verify(decodeURI(window.opener.calls[0]).endsWith("/nested"))
+        window.close()
+    }
+    function test_popupIconSizesFollowEachPresentation(): void {
+        const window = openWindow("bottom")
+        const content = window.popup.contentItem
+        const fan = findChild(content, "folderFanView")
+        compare(content.gridIconSize, Kirigami.Units.iconSizes.large)
+        compare(content.metrics.listIconSize, Kirigami.Units.iconSizes.medium)
+        compare(content.metrics.fanIconSize, Kirigami.Units.iconSizes.large)
+        window.settings.popupIconSize = 64
+        tryCompare(content, "gridIconSize", 64)
+        // The rows and the arc keep their own glyph instead of inheriting it.
+        compare(content.metrics.listIconSize, Kirigami.Units.iconSizes.medium)
+        compare(content.metrics.fanIconSize, Kirigami.Units.iconSizes.large)
+        tryCompare(fan, "iconSize", Kirigami.Units.iconSizes.large)
+        window.settings.popupFanIconSize = 34
+        tryCompare(content.metrics, "fanIconSize", 34)
+        tryCompare(fan, "iconSize", 34)
+        compare(content.gridIconSize, 64)
+        window.settings.popupListIconSize = 40
+        tryCompare(content.metrics, "listIconSize", 40)
+        compare(content.gridIconSize, 64)
+        compare(content.metrics.fanIconSize, 34)
         window.close()
     }
     function test_popupAppearanceFollowsTheSettings(): void {
