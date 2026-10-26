@@ -114,8 +114,9 @@ Without arguments it opens a menu:
 | Menu option | Non-interactive action | Effect |
 |---|---|---|
 | Install or update | `./scripts-user/setup.sh --install` | Checks dependencies, offers to install missing packages, builds the native components and installs the runtime for the current user. |
-| Build only | `./scripts-user/setup.sh --build` | Checks dependencies, offers to install missing packages and builds `build/` without installing. |
-| Start the dock | `./scripts-user/setup.sh --start` | Starts the installed copy, or the source checkout when no installation exists. |
+| Build only | `./scripts-user/setup.sh --build` | Checks dependencies, offers to install missing packages and builds `build/` without installing or running the dock. |
+| Try without installing | `./scripts-user/setup.sh --try` (`--test` is an alias) | Checks dependencies, builds the checkout and runs the dock from the checkout. Nothing is installed and the installed copy is never used. |
+| Start the dock | `./scripts-user/setup.sh --start` | Runs an existing build or user-local installation. It builds nothing: use Try or Build first. |
 | Check dependencies | `./scripts-user/setup.sh --check-deps` | Reports runtime, build, validation and KDE checks. Qt tools are also found outside `PATH` in the distribution Qt bin directory. Fedora package names are validated; Debian/Ubuntu and Arch mappings are best-effort. |
 | Check for updates | `./scripts-user/setup.sh --check-updates` | Fetches the configured Git remote and reports ahead/behind counts, the upstream declared version and the installed copy version. It only reads unless `--pull` is passed. |
 | Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Runs `git pull --ff-only` after the check when the checkout is behind. It refuses modified tracked files and never rebases, resets or stashes. The menu asks before pulling and then offers to rebuild and install; `--pull` never installs. |
@@ -156,9 +157,10 @@ The source checkout remains the build source.
 uses the same build and restore scripts, so the existing start, panel-mode and
 restore behavior is unchanged.
 
-Install/update and build-only return to the menu and do not start the dock. Use
-the Start action, `--install --start` or `--build --start` to launch it after
-the action finishes.
+Install/update and build-only return to the menu and do not run the dock. Use
+Try without installing, the Start action, `--install --start` or
+`--build --start` to run it after the action finishes. The dock runs as a child
+of the assistant, so closing it returns you to the menu.
 
 Only one Punchi Dock Quickshell instance runs at a time across the source
 checkout and the user-local installation. Starting one while the other is

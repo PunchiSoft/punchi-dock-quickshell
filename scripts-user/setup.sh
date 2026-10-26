@@ -40,6 +40,9 @@ Actions (choose one):
                       it for the current user.
   --update            Alias for --install.
   --build             Check/offer dependencies and build without installing.
+  --try, --test       Check/offer dependencies, build the checkout and run it
+                      from the checkout. Nothing is installed and the installed
+                      copy is never used.
   --check-deps        Report runtime, build and validation dependencies. With
                       --install-missing, offer to install missing packages.
   --check-updates     Fetch the configured Git remote and report whether this
@@ -49,8 +52,10 @@ Actions (choose one):
   --uninstall         Stop this project, restore owned KDE settings and remove
                       the user-local installation. Build output is kept by
                       default.
-  --start             Start the dock. With --install or --build, start after
-                      the action finishes.
+  --start             Start the dock from an existing build or user-local
+                      installation. It builds nothing; use --try or --build
+                      first. With --install or --build, start after the action
+                      finishes.
   --instructions      Show quick start instructions and README locations.
   -h, --help          Show this help.
 
@@ -141,6 +146,11 @@ Guided setup
   dependencies", then choose "Install or update". The installer builds the
   native KDE components and copies the runtime into the user install root.
 
+Trying it without installing
+  Choose "Try it without installing" to build this checkout and run it from
+  here. Nothing is written to the install root, the application menu or your
+  preferences. Closing the dock returns to this menu.
+
 Start and return to KDE
   Start:           $punchi_project_root/scripts-user/start.sh
   Stop:            $punchi_project_root/scripts-user/restore-kde.sh
@@ -182,10 +192,31 @@ punchi_start_script_for() {
     printf '%s/scripts-user/start.sh\n' "$root"
 }
 
+# The dock runs as a child instead of replacing this process. `exec` would drop
+# the menu when the dock closes and would skip the EXIT cleanup that removes the
+# step transcripts, so every start path goes through this seam.
+punchi_run_dock() {
+    local start_script="${1:?start script is required}"
+    shift
+
+    "$start_script" "$@"
+}
+
+punchi_report_dock_exit() {
+    local status="${1:-0}"
+
+    if (( status == 0 )); then
+        punchi_info "The dock closed."
+    else
+        punchi_error "The dock exited with status $status."
+    fi
+}
+
 punchi_start_installed_or_checkout() {
     local install_root=""
     local source_start="$punchi_project_root/scripts-user/start.sh"
     local installed_start=""
+    local status=0
 
     install_root="$(punchi_install_root)" || return 1
     installed_start="$(punchi_start_script_for "$install_root")"
@@ -205,14 +236,23 @@ punchi_start_installed_or_checkout() {
             fi
         fi
         punchi_info "Starting the installed copy from $install_root"
-        exec "$installed_start" "$@"
+        punchi_run_dock "$installed_start" "$@" || status=$?
+        punchi_report_dock_exit "$status"
+        return "$status"
     fi
     if [[ -x "$source_start" ]] && punchi_build_artifacts_ready; then
         punchi_info "Starting the source checkout from $punchi_project_root"
-        exec "$source_start" "$@"
+        punchi_run_dock "$source_start" "$@" || status=$?
+        punchi_report_dock_exit "$status"
+        return "$status"
     fi
-    punchi_error "No built installation was found."
-    punchi_info "Choose \"Install or update\" first."
+    punchi_error "No built checkout or user-local installation was found."
+    if punchi_source_checkout_available; then
+        punchi_info "Build it with [2] Build or rebuild, or use [3] Try it without installing."
+        punchi_info "To keep a copy in your application menu, use [1] Install or update."
+    else
+        punchi_info "Install it first with [1] Install or update."
+    fi
     return 1
 }
 
@@ -241,6 +281,35 @@ punchi_phase_build() {
         return 1
     fi
     punchi_ui_render_phase "$index" "$total" success 'Build' 'Completed'
+}
+
+punchi_action_try() {
+    local total=3
+    local start_script="$punchi_project_root/scripts-user/start.sh"
+    local status=0
+
+    if ! punchi_source_checkout_available; then
+        punchi_error "Running without installing requires the source checkout."
+        punchi_info "Run this menu from the cloned repository."
+        return 1
+    fi
+
+    punchi_phase_dependencies 1 "$total" || return 1
+    punchi_phase_build 2 "$total" || return 1
+
+    punchi_ui_render_phase_started 3 "$total" 'Run'
+    if [[ ! -x "$start_script" ]]; then
+        punchi_ui_render_phase 3 "$total" error 'Run' 'Start script missing'
+        punchi_error "The start script is missing or not executable: $start_script"
+        return 1
+    fi
+    punchi_run_dock "$start_script" || status=$?
+    if (( status == 0 )); then
+        punchi_ui_render_phase 3 "$total" success 'Run' 'Completed'
+    else
+        punchi_ui_render_phase 3 "$total" error 'Run' "Exit status $status"
+    fi
+    return "$status"
 }
 
 punchi_action_install() {
@@ -283,11 +352,13 @@ punchi_action_build() {
     punchi_phase_build 2 "$total" || return 1
 
     if (( PUNCHI_START_AFTER == 1 )); then
+        local status=0
         punchi_info "Starting the source checkout from $punchi_project_root"
-        exec "$punchi_project_root/scripts-user/start.sh"
-    else
-        punchi_info "Build finished. Use \"Start the dock\" when you want to open it."
+        punchi_run_dock "$punchi_project_root/scripts-user/start.sh" || status=$?
+        punchi_report_dock_exit "$status"
+        return "$status"
     fi
+    punchi_info "Build finished. Use \"Start the dock\" when you want to open it."
     return 0
 }
 
@@ -346,19 +417,20 @@ interactive_menu() {
         punchi_muted "Primary actions"
         printf '%s\n' '  [1] Install or update (build and install for this user)'
         printf '%s\n' '  [2] Build or rebuild the source checkout only'
-        printf '%s\n' '  [3] Start the dock'
+        printf '%s\n' '  [3] Try it without installing (build, then run from this checkout)'
+        printf '%s\n' '  [4] Start the dock (needs [1], [2] or [3] first)'
         printf '\n'
         punchi_muted "Maintenance"
-        printf '%s\n' '  [4] Check runtime and build dependencies'
-        printf '%s\n' '  [5] Check for updates'
-        printf '%s\n' '  [6] Uninstall'
+        printf '%s\n' '  [5] Check runtime and build dependencies'
+        printf '%s\n' '  [6] Check for updates'
+        printf '%s\n' '  [7] Uninstall'
         printf '\n'
         punchi_muted "Help"
-        printf '%s\n' '  [7] Instructions and README'
-        printf '%s\n' '  [8] Command-line options'
-        printf '%s\n' '  [9] Exit'
+        printf '%s\n' '  [8] Instructions and README'
+        printf '%s\n' '  [9] Command-line options'
+        printf '%s\n' '  [10] Exit'
         printf '\n'
-        printf '%s' 'Select an option [1-9]: '
+        printf '%s' 'Select an option [1-10]: '
         read -r choice || break
 
         case "$choice" in
@@ -371,30 +443,34 @@ interactive_menu() {
                 punchi_pause
                 ;;
             3)
-                punchi_start_installed_or_checkout || true
+                punchi_action_try || true
                 punchi_pause
                 ;;
             4)
-                punchi_action_dependencies 1 || true
+                punchi_start_installed_or_checkout || true
                 punchi_pause
                 ;;
             5)
-                punchi_check_updates prompt || true
+                punchi_action_dependencies 1 || true
                 punchi_pause
                 ;;
             6)
-                punchi_action_uninstall || true
+                punchi_check_updates prompt || true
                 punchi_pause
                 ;;
             7)
-                show_quick_instructions
+                punchi_action_uninstall || true
                 punchi_pause
                 ;;
             8)
+                show_quick_instructions
+                punchi_pause
+                ;;
+            9)
                 show_help
                 punchi_pause
                 ;;
-            9|q|Q)
+            10|q|Q)
                 punchi_info "Setup closed."
                 return 0
                 ;;
@@ -419,6 +495,7 @@ parse_args() {
         case "$1" in
             --install|--update) set_action install; shift ;;
             --build) set_action build; shift ;;
+            --try|--test) set_action try; shift ;;
             --check-deps) set_action check_deps; shift ;;
             --check-updates|--updates) set_action check_updates; shift ;;
             --uninstall) set_action uninstall; shift ;;
@@ -503,6 +580,7 @@ main() {
     case "$PUNCHI_ACTION" in
         install) punchi_action_install ;;
         build) punchi_action_build ;;
+        try) punchi_action_try ;;
         check_deps) punchi_action_dependencies "$PUNCHI_INSTALL_MISSING" ;;
         check_updates)
             if (( PUNCHI_PULL == 1 )); then
