@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.41 — 2026-10-26
+
+- Move popup size, popup height and popup icon size out of General into their own
+  **Popups** category between General and About. The three controls describe the
+  popup surfaces rather than the dock's geometry, so the sidebar now reads
+  Items, General, Popups and About, with About still pinned to the sidebar foot.
+  The section glyph is a symbolic window, so every category icon follows the
+  theme text color instead of carrying colors of its own. The page reuses the
+  same responsive two-column section, the same control names and the same
+  pending Apply/Accept flow; no popup value or default changes, and the dock
+  context menu keeps its own metrics.
+- Keep the About page reachable at its new index: the category indices are
+  Items 0, General 1, Popups 2 and About 3, and focus restoration follows the new
+  scroll page map.
+- Give the grid, the list/detail rows and the fan their own glyph size. The fan
+  reused the grid glyph with rows 1.33 icons apart, so a size that read well in
+  the grid crowded the arc. The Icon size card holds three sliders that move in
+  steps of two pixels with a pixel readout: 24–96 px for the grid, 24–64 px for
+  the rows and 24–56 px for the fan; zero keeps the theme's token for that
+  presentation. The stored record moves to schema 11, so a profile recorded
+  earlier keeps its grid size while the arc returns to the theme token.
+
 ## 0.1.40 — 2026-10-26
 
 - Keep the folder popup open while its listing changes. The entry model now

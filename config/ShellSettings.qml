@@ -29,15 +29,27 @@ QtObject {
     property bool bounceEnabled: true
     property bool recentApplicationsEnabled: true
     property int recentApplicationsCount: 5
-    // Popup presentation, shared by the folder containers and the dock menus.
-    // The scale multiplies the row and cell sizes, the icon size is the base
-    // glyph of a folder grid, and the height percent is how much of the host a
-    // popup may cover before its content scrolls.
+    // Popup presentation for the folder containers. The dock menus share the
+    // same visual language but keep the platform sizes. The scale multiplies the
+    // row and cell sizes, the first icon size is the base glyph of a folder grid,
+    // the next two size the rows and the arc, and the height percent is how much
+    // of the host a popup may cover before its content scrolls.
     property real popupScale: 1.0
     // Zero means the theme's large icon, so a profile that never chose a size
     // follows the platform.
     property int popupIconSize: 0
     property int popupHeightPercent: 80
+    // The list/detail and fan glyphs are chosen separately: fan rows sit 1.33
+    // icons apart, so a size that reads well in the grid crowds the arc. Zero
+    // means the theme's token for that presentation.
+    property int popupListIconSize: 0
+    property int popupFanIconSize: 0
+    // One range per presentation, shared by the settings sliders and the record
+    // validation so a stored value can never be one a slider cannot show.
+    readonly property int popupIconSizeMinimum: 24
+    readonly property int popupGridIconSizeMaximum: 96
+    readonly property int popupListIconSizeMaximum: 64
+    readonly property int popupFanIconSizeMaximum: 56
     property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:downloads", "item:trash"]
     // Folder containers owned by this profile. An empty path means the user's
     // download location, which the native folder model resolves through
@@ -209,12 +221,17 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 10, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
+        return {version: 11, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
-            recentApplicationsCount, popupScale, popupIconSize, popupHeightPercent}
+            recentApplicationsCount, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
+            popupHeightPercent}
+    }
+    function validPopupIconSize(value, maximum): bool {
+        return value === 0 || (Number.isInteger(value) && value >= popupIconSizeMinimum
+            && value <= maximum)
     }
     function restore(data: var): bool {
-        if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].indexOf(data.version) < 0) return false
+        if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].indexOf(data.version) < 0) return false
         const hasLegacyDownloadsView = LauncherIds.validLayout(data.downloadsView)
         const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
         if (LauncherIds.validContainers(data.containers)) {
@@ -240,10 +257,12 @@ QtObject {
             maximumIconScale = data.maximumIconScale
         if (Number.isFinite(data.popupScale) && data.popupScale >= 0.8 && data.popupScale <= 1.3)
             popupScale = data.popupScale
-        if (data.popupIconSize === 0 || (Number.isInteger(data.popupIconSize)
-                && data.popupIconSize >= Kirigami.Units.iconSizes.small
-                && data.popupIconSize <= Kirigami.Units.iconSizes.huge))
+        if (validPopupIconSize(data.popupIconSize, popupGridIconSizeMaximum))
             popupIconSize = data.popupIconSize
+        if (validPopupIconSize(data.popupListIconSize, popupListIconSizeMaximum))
+            popupListIconSize = data.popupListIconSize
+        if (validPopupIconSize(data.popupFanIconSize, popupFanIconSizeMaximum))
+            popupFanIconSize = data.popupFanIconSize
         if (Number.isInteger(data.popupHeightPercent) && data.popupHeightPercent >= 40
                 && data.popupHeightPercent <= 90)
             popupHeightPercent = data.popupHeightPercent
@@ -270,10 +289,11 @@ QtObject {
         return true
     }
     function reset(): void {
-        restore({version: 10, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
+        restore({version: 11, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
             maximumIconScale: 2, magnificationEnabled: true, reducedMotion: false,
             bounceEnabled: true, recentApplicationsEnabled: true, recentApplicationsCount: 5,
-            popupScale: 1, popupIconSize: 0, popupHeightPercent: 80,
+            popupScale: 1, popupIconSize: 0, popupListIconSize: 0, popupFanIconSize: 0,
+            popupHeightPercent: 80,
             iconOverrides: {},
             containers: [{id: "downloads", path: "", title: qsTr("Downloads"),
                 icon: "folder-downloads", layout: "grid", sortMode: "modified"}],

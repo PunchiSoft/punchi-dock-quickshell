@@ -456,7 +456,7 @@ TestCase {
         const view = findChild(window.contentItem, "dockSettingsView")
         const aboutNavigation = findChild(view, "aboutSettingsPage")
         mouseClick(aboutNavigation)
-        tryCompare(view, "currentPage", 2)
+        tryCompare(view, "currentPage", 3)
         const aboutPage = findChild(view, "settingsAboutPage")
         verify(waitForRendering(aboutPage))
         const name = findChild(aboutPage, "aboutProjectName")
@@ -464,7 +464,7 @@ TestCase {
         const repository = findChild(aboutPage, "aboutRepositoryLink")
         const help = findChild(aboutPage, "aboutHelpLink")
         const authors = findChild(aboutPage, "aboutAuthors")
-        compare(name.text, "Punchi Dock Quickshell 0.1.40")
+        compare(name.text, "Punchi Dock Quickshell 0.1.41")
         compare(logo.status, Image.Ready)
         compare(repository.url, "https://github.com/PunchiSoft/punchi-dock-quickshell")
         compare(repository.horizontalAlignment, Text.AlignLeft)
@@ -480,7 +480,7 @@ TestCase {
         const window = createTemporaryObject(settingsWindowFixture, test)
         window.open()
         const view = findChild(window.contentItem, "dockSettingsView")
-        view.currentPage = 2
+        view.currentPage = 3
         const aboutPage = findChild(view, "settingsAboutPage")
         verify(waitForRendering(aboutPage))
         const readLicense = findChild(aboutPage, "aboutReadLicense")

@@ -140,6 +140,8 @@ Popup {
         viewMode: root.container ? root.settings.effectiveContainerLayout(root.appId) : "grid"
         popupScale: root.settings.popupScale
         popupIconSize: root.settings.popupIconSize
+        popupListIconSize: root.settings.popupListIconSize
+        popupFanIconSize: root.settings.popupFanIconSize
         clipboardService: root.clipboardService
         dockEdge: root.dockEdge
         surfaceVisible: root.visible

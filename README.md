@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.40**. The first Git snapshot was published as
+**Current delivery:** **0.1.41**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -58,8 +58,9 @@ validation.
   and KDE Places navigation for eligible file-manager launchers.
 - Dock settings for icon size, magnification, bounce, reduced motion and
   visibility: Always visible, Hide automatically, Dodge windows or Windows go below.
-- Popup settings for size, height and icon size, shared by the folder containers
-  and the dock menus.
+- Popup settings for size, height and icon size in their own **Popups**
+  category, applied to the folder containers. The grid, the list/detail rows and
+  the fan keep independent glyph sizes.
 - An optional **Start with KDE Plasma** switch that writes or removes a
   Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
   sign-in; an entry owned by another tool is never overwritten or deleted.

@@ -20,6 +20,7 @@ ColumnLayout {
     property alias value: slider.value
     signal moved(real value)
     spacing: Kirigami.Units.smallSpacing
+    function focusControl(): void { slider.forceActiveFocus() }
     Label { text: root.title; textFormat: Text.PlainText }
     Slider {
         id: slider
