@@ -49,6 +49,30 @@ private slots:
         selection.setSourceModel(nullptr);
         QCOMPARE(selection.count(), 0);
     }
+    // The dock only receives application rows: a document or place row has no
+    // application identity, even if the history query changes.
+    void selectionKeepsApplicationRowsOnly() {
+        QStandardItemModel source;
+        initialize(source);
+        append(source, "org.kde.dolphin.desktop", "Dolphin");
+        append(source, QString(), "");
+        append(source, "file:///home/user/report.pdf", "");
+        append(source, "/home/user/Documents", "");
+        append(source, "org/kde/path.desktop", "");
+        append(source, "org.kde.kate.desktop", "Kate");
+        RecentApplicationsModel selection;
+        QAbstractItemModelTester tester(&selection, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        selection.setSourceModel(&source);
+        selection.setEnabled(true);
+        QCOMPARE(selection.count(), 2);
+        const auto items = selection.items();
+        QCOMPARE(items.at(0).toMap().value("storageId").toString(), "org.kde.dolphin.desktop");
+        QCOMPARE(items.at(1).toMap().value("storageId").toString(), "org.kde.kate.desktop");
+        for (const QVariant &item : items) {
+            QCOMPARE(item.toMap().value("type").toString(), QStringLiteral("app"));
+            QVERIFY(!item.toMap().value("storageId").toString().isEmpty());
+        }
+    }
 };
 QTEST_GUILESS_MAIN(RecentApplicationsModelTest)
 #include "recent_applications_model_test.moc"

@@ -408,6 +408,34 @@ TestCase {
         tryCompare(popup, "visible", false)
         window.close()
     }
+    // A delegate can ask for a row while the listing shrinks or grows. Cycling
+    // every presentation around hiding and restoring an entry keeps that path
+    // covered instead of trusting the concatenated row mapping.
+    function test_listingChangesKeepEveryPresentationAlive(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        const originalCount = popup.contents.count
+        verify(originalCount >= 3)
+        const hiddenName = popup.contents.get(1).entryName
+        const views = ["grid", "list", "detail"]
+        for (let pass = 0; pass < 2; ++pass) {
+            const expected = pass === 0 ? originalCount : originalCount - 1
+            for (let index = 0; index < views.length; ++index) {
+                chooseView(window, index)
+                tryCompare(popup.contents, "loading", false)
+                verify(waitForRendering(popup.contentItem))
+                tryCompare(popup.contents, "count", expected)
+            }
+            verify(window.settings.setContainerHiddenEntries("item:downloads", pass === 0 ? [hiddenName] : []))
+            tryCompare(popup.contents, "loading", false)
+        }
+        const grid = findChild(popup.contentItem, "folderGrid")
+        tryCompare(grid, "count", popup.contents.count + 1)
+        verify(findChild(grid, "folderOpenLocation") !== null)
+        mouseClick(findChild(popup.contentItem, "folderClose"))
+        tryCompare(popup, "visible", false)
+        window.close()
+    }
     function test_gridNavigationBackAndLocationAction(): void {
         const window = openWindow("bottom")
         const popup = window.popup

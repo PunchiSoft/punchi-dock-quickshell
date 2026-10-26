@@ -147,6 +147,54 @@ private slots:
         QCOMPARE(contents.count(), 3);
         contents.setActive(false);
     }
+    // Qt Quick asks for a row while it applies a model change, so the popup can
+    // request a row the listing already dropped. Every reported row must map to
+    // a live source instead of reaching a missing one.
+    void entriesIndexStaysValidWhileTheListingChanges() {
+        QTemporaryDir owned;
+        QVERIFY(owned.isValid());
+        for (const QString &name : {QStringLiteral("a.txt"), QStringLiteral("b.txt"), QStringLiteral("c.txt")})
+            write(owned.filePath(name));
+
+        FolderContents contents;
+        FolderEntriesModel grid;
+        grid.setContents(&contents);
+        QAbstractItemModelTester tester(&grid, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        contents.setLocation(QUrl::fromLocalFile(owned.path()));
+        contents.setActive(true);
+        QTRY_VERIFY(!contents.loading());
+        QCOMPARE(contents.count(), 3);
+        QCOMPARE(grid.rowCount(), 4);
+
+        const auto verifyRows = [&grid]() {
+            for (int row = 0; row < grid.rowCount(); ++row) {
+                const auto index = grid.index(row, 0);
+                if (!index.isValid() || index.model() != &grid) return false;
+            }
+            return !grid.index(grid.rowCount(), 0).isValid() && !grid.index(-1, 0).isValid();
+        };
+        QVERIFY(verifyRows());
+
+        // A row a delegate still holds becomes invalid, with empty data, instead
+        // of reading a source the listing no longer has.
+        const QPersistentModelIndex heldEntry(grid.index(2, 0));
+        QVERIFY(heldEntry.isValid());
+        contents.setHiddenEntries({QStringLiteral("a.txt"), QStringLiteral("b.txt")});
+        QCOMPARE(contents.count(), 1);
+        QCOMPARE(grid.rowCount(), 2);
+        QVERIFY(!heldEntry.isValid());
+        QCOMPARE(grid.data(heldEntry, FolderEntriesModel::LocationAction), QVariant());
+        QVERIFY(verifyRows());
+
+        // Dropping the listing keeps only the open-location cell.
+        grid.setContents(nullptr);
+        QCOMPARE(grid.rowCount(), 1);
+        QVERIFY(grid.index(0, 0).isValid());
+        QVERIFY(grid.data(grid.index(0, 0), FolderEntriesModel::LocationAction).toBool());
+        QVERIFY(!grid.index(1, 0).isValid());
+        QCOMPARE(grid.data(grid.index(5, 0), FolderContents::EntryName), QVariant());
+        contents.setActive(false);
+    }
     void rejectRemoteUrlsAndReportMissingFolders() {
         QTemporaryDir owned;
         FolderContents contents;

@@ -57,6 +57,24 @@ private slots:
         QCOMPARE(readConfiguration().contains("what-to-remember=0"), true);
         QCOMPARE(readConfiguration().contains("allowed-applications=org.kde.kate.desktop"), true);
     }
+    // A recent document, folder or arbitrary URL must never become a dock
+    // launcher, so the resolver accepts application resources only.
+    void onlyApplicationResourcesResolve() {
+        const QStringList rejected{
+            QStringLiteral("file:///home/user/report.pdf"),
+            QStringLiteral("/home/user/Documents"),
+            QStringLiteral("https://example.invalid/page"),
+            QStringLiteral("applications:"),
+            QStringLiteral("applications:../../etc/passwd"),
+            QStringLiteral("applications:org kate.desktop"),
+            QStringLiteral("applications:org.kde.punchi-missing.desktop"),
+            QStringLiteral("trash:/"),
+        };
+        for (const QString &resource : rejected)
+            QVERIFY2(RecentApplicationsAdapter::resolveResource(resource).isEmpty(), qPrintable(resource));
+        QVERIFY(RecentApplicationsAdapter::resolveResource({}).isEmpty());
+        QVERIFY(RecentApplicationsAdapter::resolveResource(QString(600, QLatin1Char('a'))).isEmpty());
+    }
     void missingConfigurationKeepsTrackingEnabled() {
         QFile::remove(configPath());
         RecentApplicationsAdapter adapter;
