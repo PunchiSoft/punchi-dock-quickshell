@@ -494,6 +494,98 @@ def check_git_missing(root: Path) -> None:
         assert 'never installs git automatically' in combined, combined
 
 
+def check_try_requires_checkout(root: Path) -> None:
+    """--try/--test exist for the checkout and never install or build blindly."""
+    with tempfile.TemporaryDirectory(prefix='punchi-try-test-') as temporary:
+        home = Path(temporary)
+        install = home / 'install'
+        (install / 'scripts-user').mkdir(parents=True)
+        shutil.copy2(root / 'scripts-user/setup.sh',
+                     install / 'scripts-user/setup.sh')
+        shutil.copytree(root / 'scripts-user/lib', install / 'scripts-user/lib')
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'TMPDIR': str(home),
+            'XDG_DATA_HOME': str(home / 'data'),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'PUNCHI_INSTALL_PREFIX': str(install),
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+        })
+        for flag in ('--try', '--test'):
+            result = subprocess.run(
+                ['bash', str(install / 'scripts-user/setup.sh'), flag],
+                cwd=install, env=environment, capture_output=True, text=True,
+                check=False, timeout=30)
+            combined = result.stdout + result.stderr
+            assert result.returncode != 0, combined
+            assert 'requires the source checkout' in combined, combined
+            assert not (install / 'build').exists(), \
+                'The try action started a build without a checkout'
+
+
+def check_try_flow(root: Path) -> None:
+    """The try action builds the checkout, runs it and installs nothing."""
+    with tempfile.TemporaryDirectory(prefix='punchi-try-flow-test-') as temporary:
+        home = Path(temporary)
+        checkout = home / 'checkout'
+        (checkout / 'scripts-user').mkdir(parents=True)
+        shutil.copy2(root / 'scripts-user/setup.sh',
+                     checkout / 'scripts-user/setup.sh')
+        shutil.copytree(root / 'scripts-user/lib', checkout / 'scripts-user/lib')
+        (checkout / 'CMakeLists.txt').write_text(
+            'project(punchi-try-test VERSION 0.1.00)\n')
+        (checkout / 'adapters/kde/native').mkdir(parents=True)
+        (checkout / 'modules').mkdir()
+        (checkout / 'build/qml/Punchi/Kde').mkdir(parents=True)
+        (checkout / 'build/qml/Punchi/Kde/libpunchikdeplugin.so').write_text('')
+        (checkout / 'build/libpunchikde.so').write_text('')
+        backend = checkout / 'build/punchi-window-state'
+        backend.write_text('#!/usr/bin/env bash\nexit 0\n')
+        backend.chmod(0o755)
+        start = checkout / 'scripts-user/start.sh'
+        start.write_text('#!/usr/bin/env bash\nprintf "DOCK_STARTED %s\\n" "$*"\nexit 0\n')
+        start.chmod(0o755)
+
+        fake_bin = home / 'bin'
+        fake_bin.mkdir()
+        fake_cmake = fake_bin / 'cmake'
+        fake_cmake.write_text('#!/usr/bin/env bash\nexit 0\n')
+        fake_cmake.chmod(0o755)
+
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'TMPDIR': str(home),
+            'XDG_DATA_HOME': str(home / 'data'),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+        })
+        result = subprocess.run(
+            ['bash', str(checkout / 'scripts-user/setup.sh'), '--try',
+             '--no-color'],
+            cwd=checkout, env=environment, capture_output=True, text=True,
+            check=False, timeout=120)
+        combined = result.stdout + result.stderr
+        if '[1/3] OK Dependencies: Present' not in combined:
+            print('try flow skipped: this environment does not satisfy the '
+                  'dependency check')
+            return
+        assert result.returncode == 0, combined
+        assert 'DOCK_STARTED' in combined, combined
+        assert '[2/3] OK Build: Completed' in combined, combined
+        assert '[3/3] OK Run: Completed' in combined, combined
+        assert not (home / 'data/punchi-dock-quickshell').exists(), \
+            'The try action installed the dock'
+        assert not (home / 'data/applications').exists(), \
+            'The try action wrote an application-menu launcher'
+
+
 def check_presentation(root: Path) -> None:
     """The header, the phase lines and the step runner stay machine-readable."""
     bash = shutil.which('bash') or '/bin/bash'
@@ -586,8 +678,8 @@ def main() -> int:
     help_result = run_script(root, setup, '--help')
     assert help_result.returncode == 0, help_result.stderr
     for option in ('--install', '--check-deps', '--check-updates', '--pull',
-                   '--uninstall', '--start', '--instructions', '--prefix',
-                   '--remove-build'):
+                   '--uninstall', '--start', '--try', '--test',
+                   '--instructions', '--prefix', '--remove-build'):
         assert option in help_result.stdout, option
 
     start_help = run_script(root, start, '--help')
@@ -598,6 +690,8 @@ def main() -> int:
     assert menu.returncode == 0, menu.stderr
     for label in (
         'Install or update',
+        'Try it without installing',
+        'Start the dock (needs',
         'Check runtime and build dependencies',
         'Check for updates',
         'Uninstall',
@@ -626,6 +720,8 @@ def main() -> int:
     check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
     check_dependency_maps(root)
     check_qt_tool_resolution(root)
+    check_try_requires_checkout(root)
+    check_try_flow(root)
     check_presentation(root)
     check_failure_log(root)
     check_build_failure_log(root)
@@ -633,7 +729,7 @@ def main() -> int:
     check_git_missing(root)
     check_autostart_uninstall(root)
     print('User setup scripts: syntax, help, menu, maps, Qt tools, logs, '
-          'restore, instance guard, presentation and update check passed.')
+          'restore, instance guard, try path, presentation and update check passed.')
     return 0
 
 

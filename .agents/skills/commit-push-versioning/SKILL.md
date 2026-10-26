@@ -7,8 +7,17 @@ description: Prepare an authorized commit and push, deciding the application ver
 
 Use when the user asks to commit, push, or both. A request to commit and push
 authorizes the requested Git operations on the current branch and its configured
-upstream; it does not authorize tags, releases, force pushes, or unrelated
-remotes.
+upstream; it does not authorize tags, releases, force pushes, unrelated
+remotes, merges, or a pull request.
+
+## Branch first
+
+Commit on a delivery branch, never on `main`. When the work still sits on
+`main`, create `feat/<descriptor>`, `fix/<descriptor>`, `docs/<descriptor>` or
+`chore/<descriptor>` from updated `main` before staging anything, then continue
+on it. One branch per modification; never reuse a branch that was already
+merged. Report the branch alongside the commit and let the user decide when to
+merge or publish.
 
 ## Determine the delivery version
 
@@ -41,6 +50,7 @@ unchanged and do not add a delivery entry just to create a version bump.
 
 1. Inspect `git status`, branch/upstream, and staged, unstaged, and untracked
    changes. Preserve existing work; never reset, clean, or discard user changes.
+   Stop if the current branch is `main` and create the delivery branch first.
 2. Identify the intended commit scope and review its full diff. Do not include
    ignored build output, credentials, private notes, diagnostics, or unrelated
    changes. Ask only if mixed changes cannot be safely separated.

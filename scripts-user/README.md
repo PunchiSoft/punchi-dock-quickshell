@@ -1,8 +1,12 @@
 # Scripts User
 
-- `setup.sh` opens the guided menu: install/update, build, start, dependency
-  check, update check, uninstall and instructions. It also accepts
-  non-interactive options; run `./scripts-user/setup.sh --help`.
+- `setup.sh` opens the guided menu: install/update, build, try without
+  installing, start, dependency check, update check, uninstall and instructions.
+  It also accepts non-interactive options; run
+  `./scripts-user/setup.sh --help`. "Try it without installing" (`--try`, alias
+  `--test`) builds the checkout and runs it from the checkout; it never installs
+  and never runs the installed copy. "Start the dock" (`--start`) runs an
+  existing build or installation and builds nothing.
 - `start.sh` runs this configuration in the foreground. Run
   `./scripts-user/start.sh --help` for panel modes.
 - `launcher.sh` is used by the application-menu entry. It writes startup output
@@ -58,8 +62,10 @@ directory; `PUNCHI_QT_BIN_DIRS` adds colon-separated custom Qt prefixes.
 The setup assistant installs for the current user under
 `${XDG_DATA_HOME:-$HOME/.local/share}/punchi-dock-quickshell` and writes an
 application-menu launcher with Stop and Settings actions. Install/update and
-build-only return to the menu and do not start the dock; use the Start action
-or `--start` explicitly. It never uses `sudo` for the installation, never
+build-only return to the menu and do not run the dock; use Try, the Start
+action or `--start` explicitly. The dock runs as a child process, so closing it
+returns to the menu instead of ending the assistant. It never uses `sudo` for
+the installation, never
 removes the source checkout, keeps `build/` unless `--remove-build` is passed
 and keeps personal preferences unless removal is confirmed separately. Plasma
 stays running throughout setup and restoration.

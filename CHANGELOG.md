@@ -9,6 +9,12 @@
   failure log. The automatic build job count is now capped by installed memory,
   `-j/--jobs` stays the explicit override, and `PUNCHI_NO_PROGRESS=1` prints the
   raw command output.
+- Add **Try it without installing** to the setup menu (`--try`, alias `--test`):
+  it checks dependencies, builds the checkout and runs the dock from the
+  checkout without writing an installation, an application-menu launcher or
+  preferences. **Start the dock** now states that it needs an existing build or
+  installation, and the dock runs as a child process so closing it returns to
+  the menu instead of ending the assistant.
 
 ## 0.1.35 — 2026-10-20
 
