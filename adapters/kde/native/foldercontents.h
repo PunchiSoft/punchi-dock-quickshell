@@ -83,9 +83,13 @@ public:
     void setContents(FolderContents *contents);
     QHash<int, QByteArray> roleNames() const override;
     QVariant data(const QModelIndex &index, int role) const override;
+    QModelIndex index(int row, int column, const QModelIndex &parent = {}) const override;
 Q_SIGNALS:
     void contentsChanged();
 private:
+    // Rows the sources expose right now. The base proxy keeps its own count,
+    // which lags behind a listing that changes while a delegate is created.
+    int liveRowCount() const;
     QPointer<FolderContents> m_contents;
     QStandardItemModel m_action;
 };

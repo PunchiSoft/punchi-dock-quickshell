@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.1.40 — 2026-10-26
+
+- Keep the folder popup open while its listing changes. The entry model now
+  ignores a row the listing no longer exposes instead of reading the source that
+  already left, which crashed the dock while a grid or list delegate was being
+  created. A native row-mapping test and a popup test that cycles every
+  presentation around hiding and restoring an entry cover it.
+- State that **Recent applications** lists applications only: the resolver
+  refuses recent documents, folders and arbitrary URLs, and the selection proxy
+  drops any row without an application identity. KDE's recent documents and
+  places stay in the context menu sections, unchanged.
+
 ## 0.1.39 — 2026-10-26
 
 - Give the folder popups, the dock context menu and its sections one visual

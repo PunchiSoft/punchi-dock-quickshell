@@ -218,7 +218,21 @@ QHash<int, QByteArray> FolderEntriesModel::roleNames() const
 }
 QVariant FolderEntriesModel::data(const QModelIndex &index, int role) const
 {
-    if (!index.isValid()) return {};
+    if (!index.isValid() || index.row() < 0 || index.row() >= liveRowCount()) return {};
     if (role == LocationAction) return index.row() == (m_contents ? m_contents->count() : 0);
     return QConcatenateTablesProxyModel::data(index, role);
+}
+
+int FolderEntriesModel::liveRowCount() const
+{
+    return (m_contents ? m_contents->rowCount() : 0) + m_action.rowCount();
+}
+
+QModelIndex FolderEntriesModel::index(int row, int column, const QModelIndex &parent) const
+{
+    // Qt Quick asks for a row while it applies a model change, so the listing
+    // can already have fewer rows than the concatenated proxy still counts.
+    // The base implementation then dereferences the missing source model.
+    if (!hasIndex(row, column, parent) || row >= liveRowCount()) return {};
+    return QConcatenateTablesProxyModel::index(row, column, parent);
 }
