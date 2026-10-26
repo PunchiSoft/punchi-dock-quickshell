@@ -2,6 +2,34 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Build, user-local installation and uninstallation helpers.
 
+punchi_install_dir="${BASH_SOURCE[0]%/*}"
+if [[ "$punchi_install_dir" == "${BASH_SOURCE[0]}" ]]; then
+    punchi_install_dir='.'
+fi
+if ! declare -F punchi_job_count >/dev/null 2>&1; then
+    # shellcheck source=setup-resources.sh
+    source "$punchi_install_dir/setup-resources.sh"
+fi
+if ! declare -F punchi_run_step >/dev/null 2>&1; then
+    # shellcheck source=setup-progress.sh
+    source "$punchi_install_dir/setup-progress.sh"
+fi
+unset punchi_install_dir
+
+# Runs inside the progress runner, so it reports its own phase transitions and
+# leaves the exit status of the failing command to the caller.
+punchi_build_worker() {
+    local build_dir="${1:?build directory is required}"
+    local jobs="${2:?job count is required}"
+
+    punchi_progress_update 8 configure
+    if ! cmake -S "$punchi_project_root" -B "$build_dir" -G Ninja; then
+        return 1
+    fi
+    punchi_progress_update 45 build
+    cmake --build "$build_dir" --parallel "$jobs"
+}
+
 punchi_build_checkout() {
     punchi_source_checkout_available \
         || punchi_die "Build and install actions require the source checkout."
@@ -13,18 +41,22 @@ punchi_build_checkout() {
 
     local jobs=""
     local transcript=""
+    local step_status=0
     jobs="$(punchi_job_count)"
     transcript="$(mktemp "${TMPDIR:-/tmp}/punchi-build.XXXXXX")"
     punchi_register_cleanup "$transcript"
 
-    punchi_info "Configuring the native KDE components with Ninja ($jobs jobs)..."
-    if ! {
-        cmake -S "$punchi_project_root" -B "$build_dir" -G Ninja
-        punchi_info "Building..."
-        cmake --build "$build_dir" --parallel "$jobs"
-    } 2>&1 | tee "$transcript"; then
-        punchi_write_failure_log "build" "$transcript" || true
-        punchi_error "Build failed. Review the output above or the failure log."
+    punchi_run_step "$transcript" punchi_build_worker "$build_dir" "$jobs" \
+        || step_status=$?
+    if (( step_status != 0 )); then
+        # An interrupted build is not a defect worth a permanent failure log.
+        if (( step_status != 130 && step_status != 143 )); then
+            punchi_write_failure_log "build" "$transcript" || true
+            punchi_error "Build failed. Review the output above or the failure log."
+        else
+            punchi_warning "Build cancelled."
+            return 1
+        fi
         return 1
     fi
 
@@ -136,6 +168,13 @@ punchi_write_launcher() {
     punchi_success "Application-menu launcher written to $launcher."
 }
 
+punchi_stage_worker() {
+    local staging="${1:?staging directory is required}"
+
+    punchi_progress_update 15 stage
+    punchi_copy_runtime_tree "$staging"
+}
+
 punchi_install_local() {
     punchi_source_checkout_available \
         || punchi_die "User-local install requires the source checkout."
@@ -165,8 +204,23 @@ punchi_install_local() {
     staging="$(mktemp -d "$parent/.punchi-dock-quickshell.staging.XXXXXX")"
     punchi_register_cleanup "$staging"
 
-    punchi_info "Staging the user-local installation..."
-    punchi_copy_runtime_tree "$staging"
+    local staging_log=""
+    local stage_status=0
+    staging_log="$(mktemp "${TMPDIR:-/tmp}/punchi-stage.XXXXXX")"
+    punchi_register_cleanup "$staging_log"
+    punchi_run_step "$staging_log" punchi_stage_worker "$staging" \
+        || stage_status=$?
+    if (( stage_status != 0 )); then
+        rm -rf -- "$staging"
+        if (( stage_status != 130 && stage_status != 143 )); then
+            punchi_write_failure_log "install" "$staging_log" || true
+            punchi_error "Staging the user-local installation failed."
+        else
+            punchi_warning "Staging cancelled."
+        fi
+        return 1
+    fi
+    rm -f -- "$staging_log"
     if [[ ! -f "$staging/build/libpunchikde.so" ]]; then
         rm -rf -- "$staging"
         punchi_die "The staged installation is missing the native QML library."
@@ -192,6 +246,7 @@ punchi_install_local() {
 
     if ! punchi_write_launcher "$install_root"; then
         punchi_error "Could not write the application-menu launcher."
+        punchi_write_failure_log "install" "" || true
         rm -rf -- "$install_root"
         if [[ -n "$old_install" ]]; then
             if mv -- "$old_install" "$install_root"; then

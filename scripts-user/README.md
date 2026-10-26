@@ -22,6 +22,23 @@ active KDE session. Install/build offer to install missing dependencies for the
 detected distribution and write a timestamped build-failure log under the user's
 Documents directory.
 
+Install and build report each phase (`[i/N] ✓ Label: State`) and run the long
+steps behind one animated progress line that is rewritten in place. Output is
+still captured, and a failed step prints its last lines before the failure log
+is written. The boxed header and the moving bar need a UTF-8 terminal; a
+redirected stream, `TERM=dumb` or `NO_COLOR` gets plain ASCII lines. Colors are
+used by default and disabled by `--no-color`/`NO_COLOR`. `PUNCHI_NO_PROGRESS=1`
+skips the progress presentation and prints the raw command output.
+
+The header shows RAM, CPU cores and the build job count. Automatic concurrency
+is the detected CPU count capped by installed memory (1 job below 4.5 GiB, 2
+below 8.4 GiB, 4 below 16 GiB); `-j/--jobs N` overrides it.
+
+`lib/setup-terminal-ui.sh` holds the style codes, boxed header and phase lines,
+`lib/setup-resources.sh` the RAM/CPU/job detection and `lib/setup-progress.sh`
+the progress runner. Each library is self-contained and is loaded by the file
+that needs it, so a single library can still be sourced on its own.
+
 These scripts belong to the repository; downloading `setup.sh` alone cannot
 install or build the dock because the checkout's CMake files, modules and native
 sources are required. Git is optional: only Check for updates uses it. When it

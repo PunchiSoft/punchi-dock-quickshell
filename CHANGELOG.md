@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.36 — 2026-10-26
+
+- Give the setup assistant the presentation of the main Punchi Dock project: a
+  boxed header with the version, distribution and installed RAM/CPU/build-job
+  figures, a phase list for every multi-step action, and one animated progress
+  line for the long steps that still records the complete CMake output for the
+  failure log. The automatic build job count is now capped by installed memory,
+  `-j/--jobs` stays the explicit override, and `PUNCHI_NO_PROGRESS=1` prints the
+  raw command output.
+
 ## 0.1.35 — 2026-10-20
 
 - Keep recent KDE activity applications visible when Plasma reports no current

@@ -2,6 +2,24 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Shared terminal and path helpers for the user setup assistant.
 
+# Presentation primitives live in their own library so the boxed header, the
+# phase lines and the progress runner share one set of escape sequences. The
+# library directory is derived without dirname so this file still loads when the
+# caller runs with a minimal PATH.
+punchi_common_dir="${BASH_SOURCE[0]%/*}"
+if [[ "$punchi_common_dir" == "${BASH_SOURCE[0]}" ]]; then
+    punchi_common_dir='.'
+fi
+if ! declare -F punchi_ui_style_code >/dev/null 2>&1; then
+    # shellcheck source=setup-terminal-ui.sh
+    source "$punchi_common_dir/setup-terminal-ui.sh"
+fi
+if ! declare -F punchi_auto_job_count >/dev/null 2>&1; then
+    # shellcheck source=setup-resources.sh
+    source "$punchi_common_dir/setup-resources.sh"
+fi
+unset punchi_common_dir
+
 punchi_setup_cleanup_paths=()
 
 punchi_register_cleanup() {
@@ -21,33 +39,23 @@ punchi_setup_cleanup() {
 }
 
 punchi_colors_enabled() {
-    [[ -z "${NO_COLOR+x}" && "${TERM:-}" != "dumb" ]]
+    punchi_ui_terminal_allows_color
 }
 
 punchi_style() {
-    local style="${1:?style is required}"
-    if ! punchi_colors_enabled; then
-        return 0
-    fi
-    case "$style" in
-        heading) printf '\033[1;36m' ;;
-        info) printf '\033[36m' ;;
-        success) printf '\033[32m' ;;
-        warning) printf '\033[1;33m' ;;
-        error) printf '\033[1;31m' ;;
-        muted) printf '\033[1m' ;;
-        *) return 0 ;;
-    esac
+    punchi_ui_style_code "${1:?style is required}" 2>/dev/null || true
 }
 
 punchi_print() {
     local style="${1:?style is required}"
     shift
+    local code=""
     local reset=""
     if punchi_colors_enabled; then
+        code="$(punchi_style "$style")"
         reset=$'\033[0m'
     fi
-    printf '%s%s%s\n' "$(punchi_style "$style")" "$*" "$reset"
+    printf '%s%s%s\n' "$code" "$*" "$reset"
 }
 
 punchi_heading() { punchi_print heading "$*"; }
@@ -58,24 +66,20 @@ punchi_error() { punchi_print error "$*" >&2; }
 punchi_muted() { punchi_print muted "$*"; }
 
 punchi_rule() {
-    if punchi_colors_enabled; then
+    if punchi_ui_terminal_supports_unicode 1; then
         printf '%s\n' '────────────────────────────────────────────────────────────'
     else
         printf '%s\n' '------------------------------------------------------------'
     fi
 }
 
+punchi_sanitize_text() {
+    punchi_ui_sanitize_text "${1:-}"
+}
+
 punchi_die() {
     punchi_error "Error: $*"
     exit 1
-}
-
-punchi_sanitize_text() {
-    local value="${1:-}"
-    value="${value//$'\n'/ }"
-    value="${value//$'\r'/ }"
-    value="${value//$'\t'/ }"
-    printf '%s' "$value" | LC_ALL=C tr -d '\000-\010\013\014\016-\037\177'
 }
 
 punchi_git_install_hint() {
@@ -243,15 +247,12 @@ punchi_write_failure_log() {
 
 punchi_job_count() {
     local jobs="${PUNCHI_JOBS:-}"
-    if [[ -z "$jobs" ]]; then
-        if command -v nproc >/dev/null 2>&1; then
-            jobs="$(nproc)"
-        elif command -v getconf >/dev/null 2>&1; then
-            jobs="$(getconf _NPROCESSORS_ONLN 2>/dev/null || true)"
-        fi
+    if [[ -n "$jobs" ]]; then
+        [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || jobs=1
+        printf '%s\n' "$jobs"
+        return 0
     fi
-    [[ "$jobs" =~ ^[1-9][0-9]*$ ]] || jobs=1
-    printf '%s\n' "$jobs"
+    punchi_auto_job_count
 }
 
 punchi_confirm() {
