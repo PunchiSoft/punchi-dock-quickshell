@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.1.44 — 2026-10-26
+
+- Show pending updates on the Discover launcher. Discover publishes no update
+  state over D-Bus, so the badge reads the same sources Discover uses: PackageKit
+  `GetUpdates` on the system bus with a `background` hint, fwupd `GetDevices`
+  plus `GetUpgrades` for every updatable device, and
+  `flatpak remote-ls --updates --cached` for local metadata. The query is
+  read-only: no install, no `RefreshCache`, no authorization prompt and no
+  network. A missing service contributes zero instead of an error, and the
+  aggregate settles to `Ready` or `Unavailable`.
+- Carry the badge with the icon, on its corner. The counter is a child of the
+  launcher tile, so the existing magnification scale and translate move it
+  instead of leaving it behind. Its centre sits on the icon's upper-right corner,
+  inset by `Kirigami.Units.smallSpacing` so the disc overlaps the icon like a
+  system notification badge; the first offset used `iconSize / √2` on both axes,
+  which put it past the corner and left a gap that grew while magnified. Size,
+  font, halo width and durations are Kirigami values — `iconSizes.small`,
+  `Theme.smallFont`, `smallSpacing`, `shortDuration` and `veryShortDuration` — so
+  no arbitrary pixel size or duration remains. The badge is laid out at the
+  configured maximum magnification and counter-scaled, the same technique the
+  icons use through `highQualityIconSize`, so the digits are downscaled at rest
+  and drawn 1:1 at the wave peak, never upscaled. Entry and exit are opacity
+  only; a new count while the badge is visible plays one bounded halo that never
+  scales the number, and reduced motion removes the halo while keeping the final
+  state.
+- Follow the update front-end that is actually configured instead of assuming a
+  distribution. `UpdateNotice` resolves the pinned launcher of the first supported
+  front-end (`org.kde.discover`, then `org.gnome.Software`,
+  `io.elementary.appcenter`, `update-manager`) and badges only that tile; a dock
+  with none of them paints no badge. The data stays distribution-neutral:
+  PackageKit names its own backend (`dnf5`, `apt`, `alpm`, `zypper` ...) and now
+  reports it through `UpdateState.backendName`, alongside new
+  `systemAvailable`/`flatpakAvailable`/`firmwareAvailable` flags.
+- Use the color of KDE's update notification. The badge first read the item
+  palette, which inside Quickshell resolves to the Qt Quick Controls fallback: a
+  washed-out lavender disc with a dark number. It now uses the roles Breeze
+  itself paints those notifications with — `neutralTextColor` (#f67400, the dot
+  of `update-medium`) while updates are pending and `negativeTextColor`
+  (#da4453, the dot of `update-high`) once a security update is present — with
+  the number in `textColor`, the same glyph-versus-dot pairing as those icons.
+- Say which update sources answered. The **Updates** note is no longer a fixed
+  promise: it lists the sources from the last check, such as
+  `Updates from dnf5 · Flatpak · firmware`, falls back to `system packages` when
+  PackageKit reports no backend name, and hides itself while nothing is known.
+- Report the count accessibly and let the user turn it off. The launcher
+  description now reads "Running" and "N updates available" together, and the
+  new **Updates** category in settings toggles the badge without a restart. The
+  click target is unchanged: Discover still launches normally.
+
 ## 0.1.43 — 2026-10-26
 
 - Ask for the pointing hand over every popup item. The dock context menu rows,

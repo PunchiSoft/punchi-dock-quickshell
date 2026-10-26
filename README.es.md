@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.43**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.44**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -66,6 +66,19 @@ propia validación.
   categoría **Popups**, aplicados a los contenedores de carpeta. La cuadrícula,
   las filas de lista/detalle y el abanico conservan tamaños de glifo
   independientes.
+- Un emblema de actualizaciones sobre el lanzador de Discover cuando el equipo
+  tiene actualizaciones pendientes. El conteo se lee sólo desde PackageKit,
+  fwupd y Flatpak mediante sus interfaces nativas, así que el dock nunca consulta
+  a Discover, no instala nada, no refresca cachés de paquetes y no pide
+  autorización. El número acompaña y escala con el icono, y el emblema usa el
+  color con el que KDE pinta sus notificaciones de actualización: naranja neutro
+  mientras hay actualizaciones pendientes y rojo negativo cuando hay alguna de
+  seguridad. El interruptor **Updates** oculta el emblema sin reiniciar. El
+  emblema sigue al frontend de actualizaciones que realmente esté anclado
+  (Discover primero) en vez de suponer una distribución, y un servicio ausente
+  aporta cero. PackageKit informa su propio backend (`dnf5`, `apt`, `alpm`,
+  `zypper`…), así que los paquetes de la distribución funcionan donde PackageKit
+  esté instalado; los ayudantes de AUR y Snap aún no se consultan.
 - Un interruptor opcional **Start with KDE Plasma** que crea o elimina una
   entrada de autostart XDG propiedad de Punchi. La entrada surte efecto en el
   siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se
@@ -215,7 +228,10 @@ esta lista solo nombra el software que necesita cada grupo.
 - Archivos de desarrollo de Plasma Activities y Plasma Activities Stats
 - Archivos de desarrollo del cliente de Wayland, scanner y protocolos
 
-El runtime también necesita `kbuildsycoca6` de KService. Las pruebas de validación
+El runtime también necesita `kbuildsycoca6` de KService. El emblema de
+actualizaciones es opcional y no necesita nada de esto al compilar: lee
+PackageKit por el bus de sistema, fwupd por el bus de sistema y
+`flatpak remote-ls` cuando esos servicios existen. Las pruebas de validación
 usan además Python 3, enlaces de D-Bus para Python, PyGObject, `dbus-daemon`,
 `desktop-file-utils` y `update-desktop-database`; no son requisitos del runtime.
 

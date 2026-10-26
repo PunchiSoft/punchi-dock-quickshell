@@ -8,5 +8,10 @@ references KDE activity history through native adapters and filters pinned or
 open applications without maintaining a second history. LicenseDocument reads
 the LICENSE document installed next to `shell.qml` so the About page can present
 the verbatim license text inside the settings window. Services never import
-visual components. Full discovery and user pinning remain
+visual components. UpdateNotice reads the native `UpdateState` aggregation of
+PackageKit, fwupd and Flatpak and decides which launcher receives the count and
+whether the settings switch allows it; the query itself never installs, refreshes
+caches or requests authorization. The target is resolved from the catalog against
+a short list of update front-ends (Discover first), so the service follows the
+pinned launcher instead of assuming a distribution. Full discovery and user pinning remain
 future work.

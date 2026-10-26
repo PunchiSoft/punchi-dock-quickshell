@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.43**. The first Git snapshot was published as
+**Current delivery:** **0.1.44**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -61,6 +61,18 @@ validation.
 - Popup settings for size, height and icon size in their own **Popups**
   category, applied to the folder containers. The grid, the list/detail rows and
   the fan keep independent glyph sizes.
+- An update badge on the Discover launcher while the machine has pending updates.
+  The count is read only from PackageKit, fwupd and Flatpak through their native
+  interfaces, so the dock never asks Discover, never installs anything, never
+  refreshes package caches and never requests authorization. The number travels
+  and scales with the icon, and the badge takes the color KDE paints its update
+  notifications with: neutral orange while updates are pending and negative red
+  once a security update is present. The **Updates** switch turns the badge off
+  without a restart. The badge follows whichever supported update front-end is
+  actually pinned (Discover first) rather than assuming a distribution, and a
+  missing service simply contributes nothing. PackageKit reports its own backend
+  (`dnf5`, `apt`, `alpm`, `zypper` ...), so distribution packages work wherever
+  PackageKit is installed; AUR helpers and Snap are not queried yet.
 - An optional **Start with KDE Plasma** switch that writes or removes a
   Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
   sign-in; an entry owned by another tool is never overwritten or deleted.
@@ -227,7 +239,10 @@ software each group needs.
 - Plasma Activities and Plasma Activities Stats development files
 - Wayland client development files, scanner and protocols
 
-The runtime also needs `kbuildsycoca6` from KService. Validation tests separately
+The runtime also needs `kbuildsycoca6` from KService. The update badge is optional
+and needs none of these at build time: it reads PackageKit over the system bus,
+fwupd over the system bus and `flatpak remote-ls` when those services exist.
+Validation tests separately
 need Python 3, D-Bus Python bindings, PyGObject, `dbus-daemon`,
 `desktop-file-utils` and `update-desktop-database`; these are not runtime
 requirements.

@@ -29,6 +29,7 @@ QtObject {
     property bool bounceEnabled: true
     property bool recentApplicationsEnabled: true
     property int recentApplicationsCount: 5
+    property bool updateBadgeEnabled: true
     // Popup presentation for the folder containers. The dock menus share the
     // same visual language but keep the platform sizes. The scale multiplies the
     // row and cell sizes, the first icon size is the base glyph of a folder grid,
@@ -223,7 +224,7 @@ QtObject {
     function snapshot(): var {
         return {version: 11, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
-            recentApplicationsCount, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
+            recentApplicationsCount, updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent}
     }
     function validPopupIconSize(value, maximum): bool {
@@ -266,7 +267,8 @@ QtObject {
         if (Number.isInteger(data.popupHeightPercent) && data.popupHeightPercent >= 40
                 && data.popupHeightPercent <= 90)
             popupHeightPercent = data.popupHeightPercent
-        for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled", "recentApplicationsEnabled"])
+        for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled",
+                "recentApplicationsEnabled", "updateBadgeEnabled"])
             if (typeof data[key] === "boolean") this[key] = data[key]
         if (Number.isInteger(data.recentApplicationsCount) && data.recentApplicationsCount >= 1
                 && data.recentApplicationsCount <= 20)
@@ -292,6 +294,7 @@ QtObject {
         restore({version: 11, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
             maximumIconScale: 2, magnificationEnabled: true, reducedMotion: false,
             bounceEnabled: true, recentApplicationsEnabled: true, recentApplicationsCount: 5,
+            updateBadgeEnabled: true,
             popupScale: 1, popupIconSize: 0, popupListIconSize: 0, popupFanIconSize: 0,
             popupHeightPercent: 80,
             iconOverrides: {},
