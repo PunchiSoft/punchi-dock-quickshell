@@ -24,6 +24,11 @@ QtObject {
     readonly property FontMetrics descriptionMetrics: FontMetrics {
         font: Kirigami.Theme.smallFont
     }
+    // Resting width of a list label: the popup sizes itself from the same cap the
+    // row paints, so a long entry cannot reserve room no row will ever use.
+    // FolderMarqueeLabel measures the same probe with the row font.
+    readonly property real maximumRestingNameWidth: Math.ceil(
+        root.labelMetrics.advanceWidth("MMMMMMMMMM"))
     readonly property int listIconSize: Math.round((root.listBaseIconSize > 0
         ? root.listBaseIconSize : Kirigami.Units.iconSizes.medium) * root.scale)
     readonly property int gridIconSize: Math.round((root.iconSize > 0
