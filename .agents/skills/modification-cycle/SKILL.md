@@ -21,6 +21,22 @@ skill's synthetic adapter contract probe before other checks. Close only the
 completed scope and distinguish implementation from pending runtime or user
 validation. No legacy plasmoid gate is implied by this workflow.
 
+## Reference gate
+
+Establish the API evidence before editing, not after. Apply `qt-kde-reference`
+for the exact symbol, version availability and source, and `kde-integration` for
+the native mechanism that should own the behavior.
+
+The authoritative sources, in order, are the local reference notes, the installed
+headers and QML type metadata, and the official documentation for the installed
+release. An upstream checkout such as `kde-sdk/` is optional local evidence: it is
+not bundled here and never replaces the installed metadata.
+
+Record the symbol, version, source and evidence limits before implementing, and
+prefer an existing Quickshell or KDE provider over a new service or adapter. When
+the evidence is missing or version-sensitive, say so instead of assuming that
+upstream behavior applies to this session.
+
 ## Delivery branch
 
 Never make the first change on `main`. Before editing, update `main` and create

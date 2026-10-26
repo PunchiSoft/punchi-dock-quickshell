@@ -19,6 +19,14 @@ regression and relevant neighboring behavior. Never repeat a discarded solution
 without identifying new evidence. Distinguish static analysis, component runtime,
 real desktop checks, and explicit user confirmation before closing the review.
 
+## Reference gate
+
+A correction that touches a Qt, KDE, KWin or Quickshell API starts from evidence
+rather than from the report's diagnosis: apply `qt-kde-reference` and
+`kde-integration`, then record the symbol, installed version, source and limits
+before editing. Installed headers and QML type metadata outrank an upstream
+checkout; `kde-sdk/` is optional local evidence and is not bundled here.
+
 ## Delivery
 
 A correction delivers like a feature: one `fix/<descriptor>` branch created from
