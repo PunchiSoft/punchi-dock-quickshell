@@ -64,6 +64,10 @@ Pane {
                 objectName: "cancelEmptyTrash"
                 Layout.fillWidth: true
                 text: qsTr("Cancel")
+                HoverHandler {
+                    objectName: "trashCancelCursor"
+                    cursorShape: Qt.PointingHandCursor
+                }
                 onClicked: root.cancelRequested()
                 KeyNavigation.tab: confirm.enabled ? confirm : cancel
                 KeyNavigation.backtab: confirm.enabled ? confirm : cancel
@@ -76,6 +80,11 @@ Pane {
                 icon.name: "edit-delete"
                 enabled: root.canConfirm
                 highlighted: true
+                HoverHandler {
+                    objectName: "trashConfirmCursor"
+                    enabled: confirm.enabled
+                    cursorShape: Qt.PointingHandCursor
+                }
                 onClicked: root.confirmRequested()
                 KeyNavigation.tab: cancel
                 KeyNavigation.backtab: cancel

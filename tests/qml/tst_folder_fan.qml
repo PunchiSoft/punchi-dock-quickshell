@@ -222,4 +222,26 @@ TestCase {
         compare(host.openSpy.count, 1)
         host.destroy()
     }
+
+    function test_rowsOwnThePointingHandCursor(): void {
+        const host = createFan(4)
+        for (const name of ["folderFanEntry-0", "folderFanOpenLocation"]) {
+            const row = findChild(host.fan, name)
+            verify(row !== null, name)
+            const handler = findChild(row, "folderFanCursor")
+            verify(handler !== null, name)
+            compare(handler.cursorShape, Qt.PointingHandCursor, name)
+            compare(handler.enabled, row.enabled, name)
+        }
+        // The arc repeats the hand of the flat listings when the pointer is on a
+        // row, not only when it is declared.
+        const entry = findChild(host.fan, "folderFanEntry-0")
+        const cursor = findChild(entry, "folderFanCursor")
+        mouseMove(entry, entry.width / 2, entry.height / 2)
+        tryCompare(cursor, "hovered", true)
+        entry.enabled = false
+        tryCompare(cursor, "enabled", false)
+        tryCompare(cursor, "hovered", false)
+        host.destroy()
+    }
 }

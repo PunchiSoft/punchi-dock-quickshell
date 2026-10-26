@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.1.43 — 2026-10-26
+
+- Ask for the pointing hand over every popup item. The dock context menu rows,
+  the folder container rows of Grid, List, Detail and Fan, the folder header
+  controls, the folder entry menu and the Empty Trash confirmation now change the
+  pointer to the hand while the item can act, and keep the arrow when it cannot.
+  Qt 6 has no `Item.cursorShape`, so each interactive control declares a passive
+  `HoverHandler` whose `cursorShape` follows that control's own enablement. The
+  hover band, selection emphasis, layout and keyboard profile are unchanged.
+- Stop the folder listing from hiding that hand. The full-size `MouseArea` that
+  caught the secondary click and forwarded the wheel also published its own arrow
+  cursor over every row, so Grid, List and Detail kept the pointer instead of the
+  hand. The gesture and the wheel now travel through a `TapHandler` and a
+  `WheelHandler`, which request no cursor; the row menu, the wheel pace, left
+  clicks and keyboard focus behave as before.
+
 ## 0.1.42 — 2026-10-26
 
 - Size a folder list popup from what its rows can paint. The surface reserved the

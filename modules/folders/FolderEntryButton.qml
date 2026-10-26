@@ -40,6 +40,13 @@ ItemDelegate {
     Accessible.name: root.actionRow ? qsTr("Open") : root.entryName
     Accessible.description: root.actionRow ? qsTr("Open this folder in the file manager")
         : root.detailed ? root.description : ""
+    // Every listing row is a pointer target, so the popup keeps one hand cursor
+    // for its rows and its entries while the row can act.
+    HoverHandler {
+        objectName: "folderEntryCursor"
+        enabled: root.enabled
+        cursorShape: Qt.PointingHandCursor
+    }
     background: PopupRowHighlight {
         id: rowHighlight
         anchors.margins: root.metrics.rowInset

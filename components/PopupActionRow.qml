@@ -28,6 +28,14 @@ ItemDelegate {
         + (submenu || marked ? icon.width + spacing : 0)
     palette.windowText: Kirigami.Theme.textColor
     FontMetrics { id: labelMetrics; font: root.font }
+    // Qt 6 has no Item.cursorShape, so the hand of the popup family belongs to a
+    // passive handler. It follows the row's enablement, because a row that cannot
+    // act keeps the arrow and still reports itself as hovered.
+    HoverHandler {
+        objectName: "popupRowCursor"
+        enabled: root.enabled
+        cursorShape: Qt.PointingHandCursor
+    }
     contentItem: RowLayout {
         spacing: root.spacing
         scale: rowHighlight.visualScale

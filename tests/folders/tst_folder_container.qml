@@ -1049,4 +1049,66 @@ TestCase {
         verify(window.popup.height > 0)
         window.close()
     }
+    // A cursor-stealing pointer catcher is an item, so the regression looks for
+    // the MouseAreas the popup builds instead of trusting the declarations.
+    function collectMouseAreas(item: Item, out: var): void {
+        for (let index = 0; index < item.children.length; ++index) {
+            const child = item.children[index]
+            if (String(child).indexOf("QQuickMouseArea") === 0) out.push(child)
+            collectMouseAreas(child, out)
+        }
+    }
+    function test_popupRowsOwnThePointingHandCursor(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        const content = popup.contentItem
+        const grid = findChild(content, "folderGrid")
+        verify(grid !== null)
+        tryCompare(grid, "count", popup.contents.count + 1)
+        // Every listing row declares the family hand while it can act.
+        for (const entry of [findChild(grid, "folderGridEntry-0"), findChild(content, "folderOpenLocation")]) {
+            verify(entry !== null)
+            const handler = findChild(entry, "folderEntryCursor")
+            verify(handler !== null)
+            compare(handler.cursorShape, Qt.PointingHandCursor)
+            compare(handler.enabled, entry.enabled)
+        }
+        const back = findChild(content, "folderBack")
+        const backCursor = findChild(back, "folderBackCursor")
+        verify(backCursor !== null)
+        compare(backCursor.cursorShape, Qt.PointingHandCursor)
+        const close = findChild(content, "folderClose")
+        const closeCursor = findChild(close, "folderCloseCursor")
+        verify(closeCursor !== null)
+        compare(closeCursor.cursorShape, Qt.PointingHandCursor)
+        // The secondary click and the wheel belong to passive handlers: a
+        // MouseArea would publish its own arrow cursor over the rows.
+        const secondary = findChild(content, "folderEntrySecondaryClick")
+        verify(secondary !== null)
+        compare(secondary.acceptedButtons, Qt.RightButton)
+        compare(secondary.enabled, true)
+        verify(findChild(content, "folderListingWheel") !== null)
+        // The pointer over a row asks for the hand, and nothing visible covers
+        // the row with an item that would outrank it.
+        const entry = findChild(grid, "folderGridEntry-0")
+        const cursor = findChild(entry, "folderEntryCursor")
+        mouseMove(entry, entry.width / 2, entry.height / 2)
+        tryCompare(cursor, "hovered", true)
+        const areas = []
+        collectMouseAreas(content, areas)
+        // The entry menu keeps its own catcher, so the walk must find at least
+        // one area for the loop below to mean anything.
+        verify(areas.length >= 1, "the popup tree walk found no MouseArea")
+        for (const area of areas) {
+            if (!area.visible || !area.enabled) continue
+            const local = area.mapFromItem(entry, entry.width / 2, entry.height / 2)
+            verify(local.x < 0 || local.y < 0 || local.x > area.width || local.y > area.height,
+                "a visible MouseArea covers the listing row: " + area)
+        }
+        // A row that cannot act stops asking for the hand.
+        entry.enabled = false
+        tryCompare(cursor, "enabled", false)
+        tryCompare(cursor, "hovered", false)
+        window.close()
+    }
 }

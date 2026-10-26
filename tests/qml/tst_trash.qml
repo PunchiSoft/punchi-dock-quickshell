@@ -145,4 +145,23 @@ TestCase {
         mouseClick(findChild(view,"closeDockSettings"))
         compare(fixture.settings.pinnedIds,["files","item:trash","browser"])
     }
+    function test_confirmationButtonsOwnThePointingHandCursor() {
+        const content = createTemporaryObject(contentFixture,test)
+        verify(waitForRendering(content))
+        const cancel = findChild(content,"cancelEmptyTrash")
+        const confirm = findChild(content,"confirmEmptyTrash")
+        const cancelCursor = findChild(cancel,"trashCancelCursor")
+        const confirmCursor = findChild(confirm,"trashConfirmCursor")
+        verify(cancelCursor !== null && confirmCursor !== null)
+        compare(cancelCursor.cursorShape, Qt.PointingHandCursor)
+        compare(confirmCursor.cursorShape, Qt.PointingHandCursor)
+        mouseMove(cancel, cancel.width / 2, cancel.height / 2)
+        tryCompare(cancelCursor, "hovered", true)
+        // A confirmation that cannot empty anything stops asking for the hand
+        // instead of promising the action.
+        content.canConfirm = false
+        tryCompare(confirm, "enabled", false)
+        tryCompare(confirmCursor, "enabled", false)
+        tryCompare(confirmCursor, "hovered", false)
+    }
 }
