@@ -18,3 +18,10 @@ focused reproduction. Correct the smallest responsible layer, then validate the
 regression and relevant neighboring behavior. Never repeat a discarded solution
 without identifying new evidence. Distinguish static analysis, component runtime,
 real desktop checks, and explicit user confirmation before closing the review.
+
+## Delivery
+
+A correction delivers like a feature: one `fix/<descriptor>` branch created from
+updated `main`, its commit and delivery version from `commit-push-versioning`,
+and the delivery pull request from `pr-delivery`. Merging still needs its own
+request.

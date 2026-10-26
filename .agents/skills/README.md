@@ -20,6 +20,7 @@ Quickshell-specific workflows are new.
 - [motion-review](motion-review/SKILL.md)
 - [notice-copy-approval](notice-copy-approval/SKILL.md)
 - [preflight-security-review](preflight-security-review/SKILL.md)
+- [pr-delivery](pr-delivery/SKILL.md)
 - [publication-review](publication-review/SKILL.md)
 - [qml-ui-creation](qml-ui-creation/SKILL.md)
 - [qt-kde-reference](qt-kde-reference/SKILL.md)

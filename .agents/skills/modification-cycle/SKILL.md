@@ -29,7 +29,7 @@ one branch per modification from it, named `feat/<descriptor>`, or
 is a correction, documentation-only or repository-only. Do not reuse a branch
 that was already merged, and record the branch name in the change note.
 
-"Commit and push" approves the implemented work on that branch. It is not
-authorization to merge into `main`, create a tag or release, or open a pull
-request; each of those needs its own request. `commit-push-versioning` owns the
-commit content and the delivery version once the user asks for it.
+"Commit and push" approves the implemented work on that branch and, per
+`commit-push-versioning` and `pr-delivery`, publishes it with its delivery pull
+request. It is not authorization to merge into `main`, create a tag or release,
+or delete the branch; each of those needs its own request.
