@@ -30,7 +30,11 @@ Install and build report each phase (`[i/N] ✓ Label: State`) and run the long
 steps behind one animated progress line that is rewritten in place. Output is
 still captured, and a failed step prints its last lines before the failure log
 is written. The dependency check uses the same line while it collects the
-report, then replays the captured listing so the result stays on screen. The boxed header and the moving bar need a UTF-8 terminal; a
+report, then replays the captured listing so the result stays on screen. On a
+terminal a step is shown for at least 0.9 s and the completion line holds 0.4 s
+so a fast action remains readable; `PUNCHI_PROGRESS_MIN_SECONDS` and
+`PUNCHI_PROGRESS_SETTLE_SECONDS` override both, and redirected output never
+waits. The boxed header and the moving bar need a UTF-8 terminal; a
 redirected stream, `TERM=dumb` or `NO_COLOR` gets plain ASCII lines. Colors are
 used by default and disabled by `--no-color`/`NO_COLOR`. `PUNCHI_NO_PROGRESS=1`
 skips the progress presentation and prints the raw command output.

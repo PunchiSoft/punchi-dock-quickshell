@@ -5,6 +5,8 @@
 from pathlib import Path
 from typing import Optional
 import os
+import pty
+import select
 import shutil
 import subprocess
 import tempfile
@@ -586,6 +588,35 @@ def check_try_flow(root: Path) -> None:
             'The try action wrote an application-menu launcher'
 
 
+def run_in_terminal(command: str, environment: dict,
+                    timeout: float = 20.0) -> tuple[str, float]:
+    """Run a command with a pseudo-terminal and report elapsed seconds."""
+    master, slave = pty.openpty()
+    started = time.monotonic()
+    process = subprocess.Popen(['bash', '-c', command],
+                               stdin=subprocess.DEVNULL, stdout=slave,
+                               stderr=slave, env=environment)
+    os.close(slave)
+    output = b''
+    deadline = started + timeout
+    while time.monotonic() < deadline:
+        try:
+            ready, _, _ = select.select([master], [], [], 0.2)
+            if not ready:
+                if process.poll() is not None:
+                    break
+                continue
+            chunk = os.read(master, 65536)
+            if not chunk:
+                break
+            output += chunk
+        except OSError:
+            break
+    process.wait(timeout=timeout)
+    os.close(master)
+    return output.decode('utf-8', 'replace'), time.monotonic() - started
+
+
 def check_presentation(root: Path) -> None:
     """The header, the phase lines and the step runner stay machine-readable."""
     bash = shutil.which('bash') or '/bin/bash'
@@ -659,6 +690,45 @@ def check_presentation(root: Path) -> None:
         assert not any('Operation completed' in line for line in replayed), \
             'The report step must not add a completion frame'
         assert log_file.read_text() == 'Runtime\n[ok] qs\n', log_file.read_text()
+
+        pacing = subprocess.run(
+            [bash, '-c',
+             f'source "{root}/scripts-user/lib/setup-progress.sh"; '
+             'punchi_progress_seconds_to_ms 0.9; '
+             'punchi_progress_seconds_to_ms 0.4; '
+             'punchi_progress_seconds_to_ms 2; '
+             'punchi_progress_seconds_to_ms bogus'],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=20)
+        assert pacing.stdout.split() == ['900', '400', '2000', '0'], pacing.stdout
+
+        terminal_environment = dict(environment)
+        terminal_environment.update({
+            'TERM': 'xterm-256color',
+            'PUNCHI_PROGRESS_MIN_SECONDS': '0.6',
+            'PUNCHI_PROGRESS_SETTLE_SECONDS': '0',
+        })
+        paced, paced_seconds = run_in_terminal(
+            f'source "{root}/scripts-user/lib/setup-progress.sh"; '
+            'step() { :; }; punchi_run_step /dev/null step',
+            terminal_environment)
+        assert '100%' in paced, paced
+        assert paced_seconds >= 0.55, paced_seconds
+
+        impatient = dict(environment)
+        impatient.update({
+            'PUNCHI_PROGRESS_MIN_SECONDS': '5',
+            'PUNCHI_PROGRESS_SETTLE_SECONDS': '5',
+        })
+        started = time.monotonic()
+        subprocess.run(
+            [bash, '-c',
+             f'source "{root}/scripts-user/lib/setup-progress.sh"; '
+             'step() { :; }; punchi_run_step /dev/null step'],
+            cwd=root, env=impatient, capture_output=True, text=True,
+            check=False, timeout=20)
+        assert time.monotonic() - started < 3, \
+            'Redirected output must not wait for the visible minimum'
 
         quiet = subprocess.run(
             [bash, '-c',

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.38 — 2026-10-26
+
+- Pace the setup progress so the work is readable. On a terminal a step stays
+  visible for at least 0.9 s, keeping the spinner running instead of flashing
+  past, and the completion line holds 0.4 s before the next output.
+  `PUNCHI_PROGRESS_MIN_SECONDS` and `PUNCHI_PROGRESS_SETTLE_SECONDS` tune both,
+  failures still report immediately, and redirected output never waits.
+
 ## 0.1.37 — 2026-10-26
 
 - Animate the dependency check. The report is collected behind the same
