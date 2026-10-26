@@ -15,6 +15,7 @@ Pane {
     property var autostart: null
     property var license: null
     property var recentApplications: null
+    property var updates: null
     property int currentPage: 1
     property bool hasPendingChanges: false
     property bool aboutDialogOpen: false
@@ -188,6 +189,7 @@ Pane {
                             settings: root.settings
                             autostart: root.autostart
                             recentApplications: root.recentApplications
+                            updates: root.updates
                             width: generalViewport.width
                         }
                     }

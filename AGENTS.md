@@ -7,7 +7,8 @@ it. Skills live in `.agents/skills/`. User instructions take precedence.
 
 Punchi Dock Quickshell is a modular desktop interface built with Quickshell and QML for
 KDE Plasma/KWin, primarily on Wayland. The current stage is a dock with configured desktop-entry launchers, a continuous
-magnification wave, and two-hop activation feedback. A native Qt/KDE QML module
+magnification wave, two-hop activation feedback, and an update badge on
+Discover read from PackageKit, fwupd and Flatpak. A native Qt/KDE QML module
 provides application launching. Rust remains optional.
 
 ## Safe coexistence — current operating contract
@@ -186,7 +187,7 @@ Do not advance the counter for repository metadata or documentation-only commits
 or comment-, formatting- and wording-only edits. Keep these commits marked as
 `chore:` or `docs:`; the declared delivery version stays unchanged.
 
-The current delivery is `0.1.43`. The newest delivery heading in `CHANGELOG.md`
+The current delivery is `0.1.44`. The newest delivery heading in `CHANGELOG.md`
 is authoritative for the counter. Before a behavior-changing commit, advance it
 once and update CMake, the About page, README, CHANGELOG and the local
 `docs/versioning.md` record consistently. Keep configuration schema and QML

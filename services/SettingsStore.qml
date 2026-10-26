@@ -53,6 +53,7 @@ Scope {
         function onMagnificationEnabledChanged() { root.save() }
         function onReducedMotionChanged() { root.save() }
         function onBounceEnabledChanged() { root.save() }
+        function onUpdateBadgeEnabledChanged() { root.save() }
         function onPinnedIdsChanged() { root.save() }
         function onIconOverridesChanged() { root.save() }
         function onContainersChanged() { root.save() }

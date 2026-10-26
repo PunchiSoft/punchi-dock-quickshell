@@ -13,6 +13,7 @@ Control {
 
     required property var entries
     property var applicationState: null
+    property var updateState: null
     property string dockEdge: "bottom"
     readonly property bool vertical: dockEdge === "left" || dockEdge === "right"
     property int currentIndex: -1
@@ -339,6 +340,16 @@ Control {
                 if (!root.applicationState) return false
                 root.applicationState.revision
                 return root.applicationState.isRunning(tile.appId)
+            }
+            updateCount: {
+                if (!root.updateState) return 0
+                root.updateState.revision
+                return root.updateState.badgeCount(tile.appId)
+            }
+            updateSecurityCount: {
+                if (!root.updateState) return 0
+                root.updateState.revision
+                return root.updateState.badgeSecurityCount(tile.appId)
             }
             magnificationEnabled: root.magnificationEnabled
             reducedMotion: root.reducedMotion || !root.visible || !root.enabled

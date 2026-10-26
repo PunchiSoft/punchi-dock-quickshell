@@ -29,5 +29,6 @@ ShellRoot {
         autostart: autostart
         license: licenseDocument
         recentApplications: dock.recentApplications
+        updates: dock.updateNotice
     }
 }

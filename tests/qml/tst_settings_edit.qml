@@ -62,6 +62,25 @@ TestCase {
             }
         }
     }
+    // Mirrors UpdateNotice: names only the sources that answered.
+    component UpdateStub: QtObject {
+        property var availableSources: ["system", "flatpak", "firmware"]
+        property string backendName: "dnf5"
+    }
+    Component {
+        id: updateNoteFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            updates: UpdateStub {}
+        }
+    }
+    Component {
+        id: noUpdateSourcesFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            updates: UpdateStub { availableSources: []; backendName: "" }
+        }
+    }
     Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
     Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
     Component { id: applicationRowFixture; ApplicationListRow {} }
@@ -130,6 +149,29 @@ TestCase {
         verify(item !== null, name)
         return item
     }
+    // The note names the sources that answered instead of promising all three.
+    function test_updateSourcesNoteNamesDetectedSources(): void {
+        const window = createTemporaryObject(updateNoteFixture, test)
+        const note = findChild(window, "updateBadgeSourcesNote")
+        verify(note)
+        compare(note.visible, true)
+        compare(note.text, "Updates from dnf5 · Flatpak · firmware")
+        window.updates.availableSources = ["system"]
+        tryCompare(note, "text", "Updates from dnf5")
+        window.updates.backendName = ""
+        tryCompare(note, "text", "Updates from system packages")
+        window.updates.availableSources = []
+        compare(note.visible, false)
+    }
+
+    function test_updateSourcesNoteHiddenWithoutSources(): void {
+        const window = createTemporaryObject(noUpdateSourcesFixture, test)
+        const note = findChild(window, "updateBadgeSourcesNote")
+        verify(note)
+        compare(note.visible, false)
+        compare(note.text, "")
+    }
+
     function test_applyAcceptCloseAndKeyboard(): void {
         const window = openWindow()
         const view = control(window, "dockSettingsView")

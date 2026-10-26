@@ -12,6 +12,7 @@ Window {
     property var autostart: null
     property var license: null
     property var recentApplications: null
+    property var updates: null
     readonly property bool hasPendingChanges: editor.dirty
         || (autostart !== null && autostart.dirty)
     title: qsTr("Punchi Dock Quickshell — Dock settings")
@@ -53,6 +54,7 @@ Window {
         autostart: root.autostart
         license: root.license
         recentApplications: root.recentApplications
+        updates: root.updates
         hasPendingChanges: root.hasPendingChanges
         applicationCatalog: root.applicationCatalog
         onApplyRequested: {

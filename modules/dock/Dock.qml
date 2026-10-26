@@ -16,6 +16,7 @@ PanelWindow {
     property alias preferences: settings
     readonly property alias applicationCatalog: itemCatalog
     readonly property alias recentApplications: recentApplications
+    readonly property alias updateNotice: updateNotice
     property bool configuring: false
     DockConfigurationController { hostWindow: root; active: root.configuring }
     signal settingsRequested()
@@ -236,6 +237,7 @@ PanelWindow {
         reducedMotion: settings.effectiveReducedMotion
     }
     RunningApplications { id: runningApps; catalog: availableApps }
+    UpdateNotice { id: updateNotice; settings: root.preferences; catalog: availableApps }
     DockRestingGeometry {
         id: restingGeometry
         dockEdge: settings.dockEdge
@@ -425,6 +427,7 @@ PanelWindow {
         id: view
         objectName: "dock-view"
         applicationState: runningApps
+        updateState: updateNotice
         contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow || folderPopup.visible || folderPopup.preparingToShow
         onContextMenuRequested: function(sourceItem, appId, title, position) {
             folderPopup.dismiss()

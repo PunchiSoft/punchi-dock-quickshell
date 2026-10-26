@@ -18,6 +18,8 @@ ToolButton {
     readonly property real inwardDirection: dockEdge === "left" ? 1 : -1
     property real axisOffset: 0
     property bool running: false
+    property int updateCount: 0
+    property int updateSecurityCount: 0
     property bool tooltipsEnabled: true
     readonly property DockMetrics metrics: DockMetrics {}
     property int itemSize: metrics.itemSize
@@ -78,7 +80,16 @@ ToolButton {
     focusPolicy: Qt.StrongFocus
     hoverEnabled: true
     Accessible.name: title
-    Accessible.description: running ? qsTr("Running") : ""
+    Accessible.description: {
+        const parts = []
+        if (root.running) parts.push(qsTr("Running"))
+        if (root.updateCount > 0) parts.push(root.updateSecurityCount > 0
+            ? (root.updateCount === 1 ? qsTr("1 security update available")
+                : qsTr("%n security updates available", "", root.updateCount))
+            : (root.updateCount === 1 ? qsTr("1 update available")
+                : qsTr("%n updates available", "", root.updateCount)))
+        return parts.join(". ")
+    }
     onClicked: {
         feedback.play()
         root.activated()
@@ -156,6 +167,23 @@ ToolButton {
             : root.iconTopCenter.x - width / 2
         y: root.vertical ? root.iconTopCenter.y + root.iconSize * root.visualIconScale / 2 - height / 2
             : root.iconTopCenter.y - height - metrics.gap
+    }
+    // Child of the tile: the existing magnification scale and translate carry the
+    // badge with the icon, so it can never lag behind the wave.
+    LauncherBadge {
+        count: root.updateCount
+        securityCount: root.updateSecurityCount
+        baseSize: root.metrics.badgeBaseSize
+        baseFontPixelSize: root.metrics.badgeFontPixelSize
+        maximumScale: root.maximumIconScale
+        motionEnabled: !root.reducedMotion && root.visible && root.enabled
+        // Icon corner, in tile coordinates, with a small overlap. The previous
+        // iconSize/√2 offset put the badge past the corner in both axes, which
+        // left a visible gap from the icon.
+        anchorX: root.width / 2 + root.iconSize / 2 - root.metrics.badgeInset
+        anchorY: root.height / 2 - root.iconSize / 2 + root.metrics.badgeInset
+        z: 2
+        objectName: "launcher-update-badge-" + root.appId
     }
     Rectangle {
         id: runningDot

@@ -68,18 +68,21 @@ TestCase {
         compare(settings.pinnedIds[9], "item:trash")
         compare(settings.recentApplicationsEnabled, true)
         compare(settings.recentApplicationsCount, 5)
+        compare(settings.updateBadgeEnabled, true)
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
         data.pinnedIds = ["terminal"]
         data.reducedMotion = true
         data.panelMode = "desktop"
         data.recentApplicationsEnabled = false
         data.recentApplicationsCount = 8
+        data.updateBadgeEnabled = false
         compare(settings.restore(data), true)
         compare(settings.effectiveReducedMotion, true)
         compare(settings.pinnedIds[0], "terminal")
         compare(settings.panelMode, "dodge-windows")
         compare(settings.recentApplicationsEnabled, false)
         compare(settings.recentApplicationsCount, 8)
+        compare(settings.updateBadgeEnabled, false)
     }
     function test_popupAppearancePersistence() {
         const settings = createTemporaryObject(settingsFixture, test)

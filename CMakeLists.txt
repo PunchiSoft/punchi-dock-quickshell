@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.43 LANGUAGES C CXX)
+project(punchi-dock-quickshell VERSION 0.1.44 LANGUAGES C CXX)
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -56,6 +56,7 @@ qt_add_qml_module(punchikde
         adapters/kde/native/applicationcatalog.h adapters/kde/native/applicationcatalog.cpp
         adapters/kde/native/dockitemcatalog.h adapters/kde/native/dockitemcatalog.cpp
         adapters/kde/native/trashstate.h adapters/kde/native/trashstate.cpp
+        adapters/kde/native/updatestate.h adapters/kde/native/updatestate.cpp
         adapters/kde/native/dockapplicationsmodel.h adapters/kde/native/dockapplicationsmodel.cpp
         adapters/kde/native/runningapplications.h adapters/kde/native/runningapplications.cpp
         adapters/kde/native/windowvisibilitystate.h adapters/kde/native/windowvisibilitystate.cpp
@@ -139,6 +140,12 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:trash_state_test>)
     set_tests_properties(trash_state PROPERTIES TIMEOUT 45)
+    add_executable(update_state_test tests/update_state_test.cpp adapters/kde/native/updatestate.cpp)
+    target_include_directories(update_state_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(update_state_test PRIVATE Qt6::Test Qt6::DBus)
+    add_test(NAME update_state COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:update_state_test>)
+    set_tests_properties(update_state PROPERTIES TIMEOUT 60)
     add_executable(task_identity_test tests/task_identity_test.cpp
         adapters/kde/window-state/windowactivation.cpp
         adapters/kde/native/applicationcatalog.cpp adapters/kde/native/dockapplicationsmodel.cpp)
