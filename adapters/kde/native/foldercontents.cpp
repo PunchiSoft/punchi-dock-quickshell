@@ -194,7 +194,7 @@ FolderEntriesModel::FolderEntriesModel(QObject *parent) : QConcatenateTablesProx
     auto *row = new QStandardItem;
     row->setData(QUrl(), FolderContents::EntryUrl);
     row->setData(QString(), FolderContents::EntryName);
-    row->setData(QStringLiteral("document-open-folder"), FolderContents::EntryIcon);
+    row->setData(QStringLiteral("folder-open"), FolderContents::EntryIcon);
     row->setData(false, FolderContents::Directory);
     row->setData(QString(), FolderContents::Description);
     m_action.appendRow(row);

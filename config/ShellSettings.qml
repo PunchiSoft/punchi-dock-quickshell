@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQml
+import org.kde.kirigami as Kirigami
 import "LauncherIds.js" as LauncherIds
 import "PanelModes.js" as PanelModes
 import "../adapters/kde"
@@ -28,6 +29,15 @@ QtObject {
     property bool bounceEnabled: true
     property bool recentApplicationsEnabled: true
     property int recentApplicationsCount: 5
+    // Popup presentation, shared by the folder containers and the dock menus.
+    // The scale multiplies the row and cell sizes, the icon size is the base
+    // glyph of a folder grid, and the height percent is how much of the host a
+    // popup may cover before its content scrolls.
+    property real popupScale: 1.0
+    // Zero means the theme's large icon, so a profile that never chose a size
+    // follows the platform.
+    property int popupIconSize: 0
+    property int popupHeightPercent: 80
     property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:downloads", "item:trash"]
     // Folder containers owned by this profile. An empty path means the user's
     // download location, which the native folder model resolves through
@@ -199,12 +209,12 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 9, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
+        return {version: 10, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
-            recentApplicationsCount}
+            recentApplicationsCount, popupScale, popupIconSize, popupHeightPercent}
     }
     function restore(data: var): bool {
-        if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9].indexOf(data.version) < 0) return false
+        if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].indexOf(data.version) < 0) return false
         const hasLegacyDownloadsView = LauncherIds.validLayout(data.downloadsView)
         const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
         if (LauncherIds.validContainers(data.containers)) {
@@ -228,6 +238,15 @@ QtObject {
             sizePercent = data.sizePercent
         if (Number.isFinite(data.maximumIconScale) && data.maximumIconScale >= 1 && data.maximumIconScale <= 3)
             maximumIconScale = data.maximumIconScale
+        if (Number.isFinite(data.popupScale) && data.popupScale >= 0.8 && data.popupScale <= 1.3)
+            popupScale = data.popupScale
+        if (data.popupIconSize === 0 || (Number.isInteger(data.popupIconSize)
+                && data.popupIconSize >= Kirigami.Units.iconSizes.small
+                && data.popupIconSize <= Kirigami.Units.iconSizes.huge))
+            popupIconSize = data.popupIconSize
+        if (Number.isInteger(data.popupHeightPercent) && data.popupHeightPercent >= 40
+                && data.popupHeightPercent <= 90)
+            popupHeightPercent = data.popupHeightPercent
         for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled", "recentApplicationsEnabled"])
             if (typeof data[key] === "boolean") this[key] = data[key]
         if (Number.isInteger(data.recentApplicationsCount) && data.recentApplicationsCount >= 1
@@ -251,9 +270,10 @@ QtObject {
         return true
     }
     function reset(): void {
-        restore({version: 9, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
+        restore({version: 10, downloadsView: "grid", dockEdge: "bottom", panelMode: "overlay", sizePercent: 100,
             maximumIconScale: 2, magnificationEnabled: true, reducedMotion: false,
             bounceEnabled: true, recentApplicationsEnabled: true, recentApplicationsCount: 5,
+            popupScale: 1, popupIconSize: 0, popupHeightPercent: 80,
             iconOverrides: {},
             containers: [{id: "downloads", path: "", title: qsTr("Downloads"),
                 icon: "folder-downloads", layout: "grid", sortMode: "modified"}],

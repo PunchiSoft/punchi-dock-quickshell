@@ -37,7 +37,7 @@ def main():
         input_path = root / 'tests/folders'
         if capture:
             preview = owned / 'preview'
-            for name in ('modules', 'services', 'components', 'adapters', 'config'):
+            for name in ('modules', 'services', 'components', 'adapters', 'config', 'assets'):
                 shutil.copytree(root / name, preview / name)
             input_path = preview / 'tests/folders'
             shutil.copytree(root / 'tests/folders', input_path)
@@ -45,10 +45,24 @@ def main():
             source = fixture.read_text()
             # Native KDE style and palettes belong exclusively to this fixture.
             env.pop('QT_QUICK_CONTROLS_STYLE', None)
-            for palette, background, foreground in [('light', '#f6f6f6', '#222222'), ('dark', '#242424', '#eeeeee')]:
+            # Each palette also declares the view and selection groups the
+            # popup reads, so the preview shows the accent band a real scheme
+            # paints instead of the neutral palette fallback.
+            palettes = [
+                ('light', '#f6f6f6', '#222222', '#c1cdfa', '#2f53d1', '#315bef', '#ffffff'),
+                ('dark', '#242424', '#eeeeee', '#3b4a86', '#8fa4ef', '#6897f8', '#14161c'),
+            ]
+            for palette, background, foreground, hover, focus, selection, selection_text in palettes:
                 target = evidence / palette
                 target.mkdir()
-                (config / 'kdeglobals').write_text(f'[Colors:Window]\nBackgroundNormal={background}\nForegroundNormal={foreground}\n')
+                (config / 'kdeglobals').write_text(
+                    f'[Colors:Window]\nBackgroundNormal={background}\nForegroundNormal={foreground}\n'
+                    f'[Colors:View]\nBackgroundNormal={background}\nForegroundNormal={foreground}\n'
+                    f'Hover={hover}\nFocus={focus}\n'
+                    f'[Colors:Button]\nBackgroundNormal={background}\nForegroundNormal={foreground}\n'
+                    f'Hover={hover}\nFocus={focus}\n'
+                    f'[Colors:Selection]\nBackgroundNormal={selection}\nForegroundNormal={selection_text}\n'
+                    f'Focus={focus}\n')
                 fixture.write_text(source.replace('property string captureDirectory: ""',
                     'property string captureDirectory: ' + json.dumps(str(target))))
                 result = subprocess.run([sys.argv[1], '-input', str(input_path)], env=env, timeout=25)

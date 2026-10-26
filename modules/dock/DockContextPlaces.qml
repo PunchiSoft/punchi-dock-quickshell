@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "../../components"
 
 ColumnLayout {
     id: root
@@ -23,8 +24,8 @@ ColumnLayout {
 
     function focusNavigation(): void {
         Qt.callLater(function() {
-            if (backAction.visible) backAction.forceActiveFocus(Qt.PopupFocusReason)
-            else if (items.count > 0) items.itemAt(0).forceActiveFocus(Qt.PopupFocusReason)
+            if (backAction.visible) backAction.forceActiveFocus(Qt.MouseFocusReason)
+            else if (items.count > 0) items.itemAt(0).forceActiveFocus(Qt.MouseFocusReason)
         })
     }
     DockContextSectionHeader {
@@ -49,6 +50,7 @@ ColumnLayout {
         contentWidth: availableWidth
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        ScrollBar.vertical: PopupScrollBar { motionEnabled: root.motionEnabled }
         ColumnLayout {
             id: files
             width: parent.width

@@ -56,6 +56,9 @@ Scope {
         function onPinnedIdsChanged() { root.save() }
         function onIconOverridesChanged() { root.save() }
         function onContainersChanged() { root.save() }
+        function onPopupScaleChanged() { root.save() }
+        function onPopupIconSizeChanged() { root.save() }
+        function onPopupHeightPercentChanged() { root.save() }
     }
     function initialize(previous: string): void {
         ready = false

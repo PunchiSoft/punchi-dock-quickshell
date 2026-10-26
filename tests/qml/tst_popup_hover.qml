@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
+import org.kde.kirigami as Kirigami
 import "../../components"
 
 TestCase {
@@ -15,9 +16,6 @@ TestCase {
         id: highlight
         width: 120
         height: 40
-        hoverOpacity: 0.3
-        pressedOpacity: 1
-        focusRingWidth: 1
     }
     property real peakScale: 0
     Connections {
@@ -29,6 +27,7 @@ TestCase {
 
     function init() {
         highlight.hovered = false
+        highlight.selected = false
         highlight.pressed = false
         highlight.stopScaleAnimations()
         highlight.motionScale = 1
@@ -42,13 +41,33 @@ TestCase {
         highlight.hovered = true
         compare(highlight.motionScale, 1)
         compare(highlight.visualScale, 1)
+        // The pointer band is the native third of the hover colour, with its
+        // hairline; it never becomes the solid highlight.
         fuzzyCompare(highlight.color.a, 0.3, 0.001)
+        compare(highlight.color, Qt.alpha(Kirigami.Theme.highlightColor, 0.3))
+        compare(highlight.border.color, Kirigami.Theme.highlightColor)
+        compare(highlight.border.width, 1)
         highlight.pressed = true
+        // A press is the solid highlight, so the text can switch with it.
+        compare(highlight.color, Kirigami.Theme.highlightColor)
         fuzzyCompare(highlight.pressScale, 0.97, 0.001)
         highlight.pressed = false
         compare(highlight.pressScale, 1)
         highlight.hovered = false
         fuzzyCompare(highlight.color.a, 0, 0.001)
+        compare(highlight.border.width, 0)
+    }
+
+    function test_selectionUsesTheThemeHighlight() {
+        // The fade would still be at its start colour on the first frame.
+        highlight.motionEnabled = false
+        highlight.selected = true
+        compare(highlight.color, Kirigami.Theme.highlightColor)
+        compare(highlight.border.color, Kirigami.Theme.highlightColor)
+        compare(highlight.border.width, 1)
+        compare(highlight.marked, true)
+        highlight.selected = false
+        compare(highlight.border.width, 0)
     }
 
     function test_hoverPulsesAndReturnsToRest() {

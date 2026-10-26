@@ -61,6 +61,45 @@ ColumnLayout {
                         root.settings.magnificationEnabled = value > 100
                     }
                 }
+                SettingsScaleControl {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+                    title: qsTr("Popup size")
+                    minimumText: qsTr("Small")
+                    maximumText: qsTr("Large")
+                    controlName: "popupScale"
+                    from: 80; to: 130; stepSize: 5
+                    value: Math.round(root.settings.popupScale * 100)
+                    onMoved: function(value) { root.settings.popupScale = value / 100 }
+                }
+                SettingsScaleControl {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 0
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+                    title: qsTr("Popup height")
+                    minimumText: qsTr("Short")
+                    maximumText: qsTr("Tall")
+                    controlName: "popupHeight"
+                    from: 40; to: 90; stepSize: 5
+                    value: root.settings.popupHeightPercent
+                    onMoved: function(value) { root.settings.popupHeightPercent = Math.round(value) }
+                }
+            }
+            SettingsRow {
+                Layout.fillWidth: true
+                text: qsTr("Popup icon size")
+                showSeparator: false
+                SpinBox {
+                    objectName: "popupIconSize"
+                    Accessible.name: qsTr("Popup icon size")
+                    from: Kirigami.Units.iconSizes.small
+                    to: Kirigami.Units.iconSizes.huge
+                    stepSize: Kirigami.Units.smallSpacing * 2
+                    value: root.settings.popupIconSize > 0
+                        ? root.settings.popupIconSize : Kirigami.Units.iconSizes.large
+                    onValueModified: root.settings.popupIconSize = value
+                }
             }
         }
         SettingsSeparator { Layout.fillWidth: true }
@@ -80,7 +119,7 @@ ColumnLayout {
         SettingsRow {
             Layout.fillWidth: true
             text: qsTr("Visibility")
-            showSeparator: false
+            showSeparator: true
             ComboBox {
                 id: visibilityControl
                 objectName: "visibilityMode"

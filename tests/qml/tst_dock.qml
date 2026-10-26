@@ -404,7 +404,7 @@ TestCase {
         const body = view.testContent
         const surface = findChild(body, "dockContextSurface")
         verify(surface.tailHeight > 0)
-        compare(surface.cornerRadius, Kirigami.Units.cornerRadius)
+        compare(surface.cornerRadius, Kirigami.Units.cornerRadius * 2)
         body.pointerX = body.width / 3
         fuzzyCompare(surface.pointerCenter, body.width / 3, 0.01)
         body.pointerX = -body.width
