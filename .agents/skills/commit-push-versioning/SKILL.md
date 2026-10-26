@@ -1,14 +1,15 @@
 ---
 name: commit-push-versioning
-description: Prepare an authorized commit and push, deciding the application version from the latest CHANGELOG delivery and reviewing the exact staged content.
+description: Prepare an authorized commit and push, deciding the application version from the latest CHANGELOG delivery, reviewing the exact staged content, and handing the branch to pr-delivery.
 ---
 
 # Commit and push
 
 Use when the user asks to commit, push, or both. A request to commit and push
-authorizes the requested Git operations on the current branch and its configured
-upstream; it does not authorize tags, releases, force pushes, unrelated
-remotes, merges, or a pull request.
+authorizes the requested Git operations on the current branch, its configured
+upstream, and the delivery pull request that `pr-delivery` opens once the work is
+approved; it does not authorize tags, releases, force pushes, unrelated remotes,
+merges, or branch deletion.
 
 ## Branch first
 
@@ -17,7 +18,7 @@ Commit on a delivery branch, never on `main`. When the work still sits on
 `chore/<descriptor>` from updated `main` before staging anything, then continue
 on it. One branch per modification; never reuse a branch that was already
 merged. Report the branch alongside the commit and let the user decide when to
-merge or publish.
+merge.
 
 ## Determine the delivery version
 
@@ -62,7 +63,10 @@ unchanged and do not add a delivery entry just to create a version bump.
 5. Commit with the repository's message convention. Before pushing, confirm the
    branch and configured upstream still match the user's requested destination;
    push normally without force and verify the resulting branch state.
+6. Hand the pushed branch to `pr-delivery`, which opens the delivery pull request
+   unless the user asked to stop after the push.
 
 If the requested upstream is missing, diverged, or unexpectedly different, stop
 before pushing and report the specific blocker. Do not create tags or releases
-unless the user separately requests them.
+unless the user separately requests them, and never merge on the strength of a
+commit or push request.
