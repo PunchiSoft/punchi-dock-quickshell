@@ -7,6 +7,52 @@
 # failure can be reported and attached to the failure log. The progress loop and
 # bar rendering follow the approach used by the Punchi Dock Remastered setup
 # assistant.
+#
+# A step that finishes instantly would flash past, so a terminal run keeps the
+# animation visible for at least PUNCHI_PROGRESS_MIN_SECONDS and holds the
+# completion frame for PUNCHI_PROGRESS_SETTLE_SECONDS. Redirected output, logs
+# and tests stay instantaneous.
+
+PUNCHI_PROGRESS_MIN_SECONDS="${PUNCHI_PROGRESS_MIN_SECONDS:-0.9}"
+PUNCHI_PROGRESS_SETTLE_SECONDS="${PUNCHI_PROGRESS_SETTLE_SECONDS:-0.4}"
+
+punchi_progress_seconds_to_ms() {
+    local value="${1:-0}"
+    local whole=0
+    local fraction=0
+
+    if [[ "$value" =~ ^([0-9]{1,4})(\.([0-9]{1,3}))?$ ]]; then
+        whole=$(( 10#${BASH_REMATCH[1]} ))
+        fraction="${BASH_REMATCH[3]:-0}"
+        while (( ${#fraction} < 3 )); do
+            fraction+='0'
+        done
+        printf '%s\n' "$(( whole * 1000 + 10#$fraction ))"
+        return 0
+    fi
+    printf '0\n'
+}
+
+punchi_progress_now_ms() {
+    local stamp="${EPOCHREALTIME:-}"
+
+    if [[ -n "$stamp" ]]; then
+        stamp="${stamp/[.,]/}"
+        printf '%s\n' "$(( 10#$stamp / 1000 ))"
+        return 0
+    fi
+    printf '%s\n' "$(( SECONDS * 1000 ))"
+}
+
+punchi_progress_sleep_ms() {
+    local milliseconds="${1:-0}"
+    local delay=""
+
+    (( milliseconds > 0 )) || return 0
+    printf -v delay '%d.%03d' $(( milliseconds / 1000 )) \
+        $(( milliseconds % 1000 ))
+    sleep "$delay" || true
+}
 
 punchi_progress_update() {
     local percent="${1:?percentage is required}"
@@ -129,6 +175,9 @@ punchi_progress_run() {
     local frames=('/' '-' '\' '|')
     local bar_fill='#'
     local replay="${PUNCHI_PROGRESS_REPLAY:-0}"
+    local started_ms=0
+    local min_ms=0
+    local settle_ms=0
     local locale_name="${LC_ALL:-${LC_CTYPE:-${LANG:-}}}"
 
     if [[ "${locale_name^^}" == *UTF-8* || "${locale_name^^}" == *UTF8* ]]; then
@@ -144,6 +193,9 @@ punchi_progress_run() {
         export PUNCHI_UI_UNICODE=0
     fi
 
+    started_ms="$(punchi_progress_now_ms)"
+    min_ms="$(punchi_progress_seconds_to_ms "$PUNCHI_PROGRESS_MIN_SECONDS")"
+    settle_ms="$(punchi_progress_seconds_to_ms "$PUNCHI_PROGRESS_SETTLE_SECONDS")"
     export PUNCHI_PROGRESS_DIR
     PUNCHI_PROGRESS_DIR="$(mktemp -d "${TMPDIR:-/tmp}/punchi-progress.XXXXXX")" || exit 1
     # The log belongs to this run: a caller that repeats a step must not replay
@@ -236,6 +288,19 @@ punchi_progress_run() {
     worker=""
     (( status != 0 )) || status="$command_status"
 
+    # A successful step that finished sooner than the minimum keeps spinning,
+    # so the work is perceivable instead of flashing past. Failures are reported
+    # immediately.
+    if (( tty )) && (( status == 0 )); then
+        local remaining_ms=$(( min_ms - ( $(punchi_progress_now_ms) - started_ms ) ))
+        while (( remaining_ms > 0 )); do
+            render_progress "${frames[frame % 4]}"
+            frame=$(( frame + 1 ))
+            punchi_progress_sleep_ms 100
+            remaining_ms=$(( remaining_ms - 100 ))
+        done
+    fi
+
     local success_symbol="✓"
     local failure_symbol="✗"
     if (( tty == 0 )) \
@@ -256,6 +321,7 @@ punchi_progress_run() {
         label=complete
         render_progress "$success_symbol"
         (( tty == 0 )) || printf '\n'
+        (( tty == 0 )) || punchi_progress_sleep_ms "$settle_ms"
     else
         local failed_label="$label"
         label=failed
