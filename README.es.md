@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.38**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.39**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -62,6 +62,8 @@ propia validación.
 - Ajustes del dock para tamaño de iconos, magnificación, rebote, movimiento
   reducido y visibilidad: Always visible, Hide automatically, Dodge windows o
   Windows go below.
+- Ajustes de los popups para tamaño, altura y tamaño de icono, compartidos por
+  los contenedores de carpeta y los menús del dock.
 - Un interruptor opcional **Start with KDE Plasma** que crea o elimina una
   entrada de autostart XDG propiedad de Punchi. La entrada surte efecto en el
   siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se
@@ -74,8 +76,13 @@ propia validación.
   si KDE no guarda historial, una nota breve explica cómo activarlo.
 - Navegación por teclado y edición de ajustes pendientes mediante Apply, Accept y
   Close.
-- Downloads con vistas Grid, List y Detail, navegación dentro de un globo temático
-  y apertura nativa de archivos de KDE.
+- Downloads con vistas Grid, List, Detail y Fan, navegación dentro de un globo
+  temático y apertura nativa de archivos de KDE. Cada presentación termina con
+  una fila **Open** y marca con un chevron las carpetas por las que se puede
+  entrar; el clic derecho sobre una entrada ofrece **Open in File Manager** y
+  **Copy Path**. Las columnas salen del espacio real del popup,
+  así que el desplazamiento aparece solo cuando las entradas no caben, con un
+  indicador fino que se desvanece mientras el listado está en reposo.
 
 Los indicadores de aplicaciones en ejecución y la activación de ventanas
 existentes están implementados con validación aislada; las comprobaciones físicas

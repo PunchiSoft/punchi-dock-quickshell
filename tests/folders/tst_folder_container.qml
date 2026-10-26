@@ -93,7 +93,16 @@ TestCase {
             property alias source: source
             property alias opener: opener
             property alias settings: settings
+            property alias copier: copier
             ShellSettings { id: settings }
+            QtObject {
+                id: copier
+                property var paths: []
+                function copyText(text: string): bool {
+                    paths = paths.concat([String(text)])
+                    return true
+                }
+            }
             QtObject {
                 id: opener
                 property bool accepted: true
@@ -113,7 +122,10 @@ TestCase {
                     reducedMotion: true
                     onActivated: popup.toggleForItem(source, "item:downloads", settings.container("item:downloads"))
                 }
-                FolderContainerPopup { id: popup; hostWindow: window; settings: settings; opener: opener }
+                FolderContainerPopup {
+                    id: popup; hostWindow: window; settings: settings; opener: opener
+                    clipboardService: copier
+                }
             }
         }
     }
@@ -321,9 +333,10 @@ TestCase {
         tryVerify(function() {
             return fanView.visible && fanView.entryCount === popup.contents.count
         })
+        // Only the arc carries the action row here: the flat views, and the
+        // shared last row, stay hidden.
         verify(!findChild(popup.contentItem, "folderGrid").visible)
         verify(!findChild(popup.contentItem, "folderList").visible)
-        verify(!findChild(popup.contentItem, "folderOpenLocation").visible)
         compare(findChild(fanView, "folderFanList").count, popup.contents.count)
         verify(popup.height > 0)
         verify(popup.contentItem.tailExtent === 0)
@@ -369,15 +382,14 @@ TestCase {
         const popup = window.popup
         const grid = findChild(popup.contentItem, "folderGrid")
         tryCompare(grid, "count", popup.contents.count + 1)
-        const action = findChild(grid, "folderGridEntry-" + popup.contents.count)
+        const action = findChild(grid, "folderOpenLocation")
         verify(action !== null)
         verify(action.locationAction)
-        verify(findChild(action, "folderGridOpenLocationControl") !== null)
         compare(findChild(action, "folderEntryIcon").source, "folder-open")
         const openLabel = findChild(action, "folderEntryNameLabel")
         verify(openLabel !== null && openLabel.visible)
         compare(openLabel.text, "Open")
-        compare(action.Accessible.name, "Open in File Manager")
+        compare(action.Accessible.name, "Open")
         const regularEntry = findChild(grid, "folderGridEntry-0")
         compare(findChild(regularEntry, "folderEntryIcon").source, regularEntry.entryIcon)
         const regularContent = findChild(regularEntry, "folderEntryContent")
@@ -425,7 +437,7 @@ TestCase {
         tryCompare(popup.contents, "loading", false)
         compare(popup.contents.get(popup.controller.selectedIndex).entryName, "nested")
         grid.positionViewAtIndex(grid.count - 1, GridView.Contain)
-        const location = findChild(grid, "folderGridEntry-" + popup.contents.count)
+        const location = findChild(grid, "folderOpenLocation")
         verify(location !== null)
         mouseClick(location)
         tryCompare(popup, "visible", false)
@@ -545,11 +557,13 @@ TestCase {
         verify(list.visible)
         verify(waitForRendering(window.popup.contentItem))
         capture(window.popup.contentItem, "list")
-        const openLocation = findChild(window.popup.contentItem, "folderOpenLocation")
-        verify(openLocation.visible)
-        compare(openLocation.icon.name, "folder-open")
+        const openLocation = findChild(list, "folderOpenLocation")
+        verify(openLocation !== null && openLocation.visible)
+        verify(openLocation.locationAction)
+        compare(findChild(openLocation, "folderEntryIcon").source, "folder-open")
+        compare(openLocation.text, "Open")
         chooseView(window, 2)
-        compare(openLocation.icon.name, "folder-open")
+        verify(findChild(list, "folderOpenLocation").visible)
         const item = findChild(list, "folderListEntry-0")
         verify(item !== null)
         compare(item.detailed, true)
@@ -760,5 +774,185 @@ TestCase {
         mouseClick(findChild(fixture.view, "applyDockSettings"))
         compare(fixture.editor.settings.container(customId).layout, "detail")
         compare(fixture.editor.settings.container("item:downloads").layout, "grid")
+    }
+
+    function test_captureEmphasisStates(): void {
+        // Developer preview of the two native bands; normal CTest skips it.
+        if (!captureDirectory) return
+        const window = openWindow("bottom")
+        const content = window.popup.contentItem
+        chooseView(window, 1)
+        tryCompare(window.popup.contents, "loading", false)
+        const list = findChild(content, "folderList")
+        const hovered = row(window.popup.contents, "old.txt")
+        const entry = findChild(list, "folderListEntry-" + hovered)
+        tryVerify(function() { return entry.visible })
+        mouseMove(entry, entry.width / 2, entry.height / 2)
+        tryCompare(entry, "hovered", true)
+        tryVerify(function() {
+            return Math.abs(entry.background.color.a - content.metrics.hoverAlpha) < 0.01
+        })
+        wait(200)
+        verify(waitForRendering(content))
+        capture(content, "list-hover")
+        content.selectRow(row(window.popup.contents, "newest.txt"))
+        tryCompare(content, "pointerEmphasis", false)
+        // Let the pointer band finish fading before the preview is taken.
+        wait(200)
+        verify(waitForRendering(content))
+        capture(content, "list-keyboard")
+        window.close()
+    }
+    function test_oneEmphasisBandAtATime(): void {
+        const window = openWindow("bottom")
+        chooseView(window, 1)
+        const content = window.popup.contentItem
+        tryCompare(window.popup.contents, "loading", false)
+        const list = findChild(content, "folderList")
+        const hoveredIndex = row(window.popup.contents, "old.txt")
+        const currentIndex = row(window.popup.contents, "newest.txt")
+        verify(hoveredIndex >= 0 && currentIndex >= 0, "hovered=" + hoveredIndex
+            + " current=" + currentIndex + " count=" + window.popup.contents.count
+            + " entryCount=" + content.entryCount)
+        const hoveredRow = findChild(list, "folderListEntry-" + hoveredIndex)
+        const currentRow = findChild(list, "folderListEntry-" + currentIndex)
+        verify(hoveredRow !== null && currentRow !== null)
+        tryVerify(function() { return hoveredRow.visible })
+        // Opening leaves the listing unbanded: the pointer owns the emphasis and
+        // no row is hovered yet.
+        compare(content.pointerEmphasis, true)
+        compare(currentRow.background.color.a, 0)
+        mouseMove(hoveredRow, hoveredRow.width / 2, hoveredRow.height / 2)
+        tryCompare(hoveredRow, "hovered", true)
+        tryCompare(content, "pointerEmphasis", true)
+        // Pointer band: the native third of the hover colour with its hairline.
+        tryVerify(function() {
+            return Math.abs(hoveredRow.background.color.a - content.metrics.hoverAlpha) < 0.01
+        })
+        compare(hoveredRow.background.border.width, content.metrics.rowBorderWidth)
+        compare(hoveredRow.background.border.color, content.metrics.rowHoverBorderColor)
+        // The keyboard takes the emphasis back: the current row paints the solid
+        // highlight and the pointer row drops its band, so only one shows.
+        content.selectRow(currentIndex)
+        tryCompare(content, "pointerEmphasis", false)
+        tryVerify(function() { return currentRow.background.color.a > 0.99 }, 5000,
+            "the keyboard band never reached the theme highlight")
+        compare(currentRow.background.color, content.metrics.rowSelectedColor)
+        compare(currentRow.background.border.width, content.metrics.rowBorderWidth)
+        tryVerify(function() { return hoveredRow.background.color.a < 0.01 })
+        compare(hoveredRow.background.border.width, 0)
+        // Moving the pointer again returns the band to it.
+        mouseMove(hoveredRow, hoveredRow.width / 3, hoveredRow.height / 2)
+        tryCompare(content, "pointerEmphasis", true)
+        tryVerify(function() {
+            return Math.abs(hoveredRow.background.color.a - content.metrics.hoverAlpha) < 0.01
+        })
+        // The keyboard band fades out with the same curve.
+        tryVerify(function() { return currentRow.background.color.a < 0.01 })
+        window.close()
+    }
+    function test_reloadDuringPresentationSwitchKeepsTheView(): void {
+        // A listing that reloads while the popup is laid out used to write the
+        // current index inside the model change, which crashed the view.
+        const window = openWindow("bottom")
+        const popup = window.popup
+        const content = popup.contentItem
+        const grid = findChild(content, "folderGrid")
+        verify(grid !== null)
+        for (let step = 0; step < 4; ++step) {
+            chooseView(window, step % 3)
+            verify(window.settings.setContainerSortMode("item:downloads",
+                step % 2 === 0 ? "name" : "modified"))
+            tryCompare(popup.contents, "loading", false)
+            verify(content.entryCount >= 3)
+            tryVerify(function() { return grid.currentIndex >= 0 })
+        }
+        compare(popup.opened, true)
+        verify(content.implicitHeight > 0)
+        window.close()
+    }
+    function test_scrollGutterExistsOnlyWhileTheContentScrolls(): void {
+        const window = openWindow("bottom")
+        const content = window.popup.contentItem
+        chooseView(window, 1)
+        tryCompare(content, "scrollRequired", false)
+        compare(content.scrollGutter, 0)
+        const bar = findChild(findChild(content, "folderList"), "popupScrollBar")
+        verify(bar !== null)
+        compare(bar.thickness, content.metrics.indicatorThickness)
+        const rowHeight = content.rowHeight
+        content.maximumHeight = content.chromeHeight + rowHeight * 2
+        tryCompare(content, "scrollRequired", true)
+        verify(content.scrollGutter >= content.metrics.indicatorThickness)
+        fuzzyCompare(content.contentHeight, rowHeight * 2, 0.5)
+        verify(content.implicitHeight <= content.maximumHeight + 0.5)
+        // The indicator rests invisible until the view moves.
+        tryCompare(bar, "opacity", 0)
+        window.close()
+    }
+    function test_browsableDirectoriesShowAChevron(): void {
+        const window = openWindow("bottom")
+        const content = window.popup.contentItem
+        const grid = findChild(content, "folderGrid")
+        const nested = row(window.popup.contents, "nested")
+        verify(nested >= 0)
+        const gridRow = findChild(grid, "folderGridEntry-" + nested)
+        verify(!findChild(gridRow, "folderEntryChevron").visible)
+        chooseView(window, 1)
+        const list = findChild(content, "folderList")
+        const directoryRow = findChild(list, "folderListEntry-" + nested)
+        const fileRow = findChild(list, "folderListEntry-" + row(window.popup.contents, "newest.txt"))
+        tryVerify(function() { return directoryRow.visible })
+        verify(findChild(directoryRow, "folderEntryChevron").visible)
+        verify(!findChild(fileRow, "folderEntryChevron").visible)
+        // Turning the switch off opens directories where they live, so the
+        // affordance disappears with it.
+        verify(window.settings.setContainerBrowseSubfolders("item:downloads", false))
+        tryVerify(function() { return !findChild(directoryRow, "folderEntryChevron").visible })
+        window.close()
+    }
+    function test_entryMenuCopiesThePathAndOpensTheDirectory(): void {
+        const window = openWindow("bottom")
+        const content = window.popup.contentItem
+        chooseView(window, 1)
+        const list = findChild(content, "folderList")
+        const nested = row(window.popup.contents, "nested")
+        verify(nested >= 0)
+        const entry = findChild(list, "folderListEntry-" + nested)
+        verify(entry !== null)
+        tryVerify(function() { return entry.visible })
+        mouseClick(entry, entry.width / 2, entry.height / 2, Qt.RightButton)
+        const menu = findChild(content, "folderEntryMenu")
+        tryCompare(menu, "visible", true)
+        tryCompare(menu, "visible", true)
+        const copy = findChild(menu, "folderEntryCopyPath")
+        verify(copy !== null && copy.enabled)
+        mouseClick(copy)
+        tryCompare(menu, "visible", false)
+        compare(window.copier.paths.length, 1)
+        verify(window.copier.paths[0].endsWith("/nested"))
+        compare(window.opener.calls.length, 0)
+        mouseClick(entry, entry.width / 2, entry.height / 2, Qt.RightButton)
+        tryCompare(menu, "visible", true)
+        mouseClick(findChild(menu, "folderEntryOpenLocation"))
+        tryCompare(window.popup, "opened", false)
+        compare(window.opener.calls.length, 1)
+        verify(decodeURI(window.opener.calls[0]).endsWith("/nested"))
+        window.close()
+    }
+    function test_popupAppearanceFollowsTheSettings(): void {
+        const window = openWindow("bottom")
+        const content = window.popup.contentItem
+        compare(content.metrics.scale, 1)
+        compare(content.gridIconSize, 48)
+        const rowHeight = content.rowHeight
+        window.settings.popupScale = 1.2
+        window.settings.popupIconSize = 64
+        tryCompare(content, "gridIconSize", Math.round(64 * 1.2))
+        verify(content.rowHeight > rowHeight)
+        chooseView(window, 1)
+        verify(content.rowHeight > rowHeight)
+        verify(window.popup.height > 0)
+        window.close()
     }
 }

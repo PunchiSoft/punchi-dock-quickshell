@@ -412,7 +412,9 @@ PanelWindow {
         hostBaseHeight: root.dockAllocationHeight
         settings: root.preferences
         opener: contextApplicationAdapter
+        clipboardService: clipboard
     }
+    ClipboardService { id: clipboard }
     Connections {
         target: settings
         function onPinnedIdsChanged() {

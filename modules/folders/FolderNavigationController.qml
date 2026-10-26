@@ -72,4 +72,16 @@ QtObject {
         return false
     }
     function openLocation(): bool { return open(contents.location) }
+    // Local path behind a listing URL, used by the actions that copy or reveal
+    // an entry. A remote or malformed location resolves to an empty string, so
+    // the caller can disable the action instead of copying nonsense.
+    function localPath(location): string {
+        const text = String(location || "")
+        if (!text.startsWith("file://")) return ""
+        try {
+            return decodeURIComponent(text.slice(7))
+        } catch (error) {
+            return ""
+        }
+    }
 }

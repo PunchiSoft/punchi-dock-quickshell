@@ -99,11 +99,12 @@ Item {
     height: implicitHeight
 
     function focusFirst() {
-        if (root.trashItem) openTrashAction.forceActiveFocus(Qt.PopupFocusReason)
+        // Opening with the pointer does not paint a band; the keyboard does.
+        if (root.trashItem) openTrashAction.forceActiveFocus(Qt.MouseFocusReason)
         else if (root.folderItem && root.folderSortNameAction)
-            root.folderSortNameAction.forceActiveFocus(Qt.PopupFocusReason)
-        else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(Qt.PopupFocusReason)
-        else configureAction.forceActiveFocus(Qt.PopupFocusReason)
+            root.folderSortNameAction.forceActiveFocus(Qt.MouseFocusReason)
+        else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(Qt.MouseFocusReason)
+        else configureAction.forceActiveFocus(Qt.MouseFocusReason)
     }
     Keys.onEscapePressed: root.closeRequested()
 
@@ -115,7 +116,7 @@ Item {
         pointerY: root.pointerY
         tailEdge: root.tailEdge
         tailHeight: root.pointerHeight
-        cornerRadius: Kirigami.Units.cornerRadius
+        cornerRadius: Kirigami.Units.cornerRadius * 2
     }
     ColumnLayout {
         id: rows
@@ -246,6 +247,7 @@ Item {
             Layout.preferredHeight: Math.min(6, root.actions.length) * configureAction.implicitHeight
             visible: root.actions.length > 0
             clip: true
+            ScrollBar.vertical: PopupScrollBar { motionEnabled: root.motionEnabled }
             ListView {
                 model: root.actions
                 boundsBehavior: Flickable.StopAtBounds

@@ -29,20 +29,24 @@ TestCase {
         const configure = findChild(content, "configureDockAction")
         const unpin = findChild(content, "unpinDockAction")
         tryCompare(configure, "activeFocus", true)
+        // Opening with the pointer leaves every row unbanded.
+        compare(configure.background.border.width, 0)
+        compare(configure.background.color.a, 0)
         mouseMove(unpin, unpin.width / 2, unpin.height / 2)
         tryCompare(unpin, "hovered", true)
         compare(configure.background.color.a, 0)
+        // Pointer band: the native third of the hover colour with its hairline.
         verify(unpin.background.color.a > 0)
         fuzzyCompare(unpin.background.color.a, 0.3, 0.001)
-        compare(unpin.background.border.color, Kirigami.Theme.focusColor)
+        compare(unpin.background.border.color, Kirigami.Theme.highlightColor)
         compare(unpin.background.border.width, 1)
         compare(configure.background.border.width, 0)
-        // Keyboard focus remains explicit and actionable, independently of hover.
+        // Keyboard focus paints the same band, independently of hover.
         keyClick(Qt.Key_Backtab)
         keyClick(Qt.Key_Tab)
         tryCompare(configure, "visualFocus", true)
-        verify(configure.background.border.width > 0)
-        verify(configure.background.opacity > 0)
+        compare(configure.background.border.width, 1)
+        verify(configure.background.color.a > 0)
         const requested = createTemporaryQmlObject('import QtTest; SignalSpy { signalName: "settingsRequested" }', test)
         requested.target = content
         keyClick(Qt.Key_Return)

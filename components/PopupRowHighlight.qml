@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Hover surface shared by popup rows. It reproduces Punchi Menu's default hover
-// motion: the row pulses to 1.03 and back on every pointer entry, while the fill
-// fades. Leaving mid-pulse settles to 1.0, and reduced motion reaches the same
-// states without scaling.
+// Hover surface shared by popup rows. It paints the native Breeze emphasis: a
+// pointer or keyboard band of `alpha(highlightColor, 0.3)` with a hairline of the
+// same colour, and the solid `highlightColor` with highlighted text when the row
+// is the selection. The pulse on every pointer entry is the reference motion;
+// reduced motion reaches the same states without scaling.
 pragma ComponentBehavior: Bound
 import QtQuick
 import org.kde.kirigami as Kirigami
@@ -12,42 +13,35 @@ Rectangle {
 
     property bool hovered: false
     property bool selected: false
+    // Keyboard focus paints the same band as the pointer, as the native menu
+    // does; it never adds a second fill on top of the hover.
     property bool focused: false
     property bool pressed: false
     property bool motionEnabled: true
-    property color highlightColor: Kirigami.Theme.highlightColor
-    property real hoverOpacity: 0.2
-    property real selectedOpacity: hoverOpacity
-    // Keyboard focus paints a ring by default; a fill here would hide the
-    // difference between focus and pointer hover.
-    property real focusedOpacity: 0
-    property real pressedOpacity: 0.3
-    property int focusRingWidth: 0
-    property bool ringOnHover: false
+    property color hoverColor: Qt.alpha(Kirigami.Theme.highlightColor, 0.3)
+    property color hoverBorderColor: Kirigami.Theme.highlightColor
+    property color selectedColor: Kirigami.Theme.highlightColor
+    property real borderThickness: Math.max(1, Math.round(Kirigami.Units.smallSpacing / 4))
     property real motionScale: 1
     property real pressScale: 1
+    radius: Kirigami.Units.cornerRadius
 
+    // A selection and a press use the solid highlight; the pointer band stays
+    // translucent, so the two states never read as the same fill.
+    readonly property bool marked: root.pressed || root.selected
+    readonly property bool banded: root.marked || root.hovered || root.focused
     // Rows apply this value to the item they pulse, never to the fill itself, so
-    // the rounded surface and its ring stay crisp. Press travels through the same
-    // value, so one interrupted gesture always ends at 1.
+    // the rounded surface and its border stay crisp. Press travels through the
+    // same value, so one interrupted gesture always ends at 1.
     readonly property real visualScale: motionEnabled ? motionScale * pressScale : 1
-
     // Doubling the theme's short duration keeps the user's animation-speed
     // preference instead of clamping it to a fixed floor.
     readonly property int fadeDuration: motionEnabled
         ? Math.round(Kirigami.Units.shortDuration * 2) : 0
-    readonly property real fillOpacity: pressed ? pressedOpacity
-        : hovered ? hoverOpacity
-        : selected ? selectedOpacity
-        : focused ? focusedOpacity
-        : 0
 
-    color: fillOpacity > 0
-        ? Qt.alpha(highlightColor, Math.max(0, Math.min(1, fillOpacity)))
-        : "transparent"
-    border.color: highlightColor
-    border.width: (focused && focusRingWidth > 0)
-        || (ringOnHover && (hovered || pressed)) ? focusRingWidth : 0
+    color: root.marked ? root.selectedColor : root.banded ? root.hoverColor : "transparent"
+    border.color: root.marked ? root.selectedColor : root.hoverBorderColor
+    border.width: root.banded ? root.borderThickness : 0
     antialiasing: true
     Accessible.ignored: true
 
@@ -78,6 +72,13 @@ Rectangle {
     onPressedChanged: root.pressScale = root.pressed ? 0.97 : 1
 
     Behavior on color {
+        enabled: root.fadeDuration > 0
+        ColorAnimation {
+            duration: root.fadeDuration
+            easing.type: Easing.OutCubic
+        }
+    }
+    Behavior on border.color {
         enabled: root.fadeDuration > 0
         ColorAnimation {
             duration: root.fadeDuration

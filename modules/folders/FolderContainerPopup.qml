@@ -17,6 +17,8 @@ Popup {
     // QStandardPaths.
     property string appId: ""
     property var container: null
+    // Clipboard the entry menu writes to. The owner may inject one in tests.
+    property var clipboardService: null
     readonly property url containerLocation: {
         const path = container && container.path ? String(container.path) : ""
         return path.length > 0 ? "file://" + path : listing.downloadsUrl
@@ -136,12 +138,16 @@ Popup {
         // The arc needs a horizontal panel; a vertical one presents Grid without
         // rewriting the container's stored presentation.
         viewMode: root.container ? root.settings.effectiveContainerLayout(root.appId) : "grid"
+        popupScale: root.settings.popupScale
+        popupIconSize: root.settings.popupIconSize
+        clipboardService: root.clipboardService
         dockEdge: root.dockEdge
         surfaceVisible: root.visible
         browseSubfolders: root.container ? root.settings.containerBrowseSubfolders(root.appId) : true
         maximumWidth: Math.max(1, (root.parent ? root.parent.width : Kirigami.Units.gridUnit * 36) - Kirigami.Units.largeSpacing * 2)
         maximumHeight: Math.max(1, Math.min(
-            (root.parent ? root.parent.height : Kirigami.Units.gridUnit * 40) * 0.8,
+            (root.parent ? root.parent.height : Kirigami.Units.gridUnit * 40)
+                * root.settings.popupHeightPercent / 100,
             root.vertical ? (root.parent ? root.parent.height : Kirigami.Units.gridUnit * 30)
                 : root.capturedBaseY + (root.hostWindow ? root.hostWindow.height - root.hostBaseHeight : 0)
                     - Kirigami.Units.smallSpacing))

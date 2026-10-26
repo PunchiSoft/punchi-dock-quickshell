@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.1.39 — 2026-10-26
+
+- Give the folder popups, the dock context menu and its sections one visual
+  language, taken from the native delegate: a pointer or keyboard band of the
+  theme accent at 30 % with a one-pixel hairline, a solid highlight with
+  highlighted text for a selection, and the native row radius. The dock menu now
+  uses the same row instead of its own colours, and only one row ever paints a
+  band: the pointer owns the emphasis until a key takes it back.
+- End every folder presentation with the same **Open** row, as the reference
+  does. Grid, List, Detail and Fan take it from the listing model, so it is
+  reached with the arrow keys and carries the coloured `folder-open` icon; the
+  footer button and the circular Grid cell are gone.
+- Arrange the entries from the space the popup really has: a cost model prefers a
+  wider-than-tall shape, counts whole visible rows and leaves scrolling as the
+  last resort. The surface reserves the indicator strip only while it scrolls,
+  and the slim thumb fades out while the listing rests.
+- Mark a folder that the popup can enter with a trailing chevron, and offer
+  **Open in File Manager** and **Copy Path** from a right-click or the Menu key on
+  an entry. Copy Path writes through a clipboard service injected by the dock and
+  stays disabled for a remote location.
+- Add popup size, popup height and popup icon size to Dock settings (schema 10).
+  The scale multiplies rows and cells, the height caps how much of the host a
+  popup may cover, and the icon size sets the base glyph of a folder grid; an
+  untouched profile keeps the theme's large icon. Every row, cell and indicator
+  measurement now derives from Kirigami instead of a literal.
+
 ## 0.1.38 — 2026-10-26
 
 - Pace the setup progress so the work is readable. On a terminal a step stays
