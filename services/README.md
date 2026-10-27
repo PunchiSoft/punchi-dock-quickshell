@@ -1,8 +1,13 @@
 # Services
 
-DockFixtureModel supplies eight configured desktop-entry IDs. ApplicationLaunchService
+DockFixtureModel builds the configured desktop-entry catalogue from
+`DefaultProfile.js`. ApplicationLaunchService
 validates activation against the model and delegates to the desktop adapter.
-AutostartService owns the optional per-user XDG autostart entry and never
+ProfileExchangeService reads a user-selected JSON profile, validates it with
+`ProfileDocument.js`, previews it on a separate settings object and applies it to
+the draft only after confirmation. The native `ProfileFile` bounds and validates
+the read, rejects non-regular files, writes atomically and refuses symbolic-link
+destinations. AutostartService owns the optional per-user XDG autostart entry and never
 overwrites or deletes a file without its ownership marker. RecentApplications
 references KDE activity history through native adapters and filters pinned or
 open applications without maintaining a second history. LicenseDocument reads

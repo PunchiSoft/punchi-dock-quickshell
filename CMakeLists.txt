@@ -62,7 +62,8 @@ qt_add_qml_module(punchikde
         adapters/kde/native/windowvisibilitystate.h adapters/kde/native/windowvisibilitystate.cpp
         adapters/kde/native/windowactivation.h adapters/kde/native/windowactivation.cpp
         adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp
-        adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
+        adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp
+        adapters/kde/native/profilefile.h adapters/kde/native/profilefile.cpp)
 target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
 # The QML plugin loads the implementation library from a relative path so that
 # the user-local copy and the packaging layout never resolve it through the
@@ -211,6 +212,9 @@ if(BUILD_TESTING)
     add_executable(autohide_edge_test tests/autohide_edge_test.cpp adapters/kde/native/autohideedge.cpp)
     target_include_directories(autohide_edge_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(autohide_edge_test PRIVATE Qt6::Test Qt6::Qml punchi_edge_protocols PkgConfig::WaylandServer)
+    add_executable(profile_file_test tests/profile_file_test.cpp adapters/kde/native/profilefile.cpp)
+    target_include_directories(profile_file_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(profile_file_test PRIVATE Qt6::Test Qt6::Core Qt6::Qml)
     add_executable(running_state_test tests/running_state_test.cpp adapters/kde/native/runningapplications.cpp
         adapters/kde/native/windowvisibilitystate.cpp adapters/kde/native/windowactivation.cpp)
     target_include_directories(running_state_test PRIVATE ${CMAKE_SOURCE_DIR})
@@ -235,6 +239,9 @@ if(BUILD_TESTING)
     add_test(NAME autohide_edge COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:autohide_edge_test>)
     set_tests_properties(autohide_edge PROPERTIES TIMEOUT 45)
+    add_test(NAME profile_file COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:profile_file_test>)
+    set_tests_properties(profile_file PROPERTIES TIMEOUT 45)
     find_program(QUICKSHELL_EXECUTABLE NAMES qs REQUIRED)
     find_program(DBUS_RUN_SESSION_EXECUTABLE NAMES dbus-run-session REQUIRED)
     add_test(NAME autostart_runtime COMMAND ${Python3_EXECUTABLE}
@@ -316,6 +323,14 @@ if(BUILD_TESTING)
     add_test(NAME settings_theme COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_theme_runtime_test.py)
+    add_test(NAME profile_exchange COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/profile_exchange_runtime_test.py)
+    set_tests_properties(profile_exchange PROPERTIES TIMEOUT 45)
+    add_test(NAME settings_store_legacy COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_store_legacy_test.py)
+    set_tests_properties(settings_store_legacy PROPERTIES TIMEOUT 45)
     add_test(NAME configuration_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/configuration_runtime_test.py)
@@ -351,6 +366,7 @@ if(BUILD_TESTING)
         icon_theme_catalog
         recent_applications_tracking
         autohide_edge
+        profile_file
         adapter_contract
         application_media
         window_activation
@@ -362,6 +378,8 @@ if(BUILD_TESTING)
         window_capability
         project_foundation
         project_version
+        profile_exchange
+        settings_store_legacy
         user_setup_scripts
         user_setup_install
         cmake_install
