@@ -5,8 +5,10 @@
   It also accepts non-interactive options; run
   `./scripts-user/setup.sh --help`. "Try it without installing" (`--try`, alias
   `--test`) builds the checkout and runs it from the checkout; it never installs
-  and never runs the installed copy. "Start the dock" (`--start`) runs an
-  existing build or installation and builds nothing.
+  and never runs the installed copy. Ctrl+C stops the trial, is reported as a
+  stop rather than a failure, and is followed by the cleanup confirmation.
+  "Start the dock" (`--start`) runs an existing build or installation and builds
+  nothing.
 - `start.sh` runs this configuration in the foreground. Run
   `./scripts-user/start.sh --help` for panel modes.
 - `launcher.sh` is used by the application-menu entry. It writes startup output
@@ -21,17 +23,30 @@
   and resolves the installed data root.
 - `punchi-dock-quickshell.desktop` is the CMake-installed desktop entry.
 
-KDE Plasma/KWin on Wayland is required. `start.sh` refuses to run outside an
-active KDE session. Install/build offer to install missing dependencies for the
-detected distribution and write a timestamped build-failure log under the user's
-Documents directory.
+KDE Plasma/KWin on Wayland is required. Install and trial refuse to start
+outside a KDE Plasma Wayland session, before building or copying anything: the
+message names the detected desktop, says whether Plasma is installed but not the
+current session, and asks once for confirmation (No by default). An installed
+copy started elsewhere exits with status 3 and shows the same message in the
+native system dialog: `kdialog` on KDE, `zenity` on GTK desktops, `xmessage` on
+X11, and plain stderr when none is available. Dialog placement follows the
+compositor's rules, and without a dialog tool the application-menu launcher
+still shows its own notification. `PUNCHI_ALLOW_NON_KDE=1` skips the guard, and
+`PUNCHI_NOTICE_DIALOG=0|1` forces the dialog off or on. Install/build offer to
+install missing dependencies for the detected distribution and write a
+timestamped build-failure log under the user's Documents directory.
 
 Install and build report each phase (`[i/N] ✓ Label: State`) and run the long
 steps behind one animated progress line that is rewritten in place. Output is
 still captured, and a failed step prints its last lines before the failure log
 is written. The dependency check uses the same line while it collects the
-report, then replays the captured listing so the result stays on screen. On a
-terminal a step is shown for at least 0.9 s and the completion line holds 0.4 s
+report, then replays the captured listing so the result stays on screen. Inside
+the build and trial phases that listing is a summary: one row per section with
+ready counts, expanding only the missing items and omitting the check title, the
+distribution line and the rules that the phase line and the setup header already
+provide, while "Check runtime and build dependencies" prints the full inventory
+in terminal-width columns. On a terminal a step is shown for at least 0.9 s and
+the completion line holds 0.4 s
 so a fast action remains readable; `PUNCHI_PROGRESS_MIN_SECONDS` and
 `PUNCHI_PROGRESS_SETTLE_SECONDS` override both, and redirected output never
 waits. The boxed header and the moving bar need a UTF-8 terminal; a

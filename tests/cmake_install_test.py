@@ -35,6 +35,8 @@ def main() -> int:
         assert (data_root / 'qml/Punchi/Kde/libpunchikdeplugin.so').is_file()
         assert (data_root / 'qml/Punchi/Kde/libpunchikde.so').is_file()
         assert (data_root / 'scripts-user/launcher.sh').is_file()
+        assert (data_root / 'scripts-user/lib/session-detect.sh').is_file()
+        assert (data_root / 'scripts-user/lib/notice-dialog.sh').is_file()
         assert 'Exec=punchi-dock-quickshell' in desktop.read_text()
 
         help_result = subprocess.run(

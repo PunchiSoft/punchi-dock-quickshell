@@ -7,6 +7,33 @@
   tests, CI and repository metadata alone do not change the version.
 - Update both READMEs to the current feature set, state that Punchi Dock
   Remastered is the project's base, and add the **Made with love** dedication.
+- Refuse to install or launch outside KDE Plasma on Wayland at the point where
+  nothing has been written yet. Install and trial check the session before
+  building, name the detected desktop, distinguish *Plasma not installed* from
+  *Plasma installed but not the current session*, and ask once for confirmation
+  (`PUNCHI_ALLOW_NON_KDE=1` skips it). A session without a graphical display is
+  installed for later use instead of being blocked.
+- Report an unsupported session at startup with a native system dialog. The
+  guard shares one detection library with the setup assistant, names the detected
+  desktop and display server, covers a KDE session without Wayland, and exits
+  with status 3. `kdialog`, `zenity` and `xmessage` are tried in that order, the
+  same text always reaches stderr, the application-menu launcher does not repeat
+  the notice when the dialog was displayed and keeps its notification when no
+  dialog tool exists, `PUNCHI_NOTICE_DIALOG=0|1` controls the dialog, and the
+  desktop value is treated as untrusted input instead of being pathname-expanded.
+- Treat Ctrl+C and a session logout as a stop. The trial phase reports
+  `Run: Stopped` with the line `The trial stopped.`, a started dock reports
+  `The dock stopped.`, and the trial confirmation now reads as ending the trial
+  instead of removing "what the trial created". Nothing is reported as an exit
+  status failure for 130/143, the cleanup still runs, and the exit status is
+  preserved for `--test` callers.
+- Compress the dependency report. Build and trial phases print one summary row
+  per section with ready counts and expand only the missing items, without the
+  check title, the distribution line or the rules the phase line and the setup
+  header already provide, which turns a forty-eight line block into seven lines;
+  "Check runtime and build dependencies" keeps the full inventory, now laid out
+  in columns sized to the terminal and falling back to one item per line when the
+  window is narrow.
 
 ## 0.1.47 — 2026-10-27
 

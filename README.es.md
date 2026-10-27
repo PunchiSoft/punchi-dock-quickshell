@@ -39,8 +39,9 @@ de KDE.
 
 **KDE Plasma/KWin es obligatorio.** Punchi Dock Quickshell no es un dock para
 GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
-escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
-termina con un error explícito.
+escritorio: el asistente de instalación se niega a instalar fuera de KDE Plasma
+en Wayland, y si se arranca una copia instalada en otro entorno, indica la
+sesión detectada y muestra un diálogo del sistema en lugar de ejecutarse.
 
 **Versión actual:** **0.1.47**. El [changelog](CHANGELOG.md) registra los
 cambios entregados y su validación. Los límites de compatibilidad y validación

@@ -2,6 +2,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+for punchi_library in session-detect notice-dialog; do
+    if [[ ! -r "$project_root/scripts-user/lib/$punchi_library.sh" ]]; then
+        printf 'Punchi Dock Quickshell is incomplete: scripts-user/lib/%s.sh is missing. Reinstall it.\n' \
+            "$punchi_library" >&2
+        exit 1
+    fi
+done
+unset punchi_library
+# shellcheck source=lib/session-detect.sh
+source "$project_root/scripts-user/lib/session-detect.sh"
+# shellcheck source=lib/notice-dialog.sh
+source "$project_root/scripts-user/lib/notice-dialog.sh"
 usage() {
     printf '%s\n' 'Usage: start.sh [reserve|autohide|dodge-windows|overlay]'
     printf '%s\n' 'Starts Punchi Dock Quickshell in the foreground. Plasma stays running.'
@@ -21,23 +33,17 @@ case "$panel_mode" in
     ""|overlay|reserve|autohide|dodge-windows) ;;
     *) printf '%s\n' 'Invalid panel mode.' >&2; exit 2 ;;
 esac
-if ! command -v qs >/dev/null 2>&1; then
-    printf '%s\n' 'Quickshell is required. Install it before starting Punchi Dock Quickshell.' >&2
-    exit 1
+# The session decides whether this dock can run at all, so it is checked
+# before the runtime dependencies.
+if [[ "${PUNCHI_ALLOW_NON_KDE:-0}" != "1" ]] && ! punchi_environment_supported; then
+    notice_text="$(punchi_environment_notice_text)"
+    printf '%s\n' "$notice_text" >&2
+    punchi_show_notice "Punchi Dock Quickshell" "$notice_text" || true
+    exit 3
 fi
 
-punchi_kde_session_detected() {
-    if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* || "${KDE_FULL_SESSION:-}" == "true" ]]; then
-        return 0
-    fi
-    command -v pgrep >/dev/null 2>&1 || return 1
-    pgrep -x plasmashell >/dev/null 2>&1 && pgrep -x kwin_wayland >/dev/null 2>&1
-}
-
-if [[ "${PUNCHI_ALLOW_NON_KDE:-0}" != "1" ]] && ! punchi_kde_session_detected; then
-    printf '%s\n' 'Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland.' >&2
-    printf 'Detected XDG_CURRENT_DESKTOP=%s. The dock will not run on another desktop.\n' \
-        "${XDG_CURRENT_DESKTOP:-unknown}" >&2
+if ! command -v qs >/dev/null 2>&1; then
+    printf '%s\n' 'Quickshell is required. Install it before starting Punchi Dock Quickshell.' >&2
     exit 1
 fi
 

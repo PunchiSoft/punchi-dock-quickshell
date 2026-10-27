@@ -12,6 +12,8 @@ source "$punchi_setup_script_dir/lib/setup-common.sh"
 source "$punchi_setup_script_dir/lib/setup-progress.sh"
 # shellcheck source=lib/setup-deps.sh
 source "$punchi_setup_script_dir/lib/setup-deps.sh"
+# shellcheck source=lib/setup-environment.sh
+source "$punchi_setup_script_dir/lib/setup-environment.sh"
 # shellcheck source=lib/setup-install.sh
 source "$punchi_setup_script_dir/lib/setup-install.sh"
 # shellcheck source=lib/setup-updates.sh
@@ -208,6 +210,8 @@ punchi_report_dock_exit() {
 
     if (( status == 0 )); then
         punchi_info "The dock closed."
+    elif punchi_status_is_stopped "$status"; then
+        punchi_info "The dock stopped."
     else
         punchi_error "The dock exited with status $status."
     fi
@@ -262,7 +266,7 @@ punchi_phase_dependencies() {
     local total="${2:?phase total is required}"
 
     punchi_ui_render_phase_started "$index" "$total" 'Dependencies'
-    if ! punchi_dependency_check 1; then
+    if ! punchi_dependency_check 1 0; then
         punchi_ui_render_phase "$index" "$total" warning 'Dependencies' \
             'Needs attention'
         punchi_warning "Resolve the required dependencies before building."
@@ -304,6 +308,7 @@ punchi_action_try() {
         printf '  %s/scripts-user/restore-kde.sh\n' "$punchi_project_root"
         return 1
     fi
+    punchi_require_kde_environment 'try' || return 1
 
     punchi_phase_dependencies 1 "$total" || return 1
     punchi_phase_build 2 "$total" || return 1
@@ -329,6 +334,9 @@ punchi_action_try() {
     unset PUNCHI_PROFILE_DIR
     if (( status == 0 )); then
         punchi_ui_render_phase 3 "$total" success 'Run' 'Completed'
+    elif punchi_status_is_stopped "$status"; then
+        punchi_ui_render_phase 3 "$total" warning 'Run' 'Stopped'
+        punchi_info "The trial stopped."
     else
         punchi_ui_render_phase 3 "$total" error 'Run' "Exit status $status"
     fi
@@ -344,6 +352,7 @@ punchi_action_install() {
         punchi_info "Run this menu from the cloned repository."
         return 1
     fi
+    punchi_require_kde_environment 'install' || return 1
 
     punchi_phase_dependencies 1 "$total" || return 1
     punchi_phase_build 2 "$total" || return 1
@@ -388,7 +397,7 @@ punchi_action_build() {
 
 punchi_action_dependencies() {
     local offer="${1:-1}"
-    punchi_dependency_check "$offer"
+    punchi_dependency_check "$offer" 1
 }
 
 punchi_choose_cleanup_mode() {
