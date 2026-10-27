@@ -329,6 +329,84 @@ punchi_remove_autostart() {
     punchi_success "Removed the Punchi-owned autostart entry."
 }
 
+punchi_window_state_backend() {
+    local install_root=""
+    local root=""
+    local candidate=""
+
+    install_root="$(punchi_install_root 2>/dev/null || true)"
+    for root in "$punchi_project_root" "$install_root"; do
+        [[ -n "$root" ]] || continue
+        for candidate in \
+            "$root/build/punchi-window-state" \
+            "$root/../../libexec/punchi-dock-quickshell/punchi-window-state" \
+            "$root/../../lib/punchi-dock-quickshell/punchi-window-state"; do
+            if [[ -x "$candidate" ]]; then
+                printf '%s\n' "$candidate"
+                return 0
+            fi
+        done
+    done
+    return 1
+}
+
+# The backend unregisters its own entry, but it may already be gone when build
+# output or the install root is removed first. A registration this project
+# wrote is still safe to delete on its own.
+punchi_remove_window_state_registration() {
+    local registration="${XDG_DATA_HOME:-$HOME/.local/share}/applications/org.punchi.Shell.WindowState.desktop"
+    local backend=""
+
+    [[ -e "$registration" || -L "$registration" ]] || return 0
+    if backend="$(punchi_window_state_backend)"; then
+        "$backend" --unregister >/dev/null 2>&1 || true
+    fi
+    if [[ ! -e "$registration" && ! -L "$registration" ]]; then
+        punchi_success "Removed the window-state registration."
+        return 0
+    fi
+    if [[ -L "$registration" ]] \
+        || ! grep -qE '^Name=(Punchi Dock Quickshell|Punchi Shell) Window State$' "$registration" 2>/dev/null \
+        || ! grep -qx 'X-KDE-Wayland-Interfaces=org_kde_plasma_window_management' "$registration" 2>/dev/null; then
+        punchi_warning "The window-state registration does not belong to Punchi Dock Quickshell and was kept: $registration"
+        return 0
+    fi
+    rm -f -- "$registration"
+    if command -v kbuildsycoca6 >/dev/null 2>&1; then
+        kbuildsycoca6 --noincremental >/dev/null 2>&1 || true
+    fi
+    punchi_success "Removed the window-state registration."
+}
+
+# The instance record is owned by start.sh. It is only removed when it names a
+# configuration this action owns, so a running copy in another checkout keeps
+# its lock.
+punchi_remove_runtime_instance() {
+    local directory=""
+    local recorded=""
+    local root=""
+    local matched=0
+
+    directory="$(punchi_runtime_lock_dir)"
+    [[ -d "$directory" && ! -L "$directory" ]] || return 0
+    if [[ -r "$directory/instance.path" ]]; then
+        IFS= read -r recorded < "$directory/instance.path" || true
+    fi
+    for root in "$@"; do
+        [[ -n "$root" ]] || continue
+        if [[ "$recorded" == "$root" ]]; then
+            matched=1
+            break
+        fi
+    done
+    if (( matched == 0 )); then
+        return 0
+    fi
+    rm -f -- "$directory/instance.lock" "$directory/instance.path"
+    rmdir -- "$directory" 2>/dev/null || true
+    punchi_success "Removed the runtime lock."
+}
+
 punchi_remove_installed_files() {
     local install_root="${1:?install root is required}"
     local marker=""
@@ -409,6 +487,7 @@ punchi_remove_build_output() {
 punchi_remove_preferences() {
     local requested="${1:-0}"
     local prompt="${2:-1}"
+    local remove_legacy="${3:-0}"
     local config=""
     local legacy=""
 
@@ -425,28 +504,68 @@ punchi_remove_preferences() {
 
     if [[ ! -e "$config" && ! -L "$config" ]]; then
         punchi_info "No current preferences file was found at $config."
-        if [[ -e "$legacy" || -L "$legacy" ]]; then
-            punchi_info "Legacy backup kept: $legacy"
-        fi
-        return 0
-    fi
-
-    if [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]] && (( prompt == 1 )); then
+    elif [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]] && (( prompt == 1 )); then
         if ! punchi_confirm "Delete $config? This cannot be undone. [y/N]: " n; then
             punchi_info "Preferences kept: $config"
             return 0
         fi
     fi
-    rm -f -- "$config"
-    punchi_success "Removed preferences: $config"
-    if [[ -e "$legacy" || -L "$legacy" ]]; then
-        punchi_info "Legacy backup kept: $legacy"
+    if [[ -e "$config" || -L "$config" ]]; then
+        rm -f -- "$config"
+        punchi_success "Removed preferences: $config"
     fi
+    if [[ ! -e "$legacy" && ! -L "$legacy" ]]; then
+        return 0
+    fi
+    if (( remove_legacy == 0 )); then
+        punchi_info "Legacy backup kept: $legacy"
+        return 0
+    fi
+    rm -f -- "$legacy"
+    punchi_success "Removed the legacy preferences: $legacy"
+}
+
+punchi_trial_cleanup() {
+    local profile="${1:?trial profile is required}"
+    local status=0
+
+    if punchi_running_path "$punchi_project_root"; then
+        punchi_warning "Punchi Dock Quickshell is already running from:"
+        printf '  %s\n' "$punchi_project_root"
+        punchi_info "Stop it first:"
+        printf '  %s/scripts-user/restore-kde.sh\n' "$punchi_project_root"
+        punchi_info "Trial files kept: $profile"
+        return 1
+    fi
+    if ! punchi_confirm 'Remove what the trial created? It deletes build output (rebuild with Build or Try),
+trial preferences, the window-state registration and the runtime lock.
+Your installed dock and its settings stay untouched. [Y/n]: ' y; then
+        punchi_info "Trial files kept: $profile"
+        return 0
+    fi
+    punchi_remove_window_state_registration || status=1
+    punchi_remove_build_output || status=1
+    case "$profile" in
+        */punchi-dock-quickshell-*/trial-profile) ;;
+        *)
+            punchi_warning "Refusing to remove an unexpected trial path: $profile"
+            return 1
+            ;;
+    esac
+    if [[ -L "$profile" ]]; then
+        punchi_warning "Refusing to remove a symbolic link: $profile"
+        return 1
+    fi
+    rm -rf -- "$profile"
+    punchi_success "Removed the trial profile."
+    punchi_remove_runtime_instance "$punchi_project_root" || status=1
+    return "$status"
 }
 
 punchi_uninstall_local() {
     local remove_build="${1:-0}"
     local remove_settings="${2:-0}"
+    local remove_all="${3:-0}"
     local install_root=""
     local state_record=""
 
@@ -456,6 +575,8 @@ punchi_uninstall_local() {
     printf 'Source root:  %s\n' "$punchi_project_root"
 
     punchi_stop_owned_configurations "$install_root" || return 1
+    punchi_remove_window_state_registration
+    punchi_remove_runtime_instance "$punchi_project_root" "$install_root"
     punchi_remove_launcher "$install_root"
     punchi_remove_autostart
 
@@ -472,7 +593,7 @@ punchi_uninstall_local() {
         punchi_info "The installed runtime includes its build artifacts."
     fi
 
-    punchi_remove_preferences "$remove_settings"
+    punchi_remove_preferences "$remove_settings" 1 "$remove_all"
 
     state_record="${XDG_STATE_HOME:-$HOME/.local/state}/punchi-dock-quickshell/owned-settings.json"
     if [[ -e "$state_record" || -L "$state_record" ]]; then

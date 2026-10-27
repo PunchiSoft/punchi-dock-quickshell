@@ -21,6 +21,7 @@ TestCase {
                 property bool draftEnabled: false
                 property bool enabled: false
                 property bool available: true
+                property bool trial: false
                 readonly property bool dirty: active && draftEnabled !== enabled
                 function begin(): void { active = true; draftEnabled = enabled }
                 function cancel(): void { active = false; draftEnabled = enabled }
@@ -304,6 +305,22 @@ TestCase {
         mouseClick(control(window, "applyDockSettings"))
         verify(!service.enabled)
         verify(!window.hasPendingChanges)
+        window.close()
+    }
+    function test_trialStartupToggleIsUnavailable(): void {
+        const window = openWindow()
+        const service = findChild(window, "autostartService")
+        verify(service !== null)
+        service.trial = true
+        const toggle = control(window, "startWithPlasma")
+        tryCompare(toggle, "enabled", false)
+        const note = findChild(window, "startupTrialNote")
+        verify(note !== null)
+        verify(note.visible)
+        verify(note.text.length > 0)
+        service.trial = false
+        tryCompare(toggle, "enabled", true)
+        verify(!note.visible)
         window.close()
     }
     function test_recentApplicationsSettings(): void {

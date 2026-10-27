@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.45**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.46**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -87,7 +87,8 @@ propia validación.
 - Un interruptor opcional **Start with KDE Plasma** que crea o elimina una
   entrada de autostart XDG propiedad de Punchi. La entrada surte efecto en el
   siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se
-  sobrescribe ni se elimina.
+  sobrescribe ni se elimina. El interruptor no está disponible durante una
+  prueba, cuyo perfil Plasma nunca carga.
 - **Aplicaciones recientes** opcionales del historial de actividad de KDE,
   mostradas como lanzadores adicionales del dock con una cantidad configurable.
   Se excluyen las aplicaciones fijadas y las que tienen ventanas abiertas. Los
@@ -149,11 +150,12 @@ Sin argumentos abre un menú:
 |---|---|---|
 | Install or update | `./scripts-user/setup.sh --install` | Comprueba dependencias, ofrece instalar las que faltan, compila los componentes nativos e instala el runtime para el usuario actual. |
 | Build only | `./scripts-user/setup.sh --build` | Comprueba dependencias, ofrece instalar las que faltan y compila `build/` sin instalar. |
+| Try without installing | `./scripts-user/setup.sh --try` (`--test` es un alias) | Comprueba dependencias, compila el checkout y ejecuta el dock desde el checkout. No instala nada ni usa la copia instalada. La ejecución usa un perfil de prueba propio, así que arranca con los ítems por defecto y nunca lee ni escribe tus preferencias guardadas. Al cerrar el dock, una confirmación elimina la compilación, el perfil de prueba, el registro de estado de ventanas y el bloqueo de ejecución. |
 | Start the dock | `./scripts-user/setup.sh --start` | Inicia la copia instalada o el checkout cuando no existe una instalación. |
 | Check dependencies | `./scripts-user/setup.sh --check-deps` | Informa las comprobaciones de runtime, compilación, validación y KDE. Las herramientas Qt también se buscan fuera de `PATH` en el directorio bin de Qt de la distribución. Los nombres de paquetes de Fedora están validados; las equivalencias de Debian/Ubuntu y Arch son de mejor esfuerzo. |
 | Check for updates | `./scripts-user/setup.sh --check-updates` | Consulta el remoto Git configurado e informa cuántos commits estás por delante/detrás, la versión declarada en el upstream y la versión de la copia instalada. Solo lee, salvo que se use `--pull`. |
 | Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Ejecuta `git pull --ff-only` después de la comprobación cuando el checkout está detrás. Se niega si hay archivos rastreados modificados y nunca hace rebase, reset ni stash. El menú pregunta antes de hacer el pull y después ofrece reconstruir e instalar; `--pull` nunca instala. |
-| Uninstall | `./scripts-user/setup.sh --uninstall` | Detiene este proyecto, restaura los ajustes de KWin propios, elimina una entrada de autostart propiedad de Punchi y elimina la instalación local del usuario. `build/` se conserva salvo que se use `--remove-build`. |
+| Uninstall | `./scripts-user/setup.sh --uninstall` | Detiene este proyecto, restaura los ajustes de KWin propios, elimina una entrada de autostart propiedad de Punchi, el registro de estado de ventanas y la instalación local del usuario. Después pregunta una vez si conservar tus datos o borrar todo; borrar todo elimina también las preferencias, la `punchi-shell.json` heredada, `build/` y el bloqueo de ejecución. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Muestra comandos, rutas y ubicaciones del README. |
 
 `setup.sh` pertenece al repositorio y no es una descarga independiente: instalar
@@ -184,6 +186,16 @@ Solo se ejecuta una instancia de Punchi Dock Quickshell a la vez entre el checko
 y la instalación local. Si intentas iniciar una mientras la otra está activa, se
 muestra la ruta activa y el script de restauración que la detiene; no se registra
 un segundo backend de ventanas.
+
+Una prueba guarda su propio perfil en el directorio de runtime de la instancia
+(`$XDG_RUNTIME_DIR/punchi-dock-quickshell-$UID/trial-profile`, o el directorio
+temporal cuando `XDG_RUNTIME_DIR` no está disponible) y lo exporta como
+`PUNCHI_PROFILE_DIR`. Ahí viven las preferencias del dock y su entrada de
+autostart, así que la prueba arranca con los ítems por defecto, nunca cambia el
+perfil de la copia instalada y no puede dejar una entrada que Plasma cargue al
+iniciar sesión. Como la sesión nunca lee ese perfil, **Start with KDE Plasma**
+queda deshabilitado durante una prueba y la ventana de ajustes explica que la
+opción necesita una copia instalada.
 
 ### Compatibilidad de un vistazo
 
@@ -314,8 +326,9 @@ Las preferencias se guardan por usuario del sistema en
 No se guardan en los archivos del programa instalado. En el primer inicio, un
 `punchi-shell.json` existente se migra al nombre nuevo solo si el archivo nuevo
 no existe; el archivo original se conserva como copia de seguridad. Si existen
-ambos, prevalece el nombre nuevo y no se sobrescribe ninguno. Sin archivo guardado,
-la aplicación usa los valores por defecto de
+ambos, prevalece el nombre nuevo y no se sobrescribe ninguno. Una prueba lee y
+escribe su propio perfil, que se elimina con la limpieza de la prueba salvo que
+rechaces la confirmación. Sin archivo guardado,la aplicación usa los valores por defecto de
 [`ShellSettings.qml`](config/ShellSettings.qml):
 
 | Ajuste | Valor inicial actual |
@@ -361,12 +374,15 @@ proporciona una instalación completa y verificada.
 El asistente escribe un manifiesto y un archivo marcador dentro de la raíz de
 instalación. `--uninstall` detiene solo las configuraciones cuyo origen es este
 checkout y esa raíz, restaura los ajustes de KWin propios, elimina únicamente
-una entrada de autostart propiedad de Punchi y borra solo los archivos del
-manifiesto. Conserva el checkout, `build/`, la copia `punchi-shell.json` heredada
-y cualquier registro de recuperación de KWin. El archivo de preferencias actual
-se elimina solo tras una confirmación separada o
-con `--remove-settings`. `--remove-build` también elimina `build/`; `--keep-build`
-sigue existiendo como alias de compatibilidad del comportamiento por defecto.
+una entrada de autostart propiedad de Punchi, desregistra la entrada de escritorio
+del estado de ventanas y borra solo los archivos del manifiesto. Después ofrece
+dos formas de terminar: **Keep my data** pregunta por separado sobre `build/` y el
+archivo de preferencias, y **Remove everything** elimina las preferencias, la
+copia `punchi-shell.json` heredada, `build/`, el bloqueo de ejecución y el registro
+de estado de ventanas tras una única confirmación destructiva. Ninguna de las dos
+toca el checkout ni el registro de recuperación de KWin. `--remove-settings` y
+`--remove-build` siguen disponibles para uso no interactivo; `--keep-build` es un
+alias de compatibilidad del comportamiento por defecto.
 
 ### Instalación con CMake
 

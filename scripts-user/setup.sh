@@ -23,6 +23,7 @@ PUNCHI_ACTION=""
 PUNCHI_START_AFTER=0
 PUNCHI_REMOVE_SETTINGS=0
 PUNCHI_REMOVE_BUILD=0
+PUNCHI_CLEAN_ALL=0
 PUNCHI_INSTALL_MISSING=0
 PUNCHI_PULL=0
 PUNCHI_ASSUME_YES="${PUNCHI_ASSUME_YES:-0}"
@@ -286,11 +287,21 @@ punchi_phase_build() {
 punchi_action_try() {
     local total=3
     local start_script="$punchi_project_root/scripts-user/start.sh"
+    local trial_profile=""
     local status=0
 
     if ! punchi_source_checkout_available; then
         punchi_error "Running without installing requires the source checkout."
         punchi_info "Run this menu from the cloned repository."
+        return 1
+    fi
+    # A running copy already owns this checkout's build output and its
+    # registration, so a trial cannot promise to leave nothing behind.
+    if punchi_running_path "$punchi_project_root"; then
+        punchi_error "Punchi Dock Quickshell is already running from:"
+        printf '  %s\n' "$punchi_project_root"
+        punchi_info "Stop it first:"
+        printf '  %s/scripts-user/restore-kde.sh\n' "$punchi_project_root"
         return 1
     fi
 
@@ -303,12 +314,25 @@ punchi_action_try() {
         punchi_error "The start script is missing or not executable: $start_script"
         return 1
     fi
+    trial_profile="$(punchi_trial_profile_dir)"
+    if ! mkdir -p -m 700 -- "$trial_profile"; then
+        punchi_ui_render_phase 3 "$total" error 'Run' 'Trial profile unavailable'
+        punchi_error "Could not create the trial profile at $trial_profile."
+        return 1
+    fi
+    export PUNCHI_PROFILE_DIR="$trial_profile"
+    # Ctrl+C reaches this shell and the dock together. Handling it here keeps
+    # the script alive long enough to ask for the cleanup below.
+    trap ':' INT
     punchi_run_dock "$start_script" || status=$?
+    trap - INT
+    unset PUNCHI_PROFILE_DIR
     if (( status == 0 )); then
         punchi_ui_render_phase 3 "$total" success 'Run' 'Completed'
     else
         punchi_ui_render_phase 3 "$total" error 'Run' "Exit status $status"
     fi
+    punchi_trial_cleanup "$trial_profile" || true
     return "$status"
 }
 
@@ -367,6 +391,26 @@ punchi_action_dependencies() {
     punchi_dependency_check "$offer"
 }
 
+punchi_choose_cleanup_mode() {
+    local choice=""
+
+    [[ -t 0 ]] || return 0
+    [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]] || return 0
+    printf '\n%s\n' 'What else should uninstall remove?'
+    printf '%s\n' '  [1] Keep my data: preferences, build output and the source checkout'
+    printf '%s\n' '  [2] Remove everything: preferences (including the legacy punchi-shell.json),'
+    printf '%s\n' '      build output, runtime lock and window-state registration'
+    while true; do
+        printf '%s' 'Select an option [1-2]: '
+        read -r choice || return 0
+        case "${choice:-1}" in
+            1) return 0 ;;
+            2) PUNCHI_CLEAN_ALL=1; return 0 ;;
+            *) punchi_error "Invalid option: $choice" ;;
+        esac
+    done
+}
+
 punchi_action_uninstall() {
     local install_root=""
     install_root="$(punchi_install_root)" || return 1
@@ -377,28 +421,39 @@ punchi_action_uninstall() {
     if (( PUNCHI_REMOVE_BUILD == 1 )) && punchi_source_checkout_available; then
         printf '  - %s\n' "$punchi_project_root/build"
     fi
-    if punchi_source_checkout_available; then
-        punchi_info "The source checkout and build output are kept by default."
-    else
-        punchi_info "Personal preferences are kept by default."
-    fi
-    if ! punchi_confirm "Continue with uninstall? [y/N]: " n; then
-        punchi_info "Uninstall cancelled."
-        return 0
-    fi
 
-    if (( PUNCHI_REMOVE_BUILD == 0 )) && punchi_source_checkout_available \
-        && [[ -d "$punchi_project_root/build" ]] \
-        && [[ -t 0 ]] && [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]]; then
-        if punchi_confirm "Also remove the source checkout's build/ directory? [y/N]: " n; then
-            PUNCHI_REMOVE_BUILD=1
+    punchi_choose_cleanup_mode
+    if (( PUNCHI_CLEAN_ALL == 1 )); then
+        if ! punchi_confirm 'Remove everything this project created? This cannot be undone. [y/N]: ' n; then
+            punchi_info "Uninstall cancelled."
+            return 0
+        fi
+        PUNCHI_REMOVE_BUILD=1
+        PUNCHI_REMOVE_SETTINGS=1
+    else
+        if punchi_source_checkout_available; then
+            punchi_info "The source checkout and build output are kept by default."
+        else
+            punchi_info "Personal preferences are kept by default."
+        fi
+        if ! punchi_confirm "Continue with uninstall? [y/N]: " n; then
+            punchi_info "Uninstall cancelled."
+            return 0
+        fi
+
+        if (( PUNCHI_REMOVE_BUILD == 0 )) && punchi_source_checkout_available \
+            && [[ -d "$punchi_project_root/build" ]] \
+            && [[ -t 0 ]] && [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]]; then
+            if punchi_confirm "Also remove the source checkout's build/ directory? [y/N]: " n; then
+                PUNCHI_REMOVE_BUILD=1
+            fi
         fi
     fi
 
     local status=0
-    punchi_uninstall_local "$PUNCHI_REMOVE_BUILD" "$PUNCHI_REMOVE_SETTINGS" || status=1
+    punchi_uninstall_local "$PUNCHI_REMOVE_BUILD" "$PUNCHI_REMOVE_SETTINGS" "$PUNCHI_CLEAN_ALL" || status=1
 
-    if (( PUNCHI_REMOVE_SETTINGS == 0 )) && [[ -t 0 ]] \
+    if (( PUNCHI_CLEAN_ALL == 0 )) && (( PUNCHI_REMOVE_SETTINGS == 0 )) && [[ -t 0 ]] \
         && [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]]; then
         if punchi_confirm "Also delete the current preferences file? [y/N]: " n; then
             punchi_remove_preferences 1 0 || status=1
