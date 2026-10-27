@@ -1,10 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "adapters/kde/native/iconthemecatalog.h"
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QLoggingCategory>
 #include <QTemporaryDir>
 #include <QTest>
+#include <fcntl.h>
+#include <sys/stat.h>
 
 // Mirrors the category Qt uses while painting a theme asset. The prefix is what
 // the picker folds, so an owned sub-category exercises the same branch.
@@ -16,6 +20,19 @@ QStringList recordedMessages;
 void recordMessage(QtMsgType, const QMessageLogContext &, const QString &message)
 {
     recordedMessages.append(message);
+}
+
+// The scan cache is keyed by the used directories' millisecond timestamps, so an
+// icon written in the same millisecond as the previous scan is indistinguishable
+// on file systems that keep a fixed directory size. Moving the directory's clock
+// back proves the rescan instead of racing the host clock. atime is untouched
+// because only the modification time feeds the stamp.
+bool rewindDirectoryTime(const QString &path, int seconds)
+{
+    const QDateTime target = QFileInfo(path).lastModified().addSecs(-seconds);
+    const timespec stamped{target.toSecsSinceEpoch(), 0};
+    const timespec times[2] = {timespec{0, UTIME_OMIT}, stamped};
+    return ::utimensat(AT_FDCWD, QFile::encodeName(path).constData(), times, 0) == 0;
 }
 
 // Builds an owned theme so the scan never depends on the icons installed on the
@@ -92,6 +109,7 @@ void IconThemeCatalogTest::rescansWhenTheThemeGainsAnIcon()
     QCOMPARE(before.names.size(), 1);
 
     QVERIFY(writeIcon(themePath, QStringLiteral("owned-three.svg")));
+    QVERIFY(rewindDirectoryTime(themePath + QStringLiteral("/apps/48"), 5));
 
     const auto after = IconThemeCatalog::buildSnapshot(QStringLiteral("Owned"), {iconsPath});
     QVERIFY(!after.cached);
