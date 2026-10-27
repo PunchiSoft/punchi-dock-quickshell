@@ -96,10 +96,13 @@ propia validación.
   categoría **Popups**, aplicados a los contenedores de carpeta. La cuadrícula,
   las filas de lista/detalle y el abanico conservan tamaños de glifo
   independientes.
-- Ajustes organizados en **Items**, **General**, **Popups** y **About**, con
-  **Reset defaults** y edición pendiente mediante Apply, Accept y Close.
-  **About** muestra la versión de la aplicación, enlaces al sitio y a los issues,
-  licencia, autores y la dedicatoria **Made with love**.
+- Ajustes organizados en **Items**, **General**, **Popups**, **Profile** y
+  **About**, con **Reset defaults** y edición pendiente mediante Apply, Accept y
+  Close. **Profile** importa y exporta un perfil JSON con los elementos del dock,
+  los contenedores de carpetas y las preferencias, con vista previa y
+  confirmación antes de que los valores importados reemplacen el perfil
+  pendiente. **About** muestra la versión de la aplicación, enlaces al sitio y a
+  los issues, licencia, autores y la dedicatoria **Made with love**.
 - Un efecto de minimización de KWin opcional elegido desde el menú contextual
   del dock. Solo se escriben claves de KWin con `exclusiveGroup=minimize`, se
   registran su presencia y valores originales antes de la primera escritura, y
@@ -398,8 +401,9 @@ No se guardan en los archivos del programa instalado. En el primer inicio, un
 no existe; el archivo original se conserva como copia de seguridad. Si existen
 ambos, prevalece el nombre nuevo y no se sobrescribe ninguno. Una prueba lee y
 escribe su propio perfil, que se elimina con la limpieza de la prueba salvo que
-rechaces la confirmación. Sin archivo guardado,la aplicación usa los valores por defecto de
-[`ShellSettings.qml`](config/ShellSettings.qml):
+rechaces la confirmación. Sin archivo guardado, la aplicación usa los valores por defecto de
+[`config/DefaultProfile.js`](config/DefaultProfile.js), que también aporta el
+catálogo de lanzadores del primer inicio y los valores que restaura **Reset defaults**:
 
 | Ajuste | Valor inicial actual |
 |---|---|
@@ -424,6 +428,17 @@ la 11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico
 los perfiles anteriores sin esos campos usan cinco aplicaciones, el icono de la
 aplicación, la carpeta completa, las proporciones de referencia del popup y los
 tamaños de glifo del tema.
+
+La categoría **Profile** exporta los valores pendientes como un documento JSON
+portátil con esquema `punchi-dock-quickshell/profile` y versión de formato 1.
+La importación también acepta un perfil guardado sin envoltorio, valida cada
+campo y muestra el resultado antes de convertirlo en edición pendiente. Un
+perfil solo contiene datos: no puede añadir comandos, JavaScript ejecutable,
+entradas de inicio automático, configuración de KDE ni contenido de archivos.
+El archivo elegido debe ser un archivo regular UTF-8 de como máximo 256 KiB.
+Las exportaciones se escriben de forma atómica con permisos solo para el
+propietario, y nunca se sobrescribe un enlace simbólico. El inicio automático
+sigue siendo una integración de instalación y no forma parte de un perfil.
 
 ## Instalación y distribución
 
@@ -595,10 +610,10 @@ ctest --test-dir build --output-on-failure
 | `shell.qml` | Compone los módulos del shell |
 | `modules/dock/` | Ventana, vista, menús contextuales y confirmación de la Papelera |
 | `modules/folders/` | Popups, diseños y navegación de contenedores de carpeta |
-| `modules/settings/` | Ventana de ajustes, categorías y editores de elementos |
+| `modules/settings/` | Ventana de ajustes, categorías, editores de elementos e intercambio de perfiles |
 | `components/` | Primitivas visuales de interacción compartidas |
-| `services/` | Datos de modelo y coordinación |
-| `config/` | Ajustes reactivos y métricas compartidas |
+| `services/` | Datos de modelo, intercambio de perfiles y coordinación |
+| `config/` | Perfil inicial, ajustes reactivos, validación de documentos y métricas compartidas |
 | `adapters/kde/` | Adaptadores KDE para lanzamiento, multimedia, actualizaciones, Papelera, movimiento y estado de ventanas |
 | `tests/` | Comprobaciones de componentes, fundamentos y sesión real |
 | `.agents/skills/` | Flujos de desarrollo del repositorio |

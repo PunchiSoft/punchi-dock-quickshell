@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Add a **Profile** category that imports and exports a portable JSON profile of
+  dock items, folder containers and preferences. `config/DefaultProfile.js` is
+  now the single first-run source for the launcher catalogue, pinned order,
+  containers and preferences, so a fresh install and **Reset defaults** use the
+  same data. Import accepts the portable document or a raw saved profile,
+  validates every field, previews the result and keeps it pending until Apply or
+  Accept. A profile carries data only, never executable JavaScript, autostart,
+  KDE configuration or user files. The selected file must be a regular UTF-8
+  file of at most 256 KiB; exports are written atomically with owner-only
+  permissions and a symbolic link is never overwritten. The card states what a
+  profile includes and what it leaves out. Applying a profile now
+  writes the settings file once instead of once per property.
 - Add a built-in **Home** folder container to the first-run profile. It sits
   between Konsole and Firefox, uses `user-home`, opens as Fan and sorts by name.
   Home resolves through `QStandardPaths::HomeLocation` and lists only the

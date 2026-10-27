@@ -2,8 +2,10 @@
 import QtQml
 import Quickshell
 import Quickshell.Io
+import Punchi.Kde as Native
 import "../config"
 import "../config/PanelModes.js" as PanelModes
+import "../config/ProfileDocument.js" as ProfileDocument
 // Scope (a non-visual ReloadPropagator) instead of QtObject: the persistent
 // session must be a real child. A PersistentProperties held as a property value
 // is not matched by Quickshell's reloader, so its `loaded` signal fires with no
@@ -36,12 +38,9 @@ Scope {
         printErrors: false
         onSaveFailed: console.warn("Punchi Dock Quickshell: settings save failed")
     }
-    readonly property FileView legacyFile: FileView {
-        path: root.legacyPath
-        preload: false
-        blockLoading: true
-        printErrors: false
-    }
+    // The owned settings file goes through the same bounded, regular-file-only
+    // reader as imported profiles; FileView remains the atomic writer.
+    readonly property var reader: Native.ProfileFile {}
     PersistentProperties {
         id: sessionState
         reloadableId: "punchi-shell-settings"
@@ -49,9 +48,16 @@ Scope {
         onLoaded: root.initialize(sessionState.snapshot)
     }
     function save(): void {
-        if (!ready) return
-        sessionState.snapshot = JSON.stringify(settings.snapshot(), null, 2)
-        file.setText(sessionState.snapshot)
+        if (!ready || settings.bulkChange) return
+        const snapshot = JSON.stringify(settings.snapshot(), null, 2)
+        // Never replace a readable profile with one the bounded loader would
+        // reject on the next start. The previous file stays intact.
+        if (snapshot.length > ProfileDocument.maximumBytes) {
+            console.warn("Punchi Dock Quickshell: settings profile exceeds the storage limit")
+            return
+        }
+        sessionState.snapshot = snapshot
+        file.setText(snapshot)
     }
     readonly property Connections changes: Connections {
         target: root.settings
@@ -70,13 +76,37 @@ Scope {
         function onPopupScaleChanged() { root.save() }
         function onPopupIconSizeChanged() { root.save() }
         function onPopupHeightPercentChanged() { root.save() }
+        function onProfileApplied() { root.save() }
+    }
+    function readStored(path: string): var {
+        const result = reader.readPath(path, ProfileDocument.maximumBytes)
+        if (result && result.ok) return {ok: true, text: result.text, error: ""}
+        const error = result && result.error ? result.error : "read-failed"
+        // A missing file is the normal first start; every other outcome keeps
+        // the defaults and must not fall back to the legacy profile.
+        if (error !== "missing")
+            console.warn("Punchi Dock Quickshell: settings read failed:", error)
+        return {ok: false, text: "", error: error}
     }
     function initialize(previous: string): void {
         ready = false
-        let text = previous || file.text()
-        const migrateLegacy = previous.length === 0 && text.length === 0
-        if (migrateLegacy) text = legacyFile.text()
-        if (text.length > 0 && text.length <= 16384) {
+        let text = previous
+        let migrateLegacy = false
+        if (text.length === 0) {
+            const current = readStored(root.path)
+            if (current.ok) text = current.text
+            const legacyAllowed = current.ok
+                ? text.length === 0 : current.error === "missing"
+            if (legacyAllowed) {
+                const legacy = readStored(root.legacyPath)
+                if (legacy.ok && legacy.text.length > 0) {
+                    text = legacy.text
+                    migrateLegacy = true
+                }
+            }
+        }
+        if (text.length === 0) settings.reset()
+        if (text.length > 0 && text.length <= ProfileDocument.maximumBytes) {
             try {
                 const restored = settings.restore(JSON.parse(text))
                 if (restored && migrateLegacy) file.setText(text)
