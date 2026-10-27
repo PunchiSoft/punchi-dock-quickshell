@@ -32,7 +32,7 @@ Do not create, rename or change visibility without explicit authorization.
 - Confirm the README states the project stage explicitly (for alpha projects,
   "under construction"), its validated environment and known limitations.
 - Remove public links to documents that will not be published.
-- Run the configured tests and confirm the declared delivery version.
+- Run the configured tests and confirm the declared release version.
 
 ## Protect and rewrite
 

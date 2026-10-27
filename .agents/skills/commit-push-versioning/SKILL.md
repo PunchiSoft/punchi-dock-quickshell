@@ -1,6 +1,6 @@
 ---
 name: commit-push-versioning
-description: Prepare an authorized commit and push, decide the delivery version from the latest CHANGELOG delivery, review the exact staged content, and hand the branch to pr-delivery. Use when the user asks to commit, push, or both.
+description: Prepare an authorized commit and push, decide whether the work prepares a release, review the exact staged content, and hand the branch to pr-delivery. Use when the user asks to commit, push, or both.
 license: GPL-3.0-or-later
 ---
 
@@ -21,32 +21,27 @@ on it. One branch per modification; never reuse a branch that was already
 merged. Report the branch alongside the commit and let the user decide when to
 merge.
 
-## Determine the delivery version
+## Version and changelog
 
-Treat the newest delivery heading at the top of `CHANGELOG.md` as the source of
-truth. Inspect the complete requested commit scope before deciding whether it
-changes application behavior.
+Versions identify releases, not commits. Treat the newest dated heading in
+`CHANGELOG.md` as the current released version and `## Unreleased` as pending
+work. Do not advance the version for an ordinary commit.
 
-- If the commit changes behavior in `shell.qml`, `modules/`, `components/`,
-  `services/`, `adapters/`, `config/`, `scripts-user/`, native application
-  sources, or application build wiring in `CMakeLists.txt`, advance the latest
-  changelog counter exactly once for this commit. Grouped changes still get one
-  increment.
+- A behavior-changing commit adds its entry under `## Unreleased`. When the user
+  explicitly asks to prepare a release, move the `Unreleased` entries under a new
+  `## <version> — <YYYY-MM-DD>` heading, choose the next Semantic Versioning
+  number, and synchronize `project(... VERSION ...)` in `CMakeLists.txt`, the
+  About page, both READMEs, `AGENTS.md`, and the local `docs/versioning.md`
+  record. Keep configuration schema and QML module API versions independent.
 - Tests, documentation, skills, repository metadata, development tools, and
-  comment-, formatting-, or wording-only changes do not advance the counter by
-  themselves. Use the repository's `chore:` or `docs:` commit convention for
-  those commits.
-- Keep the padded decimal format with at least two digits in the final segment.
-  Do not infer the next number from a stale About page, README, build directory,
+  comment-, formatting-, or wording-only changes do not require a version change
+  or a changelog entry. Use the repository's `chore:` or `docs:` commit
+  convention for those commits.
+- Never infer the next version from a stale About page, README, build directory,
   installed copy, Git tag, or `AGENTS.md`; reconcile those declarations to the
-  latest changelog entry.
-
-For a behavior-changing delivery, add its dated entry at the top of
-`CHANGELOG.md`, then synchronize `project(... VERSION ...)` in `CMakeLists.txt`,
-the About page, `README.md`, `README.es.md` when present, `AGENTS.md`, and the
-local `docs/versioning.md` record. Keep configuration schema and QML module API
-versions independent. For a non-behavior commit, leave the application version
-unchanged and do not add a delivery entry just to create a version bump.
+  newest dated changelog entry.
+- A release may contain many commits and several features. Its version advances
+  once for the whole release, not once per commit.
 
 ## Review and publish
 

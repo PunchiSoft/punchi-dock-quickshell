@@ -172,28 +172,25 @@ evidence goes in tracked files.
 GitHub-ready files do not authorize a remote, commit, push, tag, or release.
 Do not restart or terminate Plasma as part of testing or restoring this prototype.
 
-## Delivery versioning
+## Release versioning
 
-Use the user-approved padded delivery counter: `0.1.00`, `0.1.01`, and so on.
-The original `0.1.0` snapshot is the `0.1.00` baseline; preserve its commit
-history. Do not create tags or releases unless the user explicitly requests them.
+Versions identify releases, not commits. Pending work accumulates under
+`## Unreleased` at the top of `CHANGELOG.md`; the declared version changes only
+when a release is prepared.
 
-Advance the counter once per commit that changes application behavior:
-`shell.qml`, `modules/`, `components/`, `services/`, `adapters/`, `config/`,
-`scripts-user/`, their native sources, or their build wiring in `CMakeLists.txt`.
-Grouped functional changes share one increment. When such a delivery is
-deliberately split into one commit per feature, each feature commit advances the
-counter once.
+Prepare a release when the user requests one: move the `Unreleased` entries under
+a new `## <version> — <YYYY-MM-DD>` heading, choose the next Semantic Versioning
+number (`MAJOR.MINOR.PATCH`), and update `CMakeLists.txt`, the About page, both
+READMEs, `AGENTS.md` and the local `docs/versioning.md` record consistently.
+Every release advances the version once, regardless of how many commits or
+features it contains. Before `1.0.0`, a MINOR release may contain breaking
+changes; a PATCH release contains compatible fixes.
 
-Do not advance the counter for repository metadata or documentation-only commits:
-`.gitattributes`, `.gitignore`, `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
-`NOTICE.md`, `LICENSE`, `.agents/`, the local `docs/`, `scripts-dev/`, `tests/`,
-or comment-, formatting- and wording-only edits. Keep these commits marked as
-`chore:` or `docs:`; the declared delivery version stays unchanged.
+Documentation, tests, CI, skills and repository metadata alone never justify a
+release or a version change. Keep those commits marked as `chore:` or `docs:`
+and leave the version unchanged. The `project_version` test fails when the
+tracked declarations disagree with the newest dated changelog heading.
 
-The current delivery is `0.1.47`. The newest delivery heading in `CHANGELOG.md`
-is authoritative for the counter. Before a behavior-changing commit, advance it
-once and update CMake, the About page, README, CHANGELOG and the local
-`docs/versioning.md` record consistently; the `project_version` test fails when
-the tracked declarations disagree with that heading. Keep configuration schema
-and QML module API versions separate from the application delivery version.
+The latest released version is `0.1.47`. Do not create tags or releases unless
+the user explicitly requests them. Keep configuration schema and QML module API
+versions separate from the application version.

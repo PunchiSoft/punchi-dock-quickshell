@@ -21,18 +21,30 @@
 > oficial, compromiso de soporte ni garantía de compatibilidad.
 
 Punchi Dock Quickshell combina magnificación animada, lanzadores de aplicaciones
-configurables, acciones contextuales de KDE y preferencias persistentes. Se
-ejecuta junto a Plasma mediante scripts reversibles de inicio y detención.
+configurables, acciones contextuales y transporte multimedia de KDE, una ventana
+de ajustes y preferencias persistentes. Se ejecuta junto a Plasma mediante
+scripts reversibles de inicio y detención.
+
+Nació de los límites de
+[Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
+el proyecto original y el applet de Plasma que es su base. Un applet vive dentro
+de un panel de Plasma y hereda de su anfitrión la superficie, el borde y el
+comportamiento de ventanas, así que el dock no puede tener su propia superficie
+Wayland, decidir su comportamiento de borde en el compositor ni mantener una
+vida útil y un modelo de entrada independientes de Plasma. Este proyecto
+conserva el lenguaje visual, la magnificación y la respuesta de lanzamiento de
+ese dock, y reconstruye su lanzamiento, activación y comportamiento en el
+compositor como una aplicación Quickshell independiente con adaptadores nativos
+de KDE.
 
 **KDE Plasma/KWin es obligatorio.** Punchi Dock Quickshell no es un dock para
 GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.47**. La primera instantánea de Git se publicó como
-`0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
-de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
-Los límites de compatibilidad y validación se describen más abajo.
+**Versión actual:** **0.1.47**. El [changelog](CHANGELOG.md) registra los
+cambios entregados y su validación. Los límites de compatibilidad y validación
+se describen más abajo.
 
 [Atribución](NOTICE.md) · [Licencia](LICENSE) · [Changelog](CHANGELOG.md) ·
 [Seguridad](SECURITY.md) · [Contribución](CONTRIBUTING.md) · [Soporte](SUPPORT.md)
@@ -48,9 +60,14 @@ propia validación.
 - Magnificación continua al pasar el puntero, tooltips temáticos, fondo
   expansible y respuesta de lanzamiento en dos fases, con soporte para movimiento
   reducido.
+- Colocación inferior, izquierda o derecha. La onda de magnificación, los
+  tooltips, los menús contextuales, la navegación con flechas, los indicadores de
+  ejecución y el borde nativo de ocultamiento automático siguen el borde elegido;
+  los popups laterales se abren hacia dentro y los iconos permanecen derechos.
 - Aplicaciones fijadas configurables: descubre y busca aplicaciones instaladas
   mediante KDE, añade o reordena lanzadores y guarda las preferencias. Ocho
-  lanzadores predefinidos forman la configuración inicial.
+  lanzadores de aplicaciones predefinidos, más el contenedor Downloads y la
+  Papelera, forman la configuración inicial.
 - Lanzamiento nativo de aplicaciones mediante KService y KIO, con integración de
   activación de Wayland. Un clic normal activa una ventana KDE existente o
   minimiza una ventana activa compatible antes de considerar un lanzamiento; la
@@ -58,15 +75,35 @@ propia validación.
 - Coordinación del lanzamiento inicial, ciclo de ventanas, aplicaciones conocidas
   no fijadas y clic central para abrir una ventana nueva mediante KDE.
 - Menús contextuales de lanzadores con acciones de escritorio KDE, documentos
-  recientes, desanclaje y navegación por Lugares de KDE para lanzadores de
-  gestores de archivos compatibles.
+  recientes, desanclaje, acciones de ventana como Move to Desktop, Maximize y
+  Fullscreen, y navegación por Lugares de KDE para lanzadores de gestores de
+  archivos compatibles.
+- Transporte multimedia del reproductor MPRIS de KDE que corresponda al
+  lanzador: Previous Track, Play/Pause, Next Track y Stop aparecen solo mientras
+  existe un reproductor, siguen sus capacidades en vivo y cierran el menú tras
+  enviar la orden. El proveedor privado MPRIS de Plasma queda aislado en un solo
+  adaptador.
+- Un elemento Papelera respaldado por el estado nativo de KDE. El clic izquierdo
+  abre la Papelera; su menú contextual ofrece **Open** y **Empty Trash** tras una
+  confirmación temática, la acción destructiva queda deshabilitada mientras está
+  vacía, no disponible u ocupada, y KDE entrega un listado nuevo tras la
+  operación en vez de suponer un resultado vacío.
 - Ajustes del dock para tamaño de iconos, magnificación, rebote, movimiento
-  reducido y visibilidad: Always visible, Hide automatically, Dodge windows o
-  Windows go below.
+  reducido, posición y visibilidad: Always visible, Hide automatically, Dodge
+  windows o Windows go below.
 - Ajustes de los popups para tamaño, altura y tamaño de icono en su propia
   categoría **Popups**, aplicados a los contenedores de carpeta. La cuadrícula,
   las filas de lista/detalle y el abanico conservan tamaños de glifo
   independientes.
+- Ajustes organizados en **Items**, **General**, **Popups** y **About**, con
+  **Reset defaults** y edición pendiente mediante Apply, Accept y Close.
+  **About** muestra la versión de la aplicación, enlaces al sitio y a los issues,
+  licencia, autores y la dedicatoria **Made with love**.
+- Un efecto de minimización de KWin opcional elegido desde el menú contextual
+  del dock. Solo se escriben claves de KWin con `exclusiveGroup=minimize`, se
+  registran su presencia y valores originales antes de la primera escritura, y
+  se restauran al cerrar limpiamente o con `scripts-user/restore-kde.sh`; una
+  clave modificada fuera del dock se deja intacta.
 - Un emblema de actualizaciones sobre el lanzador de Discover cuando el equipo
   tiene actualizaciones pendientes. El conteo se lee sólo desde PackageKit,
   fwupd y Flatpak mediante sus interfaces nativas, así que el dock nunca consulta
@@ -95,8 +132,15 @@ propia validación.
   ajustes del dock incluyen un interruptor que escribe la preferencia de KDE de
   recordar aplicaciones y un acceso a las opciones de Archivos recientes de KDE;
   si KDE no guarda historial, una nota breve explica cómo activarlo.
-- Navegación por teclado y edición de ajustes pendientes mediante Apply, Accept y
-  Close.
+- Navegación por teclado para el dock, sus menús contextuales y la ventana de
+  ajustes.
+- Editores de elementos que eligen un icono del tema para cualquier aplicación
+  fijada o contenedor de carpeta y lo guardan por nombre, con el icono propio del
+  elemento como respaldo.
+- Contenedores de carpeta para cualquier carpeta local: presentaciones Grid,
+  List, Detail y Fan, orden por contenedor, navegación por subcarpetas y lista
+  de entradas ocultas. Un dock lateral presenta como Grid un abanico guardado,
+  porque el arco necesita un borde superior o inferior.
 - Downloads con vistas Grid, List, Detail y Fan, navegación dentro de un globo
   temático y apertura nativa de archivos de KDE. Cada presentación termina con
   una fila **Open** y marca con un chevron las carpetas por las que se puede
@@ -122,8 +166,9 @@ aplicaciones y controles adicionales quedan para el futuro.
   visual completa sigue pendiente.
 - Solo instalación desde el código fuente y con prefijo CMake; no hay paquetes
   RPM/DEB, etiquetas ni binarios de versión.
-- La activación de ventanas, el cursor de KDE y el comportamiento con varios
-  monitores todavía necesitan más validación en sesión real.
+- La activación de ventanas, el transporte multimedia, el cursor de KDE y el
+  comportamiento con varios monitores todavía necesitan más validación en
+  sesión real.
 - La interfaz gráfica sigue en inglés; esta página es una traducción de la
   documentación.
 
@@ -151,12 +196,32 @@ Sin argumentos abre un menú:
 | Install or update | `./scripts-user/setup.sh --install` | Comprueba dependencias, ofrece instalar las que faltan, compila los componentes nativos e instala el runtime para el usuario actual. |
 | Build only | `./scripts-user/setup.sh --build` | Comprueba dependencias, ofrece instalar las que faltan y compila `build/` sin instalar. |
 | Try without installing | `./scripts-user/setup.sh --try` (`--test` es un alias) | Comprueba dependencias, compila el checkout y ejecuta el dock desde el checkout. No instala nada ni usa la copia instalada. La ejecución usa un perfil de prueba propio, así que arranca con los ítems por defecto y nunca lee ni escribe tus preferencias guardadas. Al cerrar el dock, una confirmación elimina la compilación, el perfil de prueba, el registro de estado de ventanas y el bloqueo de ejecución. |
-| Start the dock | `./scripts-user/setup.sh --start` | Inicia la copia instalada o el checkout cuando no existe una instalación. |
+| Start the dock | `./scripts-user/setup.sh --start` | Ejecuta una compilación existente o la instalación local del usuario. No compila nada: usa Try o Build primero. |
 | Check dependencies | `./scripts-user/setup.sh --check-deps` | Informa las comprobaciones de runtime, compilación, validación y KDE. Las herramientas Qt también se buscan fuera de `PATH` en el directorio bin de Qt de la distribución. Los nombres de paquetes de Fedora están validados; las equivalencias de Debian/Ubuntu y Arch son de mejor esfuerzo. |
 | Check for updates | `./scripts-user/setup.sh --check-updates` | Consulta el remoto Git configurado e informa cuántos commits estás por delante/detrás, la versión declarada en el upstream y la versión de la copia instalada. Solo lee, salvo que se use `--pull`. |
 | Update the checkout | `./scripts-user/setup.sh --check-updates --pull` | Ejecuta `git pull --ff-only` después de la comprobación cuando el checkout está detrás. Se niega si hay archivos rastreados modificados y nunca hace rebase, reset ni stash. El menú pregunta antes de hacer el pull y después ofrece reconstruir e instalar; `--pull` nunca instala. |
 | Uninstall | `./scripts-user/setup.sh --uninstall` | Detiene este proyecto, restaura los ajustes de KWin propios, elimina una entrada de autostart propiedad de Punchi, el registro de estado de ventanas y la instalación local del usuario. Después pregunta una vez si conservar tus datos o borrar todo; borrar todo elimina también las preferencias, la `punchi-shell.json` heredada, `build/` y el bloqueo de ejecución. |
 | Instructions and README | `./scripts-user/setup.sh --instructions` | Muestra comandos, rutas y ubicaciones del README. |
+
+El asistente informa cada acción como una lista breve de fases y ejecuta los
+pasos largos tras una única línea de progreso animada que se reescribe en el
+sitio. La salida completa de CMake se sigue registrando, y un paso fallido
+muestra sus últimas líneas y las adjunta al registro de fallos. La comprobación
+de dependencias anima la misma línea mientras recoge el informe y después
+imprime el listado capturado, así que la comprobación se ve antes de que llegue
+el resultado. En una terminal un paso permanece visible al menos 0,9 s y la
+línea de finalización se mantiene 0,4 s, para que una acción rápida no pase de
+largo; `PUNCHI_PROGRESS_MIN_SECONDS` y `PUNCHI_PROGRESS_SETTLE_SECONDS` ajustan
+ambos, y la salida redirigida nunca espera. Los colores se usan en una terminal y
+se desactivan con `--no-color` o `NO_COLOR`. La salida redirigida, `TERM=dumb` y
+las configuraciones regionales sin UTF-8 reciben líneas ASCII simples en lugar de
+dibujo de caja y una barra en movimiento, así que los registros siguen legibles.
+
+La concurrencia de compilación usa por defecto el número de CPU detectado,
+limitado por la memoria instalada (un trabajo por debajo de 4,5 GiB, dos por
+debajo de 8,4 GiB, cuatro por debajo de 16 GiB), para que una máquina pequeña no
+haga swap durante la compilación nativa. `-j/--jobs N` sustituye el conteo
+automático y `PUNCHI_NO_PROGRESS=1` conserva la salida sin procesar.
 
 `setup.sh` pertenece al repositorio y no es una descarga independiente: instalar
 o compilar necesita `CMakeLists.txt`, `modules/`, `adapters/` y `services/` del
@@ -179,8 +244,10 @@ sistema. El checkout sigue siendo la fuente de compilación.
 `setup.sh` usa los mismos scripts de compilación y restauración, por lo que el
 inicio, los modos de panel y la restauración no cambian.
 
-Install/update y Build only vuelven al menú y no inician el dock. Usa Start,
-`--install --start` o `--build --start` para iniciarlo después de la acción.
+Install/update y Build only vuelven al menú y no inician el dock. Usa Try without
+installing, la acción Start, `--install --start` o `--build --start` para
+iniciarlo después de la acción. El dock se ejecuta como hijo del asistente, así
+que al cerrarlo vuelves al menú.
 
 Solo se ejecuta una instancia de Punchi Dock Quickshell a la vez entre el checkout
 y la instalación local. Si intentas iniciar una mientras la otra está activa, se
@@ -333,7 +400,7 @@ rechaces la confirmación. Sin archivo guardado,la aplicación usa los valores p
 
 | Ajuste | Valor inicial actual |
 |---|---|
-| Superficie | Dock inferior; todavía no hay barra superior personalizada |
+| Superficie | Dock inferior por defecto; inferior, izquierda o derecha; todavía no hay barra superior personalizada |
 | Elementos fijados, en orden | Dolphin, Konsole, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Tamaño | 100% del tamaño base derivado del tema |
 | Magnificación con el puntero | Activada, con escala máxima del 200% |
@@ -345,12 +412,15 @@ rechaces la confirmación. Sin archivo guardado,la aplicación usa los valores p
 Son valores prototipo, no una garantía de que todas las aplicaciones predefinidas
 estén instaladas. Cambiar ajustes con Apply o Accept guarda los valores del
 usuario; los inicios posteriores los cargan. Un modo de inicio explícito puede
-sustituir el modo de visibilidad guardado. El formato actual es la versión 9 y
-acepta las versiones 1 a 8 mediante migración. La versión 7 añade el interruptor
+sustituir el modo de visibilidad guardado. El formato actual es la versión 11 y
+acepta las versiones 1 a 10 mediante migración. La versión 7 añade el interruptor
 de aplicaciones recientes y su cantidad visible, la 8 guarda el icono elegido
-para una aplicación fijada y la 9 las entradas de carpeta que un contenedor deja
-fuera de su popup; los perfiles anteriores sin esos campos usan cinco
-aplicaciones, el icono de la aplicación y la carpeta completa.
+para una aplicación fijada, la 9 las entradas de carpeta que un contenedor deja
+fuera de su popup, la 10 el tamaño, la altura y el tamaño de icono del popup, y
+la 11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico;
+los perfiles anteriores sin esos campos usan cinco aplicaciones, el icono de la
+aplicación, la carpeta completa, las proporciones de referencia del popup y los
+tamaños de glifo del tema.
 
 ## Instalación y distribución
 
@@ -464,10 +534,10 @@ algunas compilaciones en su
 [guía de instalación](https://quickshell.org/docs/v0.2.1/guide/install-setup/).
 
 Una dependencia actual que requiere atención especial es
-`org.kde.plasma.private.mpris`, un módulo interno de Plasma usado para los
-controles multimedia. Las integraciones de ventanas/tareas y el comportamiento del
-borde de pantalla de KDE también necesitan probarse contra la versión objetivo de
-Plasma/KWin. Prefiere API públicas, aísla las integraciones internas y ofrece una
+`org.kde.plasma.private.mpris`, el módulo interno de Plasma detrás del transporte
+multimedia del menú contextual. Las integraciones de ventanas/tareas y el
+comportamiento del borde de pantalla de KDE también necesitan probarse contra la
+versión objetivo de Plasma/KWin. Prefiere API públicas, aísla las integraciones internas y ofrece una
 degradación elegante cuando una capacidad sea opcional. Recompilar puede resolver
 una incompatibilidad binaria; los cambios de contrato de API requieren adaptar el
 código y volver a ejecutar las pruebas de regresión.
@@ -520,11 +590,13 @@ ctest --test-dir build --output-on-failure
 | Directorio | Responsabilidad |
 |---|---|
 | `shell.qml` | Compone los módulos del shell |
-| `modules/dock/` | Ventana y vista del dock |
+| `modules/dock/` | Ventana, vista, menús contextuales y confirmación de la Papelera |
+| `modules/folders/` | Popups, diseños y navegación de contenedores de carpeta |
+| `modules/settings/` | Ventana de ajustes, categorías y editores de elementos |
 | `components/` | Primitivas visuales de interacción compartidas |
 | `services/` | Datos de modelo y coordinación |
 | `config/` | Ajustes reactivos y métricas compartidas |
-| `adapters/kde/` | Preferencias de movimiento de KDE y lanzamiento nativo de aplicaciones |
+| `adapters/kde/` | Adaptadores KDE para lanzamiento, multimedia, actualizaciones, Papelera, movimiento y estado de ventanas |
 | `tests/` | Comprobaciones de componentes, fundamentos y sesión real |
 | `.agents/skills/` | Flujos de desarrollo del repositorio |
 
@@ -541,11 +613,22 @@ contenido publicado.
 
 ## Orígenes y atribución
 
-El proyecto se inspira en [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered)
-y toma inspiración arquitectónica y visual de
-[Caelestia Shell](https://github.com/caelestia-dots/shell), implementando la
-integración de escritorio para KDE/KWin. Consulta [NOTICE.md](NOTICE.md) para el
-código, los recursos y la atribución reutilizados.
+La base de este proyecto es [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
+el applet de Plasma cuyo dock, modelo de elementos, movimiento e interacción este
+port reconstruye. También toma inspiración arquitectónica y visual de
+[Caelestia Shell](https://github.com/caelestia-dots/shell), mientras implementa
+la integración de escritorio para KDE/KWin. Consulta [NOTICE.md](NOTICE.md) para
+el código, los recursos y la atribución reutilizados.
+
+## Hecho con amor
+
+Hecho con amor, para la comunidad. Un port nativo del plasmoid [Punchi Dock
+Remastered](https://github.com/PunchiSoft/punchi-dock-remastered), construido
+para ir más allá de lo que un plasmoid puede hacer en KDE Plasma. Algunos dicen
+que los docks pasaron de moda, como el punchi punchi; solo Windows los olvidó, y
+Linux nunca lo hará.
+
+**¡Linux para todos!**
 
 ## Licencia
 

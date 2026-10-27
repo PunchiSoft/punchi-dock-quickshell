@@ -15,9 +15,9 @@ request.
 
 - The work sits on one delivery branch created from updated `main`, never on
   `main`.
-- `commit-push-versioning` already committed the reviewed scope and, for a
-  behavior change, advanced the delivery version once with its declarations
-  synchronized.
+- `commit-push-versioning` already committed the reviewed scope. If the branch
+  prepares a release, it moved the `Unreleased` entries under a dated heading
+  and synchronized the version declarations.
 - The evidence exists: focused checks, complete CTest, and any real-session check
   actually performed. Never present offscreen, static, or lint results as dock or
   desktop validation.
@@ -76,8 +76,8 @@ desktop check was not performed.
   the delivery branch. Resolve conflicts preserving the behavior already
   validated, re-run the affected checks, then publish with `--force-with-lease`
   and never plain `--force`.
-- Reconcile the delivery version and its declarations if the rebase crosses
-  another delivery.
+- Reconcile the release version and its declarations if the rebase crosses
+  another release.
 
 ## Close
 
