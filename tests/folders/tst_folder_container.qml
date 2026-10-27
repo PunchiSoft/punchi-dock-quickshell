@@ -906,9 +906,11 @@ TestCase {
         // highlight and the pointer row drops its band, so only one shows.
         content.selectRow(currentIndex)
         tryCompare(content, "pointerEmphasis", false)
-        tryVerify(function() { return currentRow.background.color.a > 0.99 }, 5000,
-            "the keyboard band never reached the theme highlight")
-        compare(currentRow.background.color, content.metrics.rowSelectedColor)
+        // The band fades over `fadeDuration`, so wait for the end value instead
+        // of sampling the interpolated colour: a frame inside the last 1% of the
+        // curve is not the theme highlight yet.
+        tryVerify(function() { return currentRow.background.color === content.metrics.rowSelectedColor },
+            5000, "the keyboard band never reached the theme highlight")
         compare(currentRow.background.border.width, content.metrics.rowBorderWidth)
         tryVerify(function() { return hoveredRow.background.color.a < 0.01 })
         compare(hoveredRow.background.border.width, 0)
