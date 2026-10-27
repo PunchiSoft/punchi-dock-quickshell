@@ -62,8 +62,8 @@ validation.
   follow the selected edge, side popups open inward and icons stay upright.
 - Configurable pinned applications: discover and search installed applications
   through KDE, add or reorder launchers, and save preferences. Eight preset
-  application launchers plus the Downloads container and Trash form the initial
-  configuration.
+  application launchers plus the Home and Downloads containers and Trash form the
+  initial configuration.
 - Native application launching through KService and KIO, with Wayland activation
   integration. Normal clicks activate an existing KDE window or minimize an
   eligible active window before considering a launch; activation remains
@@ -128,8 +128,9 @@ validation.
   container and store it by name, falling back to the item's own icon.
 - Folder containers for any local folder: Grid, List, Detail and Fan
   presentations, per-container sorting, subfolder browsing and a hidden-entry
-  list. A side dock presents a stored fan as Grid because the arc needs a top or
-  bottom edge.
+  list. The built-in **Home** container opens as Fan and lists only the standard
+  KDE/XDG user folders through their localized names. A side dock presents a
+  stored fan as Grid because the arc needs a top or bottom edge.
 - Downloads with Grid, List, Detail and Fan folder views, navigation inside a themed
   balloon, and native KDE file opening. Every presentation ends with an **Open**
   row and marks browsable folders with a chevron; a right-click on an entry
@@ -379,7 +380,7 @@ Without a saved file, the application uses the defaults in
 | Setting | Current first-run default |
 |---|---|
 | Surface | Bottom dock by default; Bottom, Left or Right; no custom top bar yet |
-| Pinned items, in order | Dolphin, Konsole, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
+| Pinned items, in order | Dolphin, Konsole, Home, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
 | Click bounce | Enabled |

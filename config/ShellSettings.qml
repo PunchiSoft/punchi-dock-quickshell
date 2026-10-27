@@ -51,13 +51,17 @@ QtObject {
     readonly property int popupGridIconSizeMaximum: 96
     readonly property int popupListIconSizeMaximum: 64
     readonly property int popupFanIconSizeMaximum: 56
-    property var pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:downloads", "item:trash"]
-    // Folder containers owned by this profile. An empty path means the user's
-    // download location, which the native folder model resolves through
-    // QStandardPaths, so the built-in Downloads container needs no stored path.
-    // The built-in container keeps its historical item id; containers added
-    // later use item:folder:<id>.
-    property var containers: [{id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads", layout: "grid", sortMode: "modified", browseSubfolders: true, hiddenEntries: []}]
+    property var pinnedIds: ["files", "terminal", "item:folder:home", "browser", "kate", "systemsettings", "discover", "gwenview", "okular", "item:downloads", "item:trash"]
+    // Folder containers owned by this profile. An empty path asks the native
+    // folder model for the standard location of its built-in id: Home uses
+    // QStandardPaths::HomeLocation, Downloads uses DownloadLocation. Home
+    // lists only the standard KDE/XDG user folders at its root. The built-in
+    // Downloads container keeps its historical item id; containers added later
+    // use item:folder:<id>.
+    property var containers: [
+        {id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads", layout: "grid", sortMode: "modified", browseSubfolders: true, hiddenEntries: []},
+        {id: "home", path: "", title: qsTr("Home"), icon: "user-home", layout: "fan", sortMode: "name", browseSubfolders: true, hiddenEntries: []}
+    ]
     // Icon chosen in the item editor for a pinned application. The catalog keeps
     // owning the desktop-entry icon; this map only overrides its presentation.
     property var iconOverrides: ({})
@@ -111,7 +115,9 @@ QtObject {
         if (containers.length >= LauncherIds.maximumPins) return ""
         if (!LauncherIds.validContainerPath(path)) return ""
         if (!LauncherIds.validLayout(layout)) return ""
-        let suffix = containers.length
+        // Built-in containers do not consume the first user slug, so the first
+        // added folder in a fresh profile stays folder-1.
+        let suffix = 1
         while (containers.some(entry => entry.id === "folder-" + suffix)) ++suffix
         const id = "folder-" + suffix
         containers = containers.concat([{id, path, title, icon: icon.length > 0 ? icon : "folder", layout,
@@ -120,7 +126,7 @@ QtObject {
     }
     function removeContainer(appId: string): bool {
         const id = containerIdOf(appId)
-        if (id.length === 0 || id === "downloads") return false
+        if (id.length === 0 || id === "downloads" || id === "home") return false
         const next = containers.filter(entry => entry.id !== id)
         if (next.length === containers.length) return false
         containers = next
@@ -298,9 +304,13 @@ QtObject {
             popupScale: 1, popupIconSize: 0, popupListIconSize: 0, popupFanIconSize: 0,
             popupHeightPercent: 80,
             iconOverrides: {},
-            containers: [{id: "downloads", path: "", title: qsTr("Downloads"),
-                icon: "folder-downloads", layout: "grid", sortMode: "modified"}],
-            pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview",
-                "okular", "item:downloads", "item:trash"]})
+            containers: [
+                {id: "downloads", path: "", title: qsTr("Downloads"),
+                    icon: "folder-downloads", layout: "grid", sortMode: "modified"},
+                {id: "home", path: "", title: qsTr("Home"),
+                    icon: "user-home", layout: "fan", sortMode: "name"}
+            ],
+            pinnedIds: ["files", "terminal", "item:folder:home", "browser", "kate", "systemsettings",
+                "discover", "gwenview", "okular", "item:downloads", "item:trash"]})
     }
 }

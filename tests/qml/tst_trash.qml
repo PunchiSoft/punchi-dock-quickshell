@@ -118,15 +118,16 @@ TestCase {
         verify(settings.restore({version:1,pinnedIds:["files","browser"]}))
         compare(settings.pinnedIds,["files","browser","item:downloads","item:trash"])
         compare(settings.snapshot().version,11)
-        compare(settings.snapshot().containers.length,1)
+        compare(settings.snapshot().containers.length,2)
         compare(settings.snapshot().containers[0].id,"downloads")
+        compare(settings.snapshot().containers[1].id,"home")
         verify(settings.restore({version:2,pinnedIds:["item:trash","files","browser"]}))
         compare(settings.pinnedIds,["item:downloads","item:trash","files","browser"])
         verify(settings.restore({version:3,pinnedIds:["item:trash","files","browser"]}))
         compare(settings.pinnedIds,["item:trash","files","browser"])
         verify(settings.restore({version:2,pinnedIds:["files"]}))
         compare(settings.pinnedIds,["files"])
-        settings.reset();compare(settings.pinnedIds[9],"item:trash")
+        settings.reset();compare(settings.pinnedIds[10],"item:trash")
     }
     function test_itemOrderControlsApplyTrashAndDiscardPendingMove() {
         const fixture=createTemporaryObject(orderFixture,test)

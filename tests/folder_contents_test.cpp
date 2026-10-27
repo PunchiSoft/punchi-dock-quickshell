@@ -2,6 +2,7 @@
 #include <QtTest>
 #include <QAbstractItemModelTester>
 #include <QFile>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 #include <KIO/DeleteJob>
 #include "adapters/kde/native/foldercontents.h"
@@ -14,6 +15,14 @@ class FolderContentsTest : public QObject {
         QVERIFY(file.write("Owned fixture.\n") > 0);
     }
 private slots:
+    void standardLocationsResolveThroughQt() {
+        FolderContents contents;
+        QCOMPARE(contents.homeUrl(),
+            QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::HomeLocation)));
+        QCOMPARE(contents.downloadsUrl(),
+            QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)));
+        QVERIFY(!contents.standardUserDirsOnly());
+    }
     void nativeRowsWatchChangesAndCancel() {
         QTemporaryDir owned;
         QVERIFY(owned.isValid());

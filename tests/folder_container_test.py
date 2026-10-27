@@ -17,7 +17,9 @@ def main():
     evidence = Path(tempfile.mkdtemp(prefix='downloads-preview-', dir=root / 'notes/changes')) if capture else None
     with tempfile.TemporaryDirectory(prefix='punchi-folders-') as temporary:
         owned = Path(temporary)
-        downloads = owned / 'Owned Downloads'
+        home = owned / 'home'
+        home.mkdir()
+        downloads = home / 'Owned Downloads'
         downloads.mkdir()
         nested = downloads / 'nested'
         nested.mkdir()
@@ -26,14 +28,32 @@ def main():
         (downloads / 'newest.txt').write_text('Owned recent file.\n')
         (downloads / 'A deliberately long folder popup filename for marquee.txt').write_text('Owned long name.\n')
         (downloads / '.hidden').write_text('Owned hidden file.\n')
+        # Standard KDE/XDG user folders with localized names. The Home
+        # container must show these and skip everything else at its root.
+        standard_dirs = {
+            'XDG_DESKTOP_DIR': 'Escritorio',
+            'XDG_DOCUMENTS_DIR': 'Documentos',
+            'XDG_MUSIC_DIR': 'Música',
+            'XDG_PICTURES_DIR': 'Imágenes',
+            'XDG_PUBLICSHARE_DIR': 'Público',
+            'XDG_TEMPLATES_DIR': 'Plantillas',
+            'XDG_VIDEOS_DIR': 'Vídeos',
+        }
+        for name in standard_dirs.values():
+            (home / name).mkdir()
+        (home / 'Documentos' / 'owned.txt').write_text('Owned document.\n')
+        (home / 'Not a standard folder').mkdir()
+        (home / 'notes.txt').write_text('Owned non-standard file.\n')
         now = time.time()
         os.utime(nested, (now - 120, now - 120))
         os.utime(downloads / 'old.txt', (now - 240, now - 240))
         env = os.environ.copy()
         config = owned / 'config'
         config.mkdir()
-        (config / 'user-dirs.dirs').write_text(f'XDG_DOWNLOAD_DIR="{downloads}"\n')
-        env.update(XDG_CONFIG_HOME=str(config), QT_NO_XDG_DESKTOP_PORTAL='1')
+        user_dirs = [f'{key}="$HOME/{name}"' for key, name in standard_dirs.items()]
+        user_dirs.append('XDG_DOWNLOAD_DIR="$HOME/Owned Downloads"')
+        (config / 'user-dirs.dirs').write_text('\n'.join(user_dirs) + '\n')
+        env.update(HOME=str(home), XDG_CONFIG_HOME=str(config), QT_NO_XDG_DESKTOP_PORTAL='1')
         input_path = root / 'tests/folders'
         if capture:
             preview = owned / 'preview'

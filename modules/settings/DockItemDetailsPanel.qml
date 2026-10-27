@@ -34,9 +34,12 @@ Pane {
 
     readonly property bool hasSelection: itemId.length > 0
     readonly property bool trashSelected: itemId === "item:trash"
+    readonly property bool homeContainer: containerSelected && itemId === "item:folder:home"
+        && containerPath.length === 0
     readonly property string itemTypeText: containerSelected ? qsTr("Folder")
         : trashSelected ? qsTr("Trash") : qsTr("Application")
-    readonly property string pathText: containerPath.length > 0 ? containerPath : qsTr("Downloads")
+    readonly property string pathText: containerPath.length > 0 ? containerPath
+        : homeContainer ? qsTr("Home") : qsTr("Downloads")
 
     function focusContainerControl(): void {
         if (containerSelected) folderViewSetting.forceActiveFocus(Qt.TabFocusReason)
@@ -143,6 +146,7 @@ Pane {
                 Layout.topMargin: Kirigami.Units.mediumSpacing
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 8
                 folderPath: root.containerPath
+                homeFolder: root.homeContainer
                 hiddenEntries: root.hiddenEntries
                 onEntriesChosen: function(names) { root.hiddenEntriesSelected(names) }
             }

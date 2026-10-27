@@ -67,11 +67,21 @@ bool DesktopLauncher::openTrash()
     return service && enqueue(service, service->storageId(), {}, {QUrl(QStringLiteral("trash:/"))});
 }
 
-bool DesktopLauncher::openDownloads()
+bool DesktopLauncher::openStandardLocation(QStandardPaths::StandardLocation standardLocation)
 {
-    const auto location = QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
+    const auto location = QUrl::fromLocalFile(QStandardPaths::writableLocation(standardLocation));
     const auto service = KApplicationTrader::preferredService(QStringLiteral("inode/directory"));
     return FolderContents::localUrl(location) && service && enqueue(service, service->storageId(), {}, {location});
+}
+
+bool DesktopLauncher::openDownloads()
+{
+    return openStandardLocation(QStandardPaths::DownloadLocation);
+}
+
+bool DesktopLauncher::openHome()
+{
+    return openStandardLocation(QStandardPaths::HomeLocation);
 }
 
 bool DesktopLauncher::openFolderUrl(FolderContents *contents, const QUrl &url)
