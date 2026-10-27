@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.47 — 2026-10-27
+
+- Add a **Made with love** section to the About page. It states that this is a
+  native port of the Punchi Dock Remastered plasmoid, made for the community and
+  built to go past what a plasmoid can do in KDE Plasma, links the original
+  plasmoid, and closes with **Linux for everyone!**.
+
 ## 0.1.46 — 2026-10-27
 
 - Isolate the trial run. "Try it without installing" exports an absolute trial

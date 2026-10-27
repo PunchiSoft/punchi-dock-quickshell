@@ -8,8 +8,9 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     objectName: "settingsAboutContent"
-    readonly property string applicationVersion: "0.1.46"
+    readonly property string applicationVersion: "0.1.47"
     readonly property string repositoryUrl: "https://github.com/PunchiSoft/punchi-dock-quickshell"
+    readonly property string originUrl: "https://github.com/PunchiSoft/punchi-dock-remastered"
     readonly property string helpUrl: repositoryUrl + "/issues"
     property string licenseText: ""
     readonly property bool licenseAvailable: licenseText.length > 0
@@ -132,6 +133,40 @@ ColumnLayout {
                         objectName: "aboutAuthors"
                         text: qsTr("PunchiSoft")
                     }
+                }
+            }
+        }
+
+        SettingsCard {
+            Layout.fillWidth: true
+            title: qsTr("Made with love")
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.margins: Kirigami.Units.largeSpacing
+                spacing: Kirigami.Units.smallSpacing
+                Label {
+                    objectName: "aboutDedication"
+                    Layout.fillWidth: true
+                    text: qsTr("Made with love, for the community. A native port of the Punchi Dock Remastered plasmoid, built to go past what a plasmoid can do in KDE Plasma. Some say docks went out of fashion, like the punchi punchi; only Windows forgot about them, and Linux never will.")
+                    textFormat: Text.PlainText
+                    wrapMode: Text.WordWrap
+                }
+                Kirigami.UrlButton {
+                    objectName: "aboutOriginLink"
+                    Layout.fillWidth: true
+                    wrapMode: Text.WrapAnywhere
+                    horizontalAlignment: Text.AlignLeft
+                    url: root.originUrl
+                    text: qsTr("Punchi Dock Remastered")
+                }
+                Label {
+                    objectName: "aboutDedicationMotto"
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.smallSpacing
+                    text: qsTr("Linux for everyone!")
+                    textFormat: Text.PlainText
+                    font.weight: Font.DemiBold
+                    color: Kirigami.Theme.textColor
                 }
             }
         }
