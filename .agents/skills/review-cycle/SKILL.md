@@ -1,6 +1,7 @@
 ---
 name: review-cycle
-description: Diagnose a reported dock regression using source observations, confirmed findings, scoped reproduction, and previous-attempt evidence.
+description: Diagnose a reported dock regression using source observations, confirmed findings, scoped reproduction, and previous-attempt evidence. Use when a behavior that used to work now fails, or when an earlier fix did not hold.
+license: GPL-3.0-or-later
 ---
 
 # Bug review

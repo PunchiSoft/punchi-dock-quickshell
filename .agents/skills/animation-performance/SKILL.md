@@ -1,6 +1,9 @@
 ---
 name: animation-performance
-description: Keep Punchi Dock Quickshell motion fluid by applying per-frame rules, LOW/MEDIUM/HIGH cost classes, delegate and effect limits, theme durations, and a single reduced-motion criterion; use when a visual change may affect frame cost or several animations run at once.
+description: Keep Punchi Dock Quickshell motion fluid by applying per-frame rules, LOW/MEDIUM/HIGH cost classes, delegate and effect limits, theme durations, and one reduced-motion criterion. Use when a visual change may affect frame cost, or when several animations or effects run at once.
+license: GPL-3.0-or-later
+metadata:
+  source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
 ---
 
 # Animation performance
@@ -9,7 +12,7 @@ A visual improvement must not degrade perceived fluency. An animation that canno
 keep its rhythm with a full dock, several instances, and a moving pointer is
 poorly sized.
 
-Shared doctrine: [motion doctrine](../fluid-motion/references/motion-doctrine.md).
+Shared doctrine: [motion doctrine](../references/motion-doctrine.md).
 
 ## Coordination
 

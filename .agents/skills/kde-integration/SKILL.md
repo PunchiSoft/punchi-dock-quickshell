@@ -1,9 +1,10 @@
 ---
 name: kde-integration
-description: Prefer native KDE/KWin mechanisms, adapt shell services to their APIs, and verify capabilities without disrupting the active Plasma session.
+description: Prefer native KDE and KWin mechanisms, adapt shell services to their APIs, and verify capabilities without disrupting the active Plasma session. Use when a change touches KWin, Plasma services, KDE Frameworks, or a substitute for native behavior.
+license: GPL-3.0-or-later
 ---
 
-# Kde Integration
+# KDE integration
 
 ## Native-first rule
 

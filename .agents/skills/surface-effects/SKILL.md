@@ -1,6 +1,9 @@
 ---
 name: surface-effects
-description: Evaluate and implement material and finish levels for Punchi Dock Quickshell — simulated depth, glass, morphing, blur, shadow, highlights, and transparency — choosing the lowest-cost QML, MultiEffect, or ShaderEffect level; not for pure motion or for global performance diagnosis.
+description: Evaluate and implement material and finish levels, covering depth, glass, morphing, blur, shadow, highlights, and transparency, and choose the lowest-cost QML, MultiEffect, or ShaderEffect level. Use when a surface needs a visual finish, not for pure motion or global performance diagnosis.
+license: GPL-3.0-or-later
+metadata:
+  source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
 ---
 
 # Surface effects and material
@@ -8,7 +11,7 @@ description: Evaluate and implement material and finish levels for Punchi Dock Q
 Choose the lowest technical level that achieves the requested finish, with known
 cost, safe degradation, and without making the effect the default of every
 element. Motion coordination follows the
-[shared doctrine](../fluid-motion/references/motion-doctrine.md).
+[shared doctrine](../references/motion-doctrine.md).
 
 ## Coordination
 
