@@ -29,7 +29,7 @@ GNOME, XFCE, Hyprland ni un dock genérico de Wayland. No funciona en otro
 escritorio y, si se inicia fuera de una sesión activa de KDE Plasma/KWin,
 termina con un error explícito.
 
-**Entrega actual:** **0.1.44**. La primera instantánea de Git se publicó como
+**Entrega actual:** **0.1.45**. La primera instantánea de Git se publicó como
 `0.1.0`, equivalente a `0.1.00` con el contador de entregas actual. Cada commit
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
@@ -70,10 +70,14 @@ propia validación.
   tiene actualizaciones pendientes. El conteo se lee sólo desde PackageKit,
   fwupd y Flatpak mediante sus interfaces nativas, así que el dock nunca consulta
   a Discover, no instala nada, no refresca cachés de paquetes y no pide
-  autorización. El número acompaña y escala con el icono, y el emblema usa el
-  color con el que KDE pinta sus notificaciones de actualización: naranja neutro
-  mientras hay actualizaciones pendientes y rojo negativo cuando hay alguna de
-  seguridad. El interruptor **Updates** oculta el emblema sin reiniciar. El
+  autorización. El número acompaña y escala con el icono desde su esquina
+  inferior derecha, donde KDE pinta sus puntos de actualización, y el emblema usa
+  el color con el que KDE pinta sus notificaciones de actualización: naranja
+  neutro mientras hay actualizaciones pendientes y rojo negativo cuando hay
+  alguna de seguridad. Mientras PackageKit aplica actualizaciones el disco
+  muestra el glifo `update-busy` de la bandeja en lugar del número y reconsulta
+  en cuanto termina la instalación, así que un conteo recién aplicado no se
+  vuelve a pintar. El interruptor **Updates** oculta el emblema sin reiniciar. El
   emblema sigue al frontend de actualizaciones que realmente esté anclado
   (Discover primero) en vez de suponer una distribución, y un servicio ausente
   aporta cero. PackageKit informa su propio backend (`dnf5`, `apt`, `alpm`,

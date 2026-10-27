@@ -24,8 +24,13 @@ constexpr auto fwupdPath = "/";
 constexpr auto fwupdInterface = "org.freedesktop.fwupd";
 // FWUPD_DEVICE_FLAG_UPDATABLE from fwupd.h; the headers stay out of the build.
 constexpr qulonglong fwupdUpdatableFlag = 1ull << 1;
-// PkInfoEnum security value reported by the Package signal (0 unknown .. 7 enhancement).
-constexpr uint pkInfoSecurity = 5;
+// PkInfoEnum values reported by the Package signal: NORMAL is 5 and SECURITY is
+// 8, the one KDE paints with the red update-high dot.
+constexpr uint pkInfoSecurity = 8;
+// PkRoleEnum values. They are part of PackageKit's D-Bus ABI and are identical
+// in 1.2.6, 1.3.1 and 1.4.0: these two roles apply pending updates.
+constexpr uint pkRoleUpdatePackages = 22;
+constexpr uint pkRoleUpgradeSystem = 33;
 constexpr int initialDelayMs = 1500;
 constexpr int refreshDeadlineMs = 60000;
 constexpr int flatpakTimeoutMs = 20000;
@@ -46,6 +51,21 @@ QVariantList mapArray(const QVariant &value)
     argument.endArray();
     return entries;
 }
+
+QStringList objectPathArray(const QVariant &value)
+{
+    QStringList paths;
+    const QDBusArgument argument = value.value<QDBusArgument>();
+    if (argument.currentType() != QDBusArgument::ArrayType) return paths;
+    argument.beginArray();
+    while (!argument.atEnd()) {
+        QDBusObjectPath path;
+        argument >> path;
+        paths.append(path.path());
+    }
+    argument.endArray();
+    return paths;
+}
 }
 
 UpdateState::UpdateState(QObject *parent) : QObject(parent)
@@ -56,6 +76,15 @@ UpdateState::UpdateState(QObject *parent) : QObject(parent)
         SLOT(scheduleRefresh()));
     bus.connect(QString::fromLatin1(fwupdService), QString::fromLatin1(fwupdPath),
         QString::fromLatin1(fwupdInterface), QStringLiteral("DeviceChanged"), this,
+        SLOT(scheduleRefresh()));
+    // The tray changes between its update icon and update-busy from these two
+    // signals: the live transaction list says an install is running, and
+    // InstalledChanged (PackageKit 1.3+) says the installed set moved.
+    bus.connect(QString::fromLatin1(packageKitService), QString::fromLatin1(packageKitPath),
+        QString::fromLatin1(packageKitInterface), QStringLiteral("TransactionListChanged"), this,
+        SLOT(transactionListChanged(QStringList)));
+    bus.connect(QString::fromLatin1(packageKitService), QString::fromLatin1(packageKitPath),
+        QString::fromLatin1(packageKitInterface), QStringLiteral("InstalledChanged"), this,
         SLOT(scheduleRefresh()));
 
     m_debounce = new QTimer(this);
@@ -98,11 +127,77 @@ void UpdateState::scheduleRefresh()
     m_debounce->start();
 }
 
+void UpdateState::transactionListChanged(const QStringList &transactions)
+{
+    const QSet<QString> current(transactions.cbegin(), transactions.cend());
+    for (const QString &path : transactions) {
+        if (!m_activeTransactions.contains(path)) trackTransactionRole(path);
+    }
+    m_activeTransactions = current;
+
+    bool ended = false;
+    const QSet<QString> tracked = m_updateTransactions;
+    for (const QString &path : tracked) {
+        if (current.contains(path)) continue;
+        m_updateTransactions.remove(path);
+        ended = true;
+    }
+    if (!ended) return;
+    // Hold the busy state until the re-check reflects the install, so the view
+    // never paints the count the user just applied again.
+    m_updateSettling = true;
+    scheduleRefresh();
+    commit();
+}
+
+void UpdateState::trackTransactionRole(const QString &path)
+{
+    QDBusMessage message = QDBusMessage::createMethodCall(QString::fromLatin1(packageKitService), path,
+        QStringLiteral("org.freedesktop.DBus.Properties"), QStringLiteral("Get"));
+    message << QString::fromLatin1(transactionInterface) << QStringLiteral("Role");
+    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, path](QDBusPendingCallWatcher *self) {
+        self->deleteLater();
+        // The dock's own GetUpdates transaction must never look like an install.
+        if (!m_activeTransactions.contains(path)) return;
+        const QDBusPendingReply<QDBusVariant> reply = *self;
+        const uint role = reply.isError() ? 0u : reply.value().variant().toUInt();
+        if (!isUpdateRole(role) || m_updateTransactions.contains(path)) return;
+        m_updateTransactions.insert(path);
+        commit();
+    });
+}
+
+// Reconcile after a daemon restart or a missed removal signal.
+void UpdateState::syncTransactions()
+{
+    QDBusMessage message = QDBusMessage::createMethodCall(QString::fromLatin1(packageKitService),
+        QString::fromLatin1(packageKitPath), QString::fromLatin1(packageKitInterface),
+        QStringLiteral("GetTransactionList"));
+    auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this](QDBusPendingCallWatcher *self) {
+        self->deleteLater();
+        const QDBusPendingReply<> reply = *self;
+        if (reply.isError() || reply.reply().arguments().isEmpty()) return;
+        transactionListChanged(objectPathArray(reply.reply().arguments().value(0)));
+    });
+}
+
 void UpdateState::refresh()
 {
-    if (m_state == Checking) return;
+    // PackageKit serializes transactions: a check started while an install runs
+    // would wait for the daemon lock and could reach the deadline with a stale
+    // zero. Replay exactly one check once the install or the running check ends.
+    if (m_state == Checking || !m_updateTransactions.isEmpty()) {
+        m_refreshPending = true;
+        return;
+    }
     abortPending();
     m_debounce->stop();
+    m_refreshPending = false;
+    // Only the re-check started after the install can retire the busy state; a
+    // check already in flight still carries the pre-install list.
+    m_settleCheck = m_updateSettling;
     const int generation = ++m_generation;
     m_systemCount = 0;
     m_securityCount = 0;
@@ -118,6 +213,7 @@ void UpdateState::refresh()
     m_firmwareOk = false;
     m_state = Checking;
     commit();
+    syncTransactions();
     m_deadline->start();
     readBackendName(generation);
     startSystem(generation);
@@ -305,7 +401,14 @@ void UpdateState::completeRefreshIfDone()
     m_deadline->stop();
     m_state = (m_systemOk || m_flatpakOk || m_firmwareOk) ? Ready : Unavailable;
     m_transactionPath.clear();
+    if (m_settleCheck) {
+        m_settleCheck = false;
+        m_updateSettling = false;
+    }
+    const bool pending = m_refreshPending;
+    m_refreshPending = false;
     commit();
+    if (pending) refresh();
 }
 
 void UpdateState::abortPending()
@@ -365,6 +468,11 @@ QStringList UpdateState::updatableDeviceIds(const QVariantList &devices)
 bool UpdateState::isSecurityInfo(uint info)
 {
     return info == pkInfoSecurity;
+}
+
+bool UpdateState::isUpdateRole(uint role)
+{
+    return role == pkRoleUpdatePackages || role == pkRoleUpgradeSystem;
 }
 
 int UpdateState::countFlatpakUpdates(const QString &output)

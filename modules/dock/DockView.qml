@@ -351,6 +351,11 @@ Control {
                 root.updateState.revision
                 return root.updateState.badgeSecurityCount(tile.appId)
             }
+            updateApplying: {
+                if (!root.updateState) return false
+                root.updateState.revision
+                return root.updateState.badgeApplying(tile.appId)
+            }
             magnificationEnabled: root.magnificationEnabled
             reducedMotion: root.reducedMotion || !root.visible || !root.enabled
             clickDuration: tile.appId.startsWith("item:") ? 0 : root.clickDuration

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.45 — 2026-10-27
+
+- Move the update badge to the icon's lower-right corner, the place KDE gives its
+  update notification dots, so the upper-right area stays clear for the window
+  controls. The centre keeps its `badgeInset` overlap, and the badge no longer
+  drifts upward against the dock edge while the icon magnifies.
+- Follow the install instead of the clock. `UpdateState` watches PackageKit's live
+  transaction list, reports `updating` while a transaction with the
+  `update-packages` or `upgrade-system` role runs, and re-checks as soon as it
+  ends. `InstalledChanged` joins `UpdatesChanged` and fwupd's `DeviceChanged`, a
+  change that arrives during a check queues one replay instead of being dropped,
+  and no check starts while an install holds the PackageKit lock.
+- Show the tray's own state while installing. The disc paints the Breeze
+  `update-busy` glyph without the number, keeps the neutral fill and stays until
+  the re-check settles, so the count the user just applied is never painted
+  again. The Discover icon, the click target and the motion profile are
+  unchanged, and reduced motion behaves as before.
+- Count security updates correctly. PackageKit reports them as info
+  `SECURITY` = 8 (`NORMAL` is 5), so the red `update-high` fill could never be
+  reached; the constant, its test and the record now use the value observed in
+  live `Package` signals.
+
 ## 0.1.44 — 2026-10-26
 
 - Show pending updates on the Discover launcher. Discover publishes no update

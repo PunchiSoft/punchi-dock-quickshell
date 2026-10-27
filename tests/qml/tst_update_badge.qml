@@ -61,6 +61,7 @@ TestCase {
                     property bool systemAvailable: true
                     property bool flatpakAvailable: false
                     property bool firmwareAvailable: false
+                    property bool updating: false
                     function refresh() {}
                 }
             }
@@ -84,6 +85,7 @@ TestCase {
                     property bool systemAvailable: true
                     property bool flatpakAvailable: false
                     property bool firmwareAvailable: false
+                    property bool updating: false
                     function refresh() {}
                 }
             }
@@ -107,6 +109,7 @@ TestCase {
                     property bool systemAvailable: true
                     property bool flatpakAvailable: false
                     property bool firmwareAvailable: false
+                    property bool updating: false
                     function refresh() {}
                 }
             }
@@ -133,6 +136,7 @@ TestCase {
                     property bool systemAvailable: true
                     property bool flatpakAvailable: false
                     property bool firmwareAvailable: false
+                    property bool updating: false
                     function refresh() {}
                 }
             }
@@ -146,6 +150,11 @@ TestCase {
     function update(dock, count, securityCount) {
         dock.updateState.backend.count = count
         dock.updateState.backend.securityCount = securityCount || 0
+        dock.updateState.backend.revision++
+    }
+
+    function setApplying(dock, applying) {
+        dock.updateState.backend.updating = applying
         dock.updateState.backend.revision++
     }
 
@@ -228,27 +237,34 @@ TestCase {
         const marker = badge(dock, "discover")
         verify(marker.visible)
         const inset = discover.metrics.badgeInset
-        // The badge centre sits on the icon's upper-right corner, nudged inward so
-        // it overlaps the icon like a system notification badge.
+        // The badge centre sits on the icon's lower-right corner, nudged inward so
+        // it overlaps the icon like the dots KDE paints for update notifications.
         const restCenter = marker.mapToItem(dock, marker.width / 2, marker.height / 2)
         const restDiameter = marker.width * marker.scale * discover.scale
         fuzzyCompare(restCenter.x,
             discover.iconTopCenter.x + (discover.iconSize / 2 - inset) * discover.scale, 0.5)
-        fuzzyCompare(restCenter.y, discover.iconTopCenter.y + inset * discover.scale, 0.5)
+        fuzzyCompare(restCenter.y,
+            discover.iconTopCenter.y + (discover.iconSize - inset) * discover.scale, 0.5)
         // Touching, not floating: the disc reaches past the icon's corner.
         const iconRight = discover.iconTopCenter.x + discover.iconSize * discover.visualIconScale / 2
+        const iconBottom = discover.iconTopCenter.y + discover.iconSize * discover.visualIconScale
         verify(restCenter.x - restDiameter / 2 < iconRight,
             "gap=" + (restCenter.x - restDiameter / 2 - iconRight))
+        verify(restCenter.y - restDiameter / 2 < iconBottom,
+            "gap=" + (restCenter.y - restDiameter / 2 - iconBottom))
         mouseMove(discover)
         verify(discover.visualIconScale > 1)
         const zoomedCenter = marker.mapToItem(dock, marker.width / 2, marker.height / 2)
         const zoomedDiameter = marker.width * marker.scale * discover.scale
         fuzzyCompare(zoomedCenter.x,
             discover.iconTopCenter.x + (discover.iconSize / 2 - inset) * discover.scale, 0.5)
-        fuzzyCompare(zoomedCenter.y, discover.iconTopCenter.y + inset * discover.scale, 0.5)
+        fuzzyCompare(zoomedCenter.y,
+            discover.iconTopCenter.y + (discover.iconSize - inset) * discover.scale, 0.5)
         // Full scale: the badge grows with the icon instead of being left behind.
         fuzzyCompare(zoomedDiameter / restDiameter, discover.visualIconScale, 0.001)
-        verify(zoomedCenter.y < restCenter.y)
+        // The dock grows the icon upward from its resting edge, so the lower-right
+        // corner keeps its height while still growing with the icon.
+        fuzzyCompare(zoomedCenter.y, restCenter.y, 0.5)
         // Laid out at maximum magnification and counter-scaled: at rest the glyphs
         // are downscaled and at the wave peak they are drawn 1:1, never upscaled.
         fuzzyCompare(marker.width, marker.baseSize * marker.maximumScale, 0.001)
@@ -282,7 +298,8 @@ TestCase {
         compare(discover.Accessible.description, "")
     }
 
-    // The disc must paint opaque pixels over the icon corner, not only report a size.
+    // The disc must paint opaque pixels over the lower-right icon corner, not
+    // only report a size.
     function test_badgePaintsOverTheIconCorner(): void {
         const dock = createTemporaryObject(stillFixture, test)
         const marker = badge(dock, "discover")
@@ -333,5 +350,73 @@ TestCase {
         wait(60)
         verify(halo.opacity > 0)
         tryCompare(halo, "opacity", 0, 1000)
+    }
+
+    // While PackageKit applies updates the disc carries the tray's update-busy
+    // glyph instead of the count that is being installed.
+    function test_busyBadgeShowsTrayGlyph(): void {
+        const dock = createTemporaryObject(stillFixture, test)
+        const discover = findChild(dock, "launcher-discover")
+        const marker = badge(dock, "discover")
+        const glyph = findChild(marker, "launcher-update-badge-glyph")
+        verify(glyph)
+        update(dock, 4, 1)
+        verify(!glyph.visible)
+        setApplying(dock, true)
+        verify(discover.updateApplying)
+        verify(marker.visible)
+        verify(glyph.visible)
+        compare(glyph.source.toString(), "update-busy")
+        compare(marker.fillColor.toString(), Kirigami.Theme.neutralTextColor.toString())
+        compare(discover.Accessible.description, "Installing updates")
+        setApplying(dock, false)
+        verify(!glyph.visible)
+        compare(marker.label, "4")
+        compare(discover.Accessible.description, "4 security updates available")
+    }
+
+    // A transaction that ends with nothing left hides the badge instead of
+    // leaving the pre-install count on screen.
+    function test_busyBadgeDisappearsAfterInstall(): void {
+        const dock = createTemporaryObject(stillFixture, test)
+        const discover = findChild(dock, "launcher-discover")
+        const marker = badge(dock, "discover")
+        update(dock, 2)
+        setApplying(dock, true)
+        verify(marker.visible)
+        update(dock, 0)
+        setApplying(dock, false)
+        compare(discover.updateCount, 0)
+        compare(marker.visible, false)
+    }
+
+    // The Updates switch removes the busy state too, without a restart.
+    function test_settingHidesBusyBadge(): void {
+        const dock = createTemporaryObject(stillFixture, test)
+        const discover = findChild(dock, "launcher-discover")
+        const marker = badge(dock, "discover")
+        update(dock, 3)
+        setApplying(dock, true)
+        verify(marker.visible)
+        dock.updateState.settings.updateBadgeEnabled = false
+        compare(discover.updateApplying, false)
+        compare(marker.visible, false)
+        dock.updateState.settings.updateBadgeEnabled = true
+        compare(discover.updateApplying, true)
+        verify(marker.visible)
+    }
+
+    // No animation is added for the busy state: a count change while PackageKit
+    // applies updates must not fire the new-update halo.
+    function test_busyStateDoesNotPulse(): void {
+        const dock = createTemporaryObject(animatedFixture, test)
+        const marker = badge(dock, "discover")
+        const halo = findChild(marker, "launcher-update-badge-halo")
+        update(dock, 2)
+        wait(60)
+        setApplying(dock, true)
+        update(dock, 5)
+        wait(60)
+        compare(halo.opacity, 0)
     }
 }
