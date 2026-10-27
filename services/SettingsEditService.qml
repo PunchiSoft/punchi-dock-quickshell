@@ -24,7 +24,7 @@ QtObject {
         draft.restore(baseline)
     }
     function synchronize(): void {
-        if (!active || committing) return
+        if (!active || committing || settings.bulkChange) return
         const current = settings.snapshot()
         const edited = copy(draft.snapshot())
         const nextBaseline = copy(baseline)
@@ -63,5 +63,7 @@ QtObject {
         function onBounceEnabledChanged() { root.synchronize() }
         function onPinnedIdsChanged() { root.synchronize() }
         function onContainersChanged() { root.synchronize() }
+        // A bulk restore emits one notification after every property settled.
+        function onProfileApplied() { root.synchronize() }
     }
 }

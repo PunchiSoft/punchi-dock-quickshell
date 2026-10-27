@@ -37,13 +37,15 @@ Pane {
     implicitWidth: Kirigami.Units.gridUnit * 54
     // Preserve enough preferred height for the unified item picker.
     implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
-        Math.max(generalPage.implicitHeight, popupsPage.implicitHeight)
+        Math.max(generalPage.implicitHeight, popupsPage.implicitHeight,
+            profilePage.implicitHeight)
         + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
         if (currentPage === 0) itemsPage.focusFirst()
         else if (currentPage === 1) generalPage.focusFirst()
         else if (currentPage === 2) popupsPage.focusFirst()
-        else aboutPage.focusFirst()
+        else if (currentPage === 3) aboutPage.focusFirst()
+        else profilePage.focusFirst()
     }
     function cancelAddingItem(restoreFocus: bool): void { itemsPage.cancelAddItem(restoreFocus) }
     function clearSelection(): void { itemsPage.clearSelection() }
@@ -52,6 +54,7 @@ Pane {
         case 1: return {page: generalPage, viewport: generalViewport}
         case 2: return {page: popupsPage, viewport: popupViewport}
         case 3: return {page: aboutPage, viewport: aboutViewport}
+        case 4: return {page: profilePage, viewport: profileViewport}
         }
         return null
     }
@@ -72,6 +75,7 @@ Pane {
             viewport.contentY = Math.max(0, Math.min(maximum, point.y + control.height + margin - viewport.height))
     }
     ApplicationPinService { id: pinService; settings: root.settings; catalog: root.applicationCatalog }
+    ProfileExchangeService { id: profileExchange; target: root.settings }
     ButtonGroup { id: navigation }
     RowLayout {
         anchors.fill: parent
@@ -130,6 +134,17 @@ Pane {
                     onClicked: { root.currentPage = 2; popupsPage.focusFirst() }
                 }
                 Item { Layout.fillHeight: true }
+                SettingsCategoryButton {
+                    objectName: "profileSettingsPage"
+                    Layout.fillWidth: true
+                    text: qsTr("Profile")
+                    icon.name: "document-save"
+                    checkable: true
+                    checked: root.currentPage === 4
+                    highlighted: checked
+                    ButtonGroup.group: navigation
+                    onClicked: { root.currentPage = 4; profilePage.focusFirst() }
+                }
                 SettingsCategoryButton {
                     objectName: "aboutSettingsPage"
                     Layout.fillWidth: true
@@ -222,17 +237,38 @@ Pane {
                     contentWidth: availableWidth
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
                     Flickable {
+                        id: aboutViewport
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
                         contentWidth: width
                         contentHeight: aboutPage.implicitHeight
-                        id: aboutViewport
                         SettingsAbout {
                             id: aboutPage
                             objectName: "settingsAboutPage"
                             width: parent.width
                             licenseText: root.license ? root.license.text : ""
                             onLicenseReadRequested: licenseDialog.open()
+                        }
+                    }
+                }
+                ScrollView {
+                    id: profileScroll
+                    objectName: "settingsProfileScroll"
+                    Layout.minimumHeight: 0
+                    clip: true
+                    contentWidth: availableWidth
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    Flickable {
+                        id: profileViewport
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: profilePage.implicitHeight
+                        SettingsProfilePage {
+                            id: profilePage
+                            objectName: "settingsDockProfile"
+                            exchange: profileExchange
+                            width: profileViewport.width
                         }
                     }
                 }
@@ -257,6 +293,6 @@ Pane {
         id: licenseDialog
         licenseText: root.license ? root.license.text : ""
         onVisibleChanged: root.aboutDialogOpen = licenseDialog.visible
-        onClosed: if (root.currentPage === 2) aboutPage.focusLicenseButton()
+        onClosed: if (root.currentPage === 3) aboutPage.focusLicenseButton()
     }
 }

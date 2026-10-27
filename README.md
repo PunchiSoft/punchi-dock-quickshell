@@ -88,10 +88,13 @@ validation.
 - Popup settings for size, height and icon size in their own **Popups**
   category, applied to the folder containers. The grid, the list/detail rows and
   the fan keep independent glyph sizes.
-- Settings organized as **Items**, **General**, **Popups** and **About**, with
-  **Reset defaults** and pending edits through Apply, Accept and Close.
-  **About** shows the application version, website and issue links, license,
-  authors and the **Made with love** dedication.
+- Settings organized as **Items**, **General**, **Popups**, **Profile** and
+  **About**, with **Reset defaults** and pending edits through Apply, Accept and
+  Close. **Profile** imports and exports a JSON profile of the dock items,
+  folder containers and preferences, with a preview and confirmation before the
+  imported values replace the pending profile. **About** shows the application
+  version, website and issue links, license, authors and the **Made with love**
+  dedication.
 - An optional KWin minimize effect selected from the dock context menu. Only
   KWin's `exclusiveGroup=minimize` keys are written, their original presence and
   values are recorded before the first write, and they are restored on clean
@@ -375,7 +378,8 @@ If both files exist, the new filename takes precedence and neither is overwritte
 A trial run reads and writes its own profile instead, and that profile is
 deleted with the trial cleanup unless the confirmation is declined.
 Without a saved file, the application uses the defaults in
-[`ShellSettings.qml`](config/ShellSettings.qml):
+[`config/DefaultProfile.js`](config/DefaultProfile.js), which also supplies the
+first-run launcher catalogue and the values restored by **Reset defaults**:
 
 | Setting | Current first-run default |
 |---|---|
@@ -399,6 +403,16 @@ height and icon size, and version 11 separate grid, list/detail and fan glyph
 sizes; missing fields in older profiles default to enabled, five applications,
 the application icon, an unfiltered folder listing, the reference popup
 proportions and the theme's glyph sizes.
+
+The **Profile** category exports the pending values as a portable JSON document
+with schema `punchi-dock-quickshell/profile` and format version 1. Import also
+accepts a raw saved profile, validates every field, and previews the result
+before the values become pending edits. A profile contains data only: it cannot
+add commands, executable JavaScript, autostart entries, KDE configuration or
+file contents. The selected file must be a regular UTF-8 file of at most
+256 KiB. Exports are written atomically with owner-only permissions, and a
+symbolic link is never overwritten. Autostart remains an installation-level
+integration and is not part of a profile.
 
 ## Installation and sharing
 
@@ -556,10 +570,10 @@ ctest --test-dir build --output-on-failure
 | `shell.qml` | Compose shell modules |
 | `modules/dock/` | Dock window, view, context menus and Trash confirmation |
 | `modules/folders/` | Folder container popups, layouts and navigation |
-| `modules/settings/` | Settings window, categories and item editors |
+| `modules/settings/` | Settings window, categories, item editors and profile exchange |
 | `components/` | Shared visual interaction primitives |
-| `services/` | Model data and coordination |
-| `config/` | Reactive settings and shared metrics |
+| `services/` | Model data, profile exchange and coordination |
+| `config/` | First-run profile, reactive settings, document validation and shared metrics |
 | `adapters/kde/` | KDE adapters for launching, media, updates, Trash, motion and window state |
 | `tests/` | Component, foundation, and real-session checks |
 | `.agents/skills/` | Repository-scoped development workflows |
