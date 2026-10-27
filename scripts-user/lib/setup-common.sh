@@ -18,6 +18,10 @@ if ! declare -F punchi_auto_job_count >/dev/null 2>&1; then
     # shellcheck source=setup-resources.sh
     source "$punchi_common_dir/setup-resources.sh"
 fi
+if ! declare -F punchi_kde_session_detected >/dev/null 2>&1; then
+    # shellcheck source=session-detect.sh
+    source "$punchi_common_dir/session-detect.sh"
+fi
 unset punchi_common_dir
 
 punchi_setup_cleanup_paths=()
@@ -64,6 +68,13 @@ punchi_success() { punchi_print success "$*"; }
 punchi_warning() { punchi_print warning "$*"; }
 punchi_error() { punchi_print error "$*" >&2; }
 punchi_muted() { punchi_print muted "$*"; }
+
+# The dock runs in the foreground, so Ctrl+C and a session logout reach the
+# child first. Those codes mean the user stopped it, not that it failed.
+punchi_status_is_stopped() {
+    local status="${1:-0}"
+    (( status == 130 || status == 143 ))
+}
 
 punchi_rule() {
     if punchi_ui_terminal_supports_unicode 1; then

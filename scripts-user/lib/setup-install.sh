@@ -537,8 +537,8 @@ punchi_trial_cleanup() {
         punchi_info "Trial files kept: $profile"
         return 1
     fi
-    if ! punchi_confirm 'Remove what the trial created? It deletes build output (rebuild with Build or Try),
-trial preferences, the window-state registration and the runtime lock.
+    if ! punchi_confirm 'End the trial and remove what it created? It deletes the build output,
+the trial preferences, the window-state registration and the runtime lock.
 Your installed dock and its settings stay untouched. [Y/n]: ' y; then
         punchi_info "Trial files kept: $profile"
         return 0

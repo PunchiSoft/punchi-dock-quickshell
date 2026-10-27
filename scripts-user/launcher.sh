@@ -26,6 +26,24 @@ case "${1:-start}" in
         mkdir -p "$log_dir" && chmod 700 "$log_dir" 2>/dev/null || true
         "$project_root/scripts-user/start.sh" "$@" >"$log_file" 2>&1
         status=$?
+        # The startup guard presents its own dialog when one is available; when
+        # none is, the failure still needs the notification below.
+        if (( status == 3 )); then
+            notice_shown=0
+            if [[ -r "$project_root/scripts-user/lib/session-detect.sh" \
+                && -r "$project_root/scripts-user/lib/notice-dialog.sh" ]]; then
+                # shellcheck source=lib/session-detect.sh
+                source "$project_root/scripts-user/lib/session-detect.sh"
+                # shellcheck source=lib/notice-dialog.sh
+                source "$project_root/scripts-user/lib/notice-dialog.sh"
+                if punchi_notice_available; then
+                    notice_shown=1
+                fi
+            fi
+            if (( notice_shown == 1 )); then
+                exit "$status"
+            fi
+        fi
         if (( status != 0 )); then
             detail="$(tail -n 8 "$log_file" 2>/dev/null | tr '\n' ' ' | cut -c1-500)"
             if grep -q 'already running' "$log_file" 2>/dev/null; then

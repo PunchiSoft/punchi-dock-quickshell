@@ -141,6 +141,109 @@ def check_dependency_maps(root: Path) -> None:
     assert family.strip() == 'debian'
 
 
+def check_dependency_report_layout(root: Path) -> None:
+    """The phase report stays compact; the detailed view keeps every item."""
+    probe = r'''
+source scripts-user/lib/setup-common.sh
+source scripts-user/lib/setup-progress.sh
+source scripts-user/lib/setup-deps.sh
+PUNCHI_NO_PROGRESS=1
+punchi_distro_family() { printf '%s\n' fedora; }
+punchi_distro_id() { printf '%s\n' fedora; }
+punchi_distro_like() { :; }
+punchi_system_name() { printf '%s\n' 'Test Linux'; }
+punchi_git_install_hint() { printf '%s\n' 'dnf install git'; }
+punchi_command_group() {
+    case "$1" in
+        runtime) printf '%s\n' bash sh ;;
+        build)
+            if [[ -n "${LAYOUT_MISSING_COMMAND:-}" ]]; then
+                printf '%s\n' grep missing-command-xyz
+            else
+                printf '%s\n' grep sed
+            fi
+            ;;
+        validation) printf '%s\n' head ;;
+    esac
+}
+punchi_package_group() {
+    case "$2" in
+        runtime) printf '%s\n' pkg-one pkg-two ;;
+        build) printf '%s\n' pkg-three ;;
+        validation) printf '%s\n' pkg-four ;;
+    esac
+}
+punchi_package_installed() { [[ "${1:-}" != pkg-three ]]; }
+punchi_kde_session_detected() { return 0; }
+punchi_dependency_check 0 "$1"
+printf 'STATUS=%s\n' "$?"
+'''
+
+    def run(detail: str, columns: str = '100',
+            extra: Optional[dict] = None) -> subprocess.CompletedProcess:
+        environment = os.environ.copy()
+        environment.update({
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+            'COLUMNS': columns,
+        })
+        if extra:
+            environment.update(extra)
+        return subprocess.run(
+            [shutil.which('bash') or 'bash', '-c', probe, 'layout', detail],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+
+    compact = run('0')
+    assert compact.returncode == 0, compact.stdout + compact.stderr
+    compact_lines = compact.stdout.splitlines()
+    assert 'Runtime commands' in compact.stdout, compact.stdout
+    assert '2/2 ready' in compact.stdout, compact.stdout
+    assert 'Fedora packages' in compact.stdout, compact.stdout
+    assert 'runtime 2/2, build 0/1, validation 1/1' in compact.stdout, compact.stdout
+    assert '[missing] pkg-three' in compact.stdout, compact.stdout
+    assert '[ok] bash' not in compact.stdout, \
+        'The compact report expanded installed items'
+    assert 'STATUS=1' in compact.stdout, compact.stdout
+    assert 'Dependency check' not in compact.stdout, \
+        'The phase summary repeated the phase title:\n' + compact.stdout
+    assert 'Distribution:' not in compact.stdout, \
+        'The phase summary repeated the distribution line:\n' + compact.stdout
+    assert not any(line and set(line) == {'-'} for line in compact_lines), \
+        'The phase summary printed rules:\n' + compact.stdout
+    body = [line for line in compact_lines if not line.startswith('STATUS=')]
+    assert len(body) <= 9, 'The compact report is not compact:\n' + compact.stdout
+
+    missing_command = run('0', extra={'LAYOUT_MISSING_COMMAND': '1'})
+    assert '1/2 ready' in missing_command.stdout, missing_command.stdout
+    assert '[missing] missing-command-xyz' in missing_command.stdout, \
+        missing_command.stdout
+
+    detailed = run('1')
+    assert detailed.returncode == 0, detailed.stdout + detailed.stderr
+    detail_lines = detailed.stdout.splitlines()
+    assert 'Dependency check' in detailed.stdout, detailed.stdout
+    assert 'Distribution: Test Linux (fedora)' in detailed.stdout, detailed.stdout
+    assert '[missing] pkg-three' in detailed.stdout, detailed.stdout
+    assert any('[ok] bash' in line and '[ok] sh' in line for line in detail_lines), \
+        'The detailed report did not use columns'
+    assert any('[ok] pkg-one' in line and '[ok] pkg-two' in line
+               for line in detail_lines), detailed.stdout
+    assert 'STATUS=1' in detailed.stdout, detailed.stdout
+
+    narrow = run('1', columns='40')
+    assert narrow.returncode == 0, narrow.stdout + narrow.stderr
+    assert any('[ok] bash' in line and '[ok] sh' not in line
+               for line in narrow.stdout.splitlines()), \
+        'A narrow terminal must fall back to one item per line'
+
+    measured = run('1', columns='100', extra={'PUNCHI_UI_COLUMNS': '40'})
+    assert measured.returncode == 0, measured.stdout + measured.stderr
+    assert any('[ok] bash' in line and '[ok] sh' not in line
+               for line in measured.stdout.splitlines()), \
+        'The width measured by the progress runner must win over COLUMNS'
+
+
 def check_failure_log(root: Path) -> None:
     with tempfile.TemporaryDirectory(prefix='punchi-log-test-') as temporary:
         home = Path(temporary)
@@ -550,7 +653,7 @@ def check_try_flow(root: Path) -> None:
         start = checkout / 'scripts-user/start.sh'
         start.write_text('#!/usr/bin/env bash\nprintf "DOCK_STARTED %s\\n" "$*"\n'
                          'printf "DOCK_PROFILE %s\\n" "${PUNCHI_PROFILE_DIR:-}"\n'
-                         'exit 0\n')
+                         'exit "${PUNCHI_FAKE_START_STATUS:-0}"\n')
         start.chmod(0o755)
 
         fake_bin = home / 'bin'
@@ -598,6 +701,78 @@ def check_try_flow(root: Path) -> None:
             'The try action installed the dock'
         assert not (home / 'data/applications').exists(), \
             'The try action wrote an application-menu launcher'
+
+        # Ctrl+C stops the dock; the phase reports a stop, not a failure, and
+        # the cleanup still runs.
+        (checkout / 'build/qml/Punchi/Kde').mkdir(parents=True, exist_ok=True)
+        (checkout / 'build/qml/Punchi/Kde/libpunchikdeplugin.so').write_text('')
+        (checkout / 'build/libpunchikde.so').write_text('')
+        backend.write_text('#!/usr/bin/env bash\nexit 0\n')
+        backend.chmod(0o755)
+        stopped_environment = dict(environment, PUNCHI_FAKE_START_STATUS='130')
+        stopped = subprocess.run(
+            ['bash', str(checkout / 'scripts-user/setup.sh'), '--try',
+             '--no-color'],
+            cwd=checkout, env=stopped_environment, stdin=subprocess.DEVNULL,
+            capture_output=True, text=True, check=False, timeout=120)
+        combined = stopped.stdout + stopped.stderr
+        assert stopped.returncode == 130, combined
+        assert 'Run: Stopped' in combined, combined
+        assert 'The trial stopped.' in combined, combined
+        assert 'Exit status 130' not in combined, combined
+        assert not (checkout / 'build').exists(), \
+            'A stopped trial skipped the cleanup'
+
+
+def check_dock_stop_status(root: Path) -> None:
+    """Ctrl+C and a logout are reported as a stop, not as a failure."""
+    script = (
+        'source scripts-user/setup.sh\n'
+        'punchi_report_dock_exit 130\n'
+        'punchi_report_dock_exit 143\n'
+        'punchi_report_dock_exit 0\n'
+        'punchi_report_dock_exit 7 || true\n'
+        'punchi_status_is_stopped 130 && echo IS_STOPPED_130\n'
+        'punchi_status_is_stopped 7 || echo NOT_STOPPED_7\n'
+    )
+    environment = os.environ.copy()
+    environment.update({'TERM': 'dumb', 'NO_COLOR': '1'})
+    result = subprocess.run(
+        [shutil.which('bash') or 'bash', '-c', script], cwd=root,
+        env=environment, capture_output=True, text=True, check=False,
+        timeout=30)
+    combined = result.stdout + result.stderr
+    assert result.returncode == 0, combined
+    assert combined.count('The dock stopped.') == 2, combined
+    assert 'The dock closed.' in combined, combined
+    assert 'The dock exited with status 7.' in combined, combined
+    assert 'IS_STOPPED_130' in combined and 'NOT_STOPPED_7' in combined, combined
+
+
+def check_trial_prompt(root: Path) -> None:
+    """The cleanup asks to end the trial instead of warning about a failure."""
+    with tempfile.TemporaryDirectory(prefix='punchi-trial-prompt-') as temporary:
+        home = Path(temporary)
+        environment = session_environment(
+            home, desktop='KDE', session_type='wayland', plasma=True)
+        profile = home / 'run' / 'punchi-dock-quickshell-1000' / 'trial-profile'
+        profile.mkdir(parents=True)
+        (profile / 'settings.json').write_text('{}')
+        script = (
+            f'punchi_project_root="{root}"; '
+            f'source "{root}/scripts-user/lib/setup-common.sh"; '
+            f'source "{root}/scripts-user/lib/setup-install.sh"; '
+            f'punchi_trial_cleanup "{profile}"; echo "CLEANUP_STATUS=$?"'
+        )
+        output, status = run_in_pty(
+            [shutil.which('bash') or 'bash', '-c', script], environment, root,
+            input_text='n\n')
+        assert status == 0, output
+        assert 'End the trial and remove what it created? It deletes the build output,' \
+            in output, output
+        assert 'Your installed dock and its settings stay untouched. [Y/n]:' in output, output
+        assert 'Trial files kept:' in output, output
+        assert profile.exists(), 'Declining the cleanup removed the trial profile'
 
 
 def check_trial_cleanup(root: Path) -> None:
@@ -1007,6 +1182,352 @@ def check_presentation(root: Path) -> None:
         assert quiet.stdout == 'raw output\n', quiet.stdout
 
 
+SESSION_TOOLS = ('awk', 'bash', 'basename', 'cat', 'chmod', 'cut', 'date',
+                 'dirname', 'env', 'flock', 'grep', 'head', 'ls', 'mkdir',
+                 'mktemp', 'nproc', 'rm', 'sed', 'sh', 'sleep', 'sort', 'stat',
+                 'tail', 'tr', 'uname', 'uniq', 'wc')
+
+
+def session_environment(home: Path, *, desktop: Optional[str],
+                        session_type: Optional[str], plasma: bool,
+                        gui: bool = True, dialog: str = '0') -> dict:
+    """Isolate a run that reports one desktop session on a clean PATH."""
+    bin_dir = home / 'bin'
+    bin_dir.mkdir(parents=True)
+    for tool in SESSION_TOOLS:
+        path = shutil.which(tool)
+        if path:
+            os.symlink(path, bin_dir / tool)
+    (bin_dir / 'pgrep').write_text('#!/bin/sh\nexit 1\n')
+    (bin_dir / 'pgrep').chmod(0o755)
+    empty = home / 'no-sessions'
+    empty.mkdir()
+    sessions = empty
+    if plasma:
+        sessions = home / 'sessions'
+        sessions.mkdir()
+        (sessions / 'plasma.desktop').write_text(
+            '[Desktop Entry]\nName=Plasma\nDesktopNames=KDE\n')
+    (home / 'run').mkdir()
+    environment = {
+        'HOME': str(home),
+        'PATH': str(bin_dir),
+        'XDG_DATA_HOME': str(home / 'data'),
+        'XDG_CONFIG_HOME': str(home / 'config'),
+        'XDG_STATE_HOME': str(home / 'state'),
+        'XDG_RUNTIME_DIR': str(home / 'run'),
+        'TERM': 'dumb',
+        'NO_COLOR': '1',
+        'PUNCHI_WAYLAND_SESSIONS_DIR': str(sessions),
+        'PUNCHI_XSESSIONS_DIR': str(empty),
+        'PUNCHI_NOTICE_DIALOG': dialog,
+    }
+    if desktop is not None:
+        environment['XDG_CURRENT_DESKTOP'] = desktop
+    if session_type is not None:
+        environment['XDG_SESSION_TYPE'] = session_type
+    if gui:
+        environment['WAYLAND_DISPLAY'] = 'wayland-1'
+    return environment
+
+
+def run_session_probe(root: Path, environment: dict) -> dict:
+    script = ('source scripts-user/lib/session-detect.sh; '
+              'printf "cause=%s\\n" "$(punchi_environment_cause)"; '
+              'printf "label=%s\\n" "$(punchi_desktop_label)"; '
+              'printf "message=%s\\n" "$(punchi_environment_message)"')
+    result = subprocess.run(
+        [shutil.which('bash') or 'bash', '-c', script], cwd=root,
+        env=environment, capture_output=True, text=True, check=False, timeout=20)
+    assert result.returncode == 0, result.stdout + result.stderr
+    return dict(line.split('=', 1) for line in result.stdout.strip().splitlines())
+
+
+def check_environment_messages(root: Path) -> None:
+    """Every session reports the cause and the next step for its own case."""
+    with tempfile.TemporaryDirectory(prefix='punchi-session-test-') as temporary:
+        home = Path(temporary)
+        wayland = run_session_probe(root, session_environment(
+            home / 'kde', desktop='KDE', session_type='wayland', plasma=True))
+        assert wayland['cause'] == 'supported', wayland
+
+        x11 = run_session_probe(root, session_environment(
+            home / 'kde-x11', desktop='KDE', session_type='x11', plasma=True))
+        assert x11['cause'] == 'kde-not-wayland', x11
+        assert 'You are using KDE Plasma on X11.' in x11['message']
+        assert 'needs a Wayland session' in x11['message']
+
+        available = run_session_probe(root, session_environment(
+            home / 'gnome', desktop='GNOME', session_type='wayland', plasma=True))
+        assert available['cause'] == 'plasma-available', available
+        assert 'You are using GNOME on Wayland.' in available['message']
+        assert 'not your current session' in available['message']
+
+        missing = run_session_probe(root, session_environment(
+            home / 'gnome-missing', desktop='GNOME', session_type='wayland',
+            plasma=False))
+        assert missing['cause'] == 'plasma-missing', missing
+        assert 'KDE Plasma is not installed on this system.' in missing['message']
+
+        ubuntu = run_session_probe(root, session_environment(
+            home / 'ubuntu', desktop='ubuntu:GNOME', session_type='wayland',
+            plasma=True))
+        assert ubuntu['label'] == 'Ubuntu', ubuntu
+        assert 'You are using Ubuntu on Wayland.' in ubuntu['message']
+
+        cinnamon = run_session_probe(root, session_environment(
+            home / 'cinnamon', desktop='X-Cinnamon', session_type='x11',
+            plasma=True))
+        assert cinnamon['label'] == 'Cinnamon', cinnamon
+
+        odd = run_session_probe(root, session_environment(
+            home / 'odd', desktop='bad\x01name', session_type='wayland',
+            plasma=True))
+        assert odd['label'] == 'badname', odd
+        assert '\x01' not in odd['message'], odd
+
+        glob = run_session_probe(root, session_environment(
+            home / 'glob', desktop='*', session_type='wayland', plasma=True))
+        assert glob['label'] == '*', glob
+        assert 'AGENTS.md' not in glob['message'], \
+            'The unquoted desktop value expanded as a pathname'
+
+        headless = run_session_probe(root, session_environment(
+            home / 'headless', desktop=None, session_type=None, plasma=True,
+            gui=False))
+        assert headless['cause'] == 'unknown-session', headless
+        assert 'The current session could not be detected.' in headless['message']
+
+
+def write_dialog_stub(bin_dir: Path, name: str, log: Path) -> None:
+    (bin_dir / name).write_text(
+        f'#!/bin/sh\nprintf "%s\\n" "$*" >> "{log}"\nexit 0\n')
+    (bin_dir / name).chmod(0o755)
+
+
+def run_in_pty(arguments: list, environment: dict, cwd: Path,
+               input_text: str = '', timeout: float = 25.0) -> tuple[str, int]:
+    """Run a command with a pseudo-terminal so interactive paths are reachable."""
+    master, slave = pty.openpty()
+    process = subprocess.Popen(arguments, cwd=cwd, env=environment,
+                               stdin=slave, stdout=slave, stderr=slave)
+    os.close(slave)
+    if input_text:
+        os.write(master, input_text.encode())
+    output = b''
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            ready, _, _ = select.select([master], [], [], 0.2)
+            if not ready:
+                if process.poll() is not None:
+                    break
+                continue
+            chunk = os.read(master, 65536)
+            if not chunk:
+                break
+            output += chunk
+        except OSError:
+            break
+    process.wait(timeout=timeout)
+    os.close(master)
+    return output.decode('utf-8', 'replace'), process.returncode
+
+
+def check_start_environment_notice(root: Path, start: Path) -> None:
+    """The startup guard names the session and uses the native dialog."""
+    approved = (
+        'KDE Plasma is required\n'
+        'You are using GNOME on Wayland. KDE Plasma is not installed on this '
+        'system. Install KDE Plasma first, then open the dock again.\n')
+    with tempfile.TemporaryDirectory(prefix='punchi-notice-test-') as temporary:
+        home = Path(temporary)
+        environment = session_environment(
+            home, desktop='GNOME', session_type='wayland', plasma=False,
+            dialog='1')
+        log = home / 'dialog.log'
+        write_dialog_stub(home / 'bin', 'kdialog', log)
+
+        result = subprocess.run(
+            [str(start)], cwd=root, env=environment, capture_output=True,
+            text=True, check=False, timeout=30)
+        assert result.returncode == 3, result.stdout + result.stderr
+        assert result.stderr == approved, result.stderr
+        dialog = log.read_text()
+        assert '--title Punchi Dock Quickshell' in dialog, dialog
+        assert '--error' in dialog, dialog
+        assert 'KDE Plasma is required' in dialog, dialog
+        assert 'GNOME on Wayland' in dialog, dialog
+
+        # Zenity is the GTK fallback.
+        (home / 'bin/kdialog').unlink()
+        log.unlink()
+        write_dialog_stub(home / 'bin', 'zenity', log)
+        result = subprocess.run(
+            [str(start)], cwd=root, env=environment, capture_output=True,
+            text=True, check=False, timeout=30)
+        assert result.returncode == 3, result.stderr
+        dialog = log.read_text()
+        assert '--error' in dialog and '--no-markup' in dialog, dialog
+
+        # No dialog tool leaves the same text on stderr.
+        (home / 'bin/zenity').unlink()
+        log.unlink()
+        result = subprocess.run(
+            [str(start)], cwd=root, env=environment, capture_output=True,
+            text=True, check=False, timeout=30)
+        assert result.returncode == 3, result.stderr
+        assert result.stderr == approved, result.stderr
+        assert not log.exists(), 'A dialog was started without any tool'
+
+        # PUNCHI_NOTICE_DIALOG=0 keeps the terminal path only.
+        write_dialog_stub(home / 'bin', 'kdialog', log)
+        disabled = dict(environment, PUNCHI_NOTICE_DIALOG='0')
+        result = subprocess.run(
+            [str(start)], cwd=root, env=disabled, capture_output=True,
+            text=True, check=False, timeout=30)
+        assert result.returncode == 3, result.stderr
+        assert result.stderr == approved, result.stderr
+        assert not log.exists(), 'PUNCHI_NOTICE_DIALOG=0 still opened a dialog'
+
+        # A terminal launch reads the text and gets no dialog.
+        interactive = dict(environment, PUNCHI_NOTICE_DIALOG='auto')
+        output, status = run_in_pty([str(start)], interactive, root)
+        assert status == 3, output
+        assert 'KDE Plasma is required' in output, output
+        assert not log.exists(), 'A terminal launch opened a dialog'
+
+        # The launcher does not repeat the failure notice after the dialog.
+        launcher_root = home / 'launcher-root'
+        (launcher_root / 'scripts-user').mkdir(parents=True)
+        (launcher_root / 'assets/icons').mkdir(parents=True)
+        (launcher_root / 'assets/icons/punchi-dock-quickshell.svg').write_text(
+            '<svg xmlns="http://www.w3.org/2000/svg"/>\n')
+        shutil.copy2(root / 'scripts-user/launcher.sh',
+                     launcher_root / 'scripts-user/launcher.sh')
+        shutil.copytree(root / 'scripts-user/lib', launcher_root / 'scripts-user/lib')
+        notify_log = home / 'notify.log'
+        write_dialog_stub(home / 'bin', 'notify-send', notify_log)
+        fake_start = launcher_root / 'scripts-user/start.sh'
+        fake_start.write_text('#!/bin/sh\necho "environment notice"\nexit 3\n')
+        fake_start.chmod(0o755)
+        result = subprocess.run(
+            ['bash', str(launcher_root / 'scripts-user/launcher.sh'), 'start'],
+            cwd=launcher_root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        assert result.returncode == 3, result.stdout + result.stderr
+        assert not notify_log.exists(), \
+            'The launcher repeated the notice after the environment dialog'
+
+        # Without any dialog tool the notice never reached the user, so the
+        # launcher must fall back to its notification.
+        (home / 'bin/kdialog').unlink()
+        result = subprocess.run(
+            ['bash', str(launcher_root / 'scripts-user/launcher.sh'), 'start'],
+            cwd=launcher_root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        assert result.returncode == 3, result.stdout + result.stderr
+        assert notify_log.exists(), \
+            'A suppressed environment dialog left the launcher silent'
+        assert 'could not start' in notify_log.read_text(), notify_log.read_text()
+        notify_log.unlink()
+
+        fake_start.write_text('#!/bin/sh\necho "boom"\nexit 1\n')
+        fake_start.chmod(0o755)
+        result = subprocess.run(
+            ['bash', str(launcher_root / 'scripts-user/launcher.sh'), 'start'],
+            cwd=launcher_root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+        assert result.returncode == 1, result.stdout + result.stderr
+        assert notify_log.exists(), 'A generic failure lost its notification'
+
+
+def check_install_environment_guard(root: Path, setup: Path) -> None:
+    """Install and trial refuse an unsupported session before writing."""
+    guard = ('source scripts-user/lib/setup-common.sh; '
+             'source scripts-user/lib/setup-environment.sh; '
+             'punchi_require_kde_environment install; '
+             'echo "GUARD_STATUS=$?"')
+    with tempfile.TemporaryDirectory(prefix='punchi-guard-test-') as temporary:
+        home = Path(temporary)
+        environment = session_environment(
+            home, desktop='GNOME', session_type='wayland', plasma=False)
+        install_root = home / 'data/punchi-dock-quickshell'
+
+        result = subprocess.run(
+            [str(setup), '--install', '--yes', '--no-color'], cwd=root,
+            env=environment, capture_output=True, text=True, check=False,
+            timeout=60)
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, combined
+        assert 'Punchi Dock Quickshell requires KDE Plasma on Wayland.' in combined
+        assert 'You are using GNOME on Wayland.' in combined
+        assert 'KDE Plasma is not installed on this system.' in combined
+        assert 'Install KDE Plasma first, then open the dock again.' in combined
+        assert 'Nothing was installed.' in combined
+        assert not install_root.exists(), \
+            'A refused install wrote the install prefix'
+
+        installed = session_environment(
+            home / 'plasma-host', desktop='GNOME', session_type='wayland',
+            plasma=True)
+        result = subprocess.run(
+            [str(setup), '--install', '--yes', '--no-color'], cwd=root,
+            env=installed, capture_output=True, text=True, check=False,
+            timeout=60)
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, combined
+        assert 'not your current session' in combined, combined
+
+        result = subprocess.run(
+            [str(setup), '--try', '--yes', '--no-color'], cwd=root,
+            env=environment, capture_output=True, text=True, check=False,
+            timeout=60)
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, combined
+        assert 'requires KDE Plasma on Wayland' in combined, combined
+
+        override = dict(environment, PUNCHI_ALLOW_NON_KDE='1')
+        result = subprocess.run(
+            [shutil.which('bash') or 'bash', '-c', guard], cwd=root,
+            env=override, capture_output=True, text=True, check=False,
+            timeout=20)
+        assert 'GUARD_STATUS=0' in result.stdout, result.stdout + result.stderr
+        assert 'requires KDE Plasma' not in result.stdout, result.stdout
+
+        headless = session_environment(
+            home / 'headless', desktop=None, session_type=None, plasma=True,
+            gui=False)
+        result = subprocess.run(
+            [shutil.which('bash') or 'bash', '-c', guard], cwd=root,
+            env=headless, capture_output=True, text=True, check=False,
+            timeout=20)
+        assert 'GUARD_STATUS=0' in result.stdout, result.stdout + result.stderr
+        assert 'No graphical session was detected.' in result.stdout, result.stdout
+
+        result = subprocess.run(
+            [str(setup), '--uninstall', '--yes', '--no-color'], cwd=root,
+            env=environment, capture_output=True, text=True, check=False,
+            timeout=60)
+        combined = result.stdout + result.stderr
+        assert 'requires KDE Plasma on Wayland' not in combined, \
+            'Uninstall was blocked by the environment guard'
+
+        output, status = run_in_pty(
+            [str(setup), '--install', '--no-color'], environment, root,
+            input_text='n\n')
+        assert status != 0, output
+        assert 'Continue anyway? [y/N]' in output, output
+        assert 'Nothing was installed.' in output, output
+        assert not install_root.exists(), 'A cancelled install wrote the prefix'
+
+        output, status = run_in_pty(
+            [shutil.which('bash') or 'bash', '-c', guard], environment, root,
+            input_text='y\n')
+        assert status == 0, output
+        assert 'GUARD_STATUS=0' in output, output
+
+
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     scripts = sorted((root / 'scripts-user').rglob('*.sh'))
@@ -1069,20 +1590,27 @@ def main() -> int:
     check_single_instance_guard(root, start)
     check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
     check_dependency_maps(root)
+    check_dependency_report_layout(root)
     check_qt_tool_resolution(root)
     check_try_requires_checkout(root)
     check_try_flow(root)
+    check_trial_prompt(root)
+    check_dock_stop_status(root)
     check_trial_cleanup(root)
     check_trial_refuses_running_copy(root)
     check_uninstall_cleanup_modes(root)
     check_presentation(root)
     check_failure_log(root)
     check_build_failure_log(root)
+    check_environment_messages(root)
+    check_start_environment_notice(root, start)
+    check_install_environment_guard(root, setup)
     check_update_check(root)
     check_git_missing(root)
     check_autostart_uninstall(root)
     print('User setup scripts: syntax, help, menu, maps, Qt tools, logs, '
-          'restore, instance guard, try path, presentation and update check passed.')
+          'environment notices, restore, instance guard, try path, presentation '
+          'and update check passed.')
     return 0
 
 
