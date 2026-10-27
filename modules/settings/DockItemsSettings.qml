@@ -45,7 +45,7 @@ ColumnLayout {
     spacing: Kirigami.Units.largeSpacing
     PinnedItemsEditService { id: editor; settings: root.settings }
     // Folder containers: the selected item may point at a folder on disk. An
-    // empty path is the built-in Downloads folder.
+    // empty path is one of the built-in Home or Downloads folders.
     readonly property var selectedContainer: root.settings.container(editor.selectedAppId)
     function localPath(url): string {
         return decodeURIComponent(String(url).replace(/^file:\/\//, ""))

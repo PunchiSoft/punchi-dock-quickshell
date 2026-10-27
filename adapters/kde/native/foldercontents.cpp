@@ -8,6 +8,27 @@
 #include <QDateTime>
 #include <QSet>
 
+namespace {
+QSet<QString> xdgUserDirs()
+{
+    const QString home = QDir::cleanPath(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+    const QList<QStandardPaths::StandardLocation> locations = {
+        QStandardPaths::DesktopLocation, QStandardPaths::DocumentsLocation,
+        QStandardPaths::DownloadLocation, QStandardPaths::MusicLocation,
+        QStandardPaths::MoviesLocation, QStandardPaths::PicturesLocation,
+        QStandardPaths::PublicShareLocation, QStandardPaths::TemplatesLocation};
+    QSet<QString> dirs;
+    for (const auto location : locations) {
+        const QString path = QStandardPaths::writableLocation(location);
+        if (path.isEmpty()) continue;
+        const QString clean = QDir::cleanPath(path);
+        if (!home.isEmpty() && clean == home) continue;
+        dirs.insert(clean);
+    }
+    return dirs;
+}
+}
+
 class FolderContents::FolderSortModel : public KDirSortFilterProxyModel
 {
 public:
@@ -18,25 +39,35 @@ public:
     void setHidden(const QSet<QString> &names)
     {
         if (hidden == names) return;
-#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
-        beginFilterChange();
+        beginFilterUpdate();
         hidden = names;
-        endFilterChange(Direction::Rows);
-#else
-        hidden = names;
-        invalidateFilter();
-#endif
+        endFilterUpdate();
+    }
+    // Home shows only the standard KDE/XDG user folders. The owner enables it
+    // at the home root; entering a child directory clears the flag.
+    void setStandardUserDirs(bool only, const QSet<QString> &dirs)
+    {
+        if (standardUserDirsOnly == only && standardUserDirs == dirs) return;
+        beginFilterUpdate();
+        standardUserDirsOnly = only;
+        standardUserDirs = dirs;
+        endFilterUpdate();
     }
 protected:
     bool filterAcceptsRow(int row, const QModelIndex &parent) const override
     {
         if (!KDirSortFilterProxyModel::filterAcceptsRow(row, parent)) return false;
-        if (hidden.isEmpty()) return true;
+        if (hidden.isEmpty() && !standardUserDirsOnly) return true;
         const auto index = sourceModel()->index(row, 0, parent);
         const auto item = index.data(KDirModel::FileItemRole).value<KFileItem>();
-        return item.isNull() || !hidden.contains(item.text());
+        if (!item.isNull() && hidden.contains(item.text())) return false;
+        if (!standardUserDirsOnly) return true;
+        return !item.isNull() && item.isDir()
+            && standardUserDirs.contains(QDir::cleanPath(item.url().toLocalFile()));
     }
     QSet<QString> hidden;
+    QSet<QString> standardUserDirs;
+    bool standardUserDirsOnly = false;
 
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const override
     {
@@ -50,6 +81,21 @@ protected:
         collator.setNumericMode(true);
         return collator.compare(leftItem.text(), rightItem.text()) < 0;
     }
+private:
+    void beginFilterUpdate()
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+        beginFilterChange();
+#endif
+    }
+    void endFilterUpdate()
+    {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+        endFilterChange(Direction::Rows);
+#else
+        invalidateFilter();
+#endif
+    }
 };
 
 FolderContents::FolderContents(QObject *parent) : QIdentityProxyModel(parent)
@@ -58,8 +104,10 @@ FolderContents::FolderContents(QObject *parent) : QIdentityProxyModel(parent)
     m_sorted = new FolderSortModel(this);
     m_sorted->setSourceModel(&m_directory);
     m_sorted->setSortFoldersFirst(false);
+    m_standardUserDirs = xdgUserDirs();
     setSourceModel(m_sorted);
     setSortMode(QStringLiteral("modified"));
+    updateStandardDirFilter();
     auto *lister = m_directory.dirLister();
     lister->setAutoErrorHandlingEnabled(false);
     lister->setShowHiddenFiles(false);
@@ -113,6 +161,23 @@ QUrl FolderContents::downloadsUrl() const
 {
     return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation));
 }
+QUrl FolderContents::homeUrl() const
+{
+    return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
+}
+void FolderContents::setStandardUserDirsOnly(bool value)
+{
+    if (m_standardUserDirsOnly == value) return;
+    m_standardUserDirsOnly = value;
+    updateStandardDirFilter();
+    emit standardUserDirsOnlyChanged();
+}
+void FolderContents::updateStandardDirFilter()
+{
+    if (!m_sorted) return;
+    m_sorted->setStandardUserDirs(m_standardUserDirsOnly && m_location == homeUrl(),
+        m_standardUserDirs);
+}
 bool FolderContents::localUrl(const QUrl &url)
 {
     return url.isValid() && url.isLocalFile() && url.host().isEmpty()
@@ -122,6 +187,7 @@ void FolderContents::setLocation(const QUrl &url)
 {
     if (!localUrl(url) || url == m_location) return;
     m_location = url;
+    updateStandardDirFilter();
     emit locationChanged();
     if (m_active) refresh();
 }

@@ -2,6 +2,7 @@
 #pragma once
 #include <QIdentityProxyModel>
 #include <QConcatenateTablesProxyModel>
+#include <QSet>
 #include <QStandardItemModel>
 #include <QUrl>
 #include <QPointer>
@@ -16,6 +17,11 @@ class FolderContents : public QIdentityProxyModel
     Q_OBJECT
     QML_ELEMENT
     Q_PROPERTY(QUrl downloadsUrl READ downloadsUrl CONSTANT)
+    Q_PROPERTY(QUrl homeUrl READ homeUrl CONSTANT)
+    // At the home root, keep only the standard KDE/XDG user folders. The
+    // filter turns itself off when navigation enters another directory.
+    Q_PROPERTY(bool standardUserDirsOnly READ standardUserDirsOnly
+        WRITE setStandardUserDirsOnly NOTIFY standardUserDirsOnlyChanged)
     Q_PROPERTY(QUrl location READ location WRITE setLocation NOTIFY locationChanged)
     Q_PROPERTY(bool active READ active WRITE setActive NOTIFY activeChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY stateChanged)
@@ -31,6 +37,9 @@ public:
     enum Role { EntryUrl = Qt::UserRole + 400, EntryName, EntryIcon, Directory, Description };
     explicit FolderContents(QObject *parent = nullptr);
     QUrl downloadsUrl() const;
+    QUrl homeUrl() const;
+    bool standardUserDirsOnly() const { return m_standardUserDirsOnly; }
+    void setStandardUserDirsOnly(bool value);
     QUrl location() const { return m_location; }
     void setLocation(const QUrl &url);
     bool active() const { return m_active; }
@@ -50,6 +59,7 @@ public:
     KFileItem itemForUrl(const QUrl &url) const;
     static bool localUrl(const QUrl &url);
 Q_SIGNALS:
+    void standardUserDirsOnlyChanged();
     void locationChanged();
     void activeChanged();
     void stateChanged();
@@ -59,12 +69,15 @@ Q_SIGNALS:
 private:
     void refresh();
     void changed();
+    void updateStandardDirFilter();
     KDirModel m_directory;
     class FolderSortModel;
     FolderSortModel *m_sorted = nullptr;
     QString m_sortMode;
     QUrl m_location;
     QStringList m_hiddenEntries;
+    QSet<QString> m_standardUserDirs;
+    bool m_standardUserDirsOnly = false;
     bool m_active = false, m_loading = false;
     QString m_error;
     int m_revision = 0;

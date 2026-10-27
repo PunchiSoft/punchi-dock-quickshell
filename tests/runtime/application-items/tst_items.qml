@@ -97,7 +97,7 @@ TestCase {
         const window = createTemporaryObject(fixture, test)
         const view = window.settingsView
         tryVerify(function() { return window.catalog.application("desktop:punchi-add-sentinel.desktop").installed === true })
-        tryCompare(window.dock, "itemCount", 10)
+        tryCompare(window.dock, "itemCount", 11)
         const initial = window.settings.pinnedIds.join(",")
         let dialog = null
         for (let cycle = 0; cycle < 4; ++cycle) {
@@ -115,9 +115,9 @@ TestCase {
         selectOwned(dialog)
         mouseClick(findChild(dialog, "confirmAddItem"))
         tryCompare(dialog, "visible", false)
-        tryCompare(window.dock, "itemCount", 11)
-        compare(window.settings.pinnedIds[9], "desktop:punchi-add-sentinel.desktop")
-        compare(window.settings.pinnedIds[10], "item:trash")
+        tryCompare(window.dock, "itemCount", 12)
+        compare(window.settings.pinnedIds[10], "desktop:punchi-add-sentinel.desktop")
+        compare(window.settings.pinnedIds[11], "item:trash")
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(JSON.parse(JSON.stringify(window.settings.snapshot()))))
         compare(restored.pinnedIds.join(","), window.settings.pinnedIds.join(","))
@@ -129,7 +129,7 @@ TestCase {
         verify(!findChild(dialog, "confirmAddItem").enabled)
         keyClick(Qt.Key_Escape)
         tryCompare(dialog, "visible", false)
-        compare(window.settings.pinnedIds.length, 11)
+        compare(window.settings.pinnedIds.length, 12)
         completion.target = window.launch
         completion.clear()
         const tile = findChild(window.dock, "launcher-desktop:punchi-add-sentinel.desktop")
@@ -139,7 +139,7 @@ TestCase {
         compare(completion.signalArguments[0][0], "punchi-add-sentinel.desktop")
         compare(completion.signalArguments[0][1], true)
         window.settings.reset()
-        tryCompare(window.dock, "itemCount", 10)
+        tryCompare(window.dock, "itemCount", 11)
         window.close()
     }
     function test_hiddenAndUnknownApplicationsAreNotSelectable() {
@@ -155,14 +155,14 @@ TestCase {
         compare(controller.accept(), false)
         controller.search("punchi-add-hidden")
         tryCompare(controller.applications, "count", 0)
-        compare(window.settings.pinnedIds.length, 10)
+        compare(window.settings.pinnedIds.length, 11)
         window.close()
     }
 
     function test_addContainerAndSingletonTrashCanBeRemovedAndReadded() {
         const window = createTemporaryObject(fixture, test)
         const view = window.settingsView
-        tryCompare(window.dock, "itemCount", 10)
+        tryCompare(window.dock, "itemCount", 11)
 
         let dialog = openEditor(view)
         dialog.itemType = "trash"
@@ -179,7 +179,7 @@ TestCase {
         compare(itemList.currentIndex, itemList.count - 1)
         mouseClick(findChild(view, "removeDockItem"))
         compare(window.settings.pinnedIds.indexOf("item:trash"), -1)
-        compare(window.dock.itemCount, 9)
+        compare(window.dock.itemCount, 10)
 
         dialog = openEditor(view)
         dialog.itemType = "container"
@@ -190,8 +190,9 @@ TestCase {
         grabImage(dialog)
         mouseClick(findChild(dialog, "cancelAddItem"))
         tryCompare(dialog, "visible", false)
-        compare(window.settings.containers.length, 1)
-        verify(!window.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0))
+        compare(window.settings.containers.length, 2)
+        verify(!window.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0
+            && id !== "item:folder:home"))
 
         dialog = openEditor(view)
         dialog.itemType = "trash"
@@ -199,21 +200,22 @@ TestCase {
         mouseClick(findChild(dialog, "confirmAddItem"))
         tryCompare(dialog, "visible", false)
         compare(window.settings.pinnedIds.filter(id => id === "item:trash").length, 1)
-        compare(window.dock.itemCount, 10)
+        compare(window.dock.itemCount, 11)
 
         dialog = openEditor(view)
         dialog.itemType = "container"
         dialog.containerPath = "/tmp/punchi-owned-container"
         dialog.containerLayout = "detail"
         verify(findChild(dialog, "confirmAddItem").enabled)
-        compare(window.settings.containers.length, 1,
+        compare(window.settings.containers.length, 2,
             "the selected folder stays a draft until Add")
         mouseClick(findChild(dialog, "confirmAddItem"))
         tryCompare(dialog, "visible", false)
-        const containerId = window.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)
+        const containerId = window.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0
+            && id !== "item:folder:home")
         verify(containerId.length > 0)
         compare(window.settings.container(containerId).layout, "detail")
-        compare(window.dock.itemCount, 11)
+        compare(window.dock.itemCount, 12)
         const containerRow = findChild(view, "configuredItem-" + containerId)
         verify(containerRow !== null)
         itemList.positionViewAtIndex(itemList.count - 2, ListView.Contain)
@@ -222,7 +224,7 @@ TestCase {
         mouseClick(findChild(view, "removeDockItem"))
         compare(window.settings.pinnedIds.indexOf(containerId), -1)
         compare(window.settings.container(containerId), null)
-        compare(window.dock.itemCount, 10)
+        compare(window.dock.itemCount, 11)
         window.close()
     }
 

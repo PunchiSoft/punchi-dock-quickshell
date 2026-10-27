@@ -350,6 +350,7 @@ PanelWindow {
         onOpenFolderRequested: {
             const entry = settings.container(contextMenu.appId)
             if (entry && entry.path.length > 0) contextApplicationAdapter.openFolderPath(entry.path)
+            else if (entry && entry.id === "home") contextApplicationAdapter.openHome()
             else contextApplicationAdapter.openDownloads()
         }
         onOpenTrashRequested: trash.open()

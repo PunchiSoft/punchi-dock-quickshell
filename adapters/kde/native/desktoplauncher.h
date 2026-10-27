@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QQuickItem>
+#include <QStandardPaths>
 #include <QtQml/qqmlregistration.h>
 #include <KService>
 #include "recentdocuments.h"
@@ -27,6 +28,7 @@ public:
     Q_INVOKABLE bool openRecent(RecentDocuments *documents, const QString &resource);
     Q_INVOKABLE bool openTrash();
     Q_INVOKABLE bool openDownloads();
+    Q_INVOKABLE bool openHome();
     Q_INVOKABLE bool openFolderUrl(FolderContents *contents, const QUrl &url);
     Q_INVOKABLE bool openFolderLocation(const QUrl &url);
     Q_INVOKABLE bool openFolderPath(const QString &path);
@@ -35,6 +37,7 @@ signals:
     void launchFinished(const QString &desktopId, bool success, const QString &error);
 private:
     KService::Ptr resolve(const QString &desktopId) const;
+    bool openStandardLocation(QStandardPaths::StandardLocation location);
     bool enqueue(const KService::Ptr &service, const QString &desktopId, const KServiceAction &action = {},
         const QList<QUrl> &urls = {});
     void startJob(const KService::Ptr &service, const QString &desktopId, const QByteArray &token,

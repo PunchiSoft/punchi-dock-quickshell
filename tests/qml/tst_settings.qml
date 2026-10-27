@@ -63,9 +63,10 @@ TestCase {
         compare(settings.sizePercent, 100)
         compare(settings.maximumIconScale, 2)
         compare(settings.bounceEnabled, true)
-        compare(settings.pinnedIds.length, 10)
-        compare(settings.pinnedIds[8], "item:downloads")
-        compare(settings.pinnedIds[9], "item:trash")
+        compare(settings.pinnedIds.length, 11)
+        compare(settings.pinnedIds[2], "item:folder:home")
+        compare(settings.pinnedIds[9], "item:downloads")
+        compare(settings.pinnedIds[10], "item:trash")
         compare(settings.recentApplicationsEnabled, true)
         compare(settings.recentApplicationsCount, 5)
         compare(settings.updateBadgeEnabled, true)
@@ -124,10 +125,16 @@ TestCase {
     }
     function test_folderContainers() {
         const settings = createTemporaryObject(settingsFixture, test)
-        // The built-in container keeps its historical id and the empty path
-        // that the native model resolves to the user's download location.
+        // The built-in containers keep the empty path the native model
+        // resolves to their standard location.
         compare(settings.container("item:downloads").id, "downloads")
         compare(settings.container("item:downloads").path, "")
+        compare(settings.container("item:folder:home").id, "home")
+        compare(settings.container("item:folder:home").path, "")
+        compare(settings.container("item:folder:home").icon, "user-home")
+        compare(settings.container("item:folder:home").layout, "fan")
+        compare(settings.container("item:folder:home").sortMode, "name")
+        compare(settings.removeContainer("item:folder:home"), false)
         compare(settings.container("files"), null)
         // A chosen folder is stored, addressable and validated.
         const id = settings.addContainer("/tmp/owned", "owned", "folder")
@@ -142,13 +149,27 @@ TestCase {
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
         compare(data.version, 11)
-        compare(data.containers.length, 2)
+        compare(data.containers.length, 3)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.container(id).path, "/tmp/other")
         restored.containers = []
         verify(restored.restore(data))
-        compare(restored.containers.length, 2)
+        compare(restored.containers.length, 3)
+    }
+    function test_savedProfileKeepsItsContainersWithoutHome() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        const data = {
+            version: 11,
+            downloadsView: "grid",
+            containers: [{id: "downloads", path: "", title: "Downloads",
+                icon: "folder-downloads", layout: "grid", sortMode: "modified"}],
+            pinnedIds: ["files", "item:downloads", "item:trash"]
+        }
+        verify(settings.restore(data))
+        compare(settings.container("item:folder:home"), null)
+        compare(settings.containers.length, 1)
+        compare(settings.pinnedIds.join(","), "files,item:downloads,item:trash")
     }
     function test_containerHiddenEntries() {
         const settings = createTemporaryObject(settingsFixture, test)

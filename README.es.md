@@ -67,8 +67,8 @@ propia validación.
   los popups laterales se abren hacia dentro y los iconos permanecen derechos.
 - Aplicaciones fijadas configurables: descubre y busca aplicaciones instaladas
   mediante KDE, añade o reordena lanzadores y guarda las preferencias. Ocho
-  lanzadores de aplicaciones predefinidos, más el contenedor Downloads y la
-  Papelera, forman la configuración inicial.
+  lanzadores de aplicaciones predefinidos, más los contenedores Home y Downloads
+  y la Papelera, forman la configuración inicial.
 - Lanzamiento nativo de aplicaciones mediante KService y KIO, con integración de
   activación de Wayland. Un clic normal activa una ventana KDE existente o
   minimiza una ventana activa compatible antes de considerar un lanzamiento; la
@@ -140,8 +140,10 @@ propia validación.
   elemento como respaldo.
 - Contenedores de carpeta para cualquier carpeta local: presentaciones Grid,
   List, Detail y Fan, orden por contenedor, navegación por subcarpetas y lista
-  de entradas ocultas. Un dock lateral presenta como Grid un abanico guardado,
-  porque el arco necesita un borde superior o inferior.
+  de entradas ocultas. El contenedor integrado **Home** abre en Fan y muestra
+  solo las carpetas estándar de KDE/XDG con sus nombres localizados. Un dock
+  lateral presenta como Grid un abanico guardado, porque el arco necesita un
+  borde superior o inferior.
 - Downloads con vistas Grid, List, Detail y Fan, navegación dentro de un globo
   temático y apertura nativa de archivos de KDE. Cada presentación termina con
   una fila **Open** y marca con un chevron las carpetas por las que se puede
@@ -402,7 +404,7 @@ rechaces la confirmación. Sin archivo guardado,la aplicación usa los valores p
 | Ajuste | Valor inicial actual |
 |---|---|
 | Superficie | Dock inferior por defecto; inferior, izquierda o derecha; todavía no hay barra superior personalizada |
-| Elementos fijados, en orden | Dolphin, Konsole, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
+| Elementos fijados, en orden | Dolphin, Konsole, Home, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Tamaño | 100% del tamaño base derivado del tema |
 | Magnificación con el puntero | Activada, con escala máxima del 200% |
 | Rebote al hacer clic | Activado |
