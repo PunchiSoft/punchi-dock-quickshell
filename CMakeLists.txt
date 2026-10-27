@@ -104,6 +104,12 @@ install(FILES
     DESTINATION "${PUNCHI_INSTALL_DATADIR}/scripts-user"
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+# start.sh loads its session detection and dialog helpers from this directory.
+install(FILES
+    scripts-user/lib/session-detect.sh
+    scripts-user/lib/notice-dialog.sh
+    DESTINATION "${PUNCHI_INSTALL_DATADIR}/scripts-user/lib"
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ)
 install(PROGRAMS scripts-user/installed-launcher.sh
     DESTINATION "${CMAKE_INSTALL_BINDIR}"
     RENAME punchi-dock-quickshell)

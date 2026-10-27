@@ -192,6 +192,14 @@ punchi_progress_run() {
     else
         export PUNCHI_UI_UNICODE=0
     fi
+    # The captured report is laid out by a worker without the terminal, so the
+    # width is measured here and handed over with the rest of the presentation.
+    local measured_columns=""
+    measured_columns="$(tput cols 2>/dev/null || true)"
+    if [[ ! "$measured_columns" =~ ^[0-9]+$ ]] || (( measured_columns < 20 )); then
+        measured_columns=80
+    fi
+    export PUNCHI_UI_COLUMNS="$measured_columns"
 
     started_ms="$(punchi_progress_now_ms)"
     min_ms="$(punchi_progress_seconds_to_ms "$PUNCHI_PROGRESS_MIN_SECONDS")"

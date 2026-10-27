@@ -12,14 +12,6 @@ if ! declare -F punchi_run_report_step >/dev/null 2>&1; then
 fi
 unset punchi_deps_dir
 
-punchi_kde_session_detected() {
-    if [[ "${XDG_CURRENT_DESKTOP:-}" == *KDE* || "${KDE_FULL_SESSION:-}" == "true" ]]; then
-        return 0
-    fi
-    command -v pgrep >/dev/null 2>&1 || return 1
-    pgrep -x plasmashell >/dev/null 2>&1 && pgrep -x kwin_wayland >/dev/null 2>&1
-}
-
 punchi_fedora_runtime_packages() {
     printf '%s\n' \
         quickshell \
@@ -267,79 +259,213 @@ punchi_command_group() {
     esac
 }
 
+punchi_command_group_titles() {
+    case "${1:?command group is required}" in
+        runtime) printf '%s\n' 'Runtime' 'Runtime commands' 'Required commands' ;;
+        build) printf '%s\n' 'Build' 'Build commands' 'Required commands' ;;
+        validation) printf '%s\n' 'Validation tools' 'Validation tools' 'Project checks and tests' ;;
+        *) return 1 ;;
+    esac
+}
+
+punchi_report_value() {
+    printf '  %-24s %s\n' "${1:?report label is required}" "${2:-}"
+}
+
+punchi_report_width() {
+    # The report is captured in a worker without the terminal, so the progress
+    # runner publishes the width it measured while the terminal was attached.
+    local width="${PUNCHI_UI_COLUMNS:-${COLUMNS:-}}"
+    if [[ ! "$width" =~ ^[0-9]+$ ]] || (( width < 40 )); then
+        width="$(tput cols 2>/dev/null || true)"
+    fi
+    if [[ ! "$width" =~ ^[0-9]+$ ]] || (( width < 40 )); then
+        width=80
+    fi
+    printf '%s\n' "$width"
+}
+
+# Fills the terminal width with whole items per row, so the detailed inventory
+# stays short without inventing a fixed column width.
+punchi_report_cells() {
+    (($#)) || return 0
+    local -a cells=("$@")
+    local cell=""
+    local widest=0
+    local width=""
+    local columns=1
+    local index=0
+    local line=""
+    local total=$#
+    for cell in "${cells[@]}"; do
+        if (( ${#cell} > widest )); then
+            widest=${#cell}
+        fi
+    done
+    if (( widest < 18 )); then
+        widest=18
+    fi
+    width="$(punchi_report_width)"
+    columns=$(( (width - 2) / (widest + 2) ))
+    if (( columns < 1 )); then
+        columns=1
+    elif (( columns > 4 )); then
+        columns=4
+    fi
+    for cell in "${cells[@]}"; do
+        index=$(( index + 1 ))
+        if (( index % columns == 0 )) || (( index == total )); then
+            printf '  %s\n' "$line$cell"
+            line=""
+        else
+            printf -v line '%s%-*s  ' "$line" "$widest" "$cell"
+        fi
+    done
+}
+
 punchi_report_command_group() {
     local group="${1:?command group is required}"
-    local label="${2:?label is required}"
+    local detail="${2:-1}"
     local required="${3:-0}"
+    local -a titles=()
+    local -a ready=()
+    local -a missing=()
+    local -a relocated=()
     local command_name=""
     local resolved=""
-    local missing=0
+    local total=0
 
-    punchi_muted "$label"
+    mapfile -t titles < <(punchi_command_group_titles "$group")
     while IFS= read -r command_name; do
         [[ -n "$command_name" ]] || continue
-        if resolved="$(punchi_resolve_command "$command_name")"; then
-            printf '  [ok]      %-16s %s\n' "$command_name" "$resolved"
-        else
-            printf '  [missing] %-16s\n' "$command_name"
-            if (( required == 1 )); then
-                missing=1
-            fi
+        if ! resolved="$(punchi_resolve_command "$command_name")"; then
+            missing+=("$command_name")
+            continue
+        fi
+        ready+=("[ok] $command_name")
+        if ! command -v "$command_name" >/dev/null 2>&1; then
+            relocated+=("$command_name=$resolved")
         fi
     done < <(punchi_command_group "$group")
-    return "$missing"
+    total=$(( ${#ready[@]} + ${#missing[@]} ))
+
+    if (( detail == 0 )); then
+        punchi_report_value "${titles[1]}" "${#ready[@]}/$total ready"
+        for command_name in "${missing[@]}"; do
+            printf '  [missing] %s\n' "$command_name"
+        done
+    else
+        punchi_heading "${titles[0]}"
+        punchi_muted "${titles[2]}"
+        punchi_report_cells "${ready[@]}"
+        for command_name in "${missing[@]}"; do
+            printf '  [missing] %s\n' "$command_name"
+        done
+        if ((${#relocated[@]})); then
+            printf '  Found outside PATH: %s\n' "${relocated[*]}"
+        fi
+    fi
+
+    if (( ${#missing[@]} > 0 && required == 1 )); then
+        return 1
+    fi
+    return 0
 }
 
 punchi_report_python_modules() {
+    local detail="${1:-1}"
     command -v python3 >/dev/null 2>&1 || return 0
     local module=""
-    local missing=0
+    local -a ready=()
+    local -a missing=()
     for module in dbus gi; do
         if python3 -c "import $module" >/dev/null 2>&1; then
-            printf '  [ok]      python:%-9s\n' "$module"
+            ready+=("[ok] python:$module")
         else
-            printf '  [missing] python:%-9s\n' "$module"
-            missing=1
+            missing+=("[missing] python:$module")
         fi
     done
-    return "$missing"
+    if (( detail == 0 )); then
+        punchi_report_value "Python modules" \
+            "${#ready[@]}/$(( ${#ready[@]} + ${#missing[@]} )) ready"
+        if ((${#missing[@]})); then
+            printf '  %s\n' "${missing[@]}"
+        fi
+    else
+        punchi_muted "Python modules"
+        punchi_report_cells "${ready[@]}"
+        if ((${#missing[@]})); then
+            printf '  %s\n' "${missing[@]}"
+        fi
+    fi
+    if ((${#missing[@]})); then
+        return 1
+    fi
+    return 0
 }
 
 punchi_dependency_report() {
     local family="${1:?distribution family is required}"
+    # detail=1 prints the full inventory; detail=0 prints one summary row per
+    # section and only expands what is missing.
+    local detail="${2:-1}"
     local status=0
     local validation_status=0
+    local separator=', '
+
+    if punchi_ui_terminal_supports_unicode 1; then
+        separator=' · '
+    fi
 
     punchi_progress_update 25 dependencies
-    punchi_heading "Runtime"
-    punchi_report_command_group runtime "Required commands" 1 || status=1
+    punchi_report_command_group runtime "$detail" 1 || status=1
 
     punchi_progress_update 40 dependencies
-    punchi_heading "Build"
-    punchi_report_command_group build "Required commands" 1 || status=1
+    punchi_report_command_group build "$detail" 1 || status=1
 
     punchi_progress_update 55 dependencies
-    punchi_heading "Validation tools"
-    punchi_report_command_group validation "Project checks and tests" 0 \
-        || validation_status=1
-    punchi_report_python_modules || validation_status=1
+    punchi_report_command_group validation "$detail" 0 || validation_status=1
+    punchi_report_python_modules "$detail" || validation_status=1
 
     punchi_progress_update 70 dependencies
-    punchi_heading "KDE Plasma/KWin"
+    if (( detail == 1 )); then
+        punchi_heading "KDE Plasma/KWin"
+    fi
     if punchi_kde_session_detected; then
-        printf '  [ok]      active KDE Plasma/KWin session\n'
+        if (( detail == 1 )); then
+            punchi_report_cells "[ok] active KDE Plasma/KWin session"
+        else
+            punchi_report_value "KDE Plasma/KWin" "session detected"
+        fi
     else
-        printf '  [warning] no active KDE Plasma/KWin session detected\n'
+        if (( detail == 1 )); then
+            punchi_report_cells "[warning] no active KDE Plasma/KWin session detected"
+        else
+            punchi_report_value "KDE Plasma/KWin" "no session detected"
+        fi
         punchi_warning "Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland and will not run on other desktops."
     fi
 
     punchi_progress_update 80 dependencies
-    punchi_heading "Update check"
     local git_path=""
+    if (( detail == 1 )); then
+        punchi_heading "Update check"
+    fi
     if git_path="$(punchi_resolve_command git)"; then
-        printf '  [ok]      %-16s %s\n' git "$git_path"
+        if (( detail == 1 )); then
+            punchi_report_cells "[ok] git"
+            if ! command -v git >/dev/null 2>&1; then
+                printf '  Found outside PATH: git=%s\n' "$git_path"
+            fi
+        else
+            punchi_report_value "Update check" "git found"
+        fi
     else
-        printf '  [missing] %-16s\n' git
+        if (( detail == 1 )); then
+            printf '  [missing] %-16s\n' git
+        else
+            punchi_report_value "Update check" "git missing"
+        fi
         punchi_info "Optional: needed only by Check for updates."
         punchi_info "Install it yourself with: $(punchi_git_install_hint)"
         punchi_info "The setup script never installs git automatically."
@@ -359,22 +485,54 @@ punchi_dependency_report() {
         fi
         local group=""
         local package=""
+        local present=0
+        local checked=0
         local missing=0
+        local joined=""
+        local element=""
+        local -a summary=()
+        local -a missing_names=()
         for group in runtime build validation; do
-            punchi_muted "$label packages: $group"
+            local -a present_names=()
+            present=0
+            checked=0
             while IFS= read -r package; do
                 [[ -n "$package" ]] || continue
+                checked=$(( checked + 1 ))
                 if punchi_package_installed "$package" "$family"; then
-                    printf '  [ok]      %s\n' "$package"
+                    present=$(( present + 1 ))
+                    present_names+=("[ok] $package")
                 else
-                    printf '  [missing] %s\n' "$package"
+                    missing_names+=("[missing] $package")
                     missing=1
                     [[ "$group" == "validation" ]] || status=1
                 fi
             done < <(punchi_package_group "$family" "$group")
+            summary+=("$group $present/$checked")
+            if (( detail == 1 )); then
+                punchi_muted "$label packages: $group"
+                punchi_report_cells "${present_names[@]}"
+            fi
         done
-        if (( missing == 0 )); then
-            punchi_success "All checked $label packages are installed."
+        if (( detail == 1 )); then
+            if ((${#missing_names[@]})); then
+                printf '  %s\n' "${missing_names[@]}"
+            fi
+            if (( missing == 0 )); then
+                punchi_success "All checked $label packages are installed."
+            fi
+        else
+            for element in "${summary[@]}"; do
+                if [[ -z "$joined" ]]; then
+                    joined="$element"
+                else
+                    joined="$joined$separator$element"
+                fi
+            done
+            punchi_report_value "$label packages" "$joined"
+            if ((${#missing_names[@]})); then
+                printf '  %s\n' "${missing_names[@]}"
+            fi
         fi
     else
         punchi_information_about_packages
@@ -398,31 +556,41 @@ punchi_information_about_packages() {
 # animation owns the terminal, and the caller replays it afterwards.
 punchi_dependency_worker() {
     local family="${1:?distribution family is required}"
+    local detail="${2:-1}"
 
     punchi_progress_update 20 dependencies
-    punchi_dependency_report "$family"
+    punchi_dependency_report "$family" "$detail"
 }
 
 punchi_dependency_check() {
     local offer_install="${1:-0}"
+    local detail="${2:-0}"
     local family=""
     family="$(punchi_distro_family "$(punchi_distro_id)" "$(punchi_distro_like)")"
 
-    punchi_heading "Dependency check"
-    printf 'Distribution: %s (%s)\n' "$(punchi_system_name)" "$family"
-    punchi_rule
+    # The compact report is a phase summary: the phase line already names the
+    # step and the setup header already prints the distribution family.
+    if (( detail == 1 )); then
+        punchi_heading "Dependency check"
+        printf 'Distribution: %s (%s)\n' "$(punchi_system_name)" "$family"
+        punchi_rule
+    fi
 
     local status=0
     local report_log=""
     report_log="$(mktemp "${TMPDIR:-/tmp}/punchi-dependencies.XXXXXX")"
     punchi_register_cleanup "$report_log"
     punchi_run_report_step "$report_log" punchi_dependency_worker "$family" \
-        || status=1
+        "$detail" || status=1
 
-    punchi_rule
-    if (( status == 0 )); then
-        punchi_success "Required runtime and build dependencies are present."
-    else
+    if (( detail == 1 )); then
+        punchi_rule
+        if (( status == 0 )); then
+            punchi_success "Required runtime and build dependencies are present."
+        else
+            punchi_warning "Required dependencies are missing."
+        fi
+    elif (( status != 0 )); then
         punchi_warning "Required dependencies are missing."
     fi
 
@@ -430,15 +598,21 @@ punchi_dependency_check() {
         && (( status != 0 )); then
         punchi_offer_dependency_install "$family" "$status"
         if (( status != 0 )); then
-            punchi_rule
+            if (( detail == 1 )); then
+                punchi_rule
+            fi
             punchi_info "Re-checking dependencies..."
             status=0
             punchi_run_report_step "$report_log" punchi_dependency_worker \
-                "$family" || status=1
-            punchi_rule
-            if (( status == 0 )); then
-                punchi_success "Required runtime and build dependencies are present."
-            else
+                "$family" "$detail" || status=1
+            if (( detail == 1 )); then
+                punchi_rule
+                if (( status == 0 )); then
+                    punchi_success "Required runtime and build dependencies are present."
+                else
+                    punchi_warning "Required dependencies are still missing."
+                fi
+            elif (( status != 0 )); then
                 punchi_warning "Required dependencies are still missing."
             fi
         fi
