@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add a built-in **Home** folder container to the first-run profile. It sits
+  between Konsole and Firefox, uses `user-home`, opens as Fan and sorts by name.
+  Home resolves through `QStandardPaths::HomeLocation` and lists only the
+  existing standard KDE/XDG user folders (Desktop, Documents, Downloads, Music,
+  Pictures, Public, Templates and Videos), so localized folder names and custom
+  `user-dirs.dirs` settings work on any KDE account. The filter turns off when
+  navigating into one of those folders. Downloads keeps its Grid default before
+  Trash. Existing saved profiles keep their containers and pin order.
 - Adopt release-based versioning. Pending changes accumulate here; a release
   moves them under a dated heading and advances the version once. Documentation,
   tests, CI and repository metadata alone do not change the version.

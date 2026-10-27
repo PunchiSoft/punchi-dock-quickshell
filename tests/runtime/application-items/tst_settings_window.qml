@@ -17,7 +17,11 @@ TestCase {
         SettingsWindow {
             id: window
             settings: ShellSettings {}
-            applicationCatalog: Native.DockItemCatalog { applications: ApplicationCatalog {} trashTitle: "Owned Trash" }
+            applicationCatalog: Native.DockItemCatalog {
+                applications: ApplicationCatalog {}
+                containers: window.settings.containers
+                trashTitle: "Owned Trash"
+            }
             license: QtObject {
                 readonly property string text: "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n"
             }
@@ -95,35 +99,35 @@ TestCase {
         selectOwned(dialog)
         mouseClick(findChild(dialog, "confirmAddItem"))
         tryCompare(dialog, "visible", false)
-        compare(view.settings.pinnedIds.length, 11)
-        compare(window.livePins.count, 10)
+        compare(view.settings.pinnedIds.length, 12)
+        compare(window.livePins.count, 11)
         verify(window.hasPendingChanges)
         mouseClick(findChild(view, "closeDockSettings"))
         tryCompare(window, "visible", false)
-        compare(window.settings.pinnedIds.length, 10)
+        compare(window.settings.pinnedIds.length, 11)
         window.open()
         verify(waitForRendering(window.contentItem))
-        compare(view.settings.pinnedIds.length, 10)
+        compare(view.settings.pinnedIds.length, 11)
         dialog = openEditor(view)
         selectOwned(dialog)
         mouseClick(findChild(dialog, "confirmAddItem"))
         tryCompare(dialog, "visible", false)
         mouseClick(findChild(view, "applyDockSettings"))
-        compare(window.livePins.count, 11)
-        compare(window.settings.pinnedIds[9], "desktop:punchi-add-sentinel.desktop")
-        compare(window.settings.pinnedIds[10], "item:trash")
+        compare(window.livePins.count, 12)
+        compare(window.settings.pinnedIds[10], "desktop:punchi-add-sentinel.desktop")
+        compare(window.settings.pinnedIds[11], "item:trash")
         verify(window.visible)
         verify(!window.hasPendingChanges)
         mouseClick(findChild(view, "resetDockSettings"))
-        compare(window.livePins.count, 11)
+        compare(window.livePins.count, 12)
         mouseClick(findChild(view, "acceptDockSettings"))
         tryCompare(window, "visible", false)
-        compare(window.livePins.count, 10)
+        compare(window.livePins.count, 11)
         window.open()
         dialog = openEditor(view)
         selectOwned(dialog)
         window.close()
-        compare(window.settings.pinnedIds.length, 10)
+        compare(window.settings.pinnedIds.length, 11)
         compare(dialog.controller.selectedAppId, "")
         window.open()
         verify(waitForRendering(window.contentItem))
@@ -407,7 +411,8 @@ TestCase {
         // The choice reaches the stored container when the item is added.
         mouseClick(findChild(page, "confirmAddItem"))
         tryCompare(page, "visible", false)
-        const containerId = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)
+        const containerId = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0
+            && id !== "item:folder:home")
         verify(containerId.length > 0, "the container was added")
         compare(view.settings.containerHiddenEntries(containerId), ["owned-report.txt"])
 

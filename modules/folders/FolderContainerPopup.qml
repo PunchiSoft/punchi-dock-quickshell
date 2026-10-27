@@ -12,19 +12,22 @@ Popup {
     property var hostWindow: null
     required property ShellSettings settings
     property var opener: null
-    // Folder container currently shown. An empty path means the built-in
-    // Downloads location, which the native folder model resolves through
-    // QStandardPaths.
+    // Folder container currently shown. An empty path asks the native folder
+    // model for the standard location of its built-in id: Home or Downloads.
     property string appId: ""
     property var container: null
     // Clipboard the entry menu writes to. The owner may inject one in tests.
     property var clipboardService: null
-    readonly property url containerLocation: {
-        const path = container && container.path ? String(container.path) : ""
-        return path.length > 0 ? "file://" + path : listing.downloadsUrl
-    }
+    readonly property bool homeContainer: !!container && String(container.id) === "home"
+        && String(container.path || "").length === 0
+    readonly property url containerLocation: locationFor(container)
     readonly property string containerTitle: container && String(container.title).length > 0
-        ? String(container.title) : qsTr("Downloads")
+        ? String(container.title) : homeContainer ? qsTr("Home") : qsTr("Downloads")
+    function locationFor(entry): url {
+        const path = entry && entry.path ? String(entry.path) : ""
+        if (path.length > 0) return "file://" + path
+        return entry && String(entry.id) === "home" ? listing.homeUrl : listing.downloadsUrl
+    }
     Connections {
         target: root.settings
         // A changed path re-reads the container so an open popup follows it.
@@ -70,6 +73,9 @@ Popup {
         id: listing
         sortMode: root.container && ["name", "size", "modified", "created", "kind"].indexOf(root.container.sortMode) >= 0
             ? root.container.sortMode : "modified"
+        // Home shows the standard KDE/XDG user folders at its root. Navigating
+        // into one of them clears the filter through the changed location.
+        standardUserDirsOnly: root.homeContainer
         // Entries the owner kept out of this container. An empty list shows the
         // folder as it is, so new files appear without another choice.
         hiddenEntries: root.container && Array.isArray(root.container.hiddenEntries)
@@ -91,7 +97,7 @@ Popup {
     function toggleForItem(item: Item, appId: string, entry: var): void {
         if (visible || preparingToShow) { dismiss(); return }
         if (!anchor.captureItem(item, root.containerTitle)) return
-        // Callers that only pass the anchor keep the built-in Downloads folder.
+        // Callers without a container keep the Downloads fallback.
         root.appId = appId ? appId : ""
         root.container = entry ? entry : null
         capturedBaseY = anchor.anchorGeometry.y - (hostWindow ? hostWindow.height - hostBaseHeight : 0)

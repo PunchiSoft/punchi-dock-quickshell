@@ -13,8 +13,12 @@ import Punchi.Kde as Native
 ColumnLayout {
     id: root
     objectName: "folderEntrySelection"
-    // Absolute path of the container folder; empty means the user's Downloads.
+    // Absolute path of the container folder; empty means a built-in container,
+    // whose standard location the native model resolves.
     property string folderPath: ""
+    // The built-in Home container stores no path but lists only the standard
+    // KDE/XDG user folders at the home root.
+    property bool homeFolder: false
     // The editor starts with no folder chosen and must not list anything yet.
     // The built-in Downloads container stores no path but is already chosen,
     // so its details keep listing the Downloads folder.
@@ -163,7 +167,8 @@ ColumnLayout {
         id: folderListing
         Native.FolderContents {
             location: root.folderPath.length > 0 ? "file://" + root.folderPath
-                : downloadsUrl
+                : root.homeFolder ? homeUrl : downloadsUrl
+            standardUserDirsOnly: root.homeFolder
             sortMode: "name"
             active: true
         }

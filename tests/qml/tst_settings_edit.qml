@@ -52,6 +52,7 @@ TestCase {
             applicationCatalog: ListModel {
                 ListElement { appId: "files"; desktopId: "org.kde.dolphin"; title: "Files"; iconName: "folder" }
                 ListElement { appId: "terminal"; desktopId: "org.kde.konsole"; title: "Terminal"; iconName: "utilities-terminal" }
+                ListElement { appId: "item:folder:home"; desktopId: ""; title: "Home"; iconName: "user-home" }
                 ListElement { appId: "browser"; desktopId: "org.mozilla.firefox"; title: "Browser"; iconName: "internet-web-browser" }
                 ListElement { appId: "kate"; desktopId: "org.kde.kate"; title: "Kate"; iconName: "accessories-text-editor" }
                 ListElement { appId: "systemsettings"; desktopId: "org.kde.systemsettings"; title: "System Settings"; iconName: "preferences-system" }
@@ -222,9 +223,10 @@ TestCase {
         compare(view.settings.sizePercent, 150)
         mouseClick(control(window, "resetDockSettings"))
         compare(view.settings.sizePercent, 100)
-        compare(view.settings.pinnedIds.length, 10)
-        compare(view.settings.pinnedIds[8], "item:downloads")
-        compare(view.settings.pinnedIds[9], "item:trash")
+        compare(view.settings.pinnedIds.length, 11)
+        compare(view.settings.pinnedIds[2], "item:folder:home")
+        compare(view.settings.pinnedIds[9], "item:downloads")
+        compare(view.settings.pinnedIds[10], "item:trash")
         compare(window.settings.sizePercent, 150)
         compare(window.settings.pinnedIds.length, 2)
         // A repeated Configure action raises the existing editor without losing edits.
@@ -241,9 +243,10 @@ TestCase {
         mouseClick(control(window, "applyDockSettings"))
         compare(window.settings.sizePercent, 100)
         compare(window.settings.panelMode, "overlay")
-        compare(window.settings.pinnedIds.length, 10)
-        compare(window.settings.pinnedIds[8], "item:downloads")
-        compare(window.settings.pinnedIds[9], "item:trash")
+        compare(window.settings.pinnedIds.length, 11)
+        compare(window.settings.pinnedIds[2], "item:folder:home")
+        compare(window.settings.pinnedIds[9], "item:downloads")
+        compare(window.settings.pinnedIds[10], "item:trash")
         window.close()
     }
     function test_externalChangesAndLivePinnedConsumer(): void {
@@ -546,15 +549,17 @@ TestCase {
         grabImage(page)
         mouseClick(findChild(page, "confirmAddItem"))
         tryCompare(view, "addingItem", false)
-        const addedContainer = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0)
+        const addedContainer = view.settings.pinnedIds.find(id => id.indexOf("item:folder:") === 0
+            && id !== "item:folder:home")
         verify(addedContainer.length > 0)
         compare(view.settings.container(addedContainer).layout, "detail")
-        compare(window.settings.containers.length, 1,
+        compare(window.settings.containers.length, 2,
             "the container remains in the settings draft until Apply")
         mouseClick(control(window, "closeDockSettings"))
         window.open()
         verify(waitForRendering(window.contentItem))
-        verify(!view.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0))
+        verify(!view.settings.pinnedIds.some(id => id.indexOf("item:folder:") === 0
+            && id !== "item:folder:home"))
 
         mouseClick(control(window, "itemsSettingsPage"))
         mouseClick(control(window, "addDockItem"))

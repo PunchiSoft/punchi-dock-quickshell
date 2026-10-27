@@ -57,7 +57,7 @@ ShellRoot {
         // Dock.qml and the settings catalog projections.
         probe.checkMethods(application, "DesktopApplicationAdapter",
             ["launch", "actions", "launchAction", "canLaunchNewWindow", "openTrash",
-             "openDownloads", "openFolderLocation", "openFolderPath", "openFolderUrl",
+             "openDownloads", "openHome", "openFolderLocation", "openFolderPath", "openFolderUrl",
              "openPlace", "openRecent"])
         probe.checkProperties(application, "DesktopApplicationAdapter",
             ["applicationCount", "activationItem", "launchFinished"])
