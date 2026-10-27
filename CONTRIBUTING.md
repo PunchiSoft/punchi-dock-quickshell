@@ -23,16 +23,17 @@ may change without migration.
 - Keep unrelated work out of the branch. A review compares
   `git diff main...HEAD`.
 - Subjects use `feat:`, `fix:`, `docs:` or `chore:` followed by the observable
-  change. A behavior-changing commit also names its delivery version, for
-  example `feat: deliver 0.1.46 ...`.
-- The padded delivery counter (`0.1.00`, `0.1.01`, ...) advances once per commit
-  that changes application behavior. Repository metadata and documentation-only
-  commits keep it unchanged.
-- A behavior change updates the counter in `CMakeLists.txt`,
+  change. Do not put a version number in a normal commit subject; the version is
+  assigned when a release is prepared.
+- Add behavior changes under `## Unreleased` in `CHANGELOG.md`. Documentation,
+  tests, CI, skills and repository metadata do not require a changelog entry or
+  a version change.
+- When the maintainer prepares a release, move the `Unreleased` entries under a
+  dated version heading and update `CMakeLists.txt`,
   `modules/settings/SettingsAbout.qml`, `README.md`, `README.es.md`,
-  `CHANGELOG.md` and the local `docs/versioning.md` record. The
-  `project_version` test fails when the tracked declarations disagree with the
-  newest changelog heading.
+  `AGENTS.md` and the local `docs/versioning.md` record. The `project_version`
+  test fails when those declarations disagree with the newest dated changelog
+  heading.
 
 ## Local development
 
