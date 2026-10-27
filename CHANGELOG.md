@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.1.46 — 2026-10-27
+
+- Isolate the trial run. "Try it without installing" exports an absolute trial
+  profile inside the instance runtime directory, and `SettingsStore` and
+  `AutostartService` honour `PUNCHI_PROFILE_DIR`, so a trial starts from the
+  default dock items and never reads or rewrites the preferences an installed
+  copy owns. The **Start with KDE Plasma** switch stays disabled during a trial,
+  with a note saying that a trial cannot start at sign-in.
+- Ask once after the trial. When the dock exits, including after Ctrl+C, the
+  assistant asks one confirmation and then removes the build output, the trial
+  profile, the window-state registration and the runtime lock. The installed
+  copy, its preferences and the source checkout stay untouched. A trial refuses
+  to start while this checkout is already running, and the cleanup never acts on
+  a running copy, so it cannot delete the build output or the registration an
+  open dock is using.
+- Replace the uninstall questionnaire with one choice: **Keep my data** keeps the
+  previous three questions, and **Remove everything** deletes the preferences,
+  the legacy `punchi-shell.json`, the build output, the runtime lock and the
+  window-state registration behind one destructive confirmation.
+- Remove the leftover window-state registration. Uninstall unregisters
+  `org.punchi.Shell.WindowState.desktop` through the native backend, and deletes
+  it when its content still matches this project, so an uninstalled copy no
+  longer leaves a dangling entry in the application menu.
+
 ## 0.1.45 — 2026-10-27
 
 - Move the update badge to the icon's lower-right corner, the place KDE gives its

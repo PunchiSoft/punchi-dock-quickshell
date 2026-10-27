@@ -548,7 +548,9 @@ def check_try_flow(root: Path) -> None:
         backend.write_text('#!/usr/bin/env bash\nexit 0\n')
         backend.chmod(0o755)
         start = checkout / 'scripts-user/start.sh'
-        start.write_text('#!/usr/bin/env bash\nprintf "DOCK_STARTED %s\\n" "$*"\nexit 0\n')
+        start.write_text('#!/usr/bin/env bash\nprintf "DOCK_STARTED %s\\n" "$*"\n'
+                         'printf "DOCK_PROFILE %s\\n" "${PUNCHI_PROFILE_DIR:-}"\n'
+                         'exit 0\n')
         start.chmod(0o755)
 
         fake_bin = home / 'bin'
@@ -564,15 +566,18 @@ def check_try_flow(root: Path) -> None:
             'XDG_DATA_HOME': str(home / 'data'),
             'XDG_CONFIG_HOME': str(home / 'config'),
             'XDG_STATE_HOME': str(home / 'state'),
+            'XDG_RUNTIME_DIR': str(home / 'run'),
             'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
             'TERM': 'dumb',
             'NO_COLOR': '1',
         })
+        environment.pop('PUNCHI_RUNTIME_DIR', None)
+        (home / 'run').mkdir()
         result = subprocess.run(
             ['bash', str(checkout / 'scripts-user/setup.sh'), '--try',
              '--no-color'],
-            cwd=checkout, env=environment, capture_output=True, text=True,
-            check=False, timeout=120)
+            cwd=checkout, env=environment, stdin=subprocess.DEVNULL,
+            capture_output=True, text=True, check=False, timeout=120)
         combined = result.stdout + result.stderr
         if '[1/3] OK Dependencies: Present' not in combined:
             print('try flow skipped: this environment does not satisfy the '
@@ -582,10 +587,271 @@ def check_try_flow(root: Path) -> None:
         assert 'DOCK_STARTED' in combined, combined
         assert '[2/3] OK Build: Completed' in combined, combined
         assert '[3/3] OK Run: Completed' in combined, combined
+        profiles = [line.split(' ', 1)[1] for line in combined.splitlines()
+                    if line.startswith('DOCK_PROFILE ')]
+        assert profiles and profiles[0].startswith(str(home)), combined
+        assert not Path(profiles[0]).exists(), \
+            'The try cleanup kept the trial profile'
+        assert not (checkout / 'build').exists(), \
+            'The try cleanup kept the build output'
         assert not (home / 'data/punchi-dock-quickshell').exists(), \
             'The try action installed the dock'
         assert not (home / 'data/applications').exists(), \
             'The try action wrote an application-menu launcher'
+
+
+def check_trial_cleanup(root: Path) -> None:
+    """Trial cleanup removes the profile, build output, registration and lock."""
+    with tempfile.TemporaryDirectory(prefix='punchi-trial-cleanup-') as temporary:
+        home = Path(temporary)
+        checkout = home / 'checkout'
+        (checkout / 'scripts-user').mkdir(parents=True)
+        shutil.copytree(root / 'scripts-user/lib', checkout / 'scripts-user/lib')
+        (checkout / 'CMakeLists.txt').write_text(
+            'project(punchi-trial VERSION 0.1.00)\n')
+        (checkout / 'adapters/kde/native').mkdir(parents=True)
+        (checkout / 'modules').mkdir()
+        build = checkout / 'build'
+        build.mkdir()
+        (build / 'artifact.bin').write_text('x')
+
+        data = home / 'data'
+        applications = data / 'applications'
+        applications.mkdir(parents=True)
+        registration = applications / 'org.punchi.Shell.WindowState.desktop'
+        registration.write_text(
+            '[Desktop Entry]\nType=Application\n'
+            'Name=Punchi Dock Quickshell Window State\nNoDisplay=true\n'
+            f'Exec="{checkout}/build/punchi-window-state"\n'
+            'X-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n')
+
+        runtime = home / 'run'
+        runtime.mkdir()
+        instance = runtime / f'punchi-dock-quickshell-{os.getuid()}'
+        instance.mkdir()
+        (instance / 'instance.lock').write_text('')
+        (instance / 'instance.path').write_text(f'{checkout}\n')
+        profile = instance / 'trial-profile'
+        profile.mkdir()
+        (profile / 'punchi-dock-quickshell.json').write_text('{"version": 11}\n')
+
+        fake_bin = home / 'bin'
+        fake_bin.mkdir()
+        sycoca = fake_bin / 'kbuildsycoca6'
+        sycoca.write_text('#!/usr/bin/env bash\nexit 0\n')
+        sycoca.chmod(0o755)
+
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'XDG_DATA_HOME': str(data),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'XDG_RUNTIME_DIR': str(runtime),
+            'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+        })
+        environment.pop('PUNCHI_ASSUME_YES', None)
+        command = (
+            f'punchi_project_root="{checkout}"; '
+            f'source "{checkout}/scripts-user/lib/setup-common.sh"; '
+            f'source "{checkout}/scripts-user/lib/setup-install.sh"; '
+            f'punchi_trial_cleanup "{profile}"')
+        result = subprocess.run(['bash', '-c', command], cwd=checkout,
+                                env=environment, stdin=subprocess.DEVNULL,
+                                capture_output=True, text=True, check=False,
+                                timeout=30)
+        combined = result.stdout + result.stderr
+        assert result.returncode == 0, combined
+        assert not profile.exists(), combined
+        assert not build.exists(), 'The trial cleanup kept the build output'
+        assert not registration.exists(), 'The window-state entry was kept'
+        assert not instance.exists(), 'The runtime lock was kept'
+        assert not (home / 'config/punchi-dock-quickshell.json').exists(), \
+            'The trial cleanup touched the owned preferences'
+        assert sycoca.exists()
+
+
+def check_trial_refuses_running_copy(root: Path) -> None:
+    """A trial never builds or cleans while this checkout is running."""
+    with tempfile.TemporaryDirectory(prefix='punchi-trial-running-') as temporary:
+        home = Path(temporary)
+        checkout = home / 'checkout'
+        (checkout / 'scripts-user').mkdir(parents=True)
+        shutil.copy2(root / 'scripts-user/setup.sh', checkout / 'scripts-user/setup.sh')
+        shutil.copytree(root / 'scripts-user/lib', checkout / 'scripts-user/lib')
+        (checkout / 'CMakeLists.txt').write_text(
+            'project(punchi-trial VERSION 0.1.00)\n')
+        (checkout / 'adapters/kde/native').mkdir(parents=True)
+        (checkout / 'modules').mkdir()
+        build = checkout / 'build'
+        build.mkdir()
+        (build / 'artifact.bin').write_text('x')
+
+        fake_bin = home / 'bin'
+        fake_bin.mkdir()
+        fake_qs = fake_bin / 'qs'
+        fake_qs.write_text(
+            '#!/usr/bin/env bash\n'
+            'printf \'%s\\n\' \'[{"id":"checkout"}]\'\n')
+        fake_qs.chmod(0o755)
+
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(home),
+            'TMPDIR': str(home),
+            'XDG_DATA_HOME': str(home / 'data'),
+            'XDG_CONFIG_HOME': str(home / 'config'),
+            'XDG_STATE_HOME': str(home / 'state'),
+            'XDG_RUNTIME_DIR': str(home / 'run'),
+            'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+        })
+        environment.pop('PUNCHI_RUNTIME_DIR', None)
+        (home / 'run').mkdir()
+
+        result = subprocess.run(
+            ['bash', str(checkout / 'scripts-user/setup.sh'), '--try', '--no-color'],
+            cwd=checkout, env=environment, stdin=subprocess.DEVNULL,
+            capture_output=True, text=True, check=False, timeout=60)
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, combined
+        assert 'already running' in combined, combined
+        assert (build / 'artifact.bin').exists(), \
+            'The trial removed build output of a running copy'
+
+        profile = checkout / 'profile'
+        profile.mkdir()
+        command = (
+            f'punchi_project_root="{checkout}"; '
+            f'source "{checkout}/scripts-user/lib/setup-common.sh"; '
+            f'source "{checkout}/scripts-user/lib/setup-install.sh"; '
+            f'punchi_trial_cleanup "{profile}"')
+        result = subprocess.run(['bash', '-c', command], cwd=checkout,
+                                env=environment, stdin=subprocess.DEVNULL,
+                                capture_output=True, text=True, check=False,
+                                timeout=30)
+        combined = result.stdout + result.stderr
+        assert result.returncode != 0, combined
+        assert 'already running' in combined, combined
+        assert profile.exists(), 'The cleanup removed a profile while a copy runs'
+        assert (build / 'artifact.bin').exists(), combined
+
+
+def check_uninstall_cleanup_modes(root: Path) -> None:
+    """Uninstall keeps data by default and removes it all in clean mode."""
+    def prepare(base: Path) -> dict:
+        checkout = base / 'checkout'
+        (checkout / 'scripts-user').mkdir(parents=True)
+        shutil.copytree(root / 'scripts-user/lib', checkout / 'scripts-user/lib')
+        (checkout / 'CMakeLists.txt').write_text(
+            'project(punchi-clean VERSION 0.1.00)\n')
+        (checkout / 'adapters/kde/native').mkdir(parents=True)
+        (checkout / 'modules').mkdir()
+        build = checkout / 'build'
+        build.mkdir()
+        (build / 'artifact.bin').write_text('x')
+
+        install = base / 'install'
+        (install / 'bin').mkdir(parents=True)
+        (install / '.punchi-dock-quickshell-install').write_text('')
+        (install / '.punchi-dock-quickshell-files').write_text('bin/tool\n')
+        (install / 'bin/tool').write_text('')
+
+        data = base / 'data'
+        applications = data / 'applications'
+        applications.mkdir(parents=True)
+        launcher = applications / 'punchi-dock-quickshell.desktop'
+        launcher.write_text(f'[Desktop Entry]\nX-Punchi-Install-Root={install}\n')
+        registration = applications / 'org.punchi.Shell.WindowState.desktop'
+        registration.write_text(
+            '[Desktop Entry]\nType=Application\n'
+            'Name=Punchi Dock Quickshell Window State\nNoDisplay=true\n'
+            f'Exec="{install}/build/punchi-window-state"\n'
+            'X-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n')
+
+        config = base / 'config'
+        (config / 'autostart').mkdir(parents=True)
+        (config / 'autostart/punchi-dock-quickshell.desktop').write_text(
+            '[Desktop Entry]\nName=Punchi Dock Quickshell\n'
+            'X-Punchi-Dock-Quickshell-Owned=true\n')
+        preferences = config / 'punchi-dock-quickshell.json'
+        preferences.write_text('{}')
+        legacy = config / 'punchi-shell.json'
+        legacy.write_text('{}')
+
+        runtime = base / 'run'
+        runtime.mkdir()
+        instance = runtime / f'punchi-dock-quickshell-{os.getuid()}'
+        instance.mkdir()
+        (instance / 'instance.lock').write_text('')
+        (instance / 'instance.path').write_text(f'{install}\n')
+
+        fake_bin = base / 'bin'
+        fake_bin.mkdir()
+        sycoca = fake_bin / 'kbuildsycoca6'
+        sycoca.write_text('#!/usr/bin/env bash\nexit 0\n')
+        sycoca.chmod(0o755)
+
+        environment = os.environ.copy()
+        environment.update({
+            'HOME': str(base),
+            'XDG_DATA_HOME': str(data),
+            'XDG_CONFIG_HOME': str(config),
+            'XDG_STATE_HOME': str(base / 'state'),
+            'XDG_RUNTIME_DIR': str(runtime),
+            'PUNCHI_INSTALL_PREFIX': str(install),
+            'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+        })
+        return {
+            'checkout': checkout, 'build': build, 'install': install,
+            'launcher': launcher, 'registration': registration,
+            'preferences': preferences, 'legacy': legacy, 'instance': instance,
+            'environment': environment,
+        }
+
+    def uninstall(paths: dict, mode: str) -> subprocess.CompletedProcess:
+        command = (
+            f'punchi_project_root="{paths["checkout"]}"; '
+            f'source "{paths["checkout"]}/scripts-user/lib/setup-common.sh"; '
+            f'source "{paths["checkout"]}/scripts-user/lib/setup-install.sh"; '
+            f'PUNCHI_ASSUME_YES=1; punchi_uninstall_local {mode}')
+        return subprocess.run(['bash', '-c', command], cwd=paths['checkout'],
+                              env=paths['environment'], stdin=subprocess.DEVNULL,
+                              capture_output=True, text=True, check=False,
+                              timeout=30)
+
+    with tempfile.TemporaryDirectory(prefix='punchi-uninstall-keep-') as temporary:
+        paths = prepare(Path(temporary))
+        result = uninstall(paths, '0 0 0')
+        combined = result.stdout + result.stderr
+        assert result.returncode == 0, combined
+        assert not paths['install'].exists(), combined
+        assert paths['preferences'].exists(), 'The keep mode deleted preferences'
+        assert paths['legacy'].exists(), 'The keep mode deleted the legacy file'
+        assert paths['build'].exists(), 'The keep mode deleted build output'
+        assert not paths['registration'].exists(), \
+            'Uninstall kept the window-state registration'
+        assert not paths['instance'].exists(), 'Uninstall kept the runtime lock'
+
+    with tempfile.TemporaryDirectory(prefix='punchi-uninstall-all-') as temporary:
+        paths = prepare(Path(temporary))
+        result = uninstall(paths, '1 1 1')
+        combined = result.stdout + result.stderr
+        assert result.returncode == 0, combined
+        assert not paths['install'].exists(), combined
+        assert not paths['preferences'].exists(), combined
+        assert not paths['legacy'].exists(), combined
+        assert not paths['build'].exists(), combined
+        assert not paths['launcher'].exists(), combined
+        assert not paths['registration'].exists(), combined
+        assert not paths['instance'].exists(), combined
+        assert (paths['checkout'] / 'scripts-user/lib').is_dir(), \
+            'The clean mode removed the source checkout'
 
 
 def run_in_terminal(command: str, environment: dict,
@@ -806,6 +1072,9 @@ def main() -> int:
     check_qt_tool_resolution(root)
     check_try_requires_checkout(root)
     check_try_flow(root)
+    check_trial_cleanup(root)
+    check_trial_refuses_running_copy(root)
+    check_uninstall_cleanup_modes(root)
     check_presentation(root)
     check_failure_log(root)
     check_build_failure_log(root)

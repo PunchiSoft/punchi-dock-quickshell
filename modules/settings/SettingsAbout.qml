@@ -8,7 +8,7 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     objectName: "settingsAboutContent"
-    readonly property string applicationVersion: "0.1.45"
+    readonly property string applicationVersion: "0.1.46"
     readonly property string repositoryUrl: "https://github.com/PunchiSoft/punchi-dock-quickshell"
     readonly property string helpUrl: repositoryUrl + "/issues"
     property string licenseText: ""

@@ -52,6 +52,11 @@ ShellRoot {
 ''')
         env = os.environ.copy()
         env['PUNCHI_DOCK_MODE'] = 'desktop'
+        # A trial profile keeps this probe away from the developer's own
+        # preferences and proves the profile override is the file it saves.
+        profile = config / 'profile'
+        profile.mkdir()
+        env['PUNCHI_PROFILE_DIR'] = str(profile)
         log_path = config / 'runtime.log'
         with log_path.open('w') as log:
             process = subprocess.Popen(['qs', '--path', str(config), '--no-color'],
@@ -76,6 +81,9 @@ ShellRoot {
                 assert initial['preferences']['panelMode'] == 'dodge-windows', initial
                 assert json.loads(ipc(config, 'update').stdout) is True
                 assert state_when(lambda state: state['ready'])['preferences']['sizePercent'] == 125
+                stored = profile / 'punchi-dock-quickshell.json'
+                assert stored.exists(), log_path.read_text()
+                assert json.loads(stored.read_text())['sizePercent'] == 125, stored.read_text()
                 for count in (2, 3):
                     assert ipc(config, 'reload').returncode == 0
                     state = state_when(lambda state: state['generation'] >= count and state['ready'])
