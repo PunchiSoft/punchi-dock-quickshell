@@ -24,8 +24,9 @@ before selecting tests: a test exists to catch a named regression.
 ## Commands
 
 ```bash
-cmake -S . -B build -G Ninja
-cmake --build build
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset headless
 ctest --test-dir build --output-on-failure
 ctest --test-dir build --output-on-failure -R '^adapter_contract$'
 ```

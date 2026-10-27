@@ -52,6 +52,7 @@ Do not copy the original applet's installation or compatibility claims.
 
 ```bash
 python3 tests/foundation_test.py
+python3 scripts-dev/check-version.py
 rg -n '0\.1\.[0-9]{2}' README.md README.es.md CMakeLists.txt \
    modules/settings/SettingsAbout.qml CHANGELOG.md AGENTS.md docs/versioning.md
 ```

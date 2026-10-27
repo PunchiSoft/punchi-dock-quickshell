@@ -149,7 +149,10 @@ that observe contracts; do not raise baselines or hide new diagnostics.
 
 The actual developer workflow is documented in the local `docs/development.md`.
 After implementation, configure/build the validation graph, run complete CTest,
-then run relevant real-session checks. Lint/type metadata, component behavior,
+then run relevant real-session checks. `cmake --preset dev` and
+`ctest --preset headless` are the compositor-free route; every CTest entry carries
+the `unit`, `qml` or `session` label, and CI runs `scripts-dev/ci-headless.sh` on
+Fedora 44 selecting `unit|qml` only. Lint/type metadata, component behavior,
 real Quickshell loading, visual inspection, and desktop compatibility are separate
 levels of evidence. Never present offscreen success as visual or KWin validation.
 
@@ -157,8 +160,9 @@ Tests own unique temporary XDG data, caches, processes, and sockets. Clean after
 success, failure, signal, and timeout. Session probes isolate their runtime dir
 and connect to the existing compositor without changing desktop configuration.
 
-Public `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `NOTICE.md`, skills and
-tests are tracked. `docs/` is a local development record and is not published
+Public `README.md`, `README.es.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
+`SUPPORT.md`, `CODE_OF_CONDUCT.md`, `NOTICE.md`, skills and tests are tracked.
+`docs/` is a local development record and is not published
 with the repository; private `notes/`, SDK trees, build output, credentials and
 local diagnostics are ignored. New record directories
 have an index and a template when they host a repeatable workflow. Record durable
@@ -190,5 +194,6 @@ or comment-, formatting- and wording-only edits. Keep these commits marked as
 The current delivery is `0.1.45`. The newest delivery heading in `CHANGELOG.md`
 is authoritative for the counter. Before a behavior-changing commit, advance it
 once and update CMake, the About page, README, CHANGELOG and the local
-`docs/versioning.md` record consistently. Keep configuration schema and QML
-module API versions separate from the application delivery version.
+`docs/versioning.md` record consistently; the `project_version` test fails when
+the tracked declarations disagree with that heading. Keep configuration schema
+and QML module API versions separate from the application delivery version.

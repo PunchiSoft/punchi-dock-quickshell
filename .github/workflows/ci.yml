@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  headless:
+    name: headless
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          # The token stays out of .git/config: the workspace is mounted into
+          # the build container, and pull request code must not reach it.
+          persist-credentials: false
+      # The job runs Fedora 44 inside Docker instead of using `container:`
+      # because the runner image has no git for actions/checkout. The script
+      # owns the package list, the preset and the label filter.
+      - name: Build and test the headless graph
+        run: >-
+          docker run --rm --volume "$PWD:/src" --workdir /src fedora:44
+          bash scripts-dev/ci-headless.sh

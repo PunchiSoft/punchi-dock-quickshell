@@ -20,7 +20,11 @@
 *.qsb
 __pycache__/
 *.py[cod]
+.cache/
+.ruff_cache/
+.pytest_cache/
 /.idea/
-/.vscode/
+CMakeUserPresets.json
+compile_commands.json
 .DS_Store
 # Keep public docs, skills, tests, and future Cargo.lock tracked.

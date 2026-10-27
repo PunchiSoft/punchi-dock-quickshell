@@ -1,0 +1,9 @@
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+# Correctness rules only: import errors, runtime and syntax errors, comparison
+# and membership mistakes, undefined names and exports. Style rules are not
+# selected because the reviewed test and tooling scripts predate this config.
+select = ["E4", "E9", "E711", "E712", "E713", "E714", "E721", "F63", "F7", "F82"]

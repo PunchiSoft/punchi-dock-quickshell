@@ -34,7 +34,8 @@ termina con un error explícito.
 de entrega avanza el contador una vez; consulta el [changelog](CHANGELOG.md).
 Los límites de compatibilidad y validación se describen más abajo.
 
-[Atribución](NOTICE.md) · [Licencia](LICENSE) · [Changelog](CHANGELOG.md) · [Seguridad](SECURITY.md)
+[Atribución](NOTICE.md) · [Licencia](LICENSE) · [Changelog](CHANGELOG.md) ·
+[Seguridad](SECURITY.md) · [Contribución](CONTRIBUTING.md) · [Soporte](SUPPORT.md)
 
 El flujo de trabajo desde el checkout es la instalación de desarrollo soportada.
 El 2026-10-20, el asistente y la suite de pruebas se validaron en Fedora 44 con
@@ -479,8 +480,20 @@ actual y las carencias conocidas.
 
 Esta configuración QML se ejecuta en Quickshell. CMake compila los adaptadores
 nativos de KDE y organiza la validación. Consulta [AGENTS.md](AGENTS.md) para las
-reglas del proyecto. Después de configurar el proyecto, ejecuta el grafo completo
-de validación con:
+reglas del proyecto y [CONTRIBUTING.md](CONTRIBUTING.md) para el flujo de ramas y
+evidencia. Configura y compila con el preset compartido, y ejecuta el grafo sin
+compositor:
+
+```bash
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset headless
+```
+
+`ctest --preset headless` ejecuta las etiquetas `unit` y `qml` sin sesión gráfica;
+GitHub Actions ejecuta el mismo script, `scripts-dev/ci-headless.sh`, en Fedora 44.
+El grafo completo añade la etiqueta `session`, que necesita una sesión activa de
+KDE Plasma/KWin en Wayland:
 
 ```bash
 ctest --test-dir build --output-on-failure

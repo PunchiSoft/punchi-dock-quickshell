@@ -320,6 +320,8 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/window_capability_test.py)
     add_test(NAME project_foundation COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/foundation_test.py)
+    add_test(NAME project_version COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/check-version.py)
     add_test(NAME user_setup_scripts COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
     add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
@@ -329,6 +331,54 @@ if(BUILD_TESTING)
     set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime running_state running_marker_runtime settings_reload window_capability project_foundation user_setup_scripts autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
+
+    # `unit` and `qml` run without a compositor; `session` needs a live
+    # Plasma/KWin Wayland session and is never selected by CI.
+    set(PUNCHI_QML_TESTS qml_lint dock_components folder_container)
+    set(PUNCHI_UNIT_TESTS
+        folder_contents
+        trash_state
+        update_state
+        task_identity
+        dock_applications
+        recent_applications_model
+        icon_theme_catalog
+        recent_applications_tracking
+        autohide_edge
+        adapter_contract
+        application_media
+        window_activation
+        kwin_minimize_effect
+        window_models
+        running_state
+        recent_documents
+        application_items
+        window_capability
+        project_foundation
+        project_version
+        user_setup_scripts
+        user_setup_install
+        cmake_install
+    )
+    set(PUNCHI_SESSION_TESTS
+        autostart_runtime
+        icon_theme_runtime
+        vertical_dock_runtime
+        tooltip_theme_runtime
+        trash_runtime
+        window_activation_runtime
+        running_marker_runtime
+        window_dodge_runtime
+        application_launch
+        popup_runtime
+        places_runtime
+        settings_theme
+        configuration_runtime
+        settings_reload
+    )
+    set_tests_properties(${PUNCHI_QML_TESTS} PROPERTIES LABELS qml)
+    set_tests_properties(${PUNCHI_UNIT_TESTS} PROPERTIES LABELS unit)
+    set_tests_properties(${PUNCHI_SESSION_TESTS} PROPERTIES LABELS session)
 endif()
 
 set(CPACK_PACKAGE_NAME "punchi-dock-quickshell")
