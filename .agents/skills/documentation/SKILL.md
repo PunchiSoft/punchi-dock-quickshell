@@ -40,9 +40,10 @@ Do not copy the original applet's installation or compatibility claims.
   works locally and breaks for every reader of the repository.
 - `README.md` and `README.es.md` have no generator. A change to one is
   incomplete until the other matches.
-- The delivery version appears in `CMakeLists.txt`,
+- The release version appears in `CMakeLists.txt`,
   `modules/settings/SettingsAbout.qml`, both READMEs, `CHANGELOG.md`, `AGENTS.md`
-  and `docs/versioning.md`. Updating only the changelog leaves six stale claims.
+  and `docs/versioning.md`. Updating only one declaration leaves the others
+  stale.
 - `tests/foundation_test.py` proves links resolve and headings are well formed,
   not that the text is true.
 - A new `docs/` subdirectory needs an index `README.md`, and a repeatable

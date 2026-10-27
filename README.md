@@ -20,18 +20,28 @@
 > stable release, package, support commitment or compatibility guarantee yet.
 
 Punchi Dock Quickshell combines animated magnification, configurable application
-launchers, KDE context actions, and persistent preferences. It runs alongside
-Plasma through reversible start and stop scripts.
+launchers, KDE context actions and media transport, a settings window and
+persistent preferences. It runs alongside Plasma through reversible start and
+stop scripts.
+
+It was born from the limits of
+[Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
+the original project and the Plasma applet that is its base. An applet lives
+inside a Plasma panel and inherits the host's surface, edge and window behavior,
+so the dock cannot have its own Wayland surface, choose its edge behavior in the
+compositor, or keep a lifespan and input model independent from Plasma. This
+project keeps that dock's visual language, magnification and launch feedback,
+and rebuilds its launching, activation and compositor behavior as a standalone
+Quickshell application with native KDE adapters.
 
 **KDE Plasma/KWin is required.** Punchi Dock Quickshell is not a GNOME, XFCE,
 Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.47**. The first Git snapshot was published as
-`0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
-delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
-Compatibility and validation limits are documented below.
+**Current version:** **0.1.47**. The [changelog](CHANGELOG.md) records the
+delivered changes and their validation. Compatibility and validation limits are
+documented below.
 
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) ·
 [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Support](SUPPORT.md)
@@ -46,22 +56,46 @@ validation.
 
 - Continuous hover magnification, themed tooltips, an expanding background and
   two-hop launch feedback, with reduced motion support.
+- Bottom, left or right placement. The magnification wave, tooltips, context
+  menus, arrow-key navigation, running indicators and the native auto-hide edge
+  follow the selected edge, side popups open inward and icons stay upright.
 - Configurable pinned applications: discover and search installed applications
   through KDE, add or reorder launchers, and save preferences. Eight preset
-  launchers provide the initial configuration.
+  application launchers plus the Downloads container and Trash form the initial
+  configuration.
 - Native application launching through KService and KIO, with Wayland activation
   integration. Normal clicks activate an existing KDE window or minimize an
   eligible active window before considering a launch; activation remains
   limited to the validated environment described below.
 - Startup launch coordination, window cycling, known running unpinned applications
   and middle-click New Window through KDE.
-- Launcher context menus with KDE desktop actions, recent documents, unpinning
-  and KDE Places navigation for eligible file-manager launchers.
-- Dock settings for icon size, magnification, bounce, reduced motion and
-  visibility: Always visible, Hide automatically, Dodge windows or Windows go below.
+- Launcher context menus with KDE desktop actions, recent documents, unpinning,
+  window actions such as Move to Desktop, Maximize and Fullscreen, and KDE
+  Places navigation for eligible file-manager launchers.
+- Media transport for the matching KDE MPRIS player: Previous Track, Play/Pause,
+  Next Track and Stop appear only while a player exists, follow its live
+  capabilities and close the menu after dispatch. The private Plasma MPRIS
+  provider is isolated in one adapter.
+- A Trash item backed by native KDE state. Left-click opens the Trash; its
+  context menu offers **Open** and **Empty Trash** behind one themed
+  confirmation, the destructive action stays disabled while the Trash is empty,
+  unavailable or busy, and KDE supplies a fresh listing after the job instead of
+  an assumed empty result.
+- Dock settings for icon size, magnification, bounce, reduced motion, position
+  and visibility: Always visible, Hide automatically, Dodge windows or Windows
+  go below.
 - Popup settings for size, height and icon size in their own **Popups**
   category, applied to the folder containers. The grid, the list/detail rows and
   the fan keep independent glyph sizes.
+- Settings organized as **Items**, **General**, **Popups** and **About**, with
+  **Reset defaults** and pending edits through Apply, Accept and Close.
+  **About** shows the application version, website and issue links, license,
+  authors and the **Made with love** dedication.
+- An optional KWin minimize effect selected from the dock context menu. Only
+  KWin's `exclusiveGroup=minimize` keys are written, their original presence and
+  values are recorded before the first write, and they are restored on clean
+  exit or by `scripts-user/restore-kde.sh`; a key changed outside the dock is
+  left untouched.
 - An update badge on the Discover launcher while the machine has pending updates.
   The count is read only from PackageKit, fwupd and Flatpak through their native
   interfaces, so the dock never asks Discover, never installs anything, never
@@ -82,14 +116,19 @@ validation.
   Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
   sign-in; an entry owned by another tool is never overwritten or deleted. The
   switch is unavailable during a trial run, whose profile Plasma never loads.
-
 - Optional **recent applications** from KDE activity history, shown as extra
   dock launchers with a configurable count. Pinned applications and
   applications with open windows are excluded. Dock settings include a switch
   that writes KDE's remember-applications preference and a shortcut to KDE's
   Recent Files options; when KDE saves no application history a short note
   explains how to enable it.
-- Keyboard navigation and pending settings edits through Apply, Accept and Close.
+- Keyboard navigation for the dock, its context menus and the settings window.
+- Item editors that choose a theme icon for any pinned application or folder
+  container and store it by name, falling back to the item's own icon.
+- Folder containers for any local folder: Grid, List, Detail and Fan
+  presentations, per-container sorting, subfolder browsing and a hidden-entry
+  list. A side dock presents a stored fan as Grid because the arc needs a top or
+  bottom edge.
 - Downloads with Grid, List, Detail and Fan folder views, navigation inside a themed
   balloon, and native KDE file opening. Every presentation ends with an **Open**
   row and marks browsable folders with a chevron; a right-click on an entry
@@ -115,8 +154,8 @@ an application-launcher surface and additional controls remain future work.
   translation.
 - Source and CMake prefix installs only; no RPM/DEB packages, tags or release
   binaries.
-- Window activation, KWin cursor feedback and multi-monitor behavior still need
-  broader real-session validation.
+- Window activation, media transport, KWin cursor feedback and multi-monitor
+  behavior still need broader real-session validation.
 
 ## Install, run and return to KDE
 
@@ -338,7 +377,7 @@ Without a saved file, the application uses the defaults in
 
 | Setting | Current first-run default |
 |---|---|
-| Surface | Bottom dock; no custom top bar yet |
+| Surface | Bottom dock by default; Bottom, Left or Right; no custom top bar yet |
 | Pinned items, in order | Dolphin, Konsole, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
@@ -350,13 +389,14 @@ Without a saved file, the application uses the defaults in
 These are prototype defaults, not a guarantee that every preset application is
 installed. Changing settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
-mode. The current file format is version 10 and accepts versions 1 to 9 through
+mode. The current file format is version 11 and accepts versions 1 to 10 through
 migration. Version 7 adds the recent-applications switch and visible count,
 version 8 stores the icon chosen for a pinned application, version 9 the
-folder entries a container keeps out of its popup, and version 10 the popup
-size, height and icon size; missing fields in older profiles default to
-enabled, five applications, the application icon, an unfiltered folder listing
-and the reference popup proportions.
+folder entries a container keeps out of its popup, version 10 the popup size,
+height and icon size, and version 11 separate grid, list/detail and fan glyph
+sizes; missing fields in older profiles default to enabled, five applications,
+the application icon, an unfiltered folder listing, the reference popup
+proportions and the theme's glyph sizes.
 
 ## Installation and sharing
 
@@ -460,10 +500,11 @@ Qt-update issues with some package builds in its
 [installation guide](https://quickshell.org/docs/v0.2.1/guide/install-setup/).
 
 One current dependency needing particular attention is
-`org.kde.plasma.private.mpris`, an internal Plasma module used for media controls.
-Window/task integrations and KDE screen-edge behavior also need testing against
-the target Plasma/KWin version. Prefer public APIs, keep internal integrations
-isolated, and provide graceful unavailability where a capability can be optional.
+`org.kde.plasma.private.mpris`, the internal Plasma module behind the context
+menu's media transport. Window/task integrations and KDE screen-edge behavior
+also need testing against the target Plasma/KWin version. Prefer public APIs,
+keep internal integrations isolated, and provide graceful unavailability where
+a capability can be optional.
 Rebuilding can address a binary mismatch; changed API contracts require code
 adaptation and regression checks.
 
@@ -511,11 +552,13 @@ ctest --test-dir build --output-on-failure
 | Directory | Responsibility |
 |---|---|
 | `shell.qml` | Compose shell modules |
-| `modules/dock/` | Dock window and view |
+| `modules/dock/` | Dock window, view, context menus and Trash confirmation |
+| `modules/folders/` | Folder container popups, layouts and navigation |
+| `modules/settings/` | Settings window, categories and item editors |
 | `components/` | Shared visual interaction primitives |
 | `services/` | Model data and coordination |
 | `config/` | Reactive settings and shared metrics |
-| `adapters/kde/` | KDE motion preferences and native application launching |
+| `adapters/kde/` | KDE adapters for launching, media, updates, Trash, motion and window state |
 | `tests/` | Component, foundation, and real-session checks |
 | `.agents/skills/` | Repository-scoped development workflows |
 
@@ -530,11 +573,22 @@ remains responsible for all changes, validation and published content.
 
 ## Origins and attribution
 
-The project draws on [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered)
-and takes architectural and visual inspiration from
+The base of this project is [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
+the Plasma applet whose dock, item model, motion and interaction this port
+rebuilds. It also takes architectural and visual inspiration from
 [Caelestia Shell](https://github.com/caelestia-dots/shell), while implementing
 desktop integration for KDE/KWin. See [NOTICE.md](NOTICE.md) for reused code,
 assets and attribution.
+
+## Made with love
+
+Made with love, for the community. A native port of the [Punchi Dock
+Remastered](https://github.com/PunchiSoft/punchi-dock-remastered) plasmoid,
+built to go past what a plasmoid can do in KDE Plasma. Some say docks went out
+of fashion, like the punchi punchi; only Windows forgot about them, and Linux
+never will.
+
+**Linux for everyone!**
 
 ## License
 

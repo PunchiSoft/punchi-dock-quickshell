@@ -27,8 +27,8 @@
 
 - Target `main` from a `feat/`, `fix/`, `docs/` or `chore/` branch. See
   [CONTRIBUTING.md](../CONTRIBUTING.md).
-- A behavior change advances the delivery counter once; do not edit
-  `CHANGELOG.md` without the matching declarations.
+- A behavior change adds an entry under `## Unreleased`; a version and its
+  declarations change only when a release is prepared.
 - Remove personal paths, usernames, tokens, logs and private file contents.
 - Never open a public issue or pull request for a security problem; use
   [SECURITY.md](../SECURITY.md).

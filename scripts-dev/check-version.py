@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Verify every delivery-version declaration against the newest CHANGELOG entry."""
+"""Verify every release-version declaration against the newest dated CHANGELOG entry."""
 
 from pathlib import Path
 import re
@@ -18,21 +18,21 @@ def capture(pattern):
 
 
 def table_row(text, expected):
-    # The local versioning record keeps one row per historical delivery.
+    # The local record keeps one row per historical release.
     return expected if re.search(rf'^\| {re.escape(expected)} \|', text, re.M) else None
 
 
-# Every declaration is the authoritative counter mirrored somewhere else. The
-# local record is optional so the check also runs on a checkout without docs/.
+# Every declaration mirrors the authoritative released version. The local
+# record is optional so the check also runs on a checkout without docs/.
 DECLARATIONS = (
     ('CMakeLists.txt',
      capture(re.compile(rf'project\(punchi-dock-quickshell VERSION ({VERSION})')), True),
     ('README.md',
-     capture(re.compile(rf'\*\*Current delivery:\*\* \*\*({VERSION})\*\*')), True),
+     capture(re.compile(rf'\*\*Current version:\*\* \*\*({VERSION})\*\*')), True),
     ('README.es.md',
-     capture(re.compile(rf'\*\*Entrega actual:\*\* \*\*({VERSION})\*\*')), True),
+     capture(re.compile(rf'\*\*Versión actual:\*\* \*\*({VERSION})\*\*')), True),
     ('AGENTS.md',
-     capture(re.compile(rf'The current delivery is `({VERSION})`')), True),
+     capture(re.compile(rf'The latest released version is `({VERSION})`')), True),
     ('modules/settings/SettingsAbout.qml',
      capture(re.compile(rf'applicationVersion: "({VERSION})"')), True),
     ('tests/runtime/application-items/tst_settings_window.qml',
@@ -45,15 +45,15 @@ def main():
     root = Path(__file__).resolve().parents[1]
     changelog = root / 'CHANGELOG.md'
     if not changelog.is_file():
-        print('CHANGELOG.md is missing; the delivery version cannot be verified.',
+        print('CHANGELOG.md is missing; the release version cannot be verified.',
               file=sys.stderr)
         return 1
-    delivery = CHANGELOG_HEADING.search(changelog.read_text())
-    if delivery is None:
-        print('CHANGELOG.md has no "## <version> — <date>" delivery heading.',
+    release = CHANGELOG_HEADING.search(changelog.read_text())
+    if release is None:
+        print('CHANGELOG.md has no "## <version> — <date>" release heading.',
               file=sys.stderr)
         return 1
-    expected = delivery[1]
+    expected = release[1]
 
     failures = []
     checked = 0
@@ -71,12 +71,12 @@ def main():
             failures.append(f'{relative}: declared {found}, expected {expected}')
 
     if failures:
-        print(f'Delivery version {expected} is inconsistent:', file=sys.stderr)
+        print(f'Release version {expected} is inconsistent:', file=sys.stderr)
         for failure in failures:
             print(f'  {failure}', file=sys.stderr)
         return 1
 
-    print(f'Delivery version: {expected} declared consistently in {checked} files.')
+    print(f'Release version: {expected} declared consistently in {checked} files.')
     return 0
 
 

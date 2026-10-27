@@ -31,6 +31,6 @@ checkout; `kde-sdk/` is optional local evidence and is not bundled here.
 ## Delivery
 
 A correction delivers like a feature: one `fix/<descriptor>` branch created from
-updated `main`, its commit and delivery version from `commit-push-versioning`,
-and the delivery pull request from `pr-delivery`. Merging still needs its own
-request.
+updated `main`, its commit from `commit-push-versioning`, and the pull request
+from `pr-delivery`. If the branch prepares a release, `commit-push-versioning`
+also updates the version declarations. Merging still needs its own request.

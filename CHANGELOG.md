@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Adopt release-based versioning. Pending changes accumulate here; a release
+  moves them under a dated heading and advances the version once. Documentation,
+  tests, CI and repository metadata alone do not change the version.
+- Update both READMEs to the current feature set, state that Punchi Dock
+  Remastered is the project's base, and add the **Made with love** dedication.
+
 ## 0.1.47 — 2026-10-27
 
 - Add a **Made with love** section to the About page. It states that this is a
