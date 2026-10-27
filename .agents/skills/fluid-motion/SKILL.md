@@ -1,13 +1,16 @@
 ---
 name: fluid-motion
-description: Choose and implement the Qt Quick animation mechanism for Punchi Dock Quickshell, keeping velocity continuous, state reversibility and cursor-bound magnification intact; use when writing or correcting one concrete animation, not for deciding what to animate or auditing existing motion.
+description: Choose and implement the Qt Quick animation mechanism, keeping velocity continuous, state reversible and magnification bound to the cursor. Use when writing or correcting one concrete animation, not for deciding what to animate or auditing existing motion.
+license: GPL-3.0-or-later
+metadata:
+  source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
 ---
 
 # Fluid motion in Qt Quick
 
 Convert a state change or continuous input into continuous, interruptible,
 reversible motion with Qt Quick's animation system instead of imperative logic.
-Read [the shared doctrine](references/motion-doctrine.md) first; it is not
+Read [the shared doctrine](../references/motion-doctrine.md) first; it is not
 repeated here.
 
 ## Coordination

@@ -1,6 +1,7 @@
 ---
 name: pr-delivery
-description: Open, verify, and close the delivery pull request for an approved branch, with a commit-derived title, a structured English body, real validation evidence, and rebase-only conflict handling.
+description: Open, verify, and close the delivery pull request for an approved branch, with a commit-derived title, a structured English body, real validation evidence, and rebase-only conflict handling. Use when the user asks to open, publish, update, or check a pull request.
+license: GPL-3.0-or-later
 ---
 
 # Pull request delivery
@@ -20,6 +21,8 @@ request.
 - The evidence exists: focused checks, complete CTest, and any real-session check
   actually performed. Never present offscreen, static, or lint results as dock or
   desktop validation.
+- `verification-before-completion` settled which evidence levels were actually
+  executed; the body reports those and names what was not executed.
 - `git status` contains no unrelated or ignored material, the branch is pushed to
   the requested remote, and its head matches the commit that was reviewed.
 

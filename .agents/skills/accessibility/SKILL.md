@@ -1,12 +1,27 @@
 ---
 name: accessibility
-description: Implement or audit QML keyboard navigation, accessible semantics, focus continuity, scaling, and reduced motion.
+description: Implement or audit QML keyboard navigation, accessible names, focus continuity, scaling, and reduced motion in dock views. Use when adding or reviewing an interactive surface, a focus path, or an accessibility claim.
+license: GPL-3.0-or-later
 ---
 
 # Accessible interaction
 
-Inventory interactive controls and the complete keyboard path for the affected
-view. Prefer controls with built-in roles and states.
+A surface is accessible when the whole path works without a pointer: discover,
+focus, activate, escape, and an announcement that matches what is drawn.
+
+## Procedure
+
+1. List every interactive control in the affected view and the role it exposes.
+2. Write the keyboard path in order: initial focus, traversal, arrow keys,
+   Enter or Space, Escape, and where focus returns.
+3. Give each control a name that survives icon-only rendering.
+4. Apply one primary emphasis rule across selection, focus, and hover.
+5. Replace the model while an item is focused and confirm focus continuity.
+6. Check text scaling, target size, high contrast, and reduced motion.
+7. Separate static semantics from executed keyboard and assistive-technology
+   evidence in the report.
+
+## Rules
 
 - Preserve visible focus and meaningful names independent of icons or color.
 - Selection, focus and hover must not produce competing emphasis. A list shows
@@ -18,5 +33,28 @@ view. Prefer controls with built-in roles and states.
 - Modal Tab/Shift+Tab stays in the modal; ordinary windows retain normal traversal.
 - Check text expansion, scaling, themes, target size, and reduced motion.
 
-Report keyboard and screen-reader execution separately from static semantics.
-Do not claim assistive-technology compatibility without a real check.
+## Gotchas
+
+- A custom `Rectangle` delegate with a `MouseArea` exposes `Accessible.NoRole`,
+  so assistive clients cannot reach it. Prefer `ItemDelegate` or `Button`, which
+  already publish role, name, and activation.
+- A `Keys.onPressed` handler that accepts the event consumes Space or Enter
+  before the control activates. Observe without accepting, or do not add one.
+- `forceActiveFocus()` in a hover handler moves focus for keyboard users. Hover
+  may change emphasis only.
+- Replacing the model resets the current index unless it is restored explicitly.
+- `closePolicy: Popup.NoAutoClose` stops Escape from closing a popup; that
+  surface then needs its own handler and explicit focus restoration.
+- Reduced motion must reach the same final state. Removing a `Behavior` is not
+  enough if the state was only ever applied by the animation.
+
+## Validation
+
+```bash
+ctest --test-dir build --output-on-failure -R 'dock_components|qml_lint'
+```
+
+- Walk the path with the pointer untouched; every action stays reachable.
+- Open and close a popup twice: focus returns to the control that opened it.
+- Report keyboard execution separately from static semantics. Do not claim
+  assistive-technology compatibility without a real check.

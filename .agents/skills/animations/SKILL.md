@@ -1,6 +1,9 @@
 ---
 name: animations
-description: Decide what moves in Punchi Dock Quickshell, classify each transition, and keep dock magnification, popup hover, press feedback and closing surfaces coherent with reduced motion and per-frame cost.
+description: Decide what moves in Punchi Dock Quickshell, classify each transition, and keep dock magnification, popup hover, press feedback and closing surfaces coherent. Use when adding or judging a transition, a hover effect, or an opening and closing surface.
+license: GPL-3.0-or-later
+metadata:
+  source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
 ---
 
 # Motion policy
@@ -50,7 +53,7 @@ Classify the animation:
 When a launcher, button, or action opens a nearby menu or selector, treat control
 and result as one interaction: the surface is revealed from the activation point
 and affected neighbours yield space legibly; closing returns space and focus to
-the origin. See [the shared doctrine](../fluid-motion/references/motion-doctrine.md).
+the origin. See [the shared doctrine](../references/motion-doctrine.md).
 
 - Rest is visually calm; the first visible change answers input without delay.
 - Shape, position, clipping, and appearance of one expansion move together and

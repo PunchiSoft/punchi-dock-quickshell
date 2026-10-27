@@ -1,6 +1,7 @@
 ---
 name: modification-cycle
-description: Record and implement a new feature in small reviewable stages with explicit scope, module ownership, validation, future decisions, and a delivery branch created from updated main.
+description: Record and implement a feature in small reviewable stages with explicit scope, module ownership, validation, and future decisions on a branch created from updated main. Use when starting a new feature or a multi-commit change.
+license: GPL-3.0-or-later
 ---
 
 # Feature stages
@@ -12,6 +13,9 @@ Record context, request, included/excluded scope, risks, sequential plan,
 implementation, validation, and next decisions. For substantial later changes,
 use ignored `notes/changes/change-YYYY-MM-DD-descriptor.md`; create its index and
 template when first needed. Stage boundaries live in the local `docs/roadmap.md`.
+
+Start from `requirements-capture` when the scope or the acceptance criteria are
+not already explicit in the request.
 
 Proceed with already authorized work; ask only for missing decisions that affect
 the result. Apply domain skills when their implementation stage begins.

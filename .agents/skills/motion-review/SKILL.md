@@ -1,6 +1,9 @@
 ---
 name: motion-review
-description: Audit existing Punchi Dock Quickshell motion without changing code, locate animations and effects, classify each finding with the MOTION catalog, and report file, line, component, symptom, cause, class, recommendation, risk, cost, and priority.
+description: Audit existing motion without changing code, locate animations and effects, classify each finding with the MOTION catalog, and report file, line, component, symptom, cause, class, recommendation, risk, cost, and priority. Use when asked to review motion or diagnose an inconsistent animation.
+license: GPL-3.0-or-later
+metadata:
+  source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
 ---
 
 # Motion audit

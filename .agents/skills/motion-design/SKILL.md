@@ -1,6 +1,9 @@
 ---
 name: motion-design
-description: Coordinate interaction policy and motion for Punchi Dock Quickshell when UX and animation must be resolved together, covering repeated navigation, input bursts, retargeting, hover competing with selection, and interruptible transitions; not for an isolated visual animation.
+description: Resolve interaction policy and animation as one system, covering repeated navigation, input bursts, retargeting, hover competing with selection, and interruptible transitions. Use when input behavior and motion must be fixed together, not for an isolated visual animation.
+license: GPL-3.0-or-later
+metadata:
+  source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
 ---
 
 # Coordinated UX and motion design

@@ -1,9 +1,10 @@
 ---
 name: quickshell-development
-description: Develop Quickshell QML modules or diagnose their editor setup using official version-matched guidance, installed metadata, and reload lifecycle; keep KDE integration in its domain adapters.
+description: Develop Quickshell QML modules or diagnose their editor setup using version-matched guidance, installed metadata, and the reload lifecycle, keeping KDE integration in domain adapters. Use when writing Quickshell-specific QML or when the editor and the runtime disagree.
+license: GPL-3.0-or-later
 ---
 
-# Quickshell Development
+# Quickshell development
 
 ## Official references and version selection
 

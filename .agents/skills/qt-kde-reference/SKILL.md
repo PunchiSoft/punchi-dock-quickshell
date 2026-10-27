@@ -1,6 +1,7 @@
 ---
 name: qt-kde-reference
-description: Verify Qt, Kirigami, KDE, compositor, and optional native adapter API behavior and version availability, including Plasma 6.8 capabilities.
+description: Verify Qt, Kirigami, KDE, compositor, and native adapter API behavior and version availability, including Plasma capabilities. Use when a symbol, signal, or property is new, unfamiliar, or version-sensitive and must be confirmed before relying on it.
+license: GPL-3.0-or-later
 ---
 
 # API evidence

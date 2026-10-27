@@ -1,6 +1,7 @@
 ---
 name: commit-push-versioning
-description: Prepare an authorized commit and push, deciding the application version from the latest CHANGELOG delivery, reviewing the exact staged content, and handing the branch to pr-delivery.
+description: Prepare an authorized commit and push, decide the delivery version from the latest CHANGELOG delivery, review the exact staged content, and hand the branch to pr-delivery. Use when the user asks to commit, push, or both.
+license: GPL-3.0-or-later
 ---
 
 # Commit and push
@@ -52,7 +53,8 @@ unchanged and do not add a delivery entry just to create a version bump.
 1. Inspect `git status`, branch/upstream, and staged, unstaged, and untracked
    changes. Preserve existing work; never reset, clean, or discard user changes.
    Stop if the current branch is `main` and create the delivery branch first.
-2. Identify the intended commit scope and review its full diff. Do not include
+2. Identify the intended commit scope and review its full diff, using
+   `code-review` when it spans several files or changes behavior. Do not include
    ignored build output, credentials, private notes, diagnostics, or unrelated
    changes. Ask only if mixed changes cannot be safely separated.
 3. Run the focused checks required by the changed behavior, then the repository's

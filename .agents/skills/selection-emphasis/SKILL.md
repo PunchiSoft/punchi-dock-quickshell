@@ -1,6 +1,7 @@
 ---
 name: selection-emphasis
-description: Prevent competing selection and hover fills in QML lists, sidebars, and delegates while preserving keyboard focus and the active Plasma/Kirigami theme.
+description: Prevent competing selection and hover fills in QML lists, sidebars, and delegates while preserving keyboard focus and the active Plasma or Kirigami theme. Use when a list, grid, tab, or sidebar shows a current item that also reacts to the pointer.
+license: GPL-3.0-or-later
 ---
 
 # Selection emphasis

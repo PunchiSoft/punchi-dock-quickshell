@@ -1,6 +1,7 @@
 ---
 name: publication-review
-description: Audit repository content, history, identity, documentation and GitHub settings before changing visibility or creating a public mirror.
+description: Audit repository content, history, identity, documentation, and GitHub settings before changing visibility or creating a public mirror. Use when a repository might become public or a clean history might be published.
+license: GPL-3.0-or-later
 ---
 
 # Publication review
