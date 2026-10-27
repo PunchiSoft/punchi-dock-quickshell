@@ -1,0 +1,72 @@
+name: Feature request
+description: Propose a behavior, integration or surface for Punchi Dock Quickshell.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This project is alpha software for KDE Plasma/KWin on Wayland. Read the
+        README and its Known limitations before proposing a surface. Report
+        security problems through SECURITY.md instead.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is hard or impossible today? Describe the behavior you observe.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: What should the dock do instead? Describe the observable result.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Native Plasma or KWin behavior, an existing Quickshell provider, or doing nothing.
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Dock launchers and magnification
+        - Popups and folder contents
+        - Settings
+        - Window and task integration
+        - Update badge
+        - Setup, installation and KDE restoration
+        - Documentation or repository tooling
+    validations:
+      required: true
+  - type: input
+    id: distribution
+    attributes:
+      label: Distribution and version
+      placeholder: Fedora 44
+    validations:
+      required: true
+  - type: input
+    id: plasma
+    attributes:
+      label: KDE Plasma and KWin versions
+      placeholder: Plasma 6.7.5, KWin 6.7.5
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I read the README and its Known limitations.
+          required: true
+        - label: I searched existing issues and pull requests.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

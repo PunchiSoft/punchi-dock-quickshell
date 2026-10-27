@@ -33,7 +33,8 @@ error.
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
 
-[Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md)
+[Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) ·
+[Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Support](SUPPORT.md)
 
 The source-checkout workflow below is the supported development installation.
 On 2026-10-20, the automated setup and test suite were validated on Fedora 44
@@ -470,8 +471,20 @@ validation scope and known gaps.
 ## Development
 
 This QML configuration runs in Quickshell. CMake builds the native KDE adapters
-and organizes validation. See [AGENTS.md](AGENTS.md) for project rules. After
-configuring the project, run the complete validation graph with:
+and organizes validation. See [AGENTS.md](AGENTS.md) for project rules and
+[CONTRIBUTING.md](CONTRIBUTING.md) for the branch and evidence workflow. Configure
+and build with the shared preset, then run the compositor-free graph:
+
+```bash
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset headless
+```
+
+`ctest --preset headless` runs the `unit` and `qml` labels without a graphical
+session; GitHub Actions runs the same script, `scripts-dev/ci-headless.sh`, on
+Fedora 44. The complete graph adds the `session` label, which needs a live KDE
+Plasma/KWin Wayland session:
 
 ```bash
 ctest --test-dir build --output-on-failure

@@ -1,0 +1,16 @@
+# Matches the existing native sources closely. Formatting is not enforced in CI:
+# the file records the intended style so new code converges without a mass
+# reformat of reviewed code.
+BasedOnStyle: WebKit
+Language: Cpp
+Standard: c++17
+IndentWidth: 4
+ContinuationIndentWidth: 4
+ColumnLimit: 100
+PointerAlignment: Right
+DerivePointerAlignment: false
+IncludeBlocks: Preserve
+SortIncludes: Never
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: WithoutElse
+NamespaceIndentation: None
