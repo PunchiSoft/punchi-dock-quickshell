@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QSet>
 #include <QStringList>
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
@@ -18,6 +19,9 @@ class UpdateState : public QObject
     QML_ELEMENT
     Q_PROPERTY(State state READ state NOTIFY changed)
     Q_PROPERTY(bool checking READ checking NOTIFY changed)
+    // True while PackageKit applies updates, and until the re-check that follows
+    // them settles, so the view never paints the pre-install count again.
+    Q_PROPERTY(bool updating READ updating NOTIFY changed)
     Q_PROPERTY(int revision READ revision NOTIFY changed)
     Q_PROPERTY(int count READ count NOTIFY changed)
     Q_PROPERTY(int securityCount READ securityCount NOTIFY changed)
@@ -42,6 +46,7 @@ public:
 
     State state() const { return m_state; }
     bool checking() const { return m_state == Checking; }
+    bool updating() const { return !m_updateTransactions.isEmpty() || m_updateSettling; }
     int revision() const { return m_revision; }
     int count() const { return m_systemCount + m_flatpakCount + m_firmwareCount; }
     int securityCount() const { return m_securityCount; }
@@ -58,6 +63,7 @@ public:
     // Pure helpers, exercised by the native test without a live bus.
     static QStringList updatableDeviceIds(const QVariantList &devices);
     static bool isSecurityInfo(uint info);
+    static bool isUpdateRole(uint role);
     static int countFlatpakUpdates(const QString &output);
 
 signals:
@@ -65,6 +71,7 @@ signals:
 
 private slots:
     void scheduleRefresh();
+    void transactionListChanged(const QStringList &transactions);
     void packageReceived(uint info, const QString &packageId, const QString &summary);
     void packageKitFinished(uint exit, uint runtime);
     void packageKitError(uint code, const QString &details);
@@ -81,6 +88,8 @@ private:
     void abortPending();
     void cancelTransaction();
     void commit();
+    void trackTransactionRole(const QString &path);
+    void syncTransactions();
 
     State m_state = Unknown;
     int m_revision = 0;
@@ -97,6 +106,11 @@ private:
     bool m_flatpakOk = false;
     bool m_firmwarePending = false;
     bool m_firmwareOk = false;
+    bool m_updateSettling = false;
+    bool m_settleCheck = false;
+    bool m_refreshPending = false;
+    QSet<QString> m_activeTransactions;
+    QSet<QString> m_updateTransactions;
     QString m_transactionPath;
     QString m_backendName;
     QPointer<QProcess> m_flatpak;

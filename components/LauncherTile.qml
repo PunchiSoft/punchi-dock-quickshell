@@ -20,6 +20,7 @@ ToolButton {
     property bool running: false
     property int updateCount: 0
     property int updateSecurityCount: 0
+    property bool updateApplying: false
     property bool tooltipsEnabled: true
     readonly property DockMetrics metrics: DockMetrics {}
     property int itemSize: metrics.itemSize
@@ -83,7 +84,8 @@ ToolButton {
     Accessible.description: {
         const parts = []
         if (root.running) parts.push(qsTr("Running"))
-        if (root.updateCount > 0) parts.push(root.updateSecurityCount > 0
+        if (root.updateApplying) parts.push(qsTr("Installing updates"))
+        else if (root.updateCount > 0) parts.push(root.updateSecurityCount > 0
             ? (root.updateCount === 1 ? qsTr("1 security update available")
                 : qsTr("%n security updates available", "", root.updateCount))
             : (root.updateCount === 1 ? qsTr("1 update available")
@@ -173,15 +175,16 @@ ToolButton {
     LauncherBadge {
         count: root.updateCount
         securityCount: root.updateSecurityCount
+        applying: root.updateApplying
         baseSize: root.metrics.badgeBaseSize
         baseFontPixelSize: root.metrics.badgeFontPixelSize
         maximumScale: root.maximumIconScale
         motionEnabled: !root.reducedMotion && root.visible && root.enabled
-        // Icon corner, in tile coordinates, with a small overlap. The previous
-        // iconSize/√2 offset put the badge past the corner in both axes, which
-        // left a visible gap from the icon.
+        // Lower-right icon corner, in tile coordinates, with a small overlap:
+        // the corner KDE gives its update notification dots, clear of the
+        // upper-right area reserved for the window controls.
         anchorX: root.width / 2 + root.iconSize / 2 - root.metrics.badgeInset
-        anchorY: root.height / 2 - root.iconSize / 2 + root.metrics.badgeInset
+        anchorY: root.height / 2 + root.iconSize / 2 - root.metrics.badgeInset
         z: 2
         objectName: "launcher-update-badge-" + root.appId
     }

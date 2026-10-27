@@ -28,7 +28,7 @@ Hyprland or generic Wayland dock. It will not run on another desktop, and
 starting it outside an active KDE Plasma/KWin session exits with an explicit
 error.
 
-**Current delivery:** **0.1.44**. The first Git snapshot was published as
+**Current delivery:** **0.1.45**. The first Git snapshot was published as
 `0.1.0`, equivalent to `0.1.00` under the current delivery counter. Each
 delivery commit advances the counter once; see the [changelog](CHANGELOG.md).
 Compatibility and validation limits are documented below.
@@ -65,14 +65,18 @@ validation.
   The count is read only from PackageKit, fwupd and Flatpak through their native
   interfaces, so the dock never asks Discover, never installs anything, never
   refreshes package caches and never requests authorization. The number travels
-  and scales with the icon, and the badge takes the color KDE paints its update
+  and scales with the icon and rests on its lower-right corner, where KDE paints
+  its own update dots. The badge takes the color KDE paints its update
   notifications with: neutral orange while updates are pending and negative red
-  once a security update is present. The **Updates** switch turns the badge off
-  without a restart. The badge follows whichever supported update front-end is
-  actually pinned (Discover first) rather than assuming a distribution, and a
-  missing service simply contributes nothing. PackageKit reports its own backend
-  (`dnf5`, `apt`, `alpm`, `zypper` ...), so distribution packages work wherever
-  PackageKit is installed; AUR helpers and Snap are not queried yet.
+  once a security update is present. While PackageKit applies updates the disc
+  shows the tray's `update-busy` glyph instead of the count and re-checks as soon
+  as the install ends, so a just-applied count is not painted again. The
+  **Updates** switch turns the badge off without a restart. The badge follows
+  whichever supported update front-end is actually pinned (Discover first)
+  rather than assuming a distribution, and a missing service simply contributes
+  nothing. PackageKit reports its own backend (`dnf5`, `apt`, `alpm`, `zypper`
+  ...), so distribution packages work wherever PackageKit is installed; AUR
+  helpers and Snap are not queried yet.
 - An optional **Start with KDE Plasma** switch that writes or removes a
   Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
   sign-in; an entry owned by another tool is never overwritten or deleted.

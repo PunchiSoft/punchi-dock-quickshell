@@ -27,6 +27,9 @@ QtObject {
     readonly property int revision: backend.revision + (catalog && catalog.revision !== undefined
         ? catalog.revision : 0)
     readonly property bool enabled: settings !== null && settings.updateBadgeEnabled
+    // PackageKit is applying updates, or the re-check that follows them has not
+    // settled yet. Mirrors the tray's update-busy icon instead of the count.
+    readonly property bool updating: enabled && backend.updating === true
     readonly property bool available: backend.state !== Native.UpdateState.Unavailable
     readonly property string backendName: typeof backend.backendName === "string"
         ? backend.backendName : ""
@@ -77,5 +80,10 @@ QtObject {
     function badgeSecurityCount(appId: string): int {
         if (!enabled || count <= 0 || !targets(appId)) return 0
         return securityCount
+    }
+
+    function badgeApplying(appId: string): bool {
+        if (!enabled || !targets(appId)) return false
+        return updating
     }
 }

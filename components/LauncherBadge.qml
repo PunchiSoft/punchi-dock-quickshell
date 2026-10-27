@@ -15,6 +15,9 @@ Item {
     objectName: "launcher-update-badge"
     property int count: 0
     property int securityCount: 0
+    // PackageKit is applying updates: the disc carries the tray's update-busy
+    // glyph instead of the count that is being installed.
+    property bool applying: false
     required property int baseSize
     required property int baseFontPixelSize
     required property real maximumScale
@@ -23,13 +26,14 @@ Item {
     property real anchorY: 0
     property bool motionEnabled: true
 
-    readonly property bool shown: count > 0
+    readonly property bool shown: count > 0 || applying
     readonly property string label: count > 99 ? "99+" : String(count)
     // KDE paints update notifications with ColorScheme-NeutralText (orange,
     // update-medium) and ColorScheme-NegativeText (red, update-high); use the
     // same roles so the badge carries the notification's color instead of the
-    // window palette, which is a Qt fallback inside Quickshell.
-    readonly property color fillColor: securityCount > 0
+    // window palette, which is a Qt fallback inside Quickshell. Installing keeps
+    // the neutral fill, like the monochrome update-busy tray icon.
+    readonly property color fillColor: !applying && securityCount > 0
         ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.neutralTextColor
     readonly property color contentColor: Kirigami.Theme.textColor
     readonly property real drawingSize: baseSize * maximumScale
@@ -76,6 +80,7 @@ Item {
 
     Text {
         anchors.centerIn: parent
+        visible: !root.applying
         width: parent.width - Kirigami.Units.smallSpacing
         text: root.label
         color: root.contentColor
@@ -85,6 +90,19 @@ Item {
         minimumPixelSize: 1
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
+        Accessible.ignored: true
+    }
+
+    // The tray's own busy icon, sized like the number it replaces and drawn at
+    // the badge resolution so it stays sharp while the dock magnifies.
+    Kirigami.Icon {
+        objectName: "launcher-update-badge-glyph"
+        anchors.centerIn: parent
+        visible: root.applying
+        width: parent.width - Kirigami.Units.smallSpacing
+        height: width
+        source: "update-busy"
+        color: root.contentColor
         Accessible.ignored: true
     }
 
@@ -104,11 +122,12 @@ Item {
     onCountChanged: {
         const previous = lastCount
         lastCount = count
-        if (!motionEnabled || !shown || previous <= 0 || count <= previous) return
+        if (!motionEnabled || !shown || applying || previous <= 0 || count <= previous) return
         halo.scale = 1
         halo.opacity = 0.5
         pulse.restart()
     }
+    onApplyingChanged: if (applying) stopMotion()
     onMotionEnabledChanged: if (!motionEnabled) stopMotion()
     onShownChanged: if (!shown) stopMotion()
 

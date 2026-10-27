@@ -30,12 +30,25 @@ private slots:
             QStringList{QStringLiteral("upgradable")});
         QCOMPARE(UpdateState::updatableDeviceIds(QVariantList{}), QStringList{});
     }
+    // PkInfoEnum: NORMAL is 5 and SECURITY is 8, the value the live Package
+    // signal carries for a security update on this host.
     void recognizesSecurityInfo()
     {
-        QVERIFY(UpdateState::isSecurityInfo(5));
+        QVERIFY(UpdateState::isSecurityInfo(8));
+        QVERIFY(!UpdateState::isSecurityInfo(5));
         QVERIFY(!UpdateState::isSecurityInfo(0));
         QVERIFY(!UpdateState::isSecurityInfo(4));
         QVERIFY(!UpdateState::isSecurityInfo(6));
+    }
+    // PkRoleEnum values used by TransactionListChanged: update-packages and
+    // upgrade-system apply updates; get-updates is the dock's own read-only query.
+    void recognizesUpdateRoles()
+    {
+        QVERIFY(UpdateState::isUpdateRole(22));
+        QVERIFY(UpdateState::isUpdateRole(33));
+        QVERIFY(!UpdateState::isUpdateRole(9));
+        QVERIFY(!UpdateState::isUpdateRole(11));
+        QVERIFY(!UpdateState::isUpdateRole(0));
     }
     void countsFlatpakRefs()
     {
