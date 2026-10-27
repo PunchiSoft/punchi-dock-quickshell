@@ -320,6 +320,22 @@ punchi_legacy_config_path() {
     printf '%s\n' "${XDG_CONFIG_HOME:-$HOME/.config}/punchi-shell.json"
 }
 
+# Mirrors start.sh so setup and trial cleanup find the same instance record.
+punchi_runtime_lock_dir() {
+    local runtime_root="${PUNCHI_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-}}"
+    if [[ -z "$runtime_root" || "$runtime_root" != /* || ! -d "$runtime_root" ]]; then
+        runtime_root="${TMPDIR:-/tmp}"
+    fi
+    printf '%s/punchi-dock-quickshell-%s\n' "$runtime_root" "$UID"
+}
+
+# A trial run keeps its own profile inside the instance directory, so it never
+# reads the preferences an installed copy owns and disappears at logout even
+# when cleanup is refused.
+punchi_trial_profile_dir() {
+    printf '%s/trial-profile\n' "$(punchi_runtime_lock_dir)"
+}
+
 punchi_install_marker_name() {
     printf '%s\n' '.punchi-dock-quickshell-install'
 }

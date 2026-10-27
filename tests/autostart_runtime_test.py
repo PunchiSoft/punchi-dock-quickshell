@@ -4,6 +4,7 @@
 
 import os
 from pathlib import Path
+from typing import Optional
 import re
 import shutil
 import subprocess
@@ -45,6 +46,12 @@ ShellRoot {
                 return
             }
             if (probe.stage === 0) {
+                if (Quickshell.env("PUNCHI_EXPECT_PROFILE") === "1") {
+                    console.warn("AUTOSTART_DIRECTORY " + autostart.directory)
+                    console.warn("AUTOSTART_PASSED")
+                    Qt.exit(0)
+                    return
+                }
                 if (Quickshell.env("PUNCHI_EXPECT_FOREIGN") === "1") {
                     if (autostart.available) {
                         probe.fail("foreign entry was treated as available")
@@ -105,13 +112,18 @@ ShellRoot {
 '''
 
 
-def run_fixture(runner: str, root: Path, config_home: Path, expect_foreign: bool) -> str:
+def run_fixture(runner: str, root: Path, config_home: Path, expect_foreign: bool,
+                extra_environment: Optional[dict] = None) -> str:
     environment = os.environ.copy()
     environment['XDG_CONFIG_HOME'] = str(config_home)
+    environment.pop('PUNCHI_PROFILE_DIR', None)
+    environment.pop('PUNCHI_EXPECT_PROFILE', None)
     if expect_foreign:
         environment['PUNCHI_EXPECT_FOREIGN'] = '1'
     else:
         environment.pop('PUNCHI_EXPECT_FOREIGN', None)
+    if extra_environment:
+        environment.update(extra_environment)
     result = subprocess.run([runner, '--path', str(root), '--no-color'], env=environment,
                             capture_output=True, text=True, timeout=12)
     output = result.stdout + result.stderr
@@ -164,7 +176,22 @@ def main() -> int:
         output = run_fixture(runner, root, empty_home, True)
         assert 'AUTOSTART_FOREIGN_PASSED' in output, output
         assert empty.read_text() == ''
-        print('Autostart runtime: owned enable/disable and foreign-entry preservation passed.')
+
+        profile_home = root / 'profile-config'
+        profile_home.mkdir()
+        profile = root / 'trial-profile'
+        profile.mkdir()
+        output = run_fixture(runner, root, profile_home, False, {
+            'PUNCHI_EXPECT_PROFILE': '1',
+            'PUNCHI_PROFILE_DIR': str(profile),
+        })
+        directory_match = re.search(r'AUTOSTART_DIRECTORY (.*)', output)
+        assert directory_match, output
+        assert directory_match.group(1).strip() == str(profile / 'autostart'), output
+        assert not (profile_home / 'autostart').exists(), \
+            'A trial profile wrote into the owned config directory'
+        print('Autostart runtime: owned enable/disable, foreign-entry preservation '
+              'and trial profile isolation passed.')
     return 0
 
 

@@ -16,8 +16,18 @@ Scope {
     property bool ready: false
     readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME")
         || Quickshell.env("HOME") + "/.config"
-    readonly property string path: configHome + "/punchi-dock-quickshell.json"
-    readonly property string legacyPath: configHome + "/punchi-shell.json"
+    // A trial run exports an absolute profile directory so it never reads or
+    // writes the profile an installed copy owns.
+    readonly property string profileDir: {
+        const dir = Quickshell.env("PUNCHI_PROFILE_DIR")
+        return dir && dir.charAt(0) === "/" ? dir : ""
+    }
+    readonly property string path: profileDir.length > 0
+        ? profileDir + "/punchi-dock-quickshell.json"
+        : configHome + "/punchi-dock-quickshell.json"
+    readonly property string legacyPath: profileDir.length > 0
+        ? profileDir + "/punchi-shell.json"
+        : configHome + "/punchi-shell.json"
     readonly property FileView file: FileView {
         path: root.path
         preload: false

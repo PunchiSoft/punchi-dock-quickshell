@@ -10,7 +10,15 @@ QtObject {
     readonly property string marker: "X-Punchi-Dock-Quickshell-Owned=true"
     readonly property string configHome: Quickshell.env("XDG_CONFIG_HOME")
         || Quickshell.env("HOME") + "/.config"
-    readonly property string directory: configHome + "/autostart"
+    // A trial run exports an absolute profile directory, so an entry created
+    // there is never loaded by the session and disappears with the profile.
+    readonly property string profileDir: {
+        const dir = Quickshell.env("PUNCHI_PROFILE_DIR")
+        return dir && dir.charAt(0) === "/" ? dir : ""
+    }
+    readonly property string directory: profileDir.length > 0
+        ? profileDir + "/autostart"
+        : configHome + "/autostart"
     readonly property string path: directory + "/punchi-dock-quickshell.desktop"
     readonly property string launcherPath: Quickshell.shellDir + "/scripts-user/launcher.sh"
     readonly property string iconPath: Quickshell.shellDir
@@ -27,6 +35,8 @@ QtObject {
     readonly property bool owned: currentText.indexOf(marker) >= 0
     readonly property bool foreign: present && !owned
     readonly property bool enabled: owned
+    // A trial profile is never loaded by the session, so its switch stays off.
+    readonly property bool trial: profileDir.length > 0
     // A file created by another tool at our exact path is never overwritten or
     // removed. The switch is shown disabled instead.
     readonly property bool available: !foreign
