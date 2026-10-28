@@ -18,7 +18,10 @@ def check_skill(skill, catalog):
     assert frontmatter, f'Missing frontmatter: {skill}'
     name = re.search(r'^name: (.+)$', frontmatter[1], re.M)
     description = re.search(r'^description: (.+)$', frontmatter[1], re.M)
+    license_field = re.search(r'^license: (\S.+)$', frontmatter[1], re.M)
     assert name and name[1] == skill.parent.name and description
+    # Reuse of a skill depends on its license notice travelling with it.
+    assert license_field, f'Missing license field: {skill}'
     directory = skill.parent.name
     assert NAME_PATTERN.fullmatch(directory) and len(directory) <= 64, f'Invalid skill name: {directory}'
     assert len(description[1]) <= DESCRIPTION_LIMIT, f'Description over budget: {skill}'
@@ -39,6 +42,9 @@ def main():
     catalog = (root / '.agents/skills/README.md').read_text()
     for skill in skills:
         check_skill(skill, catalog)
+    # The outbound reuse statement lives in the catalog, not in every skill.
+    assert re.search(r'^## Reuse and attribution$', catalog, re.M), \
+        'Missing "Reuse and attribution" section in .agents/skills/README.md'
     catalogued = [entry[0] for entry in CATALOG_ROW.findall(catalog)]
     assert catalogued == sorted(catalogued), 'Skill catalog is not in alphabetical order'
     assert catalogued == [skill.parent.name for skill in skills], \
