@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Restore the container context menu. The menu read a self-referencing settings
+  property, so the folder section (sort, presentation and open actions) and the
+  menu motion were missing; the popup now reads the dock settings.
 - Add per-screen and per-desktop placement. Every connected screen owns a dock
   window backed by one shared runtime: the application catalog, window backend,
   update tracker, Trash state and KWin minimize controller are created once
