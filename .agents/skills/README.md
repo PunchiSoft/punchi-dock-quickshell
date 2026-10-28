@@ -44,6 +44,26 @@ Quickshell-specific workflows are new.
   Skills link it as `../references/motion-doctrine.md`; it has no owning skill so
   that no skill depends on another skill's directory.
 
+## Reuse and attribution
+
+These skills are published with the project under `GPL-3.0-or-later`; the full
+text is in [LICENSE](../../LICENSE). They began as original work for this project,
+and the ones that adapt material from another project say so in their
+`metadata.source`. You may copy, adapt and redistribute them, including inside
+another agent, provided you keep:
+
+- the `license` field of each `SKILL.md` frontmatter,
+- the copyright and license notices of this repository,
+- every `metadata.source` entry, which records the project an adapted skill came
+  from.
+
+The license already requires those notices, so nothing here adds a condition to
+it. Citing this repository and the commit you took the skills from is appreciated
+but is a courtesy, not a requirement. If you redistribute a modified catalog,
+point the attribution at this repository instead of presenting the work as
+original. `project_foundation` checks that this section and the `license` fields
+stay in place.
+
 ## Conventions
 
 - `description` states what the skill does and when it applies, in imperative

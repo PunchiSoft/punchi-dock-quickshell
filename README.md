@@ -633,3 +633,9 @@ never will.
 ## License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
+
+The agent skills under [`.agents/skills/`](.agents/skills/README.md) may be reused
+and adapted. Keep their `license` field, the copyright notice and any
+`metadata.source` entry that names the project they came from, and citing this
+repository with the commit you took them from is appreciated. The skill catalog
+states the exact conditions.

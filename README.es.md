@@ -676,3 +676,9 @@ Linux nunca lo hará.
 ## Licencia
 
 GPL-3.0-or-later. Consulta [LICENSE](LICENSE) y [NOTICE.md](NOTICE.md).
+
+Las skills de agente de [`.agents/skills/`](.agents/skills/README.md) se pueden
+reutilizar y adaptar. Conserva su campo `license`, el aviso de copyright y cualquier
+entrada `metadata.source` que nombre el proyecto del que proceden; se agradece citar
+este repositorio con el commit del que las tomaste. El catálogo de skills detalla las
+condiciones exactas.
