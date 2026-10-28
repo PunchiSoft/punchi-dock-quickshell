@@ -53,9 +53,13 @@ project services.
 ## Validation
 
 ```bash
-ctest --test-dir build --output-on-failure -R 'adapter_contract|dock_components'
-rg -n '^import .*(services|adapters)' components modules
+ctest --test-dir build --output-on-failure -R 'architecture_contract|adapter_contract|dock_components'
 ```
+
+`architecture_contract` parses the quoted relative imports of every layer
+directory and fails on an upward import or a root-level declaration in
+`shell.qml`. A deliberate exception goes in `tests/architecture-allowlist.json`
+with a written reason; a stale entry fails too.
 
 - The ownership statement names exactly one consumer per output.
 - `docs/architecture.md` matches the tree; a stale record is a defect.
