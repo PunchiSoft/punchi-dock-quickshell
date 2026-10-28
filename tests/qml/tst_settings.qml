@@ -149,6 +149,11 @@ TestCase {
         compare(settings.container("item:folder:home").icon, "user-home")
         compare(settings.container("item:folder:home").layout, "fan")
         compare(settings.container("item:folder:home").sortMode, "name")
+        // The first-run Home container lists the standard user folders as
+        // places to go, so it does not enter them; Downloads keeps browsing.
+        compare(settings.container("item:folder:home").browseSubfolders, false)
+        compare(settings.containerBrowseSubfolders("item:folder:home"), false)
+        compare(settings.containerBrowseSubfolders("item:downloads"), true)
         compare(settings.removeContainer("item:folder:home"), false)
         compare(settings.container("files"), null)
         // A chosen folder is stored, addressable and validated.

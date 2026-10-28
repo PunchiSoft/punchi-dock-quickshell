@@ -10,7 +10,11 @@ them out at the configured maximum magnification on the icon corner.
 `ScreenSelection.js` holds the pure screen-selection, primary-fallback and
 shared-edge rules used by `ScreenPolicy` and its tests. `DefaultProfile.js` is
 the canonical first-run profile: launcher catalogue, pinned order, folders,
-preference values and validation ranges; profile version 12 also stores screen,
+preference values and validation ranges. A catalogue row with an empty
+`desktopId` and a `defaultMimeTypes` string names a role the native catalogue
+resolves through `KApplicationTrader`, which is how **Browser** opens this
+session's preferred browser instead of a fixed one; the first-run Home container
+stores `browseSubfolders: false`; profile version 12 also stores screen,
 virtual-desktop and activity selections plus the placement switches. `ShellSettings`
 starts from it and `reset()` restores a fresh copy. `ProfileDocument.js` validates
 the portable JSON document used by import and export, including the raw saved

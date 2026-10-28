@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Open the browser this session prefers from the default **Browser** item. The
+  first-run catalogue names a role instead of a desktop entry: an empty
+  `desktopId` plus the ordered MIME types `x-scheme-handler/https`,
+  `x-scheme-handler/http` and `text/html` let `ApplicationCatalog` publish the
+  `storageId` that `KApplicationTrader::preferredService` returns, so a first run
+  never assumes Firefox is installed and follows the default chosen in KDE
+  System Settings, including a replaced or removed one. The item shows the
+  resolved application's icon, launching, running markers, window actions and
+  media control keep receiving one real desktop id, and the resolved application
+  is still offered once in the application picker.
+- Start the first-run **Home** container with **Browse subfolders** off. Its
+  standard user folders are places to go, so a selected folder opens in the file
+  manager instead of replacing the listing; Downloads, containers added later
+  and every stored profile keep their own value.
 - Show one emphasis band at a time in the dock menu, the container menu and the
   folder arc. These rows have no durable selection, so the pointer and the
   keyboard now share a single band: the surface that receives both publishes

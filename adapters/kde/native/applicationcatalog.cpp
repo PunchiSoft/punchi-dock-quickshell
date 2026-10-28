@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "applicationcatalog.h"
 #include "desktopentry.h"
+#include <KApplicationTrader>
 #include <KService>
 #include <KSycoca>
 #include <QCollator>
+#include <QRegularExpression>
 #include <QSet>
 #include <QTimer>
 #include <QUrl>
@@ -16,6 +18,35 @@ QString applicationIcon(const KService::Ptr &service)
     const QUrl url(icon);
     return icon.isEmpty() || (!url.scheme().isEmpty() && !url.isLocalFile())
         ? QStringLiteral("application-x-executable") : icon;
+}
+
+// A launcher that names a role shows the icon of the application that answers
+// it, and keeps the profile's own icon when that application ships none.
+QString roleIcon(const KService::Ptr &service, const QString &fallback)
+{
+    const auto icon = applicationIcon(service);
+    return icon == QLatin1String("application-x-executable") ? fallback : icon;
+}
+
+bool launchableService(const KService::Ptr &service)
+{
+    return service && service->isValid() && service->isApplication() && !service->exec().isEmpty()
+        && !service->noDisplay();
+}
+
+// The preferred application is KDE's answer, not this project's guess: it
+// follows the association the user set in System Settings and the one a
+// distribution ships, including a replaced or removed default.
+KService::Ptr preferredApplication(const QStringList &mimeTypes)
+{
+    static const QRegularExpression pattern(
+        QStringLiteral("^[a-z0-9][a-z0-9.+-]{0,126}/[a-z0-9][a-z0-9.+-]{0,126}$"));
+    for (const auto &mimeType : mimeTypes) {
+        if (!pattern.match(mimeType).hasMatch()) continue;
+        if (const auto service = KApplicationTrader::preferredService(mimeType); launchableService(service))
+            return service;
+    }
+    return {};
 }
 }
 
@@ -72,19 +103,28 @@ void ApplicationCatalog::reload()
     QList<QVariantMap> rows, discovered;
     QSet<QString> presetStorageIds;
     const auto roles = m_presets ? m_presets->roleNames() : QHash<int, QByteArray>();
-    const auto field = [this, &roles](int row, const QByteArray &name) {
+    const auto value = [this, &roles](int row, const QByteArray &name) -> QVariant {
         for (auto it = roles.cbegin(); it != roles.cend(); ++it)
-            if (it.value() == name) return m_presets->index(row, 0).data(it.key()).toString();
-        return QString();
+            if (it.value() == name) return m_presets->index(row, 0).data(it.key());
+        return {};
     };
+    const auto field = [&value](int row, const QByteArray &name) { return value(row, name).toString(); };
     for (int row = 0; m_presets && row < m_presets->rowCount(); ++row) {
         const auto desktopId = field(row, "desktopId");
-        const auto service = resolveDesktopApplication(desktopId);
+        // A role entry resolves to the application this session prefers, so the
+        // catalogue publishes a real desktop id to every consumer: launching,
+        // running markers, window actions and media control keep working.
+        const auto presetMimeTypes = value(row, "defaultMimeTypes").toString().split(u' ', Qt::SkipEmptyParts);
+        const auto service = presetMimeTypes.isEmpty() ? resolveDesktopApplication(desktopId)
+            : preferredApplication(presetMimeTypes);
         const bool installed = service && !service->noDisplay();
         if (service) presetStorageIds.insert(service->storageId());
+        const auto presetIcon = field(row, "iconName");
         rows.append({{QStringLiteral("appId"), field(row, "appId")},
             {QStringLiteral("desktopId"), service ? service->storageId() : desktopId},
-            {QStringLiteral("title"), field(row, "title")}, {QStringLiteral("iconName"), field(row, "iconName")},
+            {QStringLiteral("title"), field(row, "title")},
+            {QStringLiteral("iconName"), presetMimeTypes.isEmpty() ? presetIcon
+                : roleIcon(service, presetIcon)},
             {QStringLiteral("name"), service ? service->name() : field(row, "title")},
             {QStringLiteral("description"), service ? service->comment() : QString()},
             {QStringLiteral("appIconName"), applicationIcon(service)},
