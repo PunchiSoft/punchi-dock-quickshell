@@ -60,6 +60,10 @@ visual delegates. Quickshell already supplies providers: wrap them only when
 there is a concrete responsibility, not merely to reproduce the diagram.
 
 No circular dependencies, catch-all managers, or business logic in `shell.qml`.
+`tests/architecture_test.py` (`architecture_contract`) fails the build when a layer
+imports upwards or when `shell.qml` declares root-level state or logic; an
+exception needs an entry with a written reason in
+`tests/architecture-allowlist.json`, and a stale entry fails the test too.
 Review cohesion at roughly 300–400 lines; extract responsibilities, not arbitrary
 line quotas. Avoid empty feature implementations. Stub module directories are
 not implemented capabilities. Keep QML interfaces explicit and small.
