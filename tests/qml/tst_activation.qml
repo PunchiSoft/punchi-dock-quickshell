@@ -202,17 +202,29 @@ TestCase {
         rejected.target = service
         dispatched.clear()
         rejected.clear()
-        const expected = ["org.kde.dolphin", "org.kde.konsole", "org.mozilla.firefox",
+        const expected = ["org.kde.dolphin", "org.kde.konsole",
             "org.kde.kate", "systemsettings", "org.kde.discover", "org.kde.gwenview", "org.kde.okular"]
-        for (let i = 0; i < service.entries.count; ++i)
-            verify(service.launch(service.entries.get(i).appId))
+        let resolvedRoles = 0
+        for (let i = 0; i < service.entries.count; ++i) {
+            const entry = service.entries.get(i)
+            // The Browser preset names a KDE MIME association, not a desktop
+            // entry: the catalogue publishes the resolved id before the service
+            // sees this model, so this raw catalogue has nothing to launch.
+            if (entry.desktopId.length === 0) {
+                compare(entry.appId, "browser")
+                ++resolvedRoles
+                continue
+            }
+            verify(service.launch(entry.appId))
+        }
+        compare(resolvedRoles, 1)
         compare(fakeAdapter.calls, expected)
-        compare(dispatched.count, 8)
+        compare(dispatched.count, 7)
         verify(!service.launch("unconfigured; command"))
-        compare(fakeAdapter.calls.length, 8)
+        compare(fakeAdapter.calls.length, 7)
         fakeAdapter.accepted = false
         verify(!service.launch("kate"))
         compare(rejected.count, 2)
-        compare(dispatched.count, 8)
+        compare(dispatched.count, 7)
     }
 }

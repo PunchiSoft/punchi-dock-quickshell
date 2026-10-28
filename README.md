@@ -138,8 +138,10 @@ validation.
 - Folder containers for any local folder: Grid, List, Detail and Fan
   presentations, per-container sorting, subfolder browsing and a hidden-entry
   list. The built-in **Home** container opens as Fan and lists only the standard
-  KDE/XDG user folders through their localized names. A side dock presents a
-  stored fan as Grid because the arc needs a top or bottom edge.
+  KDE/XDG user folders through their localized names; its first-run profile
+  leaves subfolder browsing off, so a selected folder opens in the file manager.
+  A side dock presents a stored fan as Grid because the arc needs a top or
+  bottom edge.
 - Downloads with Grid, List, Detail and Fan folder views, navigation inside a themed
   balloon, and native KDE file opening. Every presentation ends with an **Open**
   row and marks browsable folders with a chevron; a right-click on an entry
@@ -393,7 +395,7 @@ first-run launcher catalogue and the values restored by **Reset defaults**:
 | Setting | Current first-run default |
 |---|---|
 | Surface | Bottom dock by default; Bottom, Left or Right; no custom top bar yet |
-| Pinned items, in order | Dolphin, Konsole, Home, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
+| Pinned items, in order | Dolphin, Konsole, Home, Browser, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
 | Click bounce | Enabled |
@@ -404,7 +406,10 @@ first-run launcher catalogue and the values restored by **Reset defaults**:
 | Icons | The user's icon theme, including live KDE theme-change notifications |
 
 These are prototype defaults, not a guarantee that every preset application is
-installed. Changing settings through Apply or Accept persists the user's values;
+installed. **Browser** names the role instead of an application: the item opens
+the browser KDE has as the preferred handler for web links, so it follows the
+default chosen in System Settings and never assumes Firefox is present. Changing
+settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
 mode. The current file format is version 12 and accepts versions 1 to 11 through
 migration. Version 7 adds the recent-applications switch and visible count,

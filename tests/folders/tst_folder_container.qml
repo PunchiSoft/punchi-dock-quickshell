@@ -195,6 +195,7 @@ TestCase {
         compare(home.icon, "user-home")
         compare(home.layout, "fan")
         compare(home.sortMode, "name")
+        compare(home.browseSubfolders, false)
         compare(settings.pinnedIds[1], "terminal")
         compare(settings.pinnedIds[2], "item:folder:home")
         compare(settings.pinnedIds[3], "browser")
@@ -207,6 +208,9 @@ TestCase {
         compare(contents.error, "")
         compare(window.popup.contentItem.viewMode, "fan")
         compare(window.popup.containerLocation.toString(), contents.homeUrl.toString())
+        // The first-run switch reaches the popup: a selected folder opens where
+        // it lives instead of replacing the listing.
+        compare(window.popup.controller.browseSubfolders, false)
         const standardDirs = ["Escritorio", "Documentos", "Owned Downloads", "Música",
             "Imágenes", "Público", "Plantillas", "Vídeos"]
         for (const name of standardDirs)
@@ -218,12 +222,36 @@ TestCase {
         tryCompare(window.popup.contentItem, "viewMode", "grid")
         const documents = row(contents, "Documentos")
         verify(documents >= 0)
+        // The switch stays under the owner's control: turning it on restores
+        // navigation inside the popup for this container only.
+        verify(settings.setContainerBrowseSubfolders("item:folder:home", true))
+        compare(window.popup.controller.browseSubfolders, true)
         verify(window.popup.controller.activate(documents))
         tryCompare(contents, "count", 1)
         compare(contents.get(0).entryName, "owned.txt")
         window.popup.controller.back()
         tryCompare(contents, "count", standardDirs.length)
         compare(row(contents, "Not a standard folder"), -1)
+    }
+    // The first-run Home container keeps subfolder browsing off, so a selected
+    // folder opens where it lives while Downloads keeps entering its own.
+    function test_homeSelectionOpensInsteadOfEntering(): void {
+        const window = createTemporaryObject(fixture, test)
+        verify(window !== null)
+        verify(window.settings.setContainerLayout("item:folder:home", "grid"))
+        verify(waitForRendering(window.contentItem))
+        mouseClick(window.homeSource)
+        tryCompare(window.popup, "opened", true)
+        tryCompare(window.popup.contents, "loading", false)
+        const contents = window.popup.contents
+        compare(window.popup.controller.browseSubfolders, false)
+        const documents = row(contents, "Documentos")
+        verify(documents >= 0)
+        verify(window.popup.controller.activate(documents))
+        tryCompare(window.popup, "opened", false)
+        compare(window.opener.calls.length, 1)
+        verify(decodeURI(window.opener.calls[0]).endsWith("/Documentos"))
+        compare(window.popup.controller.history.length, 0)
     }
     function test_folderLayoutsBelongToEachItem(): void {
         const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)

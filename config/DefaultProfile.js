@@ -17,10 +17,17 @@ const limits = {
     recentApplicationsCount: {minimum: 1, maximum: 20}
 }
 
+// `desktopId` names the desktop entry an item launches. An empty one plus
+// `defaultMimeTypes` names a role instead: the catalogue asks KDE which
+// application this session prefers for those types, in this order, so a first
+// run never pins a browser the distribution did not choose. The types are one
+// space-separated string because a ListModel element stores an array as a
+// nested model.
 const launchers = [
     {appId: "files", desktopId: "org.kde.dolphin", title: qsTr("Files"), iconName: "system-file-manager"},
     {appId: "terminal", desktopId: "org.kde.konsole", title: qsTr("Terminal"), iconName: "utilities-terminal"},
-    {appId: "browser", desktopId: "org.mozilla.firefox", title: qsTr("Browser"), iconName: "internet-web-browser"},
+    {appId: "browser", desktopId: "", title: qsTr("Browser"), iconName: "internet-web-browser",
+        defaultMimeTypes: "x-scheme-handler/https x-scheme-handler/http text/html"},
     {appId: "kate", desktopId: "org.kde.kate", title: qsTr("Kate"), iconName: "kate"},
     {appId: "systemsettings", desktopId: "systemsettings", title: qsTr("System Settings"), iconName: "preferences-system"},
     {appId: "discover", desktopId: "org.kde.discover", title: qsTr("Discover"), iconName: "plasmadiscover"},
@@ -66,8 +73,11 @@ const profile = {
     containers: [
         {id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads",
             layout: "grid", sortMode: "modified", browseSubfolders: true, hiddenEntries: []},
+        // Home lists the standard user folders as places to go, so the first-run
+        // profile opens a selected folder in the file manager instead of
+        // replacing the listing with its contents.
         {id: "home", path: "", title: qsTr("Home"), icon: "user-home", layout: "fan",
-            sortMode: "name", browseSubfolders: true, hiddenEntries: []}
+            sortMode: "name", browseSubfolders: false, hiddenEntries: []}
     ]
 }
 

@@ -175,6 +175,15 @@ if(BUILD_TESTING)
     target_link_libraries(dock_applications_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     add_test(NAME dock_applications COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:dock_applications_test>)
+    add_executable(application_catalog_test tests/application_catalog_test.cpp
+        adapters/kde/native/applicationcatalog.cpp)
+    target_include_directories(application_catalog_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(application_catalog_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
+    add_test(NAME application_catalog COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/application_catalog_test.py
+        $<TARGET_FILE:application_catalog_test>)
+    set_tests_properties(application_catalog PROPERTIES TIMEOUT 45)
     add_executable(recent_applications_model_test tests/recent_applications_model_test.cpp
         adapters/kde/native/recentapplicationsmodel.cpp)
     target_include_directories(recent_applications_model_test PRIVATE ${CMAKE_SOURCE_DIR})
@@ -368,6 +377,7 @@ if(BUILD_TESTING)
         update_state
         task_identity
         dock_applications
+        application_catalog
         recent_applications_model
         icon_theme_catalog
         recent_applications_tracking
