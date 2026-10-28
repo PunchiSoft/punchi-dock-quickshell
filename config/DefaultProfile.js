@@ -36,7 +36,7 @@ const launchers = [
 ]
 
 const profile = {
-    version: 12,
+    version: 13,
     downloadsView: "grid",
     dockEdge: "bottom",
     panelMode: "overlay",
@@ -64,6 +64,10 @@ const profile = {
     iconOverrides: {},
     recentApplicationsEnabled: true,
     recentApplicationsCount: 5,
+    // The applications open as one container item by default; the stored view
+    // is a folder container view.
+    recentApplicationsPresentation: "container",
+    recentApplicationsContainerLayout: "list",
     updateBadgeEnabled: true,
     popupScale: 1.0,
     popupIconSize: 0,

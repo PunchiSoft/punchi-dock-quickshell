@@ -4,6 +4,7 @@ import QtQml
 import Quickshell
 import Punchi.Kde as Native
 import "../../config"
+import "../../config/RecentPresentation.js" as RecentPresentation
 import "../../services"
 
 // Data and coordination shared by every dock window. One instance serves all
@@ -52,6 +53,11 @@ Scope {
         pinned: fixtureModel
         catalog: itemCatalog
         recent: recentApplications.selection
+        // The history joins the row as one container item, or as the resolved
+        // rows themselves; the selection model feeds the container popup.
+        recentContainer: root.settings.recentApplicationsPresentation === "container"
+        recentContainerTitle: qsTr("Recent applications")
+        recentContainerIcon: RecentPresentation.containerIcon
         // The optional filter keeps pinned items visible while running markers
         // and transient rows follow the active desktop and activity.
         runningDesktopIds: runningApps.available

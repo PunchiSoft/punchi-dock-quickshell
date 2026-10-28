@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 import QtTest
-import "../../modules/folders/FolderLayout.js" as FolderLayout
+import "../../components/EntryLayout.js" as FolderLayout
 
 // The arrangement law is pure, so its cost model is checked without a scene.
 TestCase {
@@ -32,6 +32,19 @@ TestCase {
         compare(arrangement.rows, 3)
         compare(arrangement.visibleRows, 2)
         compare(arrangement.scrollRequired, true)
+    }
+    // A container whose rows all launch an application owns no location action,
+    // so its cell total is exactly its entry count.
+    function test_actionRowIsOptional(): void {
+        const withAction = FolderLayout.arrangement(4, 5, 6)
+        const withoutAction = FolderLayout.arrangement(4, 5, 6, false)
+        compare(withAction.rows, 1)
+        compare(withoutAction.columns, 4)
+        compare(withoutAction.rows, 1)
+        compare(FolderLayout.arrangement(12, 5, 2, false).rows, 3)
+        compare(FolderLayout.singleColumnArrangement(3, 2).rows, 4)
+        compare(FolderLayout.singleColumnArrangement(3, 2, false).rows, 3)
+        compare(FolderLayout.singleColumnArrangement(0, 2, false).rows, 0)
     }
     function test_singleColumnCountsTheOpenRow(): void {
         const arrangement = FolderLayout.singleColumnArrangement(3, 2)

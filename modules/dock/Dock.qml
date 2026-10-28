@@ -9,6 +9,7 @@ import "../../config"
 import "../../services"
 import "../../adapters/kde"
 import "../folders"
+import "../recent"
 
 PanelWindow {
     id: root
@@ -49,6 +50,7 @@ PanelWindow {
         function onDockEdgeChanged() {
             contextMenu.dismiss()
             folderPopup.dismiss()
+            recentPopup.dismiss()
             visibilityController.reveal()
         }
     }
@@ -94,11 +96,18 @@ PanelWindow {
             width: root.windowAllowed && folderPopup.visible ? Math.ceil(folderPopup.width) : 0
             height: root.windowAllowed && folderPopup.visible ? Math.ceil(folderPopup.height) : 0
         }
+        Region {
+            x: root.windowAllowed ? Math.floor(recentPopup.x) : 0
+            y: root.windowAllowed ? Math.floor(recentPopup.y) : 0
+            width: root.windowAllowed && recentPopup.visible ? Math.ceil(recentPopup.width) : 0
+            height: root.windowAllowed && recentPopup.visible ? Math.ceil(recentPopup.height) : 0
+        }
     }
-    onVisibleChanged: if (!visible) { contextMenu.dismiss(); folderPopup.dismiss(); trash.cancel() }
+    onVisibleChanged: if (!visible) { contextMenu.dismiss(); folderPopup.dismiss(); recentPopup.dismiss(); trash.cancel() }
     onWindowAllowedChanged: if (!root.windowAllowed) {
         contextMenu.dismiss()
         folderPopup.dismiss()
+        recentPopup.dismiss()
         trash.cancel()
     }
     WlrLayershell.layer: WlrLayer.Top
@@ -108,7 +117,7 @@ PanelWindow {
     DockFocusPolicy {
         id: dockFocusPolicy
         surfaceVisible: visibilityController.surfaceVisible && root.windowAllowed
-        menuOpen: view.contextMenuOpen
+        menuOpen: view.contextMenuOpen || recentPopup.visible || recentPopup.preparingToShow
         keyboardNavigationRequested: view.keyboardNavigationRequested
     }
 
@@ -129,7 +138,8 @@ PanelWindow {
         showingDesktop: overlap.showingDesktop
         configuring: root.configuring
         pointerInside: inputArea.hovered || nativeEdge.pointerInside
-        menuOpen: view.contextMenuOpen || folderPopup.visible || folderPopup.preparingToShow || trashConfirmation.visible || trash.confirming || root.services.trashState.busy
+        menuOpen: view.contextMenuOpen || folderPopup.visible || folderPopup.preparingToShow
+            || recentPopup.visible || recentPopup.preparingToShow || trashConfirmation.visible || trash.confirming || root.services.trashState.busy
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: root.settings.effectiveReducedMotion
         transitionDuration: root.settings.slideDuration
@@ -345,6 +355,7 @@ PanelWindow {
         onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
         onFolderSortRequested: function(appId, sortMode) { root.settings.setContainerSortMode(appId, sortMode) }
         onFolderLayoutRequested: function(appId, layout) { root.settings.setContainerLayout(appId, layout) }
+        onRecentLayoutRequested: function(layout) { root.settings.recentApplicationsContainerLayout = layout }
         onOpenFolderRequested: {
             const entry = root.settings.container(contextMenu.appId)
             if (entry && entry.path.length > 0) contextApplicationAdapter.openFolderPath(entry.path)
@@ -405,6 +416,24 @@ PanelWindow {
         target: activation
         function onActivationDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
+    DesktopApplicationAdapter { id: recentApplicationAdapter; activationItem: view }
+    // The container lists entries the dock row no longer carries, so the popup
+    // launches through the selection itself and still records the access.
+    ApplicationLaunchService {
+        id: recentLauncher
+        entries: root.recentApplications.selection
+        adapter: recentApplicationAdapter
+        onLaunchRejected: function(appId) {
+            console.warn("Punchi Dock Quickshell: recent application activation rejected:", appId)
+        }
+        onLaunchCompleted: function(desktopId, success, error) {
+            if (!success) console.warn("Punchi Dock Quickshell: recent application launch failed:", desktopId, error)
+        }
+    }
+    Connections {
+        target: recentLauncher
+        function onLaunchDispatched(appId) { root.recentApplications.recordAccess(appId) }
+    }
 
     FolderContainerPopup {
         id: folderPopup
@@ -421,14 +450,36 @@ PanelWindow {
             if (!root.settings.container(folderPopup.appId)) folderPopup.dismiss()
         }
     }
+    RecentApplicationsPopup {
+        id: recentPopup
+        objectName: "recentApplicationsPopup"
+        hostWindow: root
+        hostBaseHeight: root.dockAllocationHeight
+        settings: root.preferences
+        selection: root.recentApplications.selection
+        onActivateRequested: function(appId) {
+            recentLauncher.launch(appId)
+            recentPopup.dismiss()
+        }
+    }
+    Connections {
+        target: root.settings
+        // Either choice rebuilds the dock row; an open popup would then point at
+        // an item that is gone.
+        function onRecentApplicationsPresentationChanged() { recentPopup.dismiss() }
+        function onRecentApplicationsEnabledChanged() { recentPopup.dismiss() }
+    }
     DockView {
         id: view
         objectName: "dock-view"
         applicationState: root.services.runningApplications
         updateState: root.updateNotice
-        contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow || folderPopup.visible || folderPopup.preparingToShow
+        contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow
+            || folderPopup.visible || folderPopup.preparingToShow
+            || recentPopup.visible || recentPopup.preparingToShow
         onContextMenuRequested: function(sourceItem, appId, title, position) {
             folderPopup.dismiss()
+            recentPopup.dismiss()
             contextMenu.appId = appId
             contextService.select(appId)
             if (appId.length > 0) contextMenu.openForItem(sourceItem, title)
@@ -475,14 +526,17 @@ PanelWindow {
             // turn the first row into a keyboard row.
             const fromKeyboard = view.keyboardActivation(tile)
             if (container) folderPopup.toggleForItem(tile, appId, container, fromKeyboard)
+            else if (appId === "item:recent") recentPopup.toggleForItem(tile, fromKeyboard)
             else {
                 folderPopup.dismiss()
+                recentPopup.dismiss()
                 if (appId === "item:trash") trash.open()
                 else activation.activate(appId)
             }
         }
         onItemNewWindowRequested: function(appId) {
             folderPopup.dismiss()
+            recentPopup.dismiss()
             if (!appId.startsWith("item:")) activation.newWindow(appId)
             contextMenu.dismiss()
         }

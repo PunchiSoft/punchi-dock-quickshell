@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 
-// Keeps the folder-entry geometry fixed while allowing a long name to be read.
+// Keeps the entry geometry fixed while allowing a long name to be read.
 Item {
     id: root
     objectName: "folderMarqueeLabel"
@@ -52,7 +52,7 @@ Item {
         height: root.height
         clip: true
 
-        FolderPopupShadowLabel {
+        PopupShadowLabel {
             id: restingText
             objectName: "folderMarqueeRestingText"
             anchors.fill: parent
@@ -75,7 +75,7 @@ Item {
             }
         }
 
-        FolderPopupShadowLabel {
+        PopupShadowLabel {
             id: movingText
             objectName: "folderMarqueeMovingText"
             x: root.revealFullText && root.motionEnabled ? root.terminalOffset : 0

@@ -64,6 +64,10 @@ Item {
     property bool dockBackground: false
     property bool folderItem: false
     property var folderContainer: null
+    // The recent-applications container shares the view section of a folder
+    // container, but sorts nothing and opens no folder.
+    property bool recentContainer: false
+    property string recentContainerLayout: ""
     // Presentation the popup really shows, and whether the arc can be offered at
     // all: a vertical panel has no near row to unfold from.
     readonly property string folderLayout: {
@@ -74,6 +78,7 @@ Item {
     }
     readonly property bool fanAvailable: !root.settings || root.settings.fanSupported
     property Item folderSortNameAction: null
+    property Item recentLayoutFirstAction: null
     property bool canEmptyTrash: false
     property string openDockSubmenu: ""
     property string tailEdge: "bottom"
@@ -101,6 +106,7 @@ Item {
     signal openFolderRequested()
     signal folderSortRequested(string sortMode)
     signal folderLayoutRequested(string layout)
+    signal recentLayoutRequested(string layout)
     signal emptyTrashRequested()
     signal autoHideRequested()
     signal magnificationRequested()
@@ -136,6 +142,8 @@ Item {
         if (reason === undefined) reason = Qt.MouseFocusReason
         // Opening with the pointer does not paint a band; the keyboard does.
         if (root.trashItem) openTrashAction.forceActiveFocus(reason)
+        else if (root.recentContainer && root.recentLayoutFirstAction)
+            root.recentLayoutFirstAction.forceActiveFocus(reason)
         else if (root.folderItem && root.folderSortNameAction)
             root.folderSortNameAction.forceActiveFocus(reason)
         else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(reason)
@@ -189,7 +197,7 @@ Item {
             }
         }
         DockContextSectionHeader {
-            visible: root.folderItem
+            visible: root.folderItem || root.recentContainer
             text: qsTr("View content as")
             Layout.fillWidth: true
         }
@@ -203,14 +211,24 @@ Item {
             delegate: DockContextAction {
                 pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
+                id: folderLayoutOption
                 required property var modelData
-                objectName: "folderLayout-" + modelData.mode
+                objectName: root.recentContainer
+                    ? "recentLayout-" + modelData.mode : "folderLayout-" + modelData.mode
                 Layout.fillWidth: true
-                visible: root.folderItem
+                visible: root.folderItem || root.recentContainer
                 enabled: modelData.mode !== "fan" || root.fanAvailable
                 text: modelData.label
-                marked: !!root.folderContainer && root.folderLayout === modelData.mode
-                onClicked: root.folderLayoutRequested(modelData.mode)
+                marked: root.recentContainer
+                    ? root.recentContainerLayout === modelData.mode
+                    : !!root.folderContainer && root.folderLayout === modelData.mode
+                onClicked: {
+                    if (root.recentContainer) root.recentLayoutRequested(modelData.mode)
+                    else root.folderLayoutRequested(modelData.mode)
+                }
+                Component.onCompleted: {
+                    if (modelData.mode === "grid") root.recentLayoutFirstAction = folderLayoutOption
+                }
             }
         }
         DockContextAction {

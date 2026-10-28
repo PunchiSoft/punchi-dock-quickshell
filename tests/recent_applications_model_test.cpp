@@ -73,6 +73,31 @@ private slots:
             QVERIFY(!item.toMap().value("storageId").toString().isEmpty());
         }
     }
+    // The shared container views read the same rows: the selection publishes
+    // entryName/entryIcon aliases instead of a QML copy of its entries.
+    void selectionPublishesEntryAliases() {
+        QStandardItemModel source;
+        initialize(source);
+        append(source, "org.kde.dolphin.desktop", "Dolphin");
+        append(source, "org.kde.kate.desktop", "Kate");
+        RecentApplicationsModel selection;
+        QAbstractItemModelTester tester(&selection, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        selection.setSourceModel(&source);
+        selection.setEnabled(true);
+        QCOMPARE(selection.count(), 2);
+        const auto roles = selection.roleNames();
+        const int nameRole = roles.key("entryName", -1);
+        const int iconRole = roles.key("entryIcon", -1);
+        QVERIFY(nameRole >= 0);
+        QVERIFY(iconRole >= 0);
+        QCOMPARE(selection.index(0, 0).data(nameRole).toString(), "Dolphin");
+        QCOMPARE(selection.index(0, 0).data(iconRole).toString(), "application-x-executable");
+        const auto entry = selection.get(1);
+        QCOMPARE(entry.value("entryName").toString(), "Kate");
+        QCOMPARE(entry.value("entryIcon").toString(), "application-x-executable");
+        QCOMPARE(entry.value("name").toString(), entry.value("entryName").toString());
+        QCOMPARE(entry.value("icon").toString(), entry.value("entryIcon").toString());
+    }
 };
 QTEST_GUILESS_MAIN(RecentApplicationsModelTest)
 #include "recent_applications_model_test.moc"

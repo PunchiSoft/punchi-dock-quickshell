@@ -26,7 +26,7 @@ QtObject {
     }
     // Resting width of a list label: the popup sizes itself from the same cap the
     // row paints, so a long entry cannot reserve room no row will ever use.
-    // FolderMarqueeLabel measures the same probe with the row font.
+    // EntryMarqueeLabel measures the same probe with the row font.
     readonly property real maximumRestingNameWidth: Math.ceil(
         root.labelMetrics.advanceWidth("MMMMMMMMMM"))
     readonly property int listIconSize: Math.round((root.listBaseIconSize > 0

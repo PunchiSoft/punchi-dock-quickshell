@@ -3,7 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
-import "../../components"
+
 
 // One row of the folder fan: a glyph on the arc and the pill that carries its
 // name. The view owns the arc and hands each row its lean, its curve position
@@ -30,7 +30,7 @@ ItemDelegate {
     property bool showLabels: true
     property bool iconsOnRight: true
     property bool motionEnabled: true
-    // The fan owns which signal paints the band; see FolderFanView.
+    // The fan owns which signal paints the band; see FanView.
     property bool pointerEmphasis: true
     property int contentPadding: Kirigami.Units.smallSpacing
     property int labelSpacing: Kirigami.Units.smallSpacing
@@ -160,7 +160,7 @@ ItemDelegate {
             antialiasing: true
             Accessible.ignored: true
 
-            FolderMarqueeLabel {
+            EntryMarqueeLabel {
                 objectName: "folderFanLabel"
                 anchors.fill: parent
                 anchors.leftMargin: root.labelHorizontalPadding

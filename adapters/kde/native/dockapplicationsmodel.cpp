@@ -81,6 +81,24 @@ void DockApplicationsModel::setRunningApplications(const QVariantList &applicati
     m_runningApplications = normalized;
     schedule(); emit sourcesChanged();
 }
+void DockApplicationsModel::setRecentContainer(bool enabled)
+{
+    if (m_recentContainer == enabled) return;
+    m_recentContainer = enabled;
+    schedule(); emit recentContainerChanged();
+}
+void DockApplicationsModel::setRecentContainerTitle(const QString &title)
+{
+    if (m_recentContainerTitle == title) return;
+    m_recentContainerTitle = title;
+    schedule(); emit recentContainerChanged();
+}
+void DockApplicationsModel::setRecentContainerIcon(const QString &icon)
+{
+    if (m_recentContainerIcon == icon) return;
+    m_recentContainerIcon = icon;
+    schedule(); emit recentContainerChanged();
+}
 int DockApplicationsModel::rowCount(const QModelIndex &parent) const { return parent.isValid() ? 0 : m_rows.size(); }
 QHash<int, QByteArray> DockApplicationsModel::roleNames() const
 {
@@ -145,22 +163,36 @@ void DockApplicationsModel::rebuild()
         identities.insert(desktopId); appIds.insert(appId);
     }
     // Recent applications are resolved application rows, not task entries.
-    // Keep their history order and skip anything already pinned or open.
-    for (int row = 0; m_recent && row < m_recent->rowCount(); ++row) {
-        const auto source = m_recent->index(row, 0);
-        const auto storageId = field(source, "storageId").toString();
-        const auto identity = normalizedApplicationId(storageId);
-        const auto appId = QStringLiteral("desktop:") + storageId;
-        if (storageId.isEmpty() || identity.isEmpty()
-            || identities.contains(identity) || appIds.contains(appId)) continue;
-        auto iconName = field(source, "icon").toString();
-        if (iconName.isEmpty()) iconName = QStringLiteral("application-x-executable");
-        const QVariantMap fallback{{QStringLiteral("appId"), appId},
-            {QStringLiteral("desktopId"), storageId},
-            {QStringLiteral("title"), field(source, "name")},
-            {QStringLiteral("iconName"), iconName}};
-        recentCandidates.append({appId, {}, fallback});
-        identities.insert(identity); appIds.insert(appId);
+    // Keep their history order and skip anything already pinned or open. In the
+    // container presentation one item stands for the same history, and the
+    // popup lists the entries the selection model already filters.
+    if (m_recentContainer) {
+        if (m_recent && m_recent->rowCount() > 0 && !appIds.contains(QLatin1String("item:recent"))) {
+            auto iconName = m_recentContainerIcon;
+            if (iconName.isEmpty()) iconName = QStringLiteral("folder-temp");
+            const QVariantMap fallback{{QStringLiteral("appId"), QStringLiteral("item:recent")},
+                {QStringLiteral("desktopId"), QString()},
+                {QStringLiteral("title"), m_recentContainerTitle},
+                {QStringLiteral("iconName"), iconName}};
+            recentCandidates.append({QStringLiteral("item:recent"), {}, fallback});
+        }
+    } else {
+        for (int row = 0; m_recent && row < m_recent->rowCount(); ++row) {
+            const auto source = m_recent->index(row, 0);
+            const auto storageId = field(source, "storageId").toString();
+            const auto identity = normalizedApplicationId(storageId);
+            const auto appId = QStringLiteral("desktop:") + storageId;
+            if (storageId.isEmpty() || identity.isEmpty()
+                || identities.contains(identity) || appIds.contains(appId)) continue;
+            auto iconName = field(source, "icon").toString();
+            if (iconName.isEmpty()) iconName = QStringLiteral("application-x-executable");
+            const QVariantMap fallback{{QStringLiteral("appId"), appId},
+                {QStringLiteral("desktopId"), storageId},
+                {QStringLiteral("title"), field(source, "name")},
+                {QStringLiteral("iconName"), iconName}};
+            recentCandidates.append({appId, {}, fallback});
+            identities.insert(identity); appIds.insert(appId);
+        }
     }
     // Running applications join before trailing special items. A special item
     // explicitly moved into the middle retains its chosen position.

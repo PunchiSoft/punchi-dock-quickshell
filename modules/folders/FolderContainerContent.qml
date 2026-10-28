@@ -7,7 +7,7 @@ import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
 import "../../components"
 import "../../config"
-import "FolderLayout.js" as FolderLayout
+import "../../components/EntryLayout.js" as EntryLayout
 
 Item {
     id: root
@@ -97,10 +97,10 @@ Item {
     // Height the arrangement may use. The ceiling keeps a usability floor, so a
     // surface shorter than the popup shows whole rows instead of a clipped one.
     readonly property real availableContentHeight: Math.max(0, root.maximumHeight - root.chromeHeight)
-    readonly property var gridLayout: FolderLayout.arrangement(root.entryCount, root.maximumColumns,
-        FolderLayout.rowCeiling(root.availableContentHeight, root.cellHeight))
-    readonly property var listLayout: FolderLayout.singleColumnArrangement(root.entryCount,
-        FolderLayout.rowCeiling(root.availableContentHeight, root.rowHeight))
+    readonly property var gridLayout: EntryLayout.arrangement(root.entryCount, root.maximumColumns,
+        EntryLayout.rowCeiling(root.availableContentHeight, root.cellHeight))
+    readonly property var listLayout: EntryLayout.singleColumnArrangement(root.entryCount,
+        EntryLayout.rowCeiling(root.availableContentHeight, root.rowHeight))
     readonly property int columns: root.gridLayout.columns
     readonly property bool scrollRequired: root.fanMode ? false
         : root.viewMode === "grid" ? root.gridLayout.scrollRequired : root.listLayout.scrollRequired
@@ -289,7 +289,7 @@ Item {
         anchors.fill: parent
         anchors.margins: root.fanMode ? 0 : root.inset
         spacing: Kirigami.Units.largeSpacing
-        FolderPopupHeader {
+        PopupHeader {
             id: header
             Layout.fillWidth: true
             // The arc has no card to carry a title or a close control: it is
@@ -350,7 +350,7 @@ Item {
                     motionEnabled: root.motionEnabled
                     thickness: root.metrics.indicatorThickness
                 }
-                delegate: FolderEntryButton {
+                delegate: EntryButton {
                     id: gridEntry
                     required property int index
                     required entryName
@@ -402,7 +402,7 @@ Item {
                     motionEnabled: root.motionEnabled
                     thickness: root.metrics.indicatorThickness
                 }
-                delegate: FolderEntryButton {
+                delegate: EntryButton {
                     id: listEntry
                     required property int index
                     required entryName
@@ -441,7 +441,7 @@ Item {
                     })
                 }
             }
-            FolderFanView {
+            FanView {
                 id: fan
                 objectName: "folderFanView"
                 anchors.fill: parent

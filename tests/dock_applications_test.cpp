@@ -85,6 +85,46 @@ private slots:
         recent.removeRows(1, 2);
         QTRY_COMPARE(dock.rowCount(), 2);
     }
+    void recentContainerReplacesTheResolvedRows() {
+        QStandardItemModel pins, catalog, recent;
+        initialize(pins); initialize(catalog); initializeRecent(recent);
+        append(pins, "files", "org.kde.dolphin.desktop");
+        append(pins, "item:trash", "");
+        append(catalog, "files", "org.kde.dolphin.desktop");
+        appendRecent(recent, "org.kde.kate.desktop", "Kate recent", "kate");
+        appendRecent(recent, "org.kde.gwenview.desktop", "Gwenview recent", "gwenview");
+        DockApplicationsModel dock;
+        QAbstractItemModelTester tester(&dock, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        dock.setPinned(&pins);
+        dock.setCatalog(&catalog);
+        dock.setRecent(&recent);
+        dock.setRecentContainerTitle("Recent applications");
+        dock.setRecentContainerIcon("folder-temp");
+        QSignalSpy changes(&dock, &DockApplicationsModel::recentContainerChanged);
+        dock.setRecentContainer(true);
+        QCOMPARE(changes.count(), 1);
+        // One item stands for both entries, before the trailing special items.
+        QTRY_COMPARE(dock.rowCount(), 3);
+        QCOMPARE(dock.get(0).value("appId").toString(), "files");
+        QCOMPARE(dock.get(1).value("appId").toString(), "item:recent");
+        QCOMPARE(dock.get(1).value("desktopId").toString(), QString());
+        QCOMPARE(dock.get(1).value("title").toString(), "Recent applications");
+        QCOMPARE(dock.get(1).value("iconName").toString(), "folder-temp");
+        QCOMPARE(dock.get(2).value("appId").toString(), "item:trash");
+        dock.setRecentContainerIcon("view-history");
+        QTRY_COMPARE(dock.get(1).value("iconName").toString(), "view-history");
+        // An empty history keeps the dock unchanged in both presentations.
+        recent.removeRows(0, 2);
+        QTRY_COMPARE(dock.rowCount(), 2);
+        QCOMPARE(dock.get(1).value("appId").toString(), "item:trash");
+        appendRecent(recent, "org.kde.kate.desktop", "Kate recent", "kate");
+        QTRY_COMPARE(dock.rowCount(), 3);
+        // Returning to icons restores one row per resolved application.
+        dock.setRecentContainer(false);
+        QTRY_COMPARE(dock.get(1).value("appId").toString(), "desktop:org.kde.kate.desktop");
+        QCOMPARE(dock.rowCount(), 3);
+        QCOMPARE(dock.get(2).value("appId").toString(), "item:trash");
+    }
 };
 QTEST_GUILESS_MAIN(DockApplicationsTest)
 #include "dock_applications_test.moc"

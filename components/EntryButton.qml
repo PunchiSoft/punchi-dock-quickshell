@@ -5,8 +5,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
-import "../../components"
-import "../../config"
+import "../config"
 
 ItemDelegate {
     id: root
@@ -92,7 +91,7 @@ ItemDelegate {
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
-            FolderMarqueeLabel {
+            EntryMarqueeLabel {
                 id: entryNameLabel
                 Layout.fillWidth: true
                 objectName: "folderEntryNameLabel"

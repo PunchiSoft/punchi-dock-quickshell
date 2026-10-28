@@ -499,6 +499,58 @@ TestCase {
         verify(!window.hasPendingChanges)
         window.close()
     }
+    function test_recentApplicationsPresentationSettings(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        const presentation = control(window, "recentApplicationsPresentation")
+        const containerView = control(window, "recentApplicationsContainerLayout")
+        const toggle = control(window, "recentApplicationsEnabled")
+        // The container is the first-run presentation with the flat list view.
+        compare(presentation.currentIndex, 1)
+        verify(presentation.enabled)
+        compare(containerView.currentIndex, 1)
+        verify(containerView.enabled)
+        // Choosing Icons stores the value and leaves the container view inert.
+        presentation.currentIndex = 0
+        presentation.activated(0)
+        compare(view.settings.recentApplicationsPresentation, "icons")
+        verify(!containerView.enabled)
+        verify(window.hasPendingChanges)
+        presentation.currentIndex = 1
+        presentation.activated(1)
+        compare(view.settings.recentApplicationsPresentation, "container")
+        verify(containerView.enabled)
+        containerView.currentIndex = 3
+        containerView.activated(3)
+        compare(view.settings.recentApplicationsContainerLayout, "fan")
+        // Hiding the list disables both selectors; its own switch stays usable.
+        mouseClick(toggle)
+        verify(!toggle.checked)
+        verify(!presentation.enabled)
+        verify(!containerView.enabled)
+        verify(toggle.enabled)
+        mouseClick(control(window, "applyDockSettings"))
+        verify(!window.settings.recentApplicationsEnabled)
+        compare(window.settings.recentApplicationsPresentation, "container")
+        compare(window.settings.recentApplicationsContainerLayout, "fan")
+        window.close()
+    }
+    function test_containerViewFollowsTheEdge(): void {
+        const window = createTemporaryObject(fixture, test)
+        // A side dock cannot unfold the arc: the stored fan stays selected in
+        // the profile and the control presents Grid instead.
+        window.settings.recentApplicationsContainerLayout = "fan"
+        window.settings.dockEdge = "left"
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const view = control(window, "dockSettingsView")
+        const containerView = control(window, "recentApplicationsContainerLayout")
+        tryCompare(containerView, "count", 3)
+        compare(containerView.currentIndex, 0)
+        compare(view.settings.recentApplicationsContainerLayout, "fan")
+        window.close()
+    }
     function test_hiddenRecentApplicationsCanBeShownAgain(): void {
         const window = createTemporaryObject(hiddenRecentFixture, test)
         window.open()

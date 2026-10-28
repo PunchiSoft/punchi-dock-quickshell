@@ -136,12 +136,15 @@ propia validación.
   siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se
   sobrescribe ni se elimina. El interruptor no está disponible durante una
   prueba, cuyo perfil Plasma nunca carga.
-- **Aplicaciones recientes** opcionales del historial de actividad de KDE,
-  mostradas como lanzadores adicionales del dock con una cantidad configurable.
-  Se excluyen las aplicaciones fijadas y las que tienen ventanas abiertas. Los
-  ajustes del dock incluyen un interruptor que escribe la preferencia de KDE de
-  recordar aplicaciones y un acceso a las opciones de Archivos recientes de KDE;
-  si KDE no guarda historial, una nota breve explica cómo activarlo.
+- **Aplicaciones recientes** opcionales del historial de actividad de KDE con
+  una cantidad configurable. **Presentación** elige entre los lanzadores
+  adicionales del dock o un único elemento contenedor con un glifo fijo, cuya
+  **Vista del contenedor** ofrece Grid, List, Detail y Fan; el contenedor es la
+  presentación inicial con la vista List. Se excluyen las aplicaciones fijadas y
+  las que tienen ventanas abiertas en ambas presentaciones. Los ajustes del dock
+  incluyen un interruptor que escribe la preferencia de KDE de recordar
+  aplicaciones y un acceso a las opciones de Archivos recientes de KDE; si KDE
+  no guarda historial, una nota breve explica cómo activarlo.
 - Navegación por teclado para el dock, sus menús contextuales y la ventana de
   ajustes.
 - Editores de elementos que eligen un icono del tema para cualquier aplicación
@@ -435,17 +438,19 @@ abre el navegador que KDE tiene como gestor preferido de enlaces web, así que
 sigue el predeterminado elegido en Configuración del sistema y nunca supone que
 Firefox esté instalado. Cambiar ajustes con Apply o Accept guarda los valores del
 usuario; los inicios posteriores los cargan. Un modo de inicio explícito puede
-sustituir el modo de visibilidad guardado. El formato actual es la versión 12 y
-acepta las versiones 1 a 11 mediante migración. La versión 7 añade el interruptor
+sustituir el modo de visibilidad guardado. El formato actual es la versión 13 y
+acepta las versiones 1 a 12 mediante migración. La versión 7 añade el interruptor
 de aplicaciones recientes y su cantidad visible, la 8 guarda el icono elegido
 para una aplicación fijada, la 9 las entradas de carpeta que un contenedor deja
 fuera de su popup, la 10 el tamaño, la altura y el tamaño de icono del popup, la
-11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico, y la
+11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico, la
 12 la selección de pantallas, escritorios virtuales y actividades más los dos
-interruptores de colocación; los perfiles anteriores sin esos campos usan cinco
-aplicaciones, el icono de la aplicación, la carpeta completa, las proporciones de
-referencia del popup, los tamaños de glifo del tema, todas las pantallas y todos
-los escritorios y actividades.
+interruptores de colocación, y la 13 la presentación de aplicaciones recientes y
+su vista del contenedor; los perfiles anteriores sin esos campos usan cinco
+aplicaciones, la presentación de contenedor con la vista List, el icono de la
+aplicación, la carpeta completa, las proporciones de referencia del popup, los
+tamaños de glifo del tema, todas las pantallas y todos los escritorios y
+actividades.
 
 La categoría **Profile** exporta los valores pendientes como un documento JSON
 portátil con esquema `punchi-dock-quickshell/profile` y versión de formato 1.

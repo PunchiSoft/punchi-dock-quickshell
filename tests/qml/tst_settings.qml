@@ -114,7 +114,7 @@ TestCase {
         settings.popupFanIconSize = 34
         settings.popupHeightPercent = 50
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 12)
+        compare(data.version, 13)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.popupScale, 1.15)
@@ -137,6 +137,49 @@ TestCase {
         compare(restored.popupListIconSize, 0)
         compare(restored.popupFanIconSize, 0)
         compare(restored.popupHeightPercent, 80)
+    }
+    function test_recentApplicationsPresentationPersistence() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        // The container is the first-run presentation, with the flat list view.
+        compare(settings.recentApplicationsPresentation, "container")
+        compare(settings.recentApplicationsContainerLayout, "list")
+        compare(settings.effectiveRecentApplicationsLayout, "list")
+        settings.recentApplicationsPresentation = "icons"
+        settings.recentApplicationsContainerLayout = "fan"
+        compare(settings.effectiveRecentApplicationsLayout, "fan")
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.version, 13)
+        compare(data.recentApplicationsPresentation, "icons")
+        compare(data.recentApplicationsContainerLayout, "fan")
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore(data))
+        compare(restored.recentApplicationsPresentation, "icons")
+        compare(restored.recentApplicationsContainerLayout, "fan")
+        // A stored fan cannot unfold from a side edge; the stored value survives.
+        restored.dockEdge = "left"
+        compare(restored.effectiveRecentApplicationsLayout, "grid")
+        compare(restored.recentApplicationsContainerLayout, "fan")
+        restored.dockEdge = "bottom"
+        compare(restored.effectiveRecentApplicationsLayout, "fan")
+        // Unknown values keep the last valid choice instead of clearing it.
+        verify(restored.restore({version: 13, recentApplicationsPresentation: "window",
+            recentApplicationsContainerLayout: "carousel"}))
+        compare(restored.recentApplicationsPresentation, "icons")
+        compare(restored.recentApplicationsContainerLayout, "fan")
+        // A version 12 profile from before the fields existed keeps the defaults.
+        const legacy = createTemporaryObject(settingsFixture, test)
+        verify(legacy.restore({version: 12, recentApplicationsCount: 7}))
+        compare(legacy.recentApplicationsCount, 7)
+        compare(legacy.recentApplicationsPresentation, "container")
+        compare(legacy.recentApplicationsContainerLayout, "list")
+        // Invalid assignments fall back to the default immediately.
+        legacy.recentApplicationsPresentation = "window"
+        compare(legacy.recentApplicationsPresentation, "container")
+        legacy.recentApplicationsContainerLayout = "carousel"
+        compare(legacy.recentApplicationsContainerLayout, "list")
+        legacy.reset()
+        compare(legacy.recentApplicationsPresentation, "container")
+        compare(legacy.recentApplicationsContainerLayout, "list")
     }
     function test_folderContainers() {
         const settings = createTemporaryObject(settingsFixture, test)
@@ -168,7 +211,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 12)
+        compare(data.version, 13)
         compare(data.containers.length, 3)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -213,7 +256,7 @@ TestCase {
         // The profile round-trips the field and a schema-8 profile keeps none.
         verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 12)
+        compare(data.version, 13)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.containerHiddenEntries(id), ["skip.txt"])
@@ -235,7 +278,7 @@ TestCase {
         settings.runningMarkersFollowDesktop = true
         settings.avoidInnerEdgeAutoHide = false
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 12)
+        compare(data.version, 13)
         compare(data.selectedScreens.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))

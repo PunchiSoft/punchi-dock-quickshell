@@ -48,6 +48,8 @@ QHash<int, QByteArray> RecentApplicationsModel::roleNames() const
 {
     auto roles = QSortFilterProxyModel::roleNames();
     roles.insert(recentItemRole(), QByteArrayLiteral("recentItem"));
+    roles.insert(EntryNameRole, QByteArrayLiteral("entryName"));
+    roles.insert(EntryIconRole, QByteArrayLiteral("entryIcon"));
     return roles;
 }
 
@@ -55,6 +57,13 @@ QVariant RecentApplicationsModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.model() != this || index.column() != 0) return {};
     if (role == recentItemRole()) return get(index.row());
+    if (role == EntryNameRole || role == EntryIconRole) {
+        const auto sourceRoles = sourceModel() ? sourceModel()->roleNames() : QHash<int, QByteArray>();
+        const int sourceRole = sourceRoles.key(role == EntryNameRole
+            ? QByteArrayLiteral("name") : QByteArrayLiteral("icon"), -1);
+        if (sourceRole < 0) return {};
+        return sourceModel()->data(mapToSource(index), sourceRole);
+    }
     return QSortFilterProxyModel::data(index, role);
 }
 
@@ -137,6 +146,8 @@ QVariantMap RecentApplicationsModel::get(int row) const
         {QStringLiteral("launcherUrl"), QString(QStringLiteral("applications:") + storageId)},
         {QStringLiteral("name"), value(QByteArrayLiteral("name"))},
         {QStringLiteral("icon"), value(QByteArrayLiteral("icon"))},
+        {QStringLiteral("entryName"), value(QByteArrayLiteral("name"))},
+        {QStringLiteral("entryIcon"), value(QByteArrayLiteral("icon"))},
     };
 }
 

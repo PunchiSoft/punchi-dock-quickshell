@@ -17,6 +17,11 @@ QtObject {
         excludedStorageIds: root.excludedStorageIds
     }
     readonly property var excludedStorageIds: {
+        // The catalogue fills itself asynchronously, and a preset row resolves
+        // its desktop id only then. Reading the revision re-evaluates the
+        // exclusion list, so a pinned application never reaches the container
+        // or the inline rows once KDE reports it.
+        const revision = root.catalog ? root.catalog.revision : 0
         const excluded = []
         for (const appId of root.settings.pinnedIds || []) {
             const row = root.catalog ? root.catalog.application(appId) : null
