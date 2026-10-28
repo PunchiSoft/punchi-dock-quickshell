@@ -39,6 +39,9 @@ session; visual approval requires inspection, not merely frame rendering.
 Each test owns temporary data and cleans processes, caches, and sockets even
 on signal/timeout. Preserve behavioral assertions and record unavailable checks.
 Always verify the scoped restore route when changing startup/window lifecycle.
+Close every dock and settings window and stop every Punchi Dock Quickshell
+process started for a test; leave no test instance running on success, failure,
+signal, or timeout. Leave the user's own instance untouched.
 
 ## Gotchas
 
