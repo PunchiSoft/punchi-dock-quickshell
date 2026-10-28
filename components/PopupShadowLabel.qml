@@ -5,7 +5,7 @@ import QtQuick.Controls
 import QtQuick.Effects
 import org.kde.kirigami as Kirigami
 
-// Shared 25% theme-aware text shadow for folder popup captions and title.
+// Shared 25% theme-aware text shadow for popup captions and titles.
 Label {
     id: root
     readonly property real shadowAmount: 0.25

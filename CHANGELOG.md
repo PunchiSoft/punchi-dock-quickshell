@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Offer the recent applications as a container. **Presentation** in General now
+  chooses between the extra launchers and one item with the fixed `folder-temp`
+  glyph that opens a container with the same entries; the container is the new
+  default and its **Container view** chooses Grid, List (the default), Detail or
+  Fan, reusing the folder container presentations. A side dock presents a stored
+  fan as Grid without rewriting it, the item appears only while KDE history has
+  an application to show, and its menu switches the view. Launches go through
+  the selection itself, so an application that is also a first-run preset row
+  still opens and records the access; the pinned and open-window exclusions keep
+  applying inside the container. The container presentation primitives move from
+  `modules/folders` to `components/` now that a second consumer confirmed them,
+  and the profile format advances to version 13 with the two new fields.
 - Open the browser this session prefers from the default **Browser** item. The
   first-run catalogue names a role instead of a desktop entry: an empty
   `desktopId` plus the ordered MIME types `x-scheme-handler/https`,

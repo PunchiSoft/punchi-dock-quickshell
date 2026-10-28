@@ -3,6 +3,7 @@ import QtQml
 import "DefaultProfile.js" as DefaultProfile
 import "LauncherIds.js" as LauncherIds
 import "PanelModes.js" as PanelModes
+import "RecentPresentation.js" as RecentPresentation
 import "ScreenSelection.js" as ScreenSelection
 import "../adapters/kde"
 
@@ -46,6 +47,16 @@ QtObject {
     property bool bounceEnabled: defaultProfile.bounceEnabled
     property bool recentApplicationsEnabled: defaultProfile.recentApplicationsEnabled
     property int recentApplicationsCount: defaultProfile.recentApplicationsCount
+    property string recentApplicationsPresentation: defaultProfile.recentApplicationsPresentation
+    onRecentApplicationsPresentationChanged: {
+        if (!RecentPresentation.validPresentation(recentApplicationsPresentation))
+            recentApplicationsPresentation = defaultProfile.recentApplicationsPresentation
+    }
+    property string recentApplicationsContainerLayout: defaultProfile.recentApplicationsContainerLayout
+    onRecentApplicationsContainerLayoutChanged: {
+        if (!RecentPresentation.validContainerLayout(recentApplicationsContainerLayout))
+            recentApplicationsContainerLayout = defaultProfile.recentApplicationsContainerLayout
+    }
     property bool updateBadgeEnabled: defaultProfile.updateBadgeEnabled
     // Popup presentation for the folder containers. The dock menus share the
     // same visual language but keep the platform sizes. The scale multiplies the
@@ -118,6 +129,12 @@ QtObject {
     function effectiveContainerLayout(appId): string {
         const entry = container(appId)
         const layout = entry && entry.layout ? String(entry.layout) : "grid"
+        return layout === "fan" && !fanSupported ? "grid" : layout
+    }
+    // The recent container stores the same views as a folder container, so a
+    // vertical dock presents its stored fan as Grid without rewriting it.
+    readonly property string effectiveRecentApplicationsLayout: {
+        const layout = RecentPresentation.normalizeContainerLayout(recentApplicationsContainerLayout)
         return layout === "fan" && !fanSupported ? "grid" : layout
     }
     function containerIdOf(appId): string {
@@ -242,11 +259,12 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 12, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
+        return {version: 13, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
             desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
             avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
-            recentApplicationsCount, updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
+            recentApplicationsCount, recentApplicationsPresentation, recentApplicationsContainerLayout,
+            updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent}
     }
     function validPopupIconSize(value, maximum): bool {
@@ -260,7 +278,7 @@ QtObject {
         bulkChange = true
         let applied = false
         try {
-            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].indexOf(data.version) < 0) return false
+            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].indexOf(data.version) < 0) return false
             const hasLegacyDownloadsView = LauncherIds.validLayout(data.downloadsView)
             const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
             if (LauncherIds.validContainers(data.containers)) {
@@ -313,6 +331,10 @@ QtObject {
             if (inRange(data.recentApplicationsCount,
                     DefaultProfile.limits.recentApplicationsCount, true))
                 recentApplicationsCount = data.recentApplicationsCount
+            if (RecentPresentation.validPresentation(data.recentApplicationsPresentation))
+                recentApplicationsPresentation = data.recentApplicationsPresentation
+            if (RecentPresentation.validContainerLayout(data.recentApplicationsContainerLayout))
+                recentApplicationsContainerLayout = data.recentApplicationsContainerLayout
             // An invalid map is dropped as a whole; partial trust would keep names
             // the picker cannot render.
             iconOverrides = LauncherIds.validIconOverrides(data.iconOverrides) ? data.iconOverrides : ({})

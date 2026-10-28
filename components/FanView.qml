@@ -3,9 +3,9 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
-import "FolderFanGeometry.js" as FanGeometry
+import "FanGeometry.js" as FanGeometry
 
-// Folder fan: the entries of a container unfold from the dock icon as one arc,
+// Container fan: the entries of a container unfold from the dock icon as one arc,
 // each row leaning a little more than the one before it. Only the rows paint:
 // there is no card behind them, so the arc floats and the room a leaned pill
 // needs is kept inside the popup instead of being clipped. The view owns the
@@ -14,9 +14,9 @@ import "FolderFanGeometry.js" as FanGeometry
 Item {
     id: root
 
-    // Directory entries: entryName, entryIcon, directory and description. The
-    // fan consumes the same model as the Grid, List and Detail presentations, so
-    // no row is mirrored in QML.
+    // Entry rows: entryName and entryIcon, plus the description a caller may
+    // publish. The fan consumes the same model as the Grid, List and Detail
+    // presentations, so no row is mirrored in QML.
     property var contents: null
     property string dockEdge: "bottom"
     property int iconSize: 42
@@ -294,7 +294,7 @@ Item {
         activeFocusOnTab: false
         currentIndex: -1
 
-        delegate: FolderFanRow {
+        delegate: FanRow {
             id: entryRow
             pointerEmphasis: root.pointerEmphasis
 
@@ -336,7 +336,7 @@ Item {
         }
     }
 
-    FolderFanRow {
+    FanRow {
         id: actionRow
         objectName: "folderFanOpenLocation"
         pointerEmphasis: root.pointerEmphasis

@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 
-// Title row of a folder container: the way back to the parent folder, the title
+// Title row of a container popup: the way back to the parent folder, the title
 // and the close control. The arc has no card to carry this chrome, so the
 // container only shows it for the flat presentations.
 Item {
@@ -35,7 +35,7 @@ Item {
         }
         onClicked: root.backRequested()
     }
-    FolderPopupShadowLabel {
+    PopupShadowLabel {
         anchors.centerIn: parent
         objectName: "folderPopupTitle"
         width: Math.max(0, root.width - (back.visible ? back.width : 0)

@@ -3,8 +3,8 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
 import QtQml.Models
-import "../../modules/folders"
-import "../../modules/folders/FolderFanGeometry.js" as FanGeometry
+import "../../components"
+import "../../components/FanGeometry.js" as FanGeometry
 
 TestCase {
     id: test
@@ -24,7 +24,7 @@ TestCase {
             property alias launchSpy: launchSpy
             property alias openSpy: openSpy
             ListModel { id: contentsModel }
-            FolderFanView {
+            FanView {
                 id: fan
                 x: 20
                 y: 20

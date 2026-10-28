@@ -23,6 +23,10 @@ class RecentApplicationsModel : public QSortFilterProxyModel
 public:
     static constexpr int DefaultMaximumItems = 5;
     static constexpr int MaximumItems = 20;
+    // Presentation aliases the shared container views consume. They publish the
+    // same values as `name` and `icon`, so the fan can read this selection model
+    // instead of a QML copy of its rows.
+    enum { EntryNameRole = Qt::UserRole + 500, EntryIconRole };
 
     explicit RecentApplicationsModel(QObject *parent = nullptr);
 

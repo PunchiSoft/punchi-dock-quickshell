@@ -4,6 +4,7 @@
 .import "DefaultProfile.js" as DefaultProfile
 .import "LauncherIds.js" as LauncherIds
 .import "PanelModes.js" as PanelModes
+.import "RecentPresentation.js" as RecentPresentation
 .import "ScreenSelection.js" as ScreenSelection
 
 // Portable profile document exchanged with the user. It is data only: a
@@ -90,6 +91,12 @@ function validate(profile) {
     if (own(profile, "recentApplicationsCount")
             && !inRange(profile.recentApplicationsCount,
                 DefaultProfile.limits.recentApplicationsCount, true))
+        return "invalid-field"
+    if (own(profile, "recentApplicationsPresentation")
+            && !RecentPresentation.validPresentation(profile.recentApplicationsPresentation))
+        return "invalid-field"
+    if (own(profile, "recentApplicationsContainerLayout")
+            && !RecentPresentation.validContainerLayout(profile.recentApplicationsContainerLayout))
         return "invalid-field"
     for (const key of booleanKeys)
         if (own(profile, key) && typeof profile[key] !== "boolean") return "invalid-field"

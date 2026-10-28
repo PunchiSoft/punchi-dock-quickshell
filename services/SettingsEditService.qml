@@ -61,6 +61,10 @@ QtObject {
         function onMagnificationEnabledChanged() { root.synchronize() }
         function onReducedMotionChanged() { root.synchronize() }
         function onBounceEnabledChanged() { root.synchronize() }
+        function onRecentApplicationsEnabledChanged() { root.synchronize() }
+        function onRecentApplicationsCountChanged() { root.synchronize() }
+        function onRecentApplicationsPresentationChanged() { root.synchronize() }
+        function onRecentApplicationsContainerLayoutChanged() { root.synchronize() }
         function onPinnedIdsChanged() { root.synchronize() }
         function onContainersChanged() { root.synchronize() }
         // A bulk restore emits one notification after every property settled.

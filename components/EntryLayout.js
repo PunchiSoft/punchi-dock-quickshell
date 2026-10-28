@@ -91,14 +91,17 @@ function rowCeiling(availableHeight, cellHeight) {
     return Math.max(1, Math.floor(height / cell))
 }
 
-// Complete arrangement of a container that always ends with its location action.
+// Complete arrangement of a container. A folder container ends with its
+// location action, so its cell total is one more than its entries; a container
+// whose entries all launch an application passes `hasLocationAction` false.
 // `visibleRows` is what the surface shows without scrolling, so the caller can
 // size itself to whole rows instead of clipping the last one.
-function arrangement(entryCount, maximumColumns, rowLimit) {
+function arrangement(entryCount, maximumColumns, rowLimit, hasLocationAction) {
+    const extra = hasLocationAction === false ? 0 : 1
     const entries = safeCount(entryCount)
     const lines = safeLines(rowLimit)
-    const columns = gridColumnCount(entries + 1, entries, true, maximumColumns, lines)
-    const rows = Math.ceil((entries + 1) / columns)
+    const columns = gridColumnCount(entries + extra, entries, extra === 1, maximumColumns, lines)
+    const rows = Math.ceil((entries + extra) / columns)
     return {
         "columns": columns,
         "rows": rows,
@@ -108,9 +111,10 @@ function arrangement(entryCount, maximumColumns, rowLimit) {
 }
 
 // Complete arrangement of a single-column presentation (list or detail).
-function singleColumnArrangement(entryCount, rowLimit) {
+function singleColumnArrangement(entryCount, rowLimit, hasLocationAction) {
+    const extra = hasLocationAction === false ? 0 : 1
     const lines = safeLines(rowLimit)
-    const rows = safeCount(entryCount) + 1
+    const rows = safeCount(entryCount) + extra
     return {
         "columns": 1,
         "rows": rows,

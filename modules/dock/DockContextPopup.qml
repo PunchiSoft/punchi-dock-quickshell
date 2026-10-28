@@ -19,6 +19,11 @@ Popup {
     readonly property bool dockBackground: appId.length === 0
     property var settings: null
     readonly property var folderContainer: settings ? settings.container(appId) : null
+    // The recent-applications container is not a stored folder; it only shares
+    // the view choices.
+    readonly property bool recentContainer: appId === "item:recent"
+    readonly property string recentContainerLayout: settings
+        ? settings.effectiveRecentApplicationsLayout : ""
     property var actions: []
     property var recentDocuments: null
     property var places: null
@@ -45,6 +50,7 @@ Popup {
     signal openFolderRequested()
     signal folderSortRequested(string appId, string sortMode)
     signal folderLayoutRequested(string appId, string layout)
+    signal recentLayoutRequested(string layout)
     signal emptyTrashRequested()
     signal autoHideRequested()
     signal magnificationRequested()
@@ -138,6 +144,8 @@ Popup {
         dockBackground: root.dockBackground
         folderItem: root.folderContainer !== null
         folderContainer: root.folderContainer
+        recentContainer: root.recentContainer
+        recentContainerLayout: root.recentContainerLayout
         canEmptyTrash: root.canEmptyTrash
         itemName: root.itemName
         tailEdge: root.dockEdge === "left" ? "left" : root.dockEdge === "right" ? "right" : "bottom"
@@ -151,6 +159,7 @@ Popup {
         onOpenFolderRequested: { root.openFolderRequested(); root.dismiss() }
         onFolderSortRequested: function(sortMode) { root.folderSortRequested(root.appId, sortMode); root.dismiss() }
         onFolderLayoutRequested: function(layout) { root.folderLayoutRequested(root.appId, layout); root.dismiss() }
+        onRecentLayoutRequested: function(layout) { root.recentLayoutRequested(layout); root.dismiss() }
         onOpenTrashRequested: { root.openTrashRequested(); root.dismiss() }
         onEmptyTrashRequested: { root.emptyTrashRequested(); root.dismiss() }
         onMediaCommandRequested: function(command) { root.mediaCommandRequested(command); root.dismiss() }

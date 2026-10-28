@@ -77,6 +77,10 @@ Scope {
         function onMagnificationEnabledChanged() { root.save() }
         function onReducedMotionChanged() { root.save() }
         function onBounceEnabledChanged() { root.save() }
+        function onRecentApplicationsEnabledChanged() { root.save() }
+        function onRecentApplicationsCountChanged() { root.save() }
+        function onRecentApplicationsPresentationChanged() { root.save() }
+        function onRecentApplicationsContainerLayoutChanged() { root.save() }
         function onUpdateBadgeEnabledChanged() { root.save() }
         function onPinnedIdsChanged() { root.save() }
         function onIconOverridesChanged() { root.save() }
