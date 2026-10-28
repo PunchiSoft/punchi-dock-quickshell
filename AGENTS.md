@@ -159,6 +159,10 @@ levels of evidence. Never present offscreen success as visual or KWin validation
 Tests own unique temporary XDG data, caches, processes, and sockets. Clean after
 success, failure, signal, and timeout. Session probes isolate their runtime dir
 and connect to the existing compositor without changing desktop configuration.
+Close every dock and settings window and stop every Punchi Dock Quickshell
+process started for a test on success, failure, signal, or timeout; leave no test
+instance running. An instance the user started before the test is not a test
+instance and must be left untouched.
 
 Public `README.md`, `README.es.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
 `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `NOTICE.md`, skills and tests are tracked.

@@ -4,7 +4,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
-import Quickshell.Io
 import Punchi.Kde as Native
 import "../../config"
 import "../../services"
@@ -13,21 +12,40 @@ import "../folders"
 
 PanelWindow {
     id: root
-    property alias preferences: settings
-    readonly property alias applicationCatalog: itemCatalog
-    readonly property alias recentApplications: recentApplications
-    readonly property alias updateNotice: updateNotice
+    required property DockServices services
+    readonly property ShellSettings settings: root.services.settings
+    readonly property ShellSettings preferences: root.settings
+    readonly property var applicationCatalog: root.services.applicationCatalog
+    readonly property var recentApplications: root.services.recentApplications
+    readonly property var updateNotice: root.services.updateNotice
+    // Placement policy is injected by the host. A standalone dock (tests) keeps
+    // the previous unconditional behavior.
+    property var screenPolicy: null
+    property var desktopPolicy: null
+    property bool requestedVisible: true
+    readonly property bool screenAllowed: screenPolicy && root.screen
+        ? screenPolicy.allows(root.screen) : true
+    readonly property bool desktopAllowed: desktopPolicy ? desktopPolicy.desktopAllowed : true
+    readonly property bool activityAllowed: desktopPolicy ? desktopPolicy.activityAllowed : true
+    readonly property bool policyAllowed: desktopPolicy ? desktopPolicy.allowed : true
+    readonly property bool windowAllowed: requestedVisible && screenAllowed && policyAllowed
     property bool configuring: false
-    DockConfigurationController { hostWindow: root; active: root.configuring }
+    DockConfigurationController { hostWindow: root; active: root.configuring
+        visibilityProperty: "requestedVisible" }
     signal settingsRequested()
     signal applicationLaunchFinished(string desktopId, bool success, string error)
 
-    readonly property bool vertical: settings.dockEdge === "left" || settings.dockEdge === "right"
-    readonly property real baseLength: view.itemCount * settings.itemSize
-        + Math.max(0, view.itemCount - 1) * settings.spacing + settings.padding * 2
-    readonly property real edgeClearance: visibilityController.edgeMode ? settings.edgeMargin : 0
+    // The user-close action unmaps the window. Placement policy keeps the
+    // surface mapped and opaque-free, so Quickshell never sees the last
+    // window close while a desktop or screen is excluded.
+    visible: root.requestedVisible
+
+    readonly property bool vertical: root.settings.dockEdge === "left" || root.settings.dockEdge === "right"
+    readonly property real baseLength: view.itemCount * root.settings.itemSize
+        + Math.max(0, view.itemCount - 1) * root.settings.spacing + root.settings.padding * 2
+    readonly property real edgeClearance: visibilityController.edgeMode ? root.settings.edgeMargin : 0
     Connections {
-        target: settings
+        target: root.settings
         function onDockEdgeChanged() {
             contextMenu.dismiss()
             folderPopup.dismiss()
@@ -35,53 +53,61 @@ PanelWindow {
         }
     }
     // Coexist with Plasma and respect its reserved screen space.
-    anchors.bottom: true
-    anchors.top: root.vertical
-    anchors.left: settings.dockEdge === "left"
-    anchors.right: settings.dockEdge === "right"
-    exclusiveZone: panelPolicy.exclusiveZone
-    exclusionMode: visibilityController.edgeMode ? ExclusionMode.Ignore : ExclusionMode.Normal
-    margins.bottom: !root.vertical && !visibilityController.edgeMode ? settings.edgeMargin : 0
-    margins.left: settings.dockEdge === "left" && !visibilityController.edgeMode ? settings.edgeMargin : 0
-    margins.right: settings.dockEdge === "right" && !visibilityController.edgeMode ? settings.edgeMargin : 0
-    implicitWidth: root.screen ? root.screen.width : view.implicitWidth
+    anchors.bottom: root.windowAllowed
+    anchors.top: root.vertical && root.windowAllowed
+    anchors.left: root.windowAllowed && root.settings.dockEdge === "left"
+    anchors.right: root.windowAllowed && root.settings.dockEdge === "right"
+    exclusiveZone: root.windowAllowed ? panelPolicy.exclusiveZone : 0
+    exclusionMode: !root.windowAllowed || visibilityController.edgeMode
+        ? ExclusionMode.Ignore : ExclusionMode.Normal
+    margins.bottom: !root.vertical && !visibilityController.edgeMode ? root.settings.edgeMargin : 0
+    margins.left: root.settings.dockEdge === "left" && !visibilityController.edgeMode ? root.settings.edgeMargin : 0
+    margins.right: root.settings.dockEdge === "right" && !visibilityController.edgeMode ? root.settings.edgeMargin : 0
+    implicitWidth: root.windowAllowed
+        ? (root.screen ? root.screen.width : view.implicitWidth) : 1
     readonly property real dockAllocationHeight: (root.vertical ? view.implicitWidth : view.implicitHeight)
         + root.edgeClearance
     readonly property real slideDistance: slideGeometry.distance
     DockSlideGeometry { id: slideGeometry }
     // Opposite main-axis anchors let KWin supply the usable vertical extent.
     // The visible dock stays compact and centered inside this masked allocation.
-    implicitHeight: root.vertical && root.screen ? root.screen.height : windowGeometry.windowHeight
+    implicitHeight: !root.windowAllowed ? 1
+        : root.vertical && root.screen ? root.screen.height : windowGeometry.windowHeight
     color: "transparent"
     // Stable transparent allocation must not intercept input in the surrounding desktop.
     mask: Region {
         Region {
-            x: Math.floor(inputArea.x)
-            y: Math.floor(inputArea.y)
-            width: Math.ceil(inputArea.width)
-            height: Math.ceil(inputArea.height)
+            x: root.windowAllowed ? Math.floor(inputArea.x) : 0
+            y: root.windowAllowed ? Math.floor(inputArea.y) : 0
+            width: root.windowAllowed ? Math.ceil(inputArea.width) : 0
+            height: root.windowAllowed ? Math.ceil(inputArea.height) : 0
         }
         Region {
-            x: Math.floor(contextMenu.x)
-            y: Math.floor(contextMenu.y)
-            width: contextMenu.visible ? Math.ceil(contextMenu.width) : 0
-            height: contextMenu.visible ? Math.ceil(contextMenu.height) : 0
+            x: root.windowAllowed ? Math.floor(contextMenu.x) : 0
+            y: root.windowAllowed ? Math.floor(contextMenu.y) : 0
+            width: root.windowAllowed && contextMenu.visible ? Math.ceil(contextMenu.width) : 0
+            height: root.windowAllowed && contextMenu.visible ? Math.ceil(contextMenu.height) : 0
         }
         Region {
-            x: Math.floor(folderPopup.x)
-            y: Math.floor(folderPopup.y)
-            width: folderPopup.visible ? Math.ceil(folderPopup.width) : 0
-            height: folderPopup.visible ? Math.ceil(folderPopup.height) : 0
+            x: root.windowAllowed ? Math.floor(folderPopup.x) : 0
+            y: root.windowAllowed ? Math.floor(folderPopup.y) : 0
+            width: root.windowAllowed && folderPopup.visible ? Math.ceil(folderPopup.width) : 0
+            height: root.windowAllowed && folderPopup.visible ? Math.ceil(folderPopup.height) : 0
         }
     }
-    onVisibleChanged: if (!visible) { contextMenu.dismiss(); folderPopup.dismiss() }
+    onVisibleChanged: if (!visible) { contextMenu.dismiss(); folderPopup.dismiss(); trash.cancel() }
+    onWindowAllowedChanged: if (!root.windowAllowed) {
+        contextMenu.dismiss()
+        folderPopup.dismiss()
+        trash.cancel()
+    }
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.namespace: "dock"
     WlrLayershell.keyboardFocus: dockFocusPolicy.acceptsKeyboard
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     DockFocusPolicy {
         id: dockFocusPolicy
-        surfaceVisible: visibilityController.surfaceVisible
+        surfaceVisible: visibilityController.surfaceVisible && root.windowAllowed
         menuOpen: view.contextMenuOpen
         keyboardNavigationRequested: view.keyboardNavigationRequested
     }
@@ -90,9 +116,9 @@ PanelWindow {
         id: windowGeometry
         baseHeight: root.dockAllocationHeight
         screenHeight: root.screen ? (root.vertical ? root.screen.width : root.screen.height) : 0
-        bottomMargin: visibilityController.edgeMode ? 0 : settings.edgeMargin
-        edgeHeight: settings.metrics.borderWidth
-        surfaceVisible: visibilityController.surfaceVisible
+        bottomMargin: visibilityController.edgeMode ? 0 : root.settings.edgeMargin
+        edgeHeight: root.settings.metrics.borderWidth
+        surfaceVisible: visibilityController.surfaceVisible && root.windowAllowed
     }
     DockVisibilityController {
         id: visibilityController
@@ -103,31 +129,31 @@ PanelWindow {
         showingDesktop: overlap.showingDesktop
         configuring: root.configuring
         pointerInside: inputArea.hovered || nativeEdge.pointerInside
-        menuOpen: view.contextMenuOpen || folderPopup.visible || folderPopup.preparingToShow || trashConfirmation.visible || trash.confirming || trashState.busy
+        menuOpen: view.contextMenuOpen || folderPopup.visible || folderPopup.preparingToShow || trashConfirmation.visible || trash.confirming || root.services.trashState.busy
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
-        reducedMotion: settings.effectiveReducedMotion
-        transitionDuration: settings.slideDuration
+        reducedMotion: root.settings.effectiveReducedMotion
+        transitionDuration: root.settings.slideDuration
         onHiding: slideGeometry.capture(visibilityController.boundedSlideProgress,
-            view.measureSlideTravelHeight() + settings.edgeMargin)
+            view.measureSlideTravelHeight() + root.settings.edgeMargin)
         onRevealing: slideGeometry.capture(visibilityController.boundedSlideProgress,
-            view.measureSlideTravelHeight() + settings.edgeMargin)
+            view.measureSlideTravelHeight() + root.settings.edgeMargin)
     }
     Native.AutoHideEdge {
         id: nativeEdge
-        edge: settings.dockEdge
+        edge: root.settings.dockEdge
         retainPointer: true
-        enabled: root.visible && visibilityController.edgeMode
+        enabled: root.windowAllowed && visibilityController.edgeMode
         armed: enabled && !visibilityController.surfaceVisible
-        width: root.vertical ? Math.max(2, settings.metrics.padding) : root.baseLength
+        width: root.vertical ? Math.max(2, root.settings.metrics.padding) : root.baseLength
         height: root.vertical ? Math.min(root.baseLength, root.screen ? root.screen.height : root.baseLength)
-            : Math.max(2, settings.metrics.padding)
+            : Math.max(2, root.settings.metrics.padding)
         screenName: root.screen ? root.screen.name : ""
         onRevealRequested: visibilityController.reveal()
     }
     DockInputArea {
         id: inputArea
         objectName: "dock-input-area"
-        dockEdge: settings.dockEdge
+        dockEdge: root.settings.dockEdge
         edgeLength: root.baseLength
         hostWidth: root.width
         hostHeight: root.height
@@ -136,95 +162,87 @@ PanelWindow {
             view.interactionBounds.height)
         surfaceVisible: visibilityController.surfaceVisible
         nativeEdgeAvailable: nativeEdge.available
-        enabled: root.visible && visibilityController.edgeMode
+        enabled: root.windowAllowed && visibilityController.edgeMode
         onEntered: visibilityController.reveal()
-    }
-    ShellSettings {
-        id: settings
-        panelMode: Quickshell.env("PUNCHI_DOCK_MODE") || "overlay"
     }
     DockPanelPolicy {
         id: panelPolicy
-        mode: settings.panelMode
+        mode: root.settings.panelMode
+        edgeTriggerAvailable: !(root.settings.avoidInnerEdgeAutoHide && root.screenPolicy
+            && root.screenPolicy.isSharedEdge(root.screen, root.settings.dockEdge))
         baseHeight: (view.itemCount > 0 ? view.itemSize : 0) + view.padding
             + (root.vertical ? view.padding : view.bottomContentPadding)
         // The compositor also accounts for the selected edge margin. Never reserve
         // the transparent inward allocation used by wave, bounce and balloons.
         bottomClearance: view.waveBottomReserve
     }
-    IpcHandler {
-        target: "dock"
-        function setMode(mode: string): bool {
-            if (!panelPolicy.accepts(mode)) return false
-            settings.panelMode = mode
-            return true
-        }
-        function revealDock(): bool {
-            root.visible = true
-            visibilityController.reveal()
-            return true
-        }
-        function focusDock(): bool {
-            root.visible = true
-            visibilityController.reveal()
-            return view.focusItem(Math.max(0, view.currentIndex))
-        }
-        function openSettings(): bool {
-            root.settingsRequested()
-            return true
-        }
-        function snapshot(): string {
-            return JSON.stringify({
-                mode: panelPolicy.effectiveMode,
-                edge: settings.dockEdge,
-                vertical: root.vertical,
-                windowWidth: root.width,
-                screenWidth: root.screen ? root.screen.width : 0,
-                dockViewX: view.x,
-                dockViewWidth: view.width,
-                visible: root.visible,
-                layer: root.WlrLayershell.layer,
-                exclusiveZone: root.exclusiveZone,
-                baseHeight: panelPolicy.baseHeight,
-                windowHeight: root.height,
-                surfaceVisible: visibilityController.surfaceVisible,
-                opacity: visibilityController.opacity,
-                slideProgress: visibilityController.boundedSlideProgress,
-                slideOffset: root.vertical ? slideTransform.x : slideTransform.y,
-                sceneX: view.mapToItem(null, 0, 0).x,
-                sceneY: view.mapToItem(null, 0, 0).y,
-                restingSceneY: view.y,
-                slideDistance: root.slideDistance,
-                nativeEdgeAvailable: nativeEdge.available,
-                nativeEdgePointerInside: nativeEdge.pointerInside,
-                dockPointerInside: inputArea.hovered,
-                inputBounds: Qt.rect(inputArea.x, inputArea.y, inputArea.width, inputArea.height),
-                overlapAvailable: overlap.available,
-                overlapping: overlap.overlapping,
-                showingDesktop: overlap.showingDesktop,
-                restingRegion: restingGeometry.region,
-                reducedMotion: settings.effectiveReducedMotion
-            })
-        }
+    // One command surface lives in DockIpc; this window only reports its state.
+    function snapshot(): string {
+        return JSON.stringify({
+            mode: panelPolicy.effectiveMode,
+            edge: root.settings.dockEdge,
+            vertical: root.vertical,
+            windowWidth: root.width,
+            screenWidth: root.screen ? root.screen.width : 0,
+            dockViewX: view.x,
+            dockViewWidth: view.width,
+            dockViewHeight: view.height,
+            dockItemCount: view.itemCount,
+            dockViewVisible: view.visible,
+            dockViewOpacity: view.opacity,
+            visible: root.visible,
+            backingWindowVisible: root.backingWindowVisible,
+            requestedVisible: root.requestedVisible,
+            screenName: root.screen ? root.screen.name : "",
+            screenAllowed: root.screenAllowed,
+            desktopAllowed: root.desktopAllowed,
+            activityAllowed: root.activityAllowed,
+            policyAllowed: root.policyAllowed,
+            windowAllowed: root.windowAllowed,
+            desktopAvailable: root.desktopPolicy ? root.desktopPolicy.available : false,
+            currentDesktopId: root.desktopPolicy ? root.desktopPolicy.currentDesktopId : "",
+            currentActivityId: root.desktopPolicy ? root.desktopPolicy.currentActivityId : "",
+            layer: root.WlrLayershell.layer,
+            exclusiveZone: root.exclusiveZone,
+            baseHeight: panelPolicy.baseHeight,
+            windowHeight: root.height,
+            surfaceVisible: visibilityController.surfaceVisible,
+            opacity: visibilityController.opacity,
+            slideProgress: visibilityController.boundedSlideProgress,
+            slideOffset: root.vertical ? slideTransform.x : slideTransform.y,
+            sceneX: view.mapToItem(null, 0, 0).x,
+            sceneY: view.mapToItem(null, 0, 0).y,
+            restingSceneY: view.y,
+            slideDistance: root.slideDistance,
+            nativeEdgeAvailable: nativeEdge.available,
+            nativeEdgePointerInside: nativeEdge.pointerInside,
+            dockPointerInside: inputArea.hovered,
+            inputBounds: Qt.rect(inputArea.x, inputArea.y, inputArea.width, inputArea.height),
+            overlapAvailable: overlap.available,
+            overlapping: overlap.overlapping,
+            showingDesktop: overlap.showingDesktop,
+            restingRegion: restingGeometry.region,
+            reducedMotion: root.settings.effectiveReducedMotion
+        })
     }
-    ApplicationCatalog { id: availableApps }
-    Native.DockItemCatalog {
-        id: itemCatalog
-        applications: availableApps
-        containers: settings.containers
-        downloadsTitle: qsTr("Downloads")
-        trashTitle: qsTr("Trash")
-        trashIconName: trash.iconName
+    function reveal(): bool {
+        if (!root.screenAllowed || !root.policyAllowed) return false
+        root.requestedVisible = true
+        visibilityController.reveal()
+        return true
     }
-    Native.TrashState { id: trashState }
+    function focus(): bool {
+        if (!root.reveal()) return false
+        return view.focusItem(Math.max(0, view.currentIndex))
+    }
     TrashService {
         id: trash
-        state: trashState
+        state: root.services.trashState
         launcher: contextApplicationAdapter
         onOperationRejected: console.warn("Punchi Dock Quickshell: trash operation rejected")
     }
     Connections {
-        target: trashState
+        target: root.services.trashState
         function onOperationFinished(success, error): void {
             if (!success) console.warn("Punchi Dock Quickshell: empty trash failed:", error)
         }
@@ -234,13 +252,11 @@ PanelWindow {
         service: trash
         questionText: qsTr("Do you want to permanently delete all items in the Trash?")
         warningText: qsTr("This action cannot be undone.")
-        reducedMotion: settings.effectiveReducedMotion
+        reducedMotion: root.settings.effectiveReducedMotion
     }
-    RunningApplications { id: runningApps; catalog: availableApps }
-    UpdateNotice { id: updateNotice; settings: root.preferences; catalog: availableApps }
     DockRestingGeometry {
         id: restingGeometry
-        dockEdge: settings.dockEdge
+        dockEdge: root.settings.dockEdge
         screenX: root.screen ? root.screen.x : 0
         screenY: root.screen ? root.screen.y : 0
         screenWidth: root.screen ? root.screen.width : 0
@@ -249,31 +265,13 @@ PanelWindow {
         bodyHeight: root.vertical ? Math.min(root.baseLength + view.bottomContentPadding,
             root.screen ? root.screen.height : root.baseLength + view.bottomContentPadding) : panelPolicy.baseHeight
         bottomClearance: view.waveBottomReserve
-        edgeMargin: settings.edgeMargin
+        edgeMargin: root.settings.edgeMargin
     }
     WindowOverlap {
         id: overlap
-        source: runningApps.visibilityState
+        source: root.services.runningApplications.visibilityState
         region: restingGeometry.region
     }
-    PinnedApplications { id: fixtureModel; catalog: itemCatalog; pinnedIds: settings.pinnedIds
-        iconOverrides: settings.iconOverrides }
-    RecentApplications {
-        id: recentApplications
-        settings: settings
-        catalog: itemCatalog
-        runningDesktopIds: runningApps.desktopIds
-    }
-    Native.DockApplicationsModel {
-        id: dockItems
-        pinned: fixtureModel
-        catalog: itemCatalog
-        recent: recentApplications.selection
-        runningDesktopIds: runningApps.available ? runningApps.desktopIds : []
-        runningApplications: runningApps.available ? runningApps.applicationEntries : []
-    }
-
-    Native.KWinMinimizeEffectController { id: minimizeEffects }
 
     DesktopApplicationAdapter {
         id: applicationAdapter
@@ -290,7 +288,7 @@ PanelWindow {
     }
     ApplicationLaunchService {
         id: contextLauncher
-        entries: dockItems
+        entries: root.services.dockItems
         adapter: contextApplicationAdapter
         onLaunchRejected: function(appId) {
             console.warn("Punchi Dock Quickshell: desktop action rejected:", appId)
@@ -302,10 +300,10 @@ PanelWindow {
 
     ApplicationActivationService {
         id: activation
-        entries: dockItems
+        entries: root.services.dockItems
         launcher: launcher
         newWindowLauncher: newInstanceLauncher
-        windowState: runningApps
+        windowState: root.services.runningApplications
         onActivationRejected: function(appId) {
             console.warn("Punchi Dock Quickshell: window activation rejected:", appId)
         }
@@ -313,8 +311,8 @@ PanelWindow {
     DockContextPopup {
         id: contextMenu
         settings: settings
-        minimizeEffectController: minimizeEffects
-        dockEdge: settings.dockEdge
+        minimizeEffectController: root.services.minimizeEffects
+        dockEdge: root.settings.dockEdge
         hostWindow: root
         hostBaseHeight: root.vertical ? root.height : root.dockAllocationHeight
         actions: contextService.actions
@@ -325,8 +323,8 @@ PanelWindow {
         canLaunchNewWindow: contextService.canLaunchNewWindow
         canPin: contextService.canPin
         pinned: contextService.pinned
-        windowActions: runningApps.revision >= 0 ? runningApps.windowActions(contextMenu.appId) : ({})
-        virtualDesktops: runningApps.virtualDesktops
+        windowActions: root.services.runningApplications.revision >= 0 ? root.services.runningApplications.windowActions(contextMenu.appId) : ({})
+        virtualDesktops: root.services.runningApplications.virtualDesktops
         trashItem: contextMenu.appId === "item:trash"
         canEmptyTrash: trash.canEmpty
         onSettingsRequested: root.settingsRequested()
@@ -341,37 +339,37 @@ PanelWindow {
         onPinRequested: contextService.pin()
         onUnpinRequested: contextService.unpin()
         onWindowActionRequested: function(action, virtualDesktop) {
-            if (runningApps.windowActivation.requestWindowAction(contextMenu.appId, action, virtualDesktop) === 0)
+            if (root.services.runningApplications.windowActivation.requestWindowAction(contextMenu.appId, action, virtualDesktop) === 0)
                 console.warn("Punchi Dock Quickshell: window action request rejected:", action)
         }
         onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
-        onFolderSortRequested: function(appId, sortMode) { settings.setContainerSortMode(appId, sortMode) }
-        onFolderLayoutRequested: function(appId, layout) { settings.setContainerLayout(appId, layout) }
+        onFolderSortRequested: function(appId, sortMode) { root.settings.setContainerSortMode(appId, sortMode) }
+        onFolderLayoutRequested: function(appId, layout) { root.settings.setContainerLayout(appId, layout) }
         onOpenFolderRequested: {
-            const entry = settings.container(contextMenu.appId)
+            const entry = root.settings.container(contextMenu.appId)
             if (entry && entry.path.length > 0) contextApplicationAdapter.openFolderPath(entry.path)
             else if (entry && entry.id === "home") contextApplicationAdapter.openHome()
             else contextApplicationAdapter.openDownloads()
         }
         onOpenTrashRequested: trash.open()
         onEmptyTrashRequested: trash.requestEmpty()
-        onAutoHideRequested: settings.panelMode = settings.panelMode === "autohide" ? "overlay" : "autohide"
-        onMagnificationRequested: settings.magnificationEnabled = !settings.magnificationEnabled
-        onDockEdgeRequested: function(edge) { settings.dockEdge = edge }
+        onAutoHideRequested: root.settings.panelMode = root.settings.panelMode === "autohide" ? "overlay" : "autohide"
+        onMagnificationRequested: root.settings.magnificationEnabled = !root.settings.magnificationEnabled
+        onDockEdgeRequested: function(edge) { root.settings.dockEdge = edge }
         onMinimizeEffectRequested: function(effect) {
-            if (!minimizeEffects.setEffect(effect)) console.warn("Punchi Dock Quickshell: KWin minimize effect update failed")
+            if (!root.services.minimizeEffects.setEffect(effect)) console.warn("Punchi Dock Quickshell: KWin minimize effect update failed")
         }
     }
     ApplicationContextService {
         id: contextService
-        entries: dockItems
+        entries: root.services.dockItems
         adapter: contextApplicationAdapter
         settings: root.preferences
         onRequestRejected: function(appId) { console.warn("Punchi Dock Quickshell: context request rejected:", appId) }
     }
     ApplicationLaunchService {
         id: launcher
-        entries: dockItems
+        entries: root.services.dockItems
         adapter: applicationAdapter
         onLaunchCompleted: function(desktopId, success, error) {
             if (!success) console.warn("Punchi Dock Quickshell: KDE application launch failed:", desktopId, error)
@@ -384,7 +382,7 @@ PanelWindow {
     DesktopApplicationAdapter { id: newInstanceAdapter; activationItem: view }
     ApplicationLaunchService {
         id: newInstanceLauncher
-        entries: dockItems
+        entries: root.services.dockItems
         adapter: newInstanceAdapter
         onLaunchRejected: function(appId) { console.warn("Punchi Dock Quickshell: new window rejected:", appId) }
         onLaunchCompleted: function(desktopId, success, error) {
@@ -393,19 +391,19 @@ PanelWindow {
     }
     Connections {
         target: launcher
-        function onLaunchDispatched(appId) { recentApplications.recordAccess(appId) }
+        function onLaunchDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
     Connections {
         target: contextLauncher
-        function onLaunchDispatched(appId) { recentApplications.recordAccess(appId) }
+        function onLaunchDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
     Connections {
         target: newInstanceLauncher
-        function onLaunchDispatched(appId) { recentApplications.recordAccess(appId) }
+        function onLaunchDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
     Connections {
         target: activation
-        function onActivationDispatched(appId) { recentApplications.recordAccess(appId) }
+        function onActivationDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
 
     FolderContainerPopup {
@@ -415,20 +413,19 @@ PanelWindow {
         hostBaseHeight: root.dockAllocationHeight
         settings: root.preferences
         opener: contextApplicationAdapter
-        clipboardService: clipboard
+        clipboardService: root.services.clipboard
     }
-    ClipboardService { id: clipboard }
     Connections {
-        target: settings
+        target: root.settings
         function onPinnedIdsChanged() {
-            if (!settings.container(folderPopup.appId)) folderPopup.dismiss()
+            if (!root.settings.container(folderPopup.appId)) folderPopup.dismiss()
         }
     }
     DockView {
         id: view
         objectName: "dock-view"
-        applicationState: runningApps
-        updateState: updateNotice
+        applicationState: root.services.runningApplications
+        updateState: root.updateNotice
         contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow || folderPopup.visible || folderPopup.preparingToShow
         onContextMenuRequested: function(sourceItem, appId, title, position) {
             folderPopup.dismiss()
@@ -437,42 +434,42 @@ PanelWindow {
             if (appId.length > 0) contextMenu.openForItem(sourceItem, title)
             else contextMenu.openAt(sourceItem, position)
         }
-        dockEdge: settings.dockEdge
+        dockEdge: root.settings.dockEdge
         sceneTranslation: Qt.point(slideTransform.x, slideTransform.y)
         availableLength: root.vertical ? root.height : 0
         width: implicitWidth
         height: implicitHeight
-        x: settings.dockEdge === "right" ? root.width - width - root.edgeClearance
+        x: root.settings.dockEdge === "right" ? root.width - width - root.edgeClearance
             : root.vertical ? root.edgeClearance : (root.width - width) / 2
         y: root.vertical ? (root.height - height) / 2 + view.contentCenterOffset
             : root.height - height - root.edgeClearance
-        visible: visibilityController.surfaceVisible
-        opacity: visibilityController.opacity
+        visible: root.windowAllowed && visibilityController.surfaceVisible
+        opacity: root.windowAllowed ? visibilityController.opacity : 0
         transform: Translate {
             id: slideTransform
             x: visibilityController.edgeMode && root.vertical
-                ? (settings.dockEdge === "left" ? -1 : 1)
+                ? (root.settings.dockEdge === "left" ? -1 : 1)
                     * (1 - visibilityController.boundedSlideProgress) * root.slideDistance : 0
             y: visibilityController.edgeMode && !root.vertical
                 ? (1 - visibilityController.boundedSlideProgress) * root.slideDistance : 0
         }
-        entries: dockItems
-        itemSize: settings.itemSize
-        iconSize: settings.iconSize
-        itemSpacing: settings.spacing
-        padding: settings.padding
-        surfaceRadius: settings.surfaceRadius
-        bottomContentPadding: settings.bottomContentPadding
-        magnificationEnabled: settings.magnificationEnabled
-        reducedMotion: settings.effectiveReducedMotion
-        maximumIconScale: settings.maximumIconScale
-        waveEnterDuration: settings.waveEnterDuration
-        waveLeaveDuration: settings.waveLeaveDuration
-        clickDuration: settings.clickDuration
+        entries: root.services.dockItems
+        itemSize: root.settings.itemSize
+        iconSize: root.settings.iconSize
+        itemSpacing: root.settings.spacing
+        padding: root.settings.padding
+        surfaceRadius: root.settings.surfaceRadius
+        bottomContentPadding: root.settings.bottomContentPadding
+        magnificationEnabled: root.settings.magnificationEnabled
+        reducedMotion: root.settings.effectiveReducedMotion
+        maximumIconScale: root.settings.maximumIconScale
+        waveEnterDuration: root.settings.waveEnterDuration
+        waveLeaveDuration: root.settings.waveLeaveDuration
+        clickDuration: root.settings.clickDuration
         onSettingsRequested: root.settingsRequested()
         onItemActivated: function(appId) {
             contextMenu.dismiss()
-            const container = settings.container(appId)
+            const container = root.settings.container(appId)
             if (container) folderPopup.toggleForItem(view.itemForId(appId), appId, container)
             else {
                 folderPopup.dismiss()
@@ -485,6 +482,6 @@ PanelWindow {
             if (!appId.startsWith("item:")) activation.newWindow(appId)
             contextMenu.dismiss()
         }
-        onCloseRequested: if (!root.configuring) root.visible = false
+        onCloseRequested: if (!root.configuring) root.requestedVisible = false
     }
 }

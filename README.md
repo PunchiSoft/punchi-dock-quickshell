@@ -60,6 +60,12 @@ validation.
 - Bottom, left or right placement. The magnification wave, tooltips, context
   menus, arrow-key navigation, running indicators and the native auto-hide edge
   follow the selected edge, side popups open inward and icons stay upright.
+- One dock on every connected screen, sharing one profile. **Screens and
+  desktops** limits the dock to selected screens or virtual desktops and KDE
+  activities, remembers a selected screen across hot-plug, falls back to the
+  system primary screen while none is connected, and leaves an auto-hiding dock
+  visible when its edge borders another monitor. Running markers can follow the
+  current desktop and activity.
 - Configurable pinned applications: discover and search installed applications
   through KDE, add or reorder launchers, and save preferences. Eight preset
   application launchers plus the Home and Downloads containers and Trash form the
@@ -159,8 +165,11 @@ an application-launcher surface and additional controls remain future work.
   translation.
 - Source and CMake prefix installs only; no RPM/DEB packages, tags or release
   binaries.
-- Window activation, media transport, KWin cursor feedback and multi-monitor
-  behavior still need broader real-session validation.
+- Window activation, media transport and KWin cursor feedback still need broader
+  real-session validation. A two-screen layout (eDP-1 + HDMI-A-1, Plasma 6.7.5)
+  exercised per-screen docks, screen selection, primary fallback, virtual-desktop
+  and activity filtering and shared-edge auto-hide on 2026-10-27; other layouts,
+  physical hot-plug and fractional scaling remain unvalidated.
 
 ## Install, run and return to KDE
 
@@ -388,6 +397,8 @@ first-run launcher catalogue and the values restored by **Reset defaults**:
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
 | Click bounce | Enabled |
+| Screens | Every connected screen, one shared profile |
+| Virtual desktops and activities | All desktops and activities |
 | Visibility | Windows go below (`overlay`), without reserving screen space |
 | Reduced motion | Local override off; KDE animation preferences still apply |
 | Icons | The user's icon theme, including live KDE theme-change notifications |
@@ -395,14 +406,16 @@ first-run launcher catalogue and the values restored by **Reset defaults**:
 These are prototype defaults, not a guarantee that every preset application is
 installed. Changing settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
-mode. The current file format is version 11 and accepts versions 1 to 10 through
+mode. The current file format is version 12 and accepts versions 1 to 11 through
 migration. Version 7 adds the recent-applications switch and visible count,
 version 8 stores the icon chosen for a pinned application, version 9 the
 folder entries a container keeps out of its popup, version 10 the popup size,
-height and icon size, and version 11 separate grid, list/detail and fan glyph
-sizes; missing fields in older profiles default to enabled, five applications,
-the application icon, an unfiltered folder listing, the reference popup
-proportions and the theme's glyph sizes.
+height and icon size, version 11 separate grid, list/detail and fan glyph
+sizes, and version 12 screen, virtual-desktop and activity selection plus the
+two placement switches; missing fields in older profiles default to enabled,
+five applications, the application icon, an unfiltered folder listing, the
+reference popup proportions, the theme's glyph sizes, every screen and every
+desktop/activity.
 
 The **Profile** category exports the pending values as a portable JSON document
 with schema `punchi-dock-quickshell/profile` and format version 1. Import also
@@ -490,11 +503,10 @@ requiring a separate project or duplicating the dock's implementation.
 Quickshell supplies window hosting; KDE integration is connected explicitly
 through the adapters. A Plasma applet is instead hosted by Plasma itself.
 
-The current saved settings describe one dock. Before supporting multiple docks
-or panels, extend storage with stable instance IDs, each instance's screen and
-placement, ordered items and behavior, plus shared preferences and enabled
-modules. Define behavior for disconnected monitors and migrate existing settings
-without overwriting user choices. This multi-instance configuration is future work.
+The current saved settings describe one shared dock profile applied to every
+allowed screen. Per-screen profiles, independent placement or item sets per
+monitor, and instance-level storage remain future work; they need stable
+instance IDs and a migration that preserves the shared profile.
 
 KConfig is the recommended native KDE storage option to evaluate as configuration
 expands. The current implementation still uses JSON; any migration must preserve
@@ -537,8 +549,12 @@ records the current validation scope and known gaps.
 
 An isolated Wayland session probe passed startup, duplicate prevention, rendering,
 hide/reopen and scoped restoration. Automated checks do not establish final
-visual quality, fractional scaling, multi-monitor behavior, screen-reader support,
-or native KDE startup cursor feedback. The changelog records the current
+visual quality, fractional scaling, screen-reader support, physical monitor
+hot-plug, other screen layouts or native KDE startup cursor feedback. A
+two-screen real-session check covered per-screen docks, screen selection,
+primary fallback, virtual-desktop and activity filtering and shared-edge
+auto-hide; automated fullscreen capture does not include layer-shell surfaces,
+so visual inspection remains manual. The changelog records the current
 validation scope and known gaps.
 
 ## Development

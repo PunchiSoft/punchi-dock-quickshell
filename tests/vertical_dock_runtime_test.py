@@ -69,10 +69,13 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "config"
 import "modules/dock"
 import "services"
 ShellRoot {
-    Dock { id: dock; configuring: true }
+    ShellSettings { id: shellSettings }
+    DockServices { id: dockServices; settings: shellSettings }
+    Dock { id: dock; services: dockServices; configuring: true }
     SettingsStore { settings: dock.preferences }
     function find(item: var, name: string): var {
         if (!item) return null

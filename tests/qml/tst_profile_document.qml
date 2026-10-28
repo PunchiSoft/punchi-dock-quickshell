@@ -9,10 +9,10 @@ TestCase {
 
     function test_first_run_profile_is_a_valid_document() {
         const defaults = DefaultProfile.fresh()
-        compare(defaults.version, 11)
+        compare(defaults.version, 12)
         const parsed = ProfileDocument.parse(ProfileDocument.serialize(defaults))
         verify(parsed.ok)
-        compare(parsed.profile.version, 11)
+        compare(parsed.profile.version, 12)
         compare(parsed.profile.pinnedIds.length, defaults.pinnedIds.length)
         compare(parsed.profile.containers.length, defaults.containers.length)
     }
@@ -53,13 +53,13 @@ TestCase {
         compare(ProfileDocument.parse("{").reason, "invalid-json")
         compare(ProfileDocument.parse("[]").reason, "not-profile")
         compare(ProfileDocument.parse(JSON.stringify({version: 0})).reason, "not-profile")
-        compare(ProfileDocument.parse(JSON.stringify({version: 12})).reason, "newer")
+        compare(ProfileDocument.parse(JSON.stringify({version: 13})).reason, "newer")
         compare(ProfileDocument.parse(JSON.stringify({schema: "other", version: 1,
             profile: {version: 11}})).reason, "not-profile")
         compare(ProfileDocument.parse(JSON.stringify({schema: "punchi-dock-quickshell/profile",
             version: 2, profile: {version: 11}})).reason, "newer")
         compare(ProfileDocument.parse(JSON.stringify({schema: "punchi-dock-quickshell/profile",
-            version: 1, profile: {version: 12}})).reason, "newer")
+            version: 1, profile: {version: 13}})).reason, "newer")
          compare(ProfileDocument.parse(" ".repeat(ProfileDocument.maximumBytes + 1)).reason,
             "too-large")
     }

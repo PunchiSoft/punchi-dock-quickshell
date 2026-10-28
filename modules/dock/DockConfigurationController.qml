@@ -5,12 +5,13 @@ QtObject {
     id: root
     required property var hostWindow
     property bool active: false
+    property string visibilityProperty: "visible"
     property bool previousVisibility: true
     onActiveChanged: {
         if (!hostWindow) return
         if (active) {
-            previousVisibility = hostWindow.visible
-            hostWindow.visible = true
-        } else hostWindow.visible = previousVisibility
+            previousVisibility = hostWindow[visibilityProperty]
+            hostWindow[visibilityProperty] = true
+        } else hostWindow[visibilityProperty] = previousVisibility
     }
 }

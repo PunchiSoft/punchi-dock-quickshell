@@ -34,8 +34,11 @@ def main():
         (config / 'build/qml').symlink_to(root / 'build/qml', target_is_directory=True)
         (config / 'build/punchi-window-state').symlink_to(root / 'build/punchi-window-state')
         (config / 'shell.qml').write_text('import Quickshell\nimport Quickshell.Io\n'
-            'import "modules/dock"\nShellRoot { Dock { id: dock }\n'
-            'IpcHandler { target: "probe"; function dismiss(): bool { dock.visible = false; return true } } }\n')
+            'import "config"\nimport "modules/dock"\nShellRoot {\n'
+            'ShellSettings { id: shellSettings }\n'
+            'DockServices { id: dockServices; settings: shellSettings }\n'
+            'Dock { id: dock; services: dockServices }\n'
+            'IpcHandler { target: "probe"; function dismiss(): bool { dock.requestedVisible = false; return true } } }\n')
         log_path = config / 'wayland.log'
         env = os.environ.copy()
         env['WAYLAND_DEBUG'] = 'client'

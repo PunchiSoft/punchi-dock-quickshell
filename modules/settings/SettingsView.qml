@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../../config"
 import "../../services"
+import "../../components"
 
 Pane {
     id: root
@@ -16,6 +17,9 @@ Pane {
     property var license: null
     property var recentApplications: null
     property var updates: null
+    property var screens: []
+    property string primaryScreenName: ""
+    property var runningApplications: null
     property int currentPage: 1
     property bool hasPendingChanges: false
     property bool aboutDialogOpen: false
@@ -191,9 +195,21 @@ Pane {
                     Layout.minimumHeight: 0
                     clip: true
                     contentWidth: availableWidth
+                    rightPadding: ScrollBar.vertical.width + Kirigami.Units.smallSpacing * 2
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical: PopupScrollBar {
+                        objectName: "settingsGeneralScrollBar"
+                        orientation: Qt.Vertical
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: implicitWidth
+                        alwaysVisible: true
+                        motionEnabled: !root.settings.reducedMotion
+                    }
                     Flickable {
                         id: generalViewport
+                        objectName: "settingsGeneralViewport"
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
                         contentWidth: width
@@ -205,6 +221,9 @@ Pane {
                             autostart: root.autostart
                             recentApplications: root.recentApplications
                             updates: root.updates
+                            screens: root.screens
+                            primaryScreenName: root.primaryScreenName
+                            runningApplications: root.runningApplications
                             width: generalViewport.width
                         }
                     }
@@ -215,9 +234,21 @@ Pane {
                     Layout.minimumHeight: 0
                     clip: true
                     contentWidth: availableWidth
+                    rightPadding: ScrollBar.vertical.width + Kirigami.Units.smallSpacing * 2
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical: PopupScrollBar {
+                        objectName: "settingsPopupScrollBar"
+                        orientation: Qt.Vertical
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: implicitWidth
+                        alwaysVisible: true
+                        motionEnabled: !root.settings.reducedMotion
+                    }
                     Flickable {
                         id: popupViewport
+                        objectName: "settingsPopupViewport"
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
                         contentWidth: width
@@ -235,9 +266,21 @@ Pane {
                     Layout.minimumHeight: 0
                     clip: true
                     contentWidth: availableWidth
+                    rightPadding: ScrollBar.vertical.width + Kirigami.Units.smallSpacing * 2
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical: PopupScrollBar {
+                        objectName: "settingsAboutScrollBar"
+                        orientation: Qt.Vertical
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: implicitWidth
+                        alwaysVisible: true
+                        motionEnabled: !root.settings.reducedMotion
+                    }
                     Flickable {
                         id: aboutViewport
+                        objectName: "settingsAboutViewport"
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
                         contentWidth: width
@@ -245,7 +288,7 @@ Pane {
                         SettingsAbout {
                             id: aboutPage
                             objectName: "settingsAboutPage"
-                            width: parent.width
+                            width: aboutViewport.width
                             licenseText: root.license ? root.license.text : ""
                             onLicenseReadRequested: licenseDialog.open()
                         }
@@ -257,9 +300,21 @@ Pane {
                     Layout.minimumHeight: 0
                     clip: true
                     contentWidth: availableWidth
+                    rightPadding: ScrollBar.vertical.width + Kirigami.Units.smallSpacing * 2
                     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical: PopupScrollBar {
+                        objectName: "settingsProfileScrollBar"
+                        orientation: Qt.Vertical
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: implicitWidth
+                        alwaysVisible: true
+                        motionEnabled: !root.settings.reducedMotion
+                    }
                     Flickable {
                         id: profileViewport
+                        objectName: "settingsProfileViewport"
                         clip: true
                         boundsBehavior: Flickable.StopAtBounds
                         contentWidth: width
@@ -275,6 +330,7 @@ Pane {
             }
             RowLayout {
                 id: footer
+                objectName: "settingsFooter"
                 Layout.fillWidth: true
                 Button { objectName: "resetDockSettings"; text: qsTr("Reset defaults"); onClicked: root.settings.reset() }
                 Item { Layout.fillWidth: true }
