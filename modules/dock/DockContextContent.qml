@@ -2,6 +2,7 @@
 // Shares the tooltip balloon silhouette with compact themed menu rows.
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls
 import "../../components"
 import QtQuick.Layouts
@@ -15,6 +16,39 @@ Item {
     property var places: null
     property var media: null
     property var settings: null
+    property bool pointerEmphasis: true
+
+    // Exactly one row paints an emphasis band. Real pointer motion hands it to
+    // the pointer; a keyboard focus move hands it back to the keyboard, so a
+    // focused row and another hovered row never light up together.
+    property point lastPointerPosition: Qt.point(-1, -1)
+    HoverHandler {
+        onPointChanged: {
+            const position = point.position
+            if (position.x === root.lastPointerPosition.x
+                    && position.y === root.lastPointerPosition.y) return
+            root.lastPointerPosition = position
+            root.pointerEmphasis = true
+        }
+    }
+    // Window.activeFocusItem is typed as a bare item, so read the focus reason
+    // through an untyped helper the linter can follow.
+    function focusReasonOf(item): int {
+        return item ? item["focusReason"] : Qt.OtherFocusReason
+    }
+    Connections {
+        target: root.Window.window
+        function onActiveFocusItemChanged() {
+            const item = root.Window.activeFocusItem
+            if (!item) return
+            let ancestor = item
+            while (ancestor && ancestor !== root) ancestor = ancestor.parent
+            if (!ancestor) return
+            const reason = root.focusReasonOf(item)
+            root.pointerEmphasis = reason !== Qt.TabFocusReason
+                && reason !== Qt.BacktabFocusReason && reason !== Qt.ShortcutFocusReason
+        }
+    }
     // Popup rows only fade and pulse when a loaded settings object confirms
     // motion is allowed; standalone fixtures keep the instant, final state.
     readonly property bool motionEnabled: root.settings
@@ -98,13 +132,14 @@ Item {
     width: implicitWidth
     height: implicitHeight
 
-    function focusFirst() {
+    function focusFirst(reason) {
+        if (reason === undefined) reason = Qt.MouseFocusReason
         // Opening with the pointer does not paint a band; the keyboard does.
-        if (root.trashItem) openTrashAction.forceActiveFocus(Qt.MouseFocusReason)
+        if (root.trashItem) openTrashAction.forceActiveFocus(reason)
         else if (root.folderItem && root.folderSortNameAction)
-            root.folderSortNameAction.forceActiveFocus(Qt.MouseFocusReason)
-        else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(Qt.MouseFocusReason)
-        else configureAction.forceActiveFocus(Qt.MouseFocusReason)
+            root.folderSortNameAction.forceActiveFocus(reason)
+        else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(reason)
+        else configureAction.forceActiveFocus(reason)
     }
     Keys.onEscapePressed: root.closeRequested()
 
@@ -140,6 +175,7 @@ Item {
                 {mode: "kind", label: qsTr("Type")}
             ]
             delegate: DockContextAction {
+                pointerEmphasis: root.pointerEmphasis
                 id: folderSortOption
                 motionEnabled: root.motionEnabled
                 required property var modelData
@@ -165,6 +201,7 @@ Item {
                 {mode: "fan", label: qsTr("Fan")}
             ]
             delegate: DockContextAction {
+                pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "folderLayout-" + modelData.mode
@@ -177,6 +214,7 @@ Item {
             }
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             motionEnabled: root.motionEnabled
             objectName: "openFolderAction"
             Layout.fillWidth: true
@@ -187,6 +225,7 @@ Item {
             onClicked: root.openFolderRequested()
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: openTrashAction
             motionEnabled: root.motionEnabled
             objectName: "openTrashAction"
@@ -198,6 +237,7 @@ Item {
         }
         DockContextSeparator { visible: root.trashItem; Layout.fillWidth: true }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: emptyTrashAction
             motionEnabled: root.motionEnabled
             objectName: "emptyTrashAction"
@@ -209,6 +249,7 @@ Item {
             onClicked: root.emptyTrashRequested()
         }
         DockContextMedia {
+            pointerEmphasis: root.pointerEmphasis
             id: mediaContent
             motionEnabled: root.motionEnabled
             objectName: "dockContextMedia"
@@ -218,6 +259,7 @@ Item {
             onCommandRequested: function(command) { root.mediaCommandRequested(command) }
         }
         DockContextPlaces {
+            pointerEmphasis: root.pointerEmphasis
             id: placesContent
             motionEnabled: root.motionEnabled
             Layout.fillWidth: true
@@ -229,6 +271,7 @@ Item {
             onBackRequested: root.placesBackRequested()
         }
         DockContextRecentFiles {
+            pointerEmphasis: root.pointerEmphasis
             id: recentContent
             motionEnabled: root.motionEnabled
             Layout.fillWidth: true
@@ -252,6 +295,7 @@ Item {
                 model: root.actions
                 boundsBehavior: Flickable.StopAtBounds
                 delegate: DockContextAction {
+                    pointerEmphasis: root.pointerEmphasis
                     id: desktopAction
                     motionEnabled: root.motionEnabled
                     required property var modelData
@@ -265,6 +309,7 @@ Item {
             }
         }
         DockContextWindowActions {
+            pointerEmphasis: root.pointerEmphasis
             id: windowActionsContent
             motionEnabled: root.motionEnabled
             objectName: "dockWindowActions"
@@ -275,6 +320,7 @@ Item {
             onActionRequested: function(action, virtualDesktop) { root.windowActionRequested(action, virtualDesktop) }
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: newWindowAction
             motionEnabled: root.motionEnabled
             objectName: "openNewWindowAction"
@@ -285,6 +331,7 @@ Item {
             onClicked: root.newWindowRequested()
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: pinAction
             motionEnabled: root.motionEnabled
             objectName: "pinDockAction"
@@ -295,6 +342,7 @@ Item {
             onClicked: root.pinRequested()
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: unpinAction
             motionEnabled: root.motionEnabled
             objectName: "unpinDockAction"
@@ -315,6 +363,7 @@ Item {
             Layout.fillWidth: true
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: dockAutoHideAction
             motionEnabled: root.motionEnabled
             objectName: "dockAutoHideAction"
@@ -326,6 +375,7 @@ Item {
             onClicked: root.autoHideRequested()
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             motionEnabled: root.motionEnabled
             objectName: "dockMagnificationAction"
             Layout.fillWidth: true
@@ -336,6 +386,7 @@ Item {
             onClicked: root.magnificationRequested()
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: dockPositionSubmenu
             motionEnabled: root.motionEnabled
             objectName: "dockPositionSubmenu"
@@ -353,6 +404,7 @@ Item {
                 {edge: "right", label: qsTr("Right")}
             ]
             delegate: DockContextAction {
+                pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "dockPosition-" + modelData.edge
@@ -365,6 +417,7 @@ Item {
             }
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: minimizeEffectSubmenu
             motionEnabled: root.motionEnabled
             objectName: "minimizeEffectSubmenu"
@@ -383,6 +436,7 @@ Item {
                 {effect: "other", label: qsTr("Other"), available: !!root.minimizeEffectController && root.minimizeEffectController.effect === "other"}
             ]
             delegate: DockContextAction {
+                pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 required property var modelData
                 objectName: "minimizeEffect-" + modelData.effect
@@ -397,6 +451,7 @@ Item {
             }
         }
         DockContextAction {
+            pointerEmphasis: root.pointerEmphasis
             id: configureAction
             motionEnabled: root.motionEnabled
             objectName: "configureDockAction"

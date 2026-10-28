@@ -47,6 +47,9 @@ Popup {
     property alias sourceItem: anchor.sourceItem
     property int openSerial: 0
     property bool preparingToShow: false
+    // Reason the popup gives its first row. A pointer click must not paint a
+    // keyboard band; Enter on a focused launcher must.
+    property int openFocusReason: Qt.MouseFocusReason
     property real hostBaseHeight: hostWindow ? hostWindow.height : 0
     property real capturedBaseY: 0
     parent: hostWindow ? hostWindow.contentItem : null
@@ -94,12 +97,13 @@ Popup {
         id: anchor
         followRenderedIcon: root.visible || root.preparingToShow
     }
-    function toggleForItem(item: Item, appId: string, entry: var): void {
+    function toggleForItem(item: Item, appId: string, entry: var, fromKeyboard): void {
         if (visible || preparingToShow) { dismiss(); return }
         if (!anchor.captureItem(item, root.containerTitle)) return
         // Callers without a container keep the Downloads fallback.
         root.appId = appId ? appId : ""
         root.container = entry ? entry : null
+        root.openFocusReason = fromKeyboard ? Qt.TabFocusReason : Qt.MouseFocusReason
         capturedBaseY = anchor.anchorGeometry.y - (hostWindow ? hostWindow.height - hostBaseHeight : 0)
         preparingToShow = true
         const serial = ++openSerial
@@ -112,7 +116,7 @@ Popup {
     }
     function dismiss(): void { ++openSerial; preparingToShow = false; close(); if (!visible) navigator.finish() }
     onSourceItemChanged: if (!sourceItem && (visible || preparingToShow)) dismiss()
-    onOpened: content.requestInitialFocus()
+    onOpened: content.requestInitialFocus(root.openFocusReason)
     onClosed: {
         navigator.finish()
         if (sourceItem && sourceItem.visible && sourceItem.enabled)

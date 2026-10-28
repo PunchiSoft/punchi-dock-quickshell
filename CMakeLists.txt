@@ -347,6 +347,8 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/foundation_test.py)
     add_test(NAME project_version COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-version.py)
+    add_test(NAME emphasis_contract COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/check-emphasis.py)
     add_test(NAME user_setup_scripts COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
     add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
@@ -382,6 +384,7 @@ if(BUILD_TESTING)
         window_capability
         project_foundation
         project_version
+        emphasis_contract
         profile_exchange
         settings_store_legacy
         user_setup_scripts

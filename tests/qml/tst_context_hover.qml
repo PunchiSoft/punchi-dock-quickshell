@@ -47,6 +47,9 @@ TestCase {
         tryCompare(configure, "visualFocus", true)
         compare(configure.background.border.width, 1)
         verify(configure.background.color.a > 0)
+        // The pointer row drops its band: the keyboard owns the emphasis.
+        tryVerify(function() { return unpin.background.color.a < 0.01 })
+        compare(unpin.background.border.width, 0)
         const requested = createTemporaryQmlObject('import QtTest; SignalSpy { signalName: "settingsRequested" }', test)
         requested.target = content
         keyClick(Qt.Key_Return)
