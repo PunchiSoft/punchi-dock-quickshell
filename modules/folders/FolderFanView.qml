@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import "FolderFanGeometry.js" as FanGeometry
 
@@ -32,6 +33,38 @@ Item {
     property bool hasLocationAction: true
     property real revealSweepShare: 0.35
     property real rowArcStepDegrees: FanGeometry.rowArcStepDegrees
+    // Exactly one row paints an emphasis band. Real pointer motion hands it to
+    // the pointer; a keyboard focus move hands it back to the keyboard, so the
+    // focused row and another hovered row never light up together.
+    property bool pointerEmphasis: true
+    property point lastPointerPosition: Qt.point(-1, -1)
+    HoverHandler {
+        onPointChanged: {
+            const position = point.position
+            if (position.x === root.lastPointerPosition.x
+                    && position.y === root.lastPointerPosition.y) return
+            root.lastPointerPosition = position
+            root.pointerEmphasis = true
+        }
+    }
+    // Window.activeFocusItem is typed as a bare item, so read the focus reason
+    // through an untyped helper the linter can follow.
+    function focusReasonOf(item): int {
+        return item ? item["focusReason"] : Qt.OtherFocusReason
+    }
+    Connections {
+        target: root.Window.window
+        function onActiveFocusItemChanged() {
+            const item = root.Window.activeFocusItem
+            if (!item) return
+            let ancestor = item
+            while (ancestor && ancestor !== root) ancestor = ancestor.parent
+            if (!ancestor) return
+            const reason = root.focusReasonOf(item)
+            root.pointerEmphasis = reason !== Qt.TabFocusReason
+                && reason !== Qt.BacktabFocusReason && reason !== Qt.ShortcutFocusReason
+        }
+    }
 
     readonly property int entryCount: root.contents
         ? Math.max(0, Math.floor(Number(root.contents.count) || 0)) : 0
@@ -263,6 +296,7 @@ Item {
 
         delegate: FolderFanRow {
             id: entryRow
+            pointerEmphasis: root.pointerEmphasis
 
             required property int index
             required property string entryName
@@ -305,6 +339,7 @@ Item {
     FolderFanRow {
         id: actionRow
         objectName: "folderFanOpenLocation"
+        pointerEmphasis: root.pointerEmphasis
         visible: root.hasLocationAction
         enabled: visible
         width: root.width
@@ -354,30 +389,32 @@ Item {
         }
         return fanList.itemAtIndex(order)
     }
-    function focusOrder(order: int): bool {
+    function focusOrder(order: int, reason): bool {
+        if (reason === undefined) reason = Qt.MouseFocusReason
         const item = root.rowAt(order)
         if (!item || !item.visible || !item.enabled) {
             return false
         }
         root.focusedOrder = order
-        item.forceActiveFocus(Qt.TabFocusReason)
+        item.forceActiveFocus(reason)
         return true
     }
     function stepFocus(from: int, step: int): void {
         const next = Math.max(0, Math.min(root.totalRowCount - 1, from + step))
         if (next !== from) {
-            root.focusOrder(next)
+            root.focusOrder(next, Qt.TabFocusReason)
         }
     }
     // Delegates are created while the scene renders, so the first attempt may
     // still find no row. Retrying a bounded number of times keeps the focus on
     // the arc without ever fighting a selection the user made meanwhile.
     property int focusAttempts: 0
-    function requestInitialFocus(): void {
+    function requestInitialFocus(reason): void {
+        if (reason === undefined) reason = Qt.MouseFocusReason
         root.focusAttempts = 0
-        root.tryInitialFocus()
+        root.tryInitialFocus(reason)
     }
-    function tryInitialFocus(): void {
+    function tryInitialFocus(reason): void {
         // A row that already holds the focus means the arc is settled: a pending
         // attempt must never pull the focus back from the user.
         if (!root.visible || root.totalRowCount <= 0 || root.focusedOrder >= 0) {
@@ -385,11 +422,11 @@ Item {
         }
         const anchor = Math.round(FanGeometry.anchorIndex(root.totalRowCount,
             root.dockEdge))
-        if (root.focusOrder(anchor) || root.focusOrder(0)) {
+        if (root.focusOrder(anchor, reason) || root.focusOrder(0, reason)) {
             return
         }
         if (++root.focusAttempts < 8) {
-            Qt.callLater(root.tryInitialFocus)
+            Qt.callLater(function() { if (root) root.tryInitialFocus(reason) })
         }
     }
 }

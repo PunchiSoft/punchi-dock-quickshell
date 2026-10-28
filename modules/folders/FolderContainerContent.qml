@@ -153,7 +153,7 @@ Item {
     function focusFirst(reason: int): void {
         if (!root || !header) return
         if (root.fanMode) {
-            fan.requestInitialFocus()
+            fan.requestInitialFocus(reason)
             return
         }
         if (!grid || !list) return
@@ -165,7 +165,7 @@ Item {
         if (!controller || !controller.contents || controller.contents.loading) return
         if (root.fanMode) {
             navigationFocusPending = false
-            fan.requestInitialFocus()
+            fan.requestInitialFocus(focusReason)
             return
         }
         root.requestCurrentIndexSync()
@@ -195,12 +195,13 @@ Item {
         if (grid.currentIndex !== gridIndex) grid.currentIndex = gridIndex
         if (list.currentIndex !== listIndex) list.currentIndex = listIndex
     }
-    function requestInitialFocus(): void {
+    function requestInitialFocus(reason): void {
+        if (reason === undefined) reason = Qt.MouseFocusReason
         gridActionSelected = false
         listActionSelected = false
         navigationFocusPending = false
         // Opening does not paint a band: the pointer or the keyboard asks for it.
-        Qt.callLater(function() { root.restoreView(Qt.MouseFocusReason) })
+        Qt.callLater(function() { if (root) root.restoreView(reason) })
     }
     function selectGrid(index: int): void {
         root.pointerEmphasis = false

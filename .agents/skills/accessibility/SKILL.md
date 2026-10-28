@@ -30,6 +30,12 @@ focus, activate, escape, and an announcement that matches what is drawn.
 - Use arrow navigation appropriate to row or grid geometry; preserve the nearest
   valid item when models change, rather than resetting selection accidentally.
 - Popups have a predictable initial focus, Escape behavior, and focus restoration.
+- The opening input decides the focus reason. A pointer open forwards
+  `Qt.MouseFocusReason`; only a keyboard open forwards `Qt.TabFocusReason`. A
+  forced Tab reason paints a keyboard band under a pointer that never moved.
+- Moving rows have one emphasis owner: pointer motion takes the band, a Tab,
+  Backtab or Shortcut focus reason releases it, and the row binds both through
+  `pointerEmphasis`. `emphasis_contract` guards the pattern.
 - Modal Tab/Shift+Tab stays in the modal; ordinary windows retain normal traversal.
 - Check text expansion, scaling, themes, target size, and reduced motion.
 
@@ -42,6 +48,12 @@ focus, activate, escape, and an announcement that matches what is drawn.
   before the control activates. Observe without accepting, or do not add one.
 - `forceActiveFocus()` in a hover handler moves focus for keyboard users. Hover
   may change emphasis only.
+- `Qt.TabFocusReason` passed at popup open makes `visualFocus` true while the
+  pointer is still, so the row paints hover and focus bands together. Pass the
+  caller's reason instead of a constant.
+- Focus reason is not visible state by itself: `visualFocus` is false for
+  Mouse, Popup, Other and ActiveWindow reasons and true for Tab, Backtab and
+  Shortcut. Do not infer keyboard presence from `activeFocus` alone.
 - Replacing the model resets the current index unless it is restored explicitly.
 - `closePolicy: Popup.NoAutoClose` stops Escape from closing a popup; that
   surface then needs its own handler and explicit focus restoration.
@@ -51,7 +63,8 @@ focus, activate, escape, and an announcement that matches what is drawn.
 ## Validation
 
 ```bash
-ctest --test-dir build --output-on-failure -R 'dock_components|qml_lint'
+ctest --test-dir build --output-on-failure \
+  -R '^(qml_lint|emphasis_contract|dock_components)$'
 ```
 
 - Walk the path with the pointer untouched; every action stays reachable.

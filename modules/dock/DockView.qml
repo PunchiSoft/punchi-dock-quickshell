@@ -170,6 +170,9 @@ Control {
         leaveDuration: root.waveLeaveDuration
     }
 
+    function keyboardActivation(item): bool {
+        return !!item && item.activeFocus && item.visualFocus
+    }
     function itemForId(appId: string): Item {
         for (let index = 0; index < tiles.count; ++index) {
             const item = tiles.itemAt(index) as LauncherTile

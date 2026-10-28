@@ -35,6 +35,12 @@ selection lists, selection/highlight is the single primary emphasis; do not
 render pointer hover on another row while a current item is selected. Hover and
 focus may differ, but they must not stack into competing backgrounds.
 
+A transient row in a popup, menu or arc has no durable selection, so one band is
+shared: the owner publishes `pointerEmphasis`, real pointer motion takes it, a
+Tab/Backtab/Shortcut focus reason releases it, and the row binds
+`hovered && pointerEmphasis` and `visualFocus && !pointerEmphasis`. Forward the
+opening focus reason from the caller instead of forcing `Qt.TabFocusReason`.
+
 ## Gotchas
 
 - A view importing `Quickshell` or `Punchi.Kde` cannot be instantiated by Qt
@@ -46,6 +52,11 @@ focus may differ, but they must not stack into competing backgrounds.
   a scaled output.
 - Two surfaces that both animate the same state fight each other; one owns the
   transition.
+- A delegate cannot decide which input moved last; only the surface that receives
+  both the pointer and the focus can own `pointerEmphasis`.
+- `Window.window` and `Window.activeFocusItem` are attached properties: read them
+  on an `Item` (`root.Window.window`). A `Window` object inside `Connections`
+  warns and never updates.
 - `onCompleted` that writes a property the view also binds hides a missing
   default rather than fixing it.
 - Do not assume Plasma-injected globals, and do not map desktop-wide behavior to
@@ -54,7 +65,8 @@ focus may differ, but they must not stack into competing backgrounds.
 ## Validation
 
 ```bash
-ctest --test-dir build --output-on-failure -R 'qml_lint|dock_components'
+ctest --test-dir build --output-on-failure \
+  -R '^(qml_lint|emphasis_contract|dock_components|folder_container)$'
 python3 scripts-dev/validate-qml.py "$(command -v qmllint6 || command -v qmllint)"
 ```
 

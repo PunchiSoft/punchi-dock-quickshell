@@ -9,6 +9,7 @@ import "../../components"
 ColumnLayout {
     id: root
     property bool motionEnabled: true
+    property bool pointerEmphasis: true
     property var places: null
     readonly property int count: places ? places.count : 0
     readonly property int remainingCount: places ? places.remainingCount : 0
@@ -34,6 +35,7 @@ ColumnLayout {
         Layout.fillWidth: true
     }
     DockContextAction {
+        pointerEmphasis: root.pointerEmphasis
         id: backAction
         motionEnabled: root.motionEnabled
         objectName: "backToPlacesAction"
@@ -59,6 +61,7 @@ ColumnLayout {
                 id: items
                 model: root.places
                 delegate: DockContextAction {
+                    pointerEmphasis: root.pointerEmphasis
                     motionEnabled: root.motionEnabled
                     required property string resource
                     required property string name
@@ -80,8 +83,9 @@ ColumnLayout {
             }
         }
     }
-    DockContextAction { id: measurement; visible: false }
+    DockContextAction { id: measurement; visible: false; pointerEmphasis: root.pointerEmphasis }
     DockContextAction {
+        pointerEmphasis: root.pointerEmphasis
         id: moreAction
         motionEnabled: root.motionEnabled
         objectName: "morePlacesAction"

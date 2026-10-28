@@ -470,7 +470,11 @@ PanelWindow {
         onItemActivated: function(appId) {
             contextMenu.dismiss()
             const container = root.settings.container(appId)
-            if (container) folderPopup.toggleForItem(view.itemForId(appId), appId, container)
+            const tile = view.itemForId(appId)
+            // Enter on a focused launcher keeps its band; a pointer click does not
+            // turn the first row into a keyboard row.
+            const fromKeyboard = view.keyboardActivation(tile)
+            if (container) folderPopup.toggleForItem(tile, appId, container, fromKeyboard)
             else {
                 folderPopup.dismiss()
                 if (appId === "item:trash") trash.open()
