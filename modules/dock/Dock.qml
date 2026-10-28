@@ -310,7 +310,7 @@ PanelWindow {
     }
     DockContextPopup {
         id: contextMenu
-        settings: settings
+        settings: root.settings
         minimizeEffectController: root.services.minimizeEffects
         dockEdge: root.settings.dockEdge
         hostWindow: root
