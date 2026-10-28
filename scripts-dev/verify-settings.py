@@ -31,13 +31,16 @@ def main():
             shutil.copytree(root / directory, config / directory)
         fixture = '''import QtQuick
 import Quickshell
+import "config"
 import "modules/dock"
 import "modules/settings"
 import "services"
 ShellRoot {
-    Dock { id: dock; onSettingsRequested: window.open() }
-    SettingsStore { id: store; settings: dock.preferences }
-    SettingsWindow { id: window; settings: dock.preferences; onFrameSwapped: frames += 1 }
+    ShellSettings { id: shellSettings }
+    DockServices { id: dockServices; settings: shellSettings }
+    Dock { id: dock; services: dockServices; onSettingsRequested: window.open() }
+    SettingsStore { id: store; settings: shellSettings }
+    SettingsWindow { id: window; settings: shellSettings; onFrameSwapped: frames += 1 }
     property int frames: 0
     Timer {
         interval: 300; running: true; repeat: false

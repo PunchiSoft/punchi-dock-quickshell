@@ -21,6 +21,8 @@ class RunningApplications : public QObject, public QQmlParserStatus
     Q_PROPERTY(QStringList desktopIds READ desktopIds NOTIFY changed)
     Q_PROPERTY(QVariantList applicationEntries READ applicationEntries NOTIFY changed)
     Q_PROPERTY(QVariantList virtualDesktops READ virtualDesktops NOTIFY changed)
+    Q_PROPERTY(QStringList currentDesktopIds READ currentDesktopIds NOTIFY changed)
+    Q_PROPERTY(QVariantList activities READ activities NOTIFY changed)
     Q_PROPERTY(WindowVisibilityState *visibilityState READ visibilityState CONSTANT)
     Q_PROPERTY(WindowActivation *windowActivation READ windowActivation CONSTANT)
 public:
@@ -33,6 +35,8 @@ public:
     QStringList desktopIds() const { auto ids = m_ids.values(); ids.sort(); return ids; }
     QVariantList applicationEntries() const { return m_applicationEntries; }
     QVariantList virtualDesktops() const { return m_virtualDesktops; }
+    QStringList currentDesktopIds() const { return m_currentDesktopIds; }
+    QVariantList activities() const { return m_activities; }
     WindowVisibilityState *visibilityState() { return &m_visibility; }
     WindowActivation *windowActivation() { return &m_activation; }
     void setExecutable(const QString &value);
@@ -50,7 +54,8 @@ private:
     void stop();
     void consume();
     void update(bool available, const QSet<QString> &ids = {}, const QVariantList &applicationEntries = {},
-        const QVariantMap &windowActions = {}, const QVariantList &virtualDesktops = {});
+        const QVariantMap &windowActions = {}, const QVariantList &virtualDesktops = {},
+        const QStringList &currentDesktopIds = {}, const QVariantList &activities = {});
     QProcess m_process;
     QString m_executable;
     QByteArray m_buffer;
@@ -58,6 +63,8 @@ private:
     QVariantList m_applicationEntries;
     QVariantMap m_windowActions;
     QVariantList m_virtualDesktops;
+    QStringList m_currentDesktopIds;
+    QVariantList m_activities;
     WindowVisibilityState m_visibility;
     WindowActivation m_activation;
     bool m_enabled = false;

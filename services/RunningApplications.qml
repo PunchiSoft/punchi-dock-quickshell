@@ -15,6 +15,13 @@ QtObject {
     readonly property list<string> desktopIds: backend.desktopIds
     readonly property var applicationEntries: backend.applicationEntries
     readonly property var virtualDesktops: backend.virtualDesktops
+    readonly property var activities: backend.activities
+    readonly property var currentDesktopIds: backend.currentDesktopIds
+    readonly property var currentDesktopApplications: {
+        if (!backend.available) return []
+        return backend.applicationEntries.filter(entry =>
+            backend.currentDesktopIds.indexOf(entry.desktopId) >= 0)
+    }
     readonly property var windowActivation: backend.windowActivation
     readonly property var visibilityState: backend.visibilityState
     readonly property int revision: backend.revision + (catalog ? catalog.revision : 0)

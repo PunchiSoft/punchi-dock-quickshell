@@ -29,10 +29,23 @@ const launchers = [
 ]
 
 const profile = {
-    version: 11,
+    version: 12,
     downloadsView: "grid",
     dockEdge: "bottom",
     panelMode: "overlay",
+    // One shared profile serves every screen. `selectedScreens` holds screen
+    // connector names; the system primary is the fallback when none of them is
+    // connected.
+    screenMode: "all",
+    selectedScreens: [],
+    // Virtual desktops and KDE activities use their KWin identifiers, stored as
+    // strings so a numeric desktop id round-trips.
+    desktopMode: "all",
+    selectedDesktops: [],
+    activityMode: "all",
+    selectedActivities: [],
+    runningMarkersFollowDesktop: false,
+    avoidInnerEdgeAutoHide: true,
     sizePercent: 100,
     magnificationEnabled: true,
     reducedMotion: false,

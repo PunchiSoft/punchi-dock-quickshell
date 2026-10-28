@@ -58,8 +58,12 @@ public:
                     self->m_object->property("allTasks").value<QObject *>()) : nullptr;
                 self->m_visibleModel = self->m_object ? qobject_cast<QAbstractItemModel *>(
                     self->m_object->property("visibleTasks").value<QObject *>()) : nullptr;
+                self->m_currentModel = self->m_object ? qobject_cast<QAbstractItemModel *>(
+                    self->m_object->property("currentDesktopTasks").value<QObject *>()) : nullptr;
                 self->m_virtualDesktopInfo = self->m_object
                     ? self->m_object->property("virtualDesktopInfo").value<QObject *>() : nullptr;
+                self->m_activityInfo = self->m_object
+                    ? self->m_object->property("activityInfo").value<QObject *>() : nullptr;
                 if (!self->m_model || !self->m_model->roleNames().values().contains("AppId")
                     || !self->m_model->roleNames().values().contains("IsWindow")) {
                     qWarning() << "KDE task model unavailable";
@@ -67,7 +71,7 @@ public:
                     return;
                 }
                 const auto update = [self]() { self->schedule(); };
-                for (auto *model : {self->m_model, self->m_visibleModel}) {
+                for (auto *model : {self->m_model, self->m_visibleModel, self->m_currentModel}) {
                     if (!model) continue;
                     connect(model, &QAbstractItemModel::rowsInserted, self, update);
                     connect(model, &QAbstractItemModel::rowsRemoved, self, update);
@@ -81,6 +85,15 @@ public:
                         const int signalIndex = self->m_virtualDesktopInfo->metaObject()->indexOfSignal(signal);
                         if (signalIndex >= 0) QObject::connect(self->m_virtualDesktopInfo,
                             self->m_virtualDesktopInfo->metaObject()->method(signalIndex), self,
+                            self->metaObject()->method(self->metaObject()->indexOfSlot("schedule()")));
+                    }
+                }
+                if (self->m_activityInfo) {
+                    for (const auto *signal : {"currentActivityChanged()", "numberOfRunningActivitiesChanged()",
+                            "namesOfRunningActivitiesChanged()"}) {
+                        const int signalIndex = self->m_activityInfo->metaObject()->indexOfSignal(signal);
+                        if (signalIndex >= 0) QObject::connect(self->m_activityInfo,
+                            self->m_activityInfo->metaObject()->method(signalIndex), self,
                             self->metaObject()->method(self->metaObject()->indexOfSlot("schedule()")));
                     }
                 }
@@ -117,9 +130,12 @@ private:
         const bool ready = m_available && m_model && m_model->rowCount() <= 4096;
         const QStringList ids = ready ? runningDesktopIds(*m_model) : QStringList();
         const QJsonArray applications = ready ? runningApplicationEntries(*m_model) : QJsonArray();
+        const QStringList currentIds = ready && m_currentModel
+            && m_currentModel->rowCount() <= 4096 ? runningDesktopIds(*m_currentModel) : QStringList();
+        const QJsonArray activities = activitiesSnapshot(m_activityInfo, ready);
         auto object = QJsonDocument::fromJson(windowStateSnapshot(ready && ids.size() <= 1024, ids,
             windowVisibilitySnapshot(m_visibleModel, ready, ready && KWindowSystem::showingDesktop()),
-            applications)).object();
+            applications, currentIds.size() <= 1024 ? currentIds : QStringList(), activities)).object();
         if (ready && m_virtualDesktopInfo) {
             const auto actions = windowActionsSnapshot(m_model, ids.size() <= 1024,
                 m_virtualDesktopInfo->property("desktopIds").toList(),
@@ -144,7 +160,9 @@ private:
     std::unique_ptr<QObject> m_object;
     QAbstractItemModel *m_model = nullptr;
     QAbstractItemModel *m_visibleModel = nullptr;
+    QAbstractItemModel *m_currentModel = nullptr;
     QObject *m_virtualDesktopInfo = nullptr;
+    QObject *m_activityInfo = nullptr;
 };
 
 int main(int argc, char **argv)

@@ -30,6 +30,35 @@ TestCase {
         }
     }
     Component {
+        id: placementWindowFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            screens: [{name: "DP-1", model: "Internal panel"},
+                {name: "HDMI-A-1", model: "External panel"}]
+            primaryScreenName: "DP-1"
+            runningApplications: QtObject {
+                property bool available: true
+                property var virtualDesktops: [{id: 1, name: "One", current: true},
+                    {id: 2, name: "Two", current: false}]
+                property var activities: [{id: "work", name: "Work", current: true}]
+            }
+        }
+    }
+    Component {
+        id: singleScreenWindowFixture
+        SettingsWindow {
+            settings: ShellSettings {}
+            screens: [{name: "DP-1", model: "Internal panel"}]
+            primaryScreenName: "DP-1"
+            runningApplications: QtObject {
+                property bool available: true
+                property var virtualDesktops: [{id: 1, name: "One", current: true},
+                    {id: 2, name: "Two", current: false}]
+                property var activities: [{id: "work", name: "Work", current: true}]
+            }
+        }
+    }
+    Component {
         id: populatedWindowFixture
         // This fixture covers the original eight application rows. Special-item
         // ordering and the new defaults have their own explicit regressions.
@@ -150,6 +179,129 @@ TestCase {
         const item = findChild(window.contentItem, name)
         verify(item !== null, name)
         return item
+    }
+    // The fixed reference height scrolls the General page, so a click target
+    // below the fold must be brought into view first.
+    function ensureVisible(window: var, item: var): void {
+        const view = control(window, "dockSettingsView")
+        const viewport = control(window, "settingsGeneralViewport")
+        item.forceActiveFocus(Qt.TabFocusReason)
+        view.ensureFocusedVisible(item)
+        wait(50)
+        const point = item.mapToItem(viewport, 0, 0)
+        viewport.contentY = Math.max(0, Math.min(
+            Math.max(0, viewport.contentHeight - viewport.height),
+            point.y - viewport.height / 2))
+        wait(50)
+    }
+    function test_reopeningRestoresEstablishedDefaultSize(): void {
+        const window = openWindow()
+        fuzzyCompare(window.preferredHeight,
+            Math.min(Kirigami.Units.gridUnit * 38, Screen.height * 0.85), 1)
+        verify(window.width > window.minimumWidth)
+        verify(window.height > window.minimumHeight)
+        window.width = window.minimumWidth
+        window.height = window.minimumHeight
+        window.width = window.minimumWidth - Kirigami.Units.gridUnit * 2
+        window.height = window.minimumHeight - Kirigami.Units.gridUnit
+        tryCompare(window, "width", window.minimumWidth)
+        tryCompare(window, "height", window.minimumHeight)
+        window.close()
+        tryCompare(window, "visible", false)
+        window.open()
+        tryVerify(function() {
+            return Math.abs(window.width - window.preferredWidth) <= 1
+                && Math.abs(window.height - window.preferredHeight) <= 1
+        })
+        verify(window.width > window.minimumWidth)
+        verify(window.height > window.minimumHeight)
+    }
+    function test_screenOptionsDoNotResizeWindow(): void {
+        const window = createTemporaryObject(placementWindowFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const view = control(window, "dockSettingsView")
+        view.currentPage = 1
+        const page = control(window, "settingsDockGeneral")
+        const initialWidth = window.width
+        const initialHeight = window.height
+        const initialContentHeight = page.implicitHeight
+        view.settings.screenMode = "selected"
+        tryVerify(function() { return page.implicitHeight > initialContentHeight })
+        compare(window.width, initialWidth)
+        compare(window.height, initialHeight)
+        const expandedHeight = page.implicitHeight
+        view.settings.desktopMode = "selected"
+        view.settings.activityMode = "selected"
+        tryVerify(function() { return page.implicitHeight > expandedHeight })
+        compare(window.width, initialWidth)
+        compare(window.height, initialHeight)
+        // Each generated list belongs under its own selector, not in one block
+        // after every row.
+        const screenGroup = control(window, "screenSelection")
+        const desktopGroup = control(window, "desktopSelection")
+        const activityGroup = control(window, "activitySelection")
+        const screenY = screenGroup.mapToItem(page, 0, 0).y
+        const desktopY = desktopGroup.mapToItem(page, 0, 0).y
+        const activityY = activityGroup.mapToItem(page, 0, 0).y
+        verify(screenY < desktopY && desktopY < activityY)
+        verify(screenY >= control(window, "screenMode").mapToItem(page, 0, 0).y)
+        verify(screenY < control(window, "desktopMode").mapToItem(page, 0, 0).y)
+        verify(desktopY >= control(window, "desktopMode").mapToItem(page, 0, 0).y)
+        verify(desktopY < control(window, "activityMode").mapToItem(page, 0, 0).y)
+        verify(activityY >= control(window, "activityMode").mapToItem(page, 0, 0).y)
+    }
+    function test_singleScreenHidesScreenPlacement(): void {
+        const window = createTemporaryObject(singleScreenWindowFixture, test)
+        window.open()
+        tryCompare(window, "visible", true)
+        verify(waitForRendering(window.contentItem))
+        const view = control(window, "dockSettingsView")
+        view.currentPage = 1
+        const page = control(window, "settingsDockGeneral")
+        const row = control(window, "screenPlacementRow")
+        const selection = control(window, "screenSelection")
+        const separator = control(window, "screenPlacementSeparator")
+        compare(page.screenPlacementVisible, false)
+        compare(row.visible, false)
+        compare(selection.visible, false)
+        compare(separator.visible, false)
+        // A second screen brings the selector and its list back.
+        window.screens = [{name: "DP-1", model: "Internal panel"},
+            {name: "HDMI-A-1", model: "External panel"}]
+        tryCompare(page, "screenPlacementVisible", true)
+        tryCompare(row, "visible", true)
+        view.settings.screenMode = "selected"
+        tryCompare(selection, "visible", true)
+        // A disconnected saved screen keeps the fallback explanation visible.
+        view.settings.selectedScreens = ["HDMI-A-1"]
+        window.screens = [{name: "DP-1", model: "Internal panel"}]
+        tryCompare(page, "screenPlacementVisible", true)
+        tryCompare(row, "visible", true)
+        verify(findChild(page, "screenMissing-HDMI-A-1") !== null)
+    }
+    function test_pageContentReservesScrollBarGutter(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        view.currentPage = 1
+        window.height = window.minimumHeight
+        const scroll = control(window, "settingsGeneralScroll")
+        const viewport = control(window, "settingsGeneralViewport")
+        const page = control(window, "settingsDockGeneral")
+        const bar = control(window, "settingsGeneralScrollBar")
+        tryVerify(function() { return scroll.rightPadding > 0 })
+        compare(scroll.rightPadding,
+            bar.width + Kirigami.Units.smallSpacing * 2)
+        verify(bar.background === null)
+        compare(bar.opacity, 1)
+        verify(bar.contentItem.visible)
+        verify(bar.x >= viewport.width)
+        compare(bar.y, 0)
+        fuzzyCompare(bar.height, scroll.height, 1)
+        compare(viewport.width, scroll.availableWidth)
+        verify(viewport.width < scroll.width)
+        compare(page.width, viewport.width)
     }
     // The note names the sources that answered instead of promising all three.
     function test_updateSourcesNoteNamesDetectedSources(): void {
@@ -390,6 +542,7 @@ TestCase {
         const kdeButton = control(window, "recentApplicationsKdeSettings")
         verify(kdeRow.visible)
         verify(kdeButton.enabled)
+        ensureVisible(window, kdeButton)
         mouseClick(kdeButton)
         compare(window.trackingCalls, 1)
         window.close()

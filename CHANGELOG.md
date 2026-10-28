@@ -2,6 +2,49 @@
 
 ## Unreleased
 
+- Add per-screen and per-desktop placement. Every connected screen owns a dock
+  window backed by one shared runtime: the application catalog, window backend,
+  update tracker, Trash state and KWin minimize controller are created once
+  instead of once per screen. **Screens and desktops** in General chooses all
+  connected screens (default) or a multi-selection, keeps the configured screen
+  selected across hot-plug, and falls back to the system primary screen while no
+  selected screen is connected. The dock no longer follows the screen where it
+  happens to be launched.
+- Keep the placement controls in the established single-column card
+  distribution. The settings window uses the macOS-derived 54u × 38u Kirigami
+  reference (screen-capped, 14u minimum) and reinstalls it whenever it is
+  opened, so a compositor-remembered or dragged size cannot replace it. Pages
+  scroll inside the reference instead of resizing the window when optional
+  screen, desktop or activity rows appear. Pages use the shared thin
+  `PopupScrollBar` (no trough) kept visible at rest, anchored to the reserved
+  right gutter; scrolling and the indicator remain, but the vertical groove line
+  no longer crosses the cards. Each selection list sits directly below its
+  selector with a small caption, so the generated options are no longer one
+  unordered block. An unplugged saved screen stays visible as **Not connected**,
+  and the screen showing the dock meanwhile is marked **Fallback** instead of
+  the card looking as if the missing monitor were still selected. With one
+  connected screen, **Show dock on** and its screen list are hidden when they
+  offer no choice; the saved profile is unchanged, and the row returns when a
+  second screen is connected or a saved selection needs the **Not connected** /
+  **Fallback** explanation.
+- Add virtual-desktop and KDE activity visibility. All desktops and activities
+  are visible by default; selecting specific ones hides the dock on the others
+  without reserving screen space, without registering the edge reveal trigger,
+  and without closing the window, so returning to an allowed desktop restores
+  the configured mode. An optional switch makes running markers and transient
+  rows follow the current desktop and activity while pinned items stay visible.
+  The window backend now publishes `activities` and `currentDesktopIds` from the
+  active desktop/activity. Without that backend, filtering degrades to "all".
+- Keep the dock visible when its configured edge borders another screen and
+  `avoidInnerEdgeAutoHide` is enabled: an edge mode would have no free strip to
+  reveal from, so that dock stays visible while other screens keep their mode.
+- Move the dock command surface into one `DockIpc` coordinator. The previous
+  `dock` methods keep working on the primary screen, and `screenKeys`,
+  `snapshotFor`, `revealFor` and `focusFor` address a specific screen.
+- Bump the saved profile to version 12 with `screenMode`, `selectedScreens`,
+  `desktopMode`, `selectedDesktops`, `activityMode`, `selectedActivities`,
+  `runningMarkersFollowDesktop` and `avoidInnerEdgeAutoHide`. Version 11 profiles
+  load with the new defaults, and imported profiles validate every new field.
 - Add a **Profile** category that imports and exports a portable JSON profile of
   dock items, folder containers and preferences. `config/DefaultProfile.js` is
   now the single first-run source for the launcher catalogue, pinned order,

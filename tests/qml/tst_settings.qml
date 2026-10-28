@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
+import org.kde.kirigami as Kirigami
 import "../../config"
 import "../../services"
 import "../../modules/settings"
@@ -13,6 +14,20 @@ TestCase {
     height: 900
     Component { id: fixture; SettingsView { settings: ShellSettings {} } }
     Component { id: settingsFixture; ShellSettings {} }
+    Component {
+        id: placementFixture
+        SettingsView {
+            settings: ShellSettings {}
+            screens: [{name: "DP-1", model: "Test panel"}]
+            primaryScreenName: "DP-1"
+            runningApplications: QtObject {
+                property bool available: true
+                property var virtualDesktops: [{id: 1, name: "One", current: true},
+                    {id: 2, name: "Two", current: false}]
+                property var activities: [{id: "work", name: "Work", current: true}]
+            }
+        }
+    }
     Component { id: modelFixture; PinnedApplications { catalog: DockFixtureModel {}
         pinnedIds: [] } }
     function test_reactive_controls_and_reset() {
@@ -99,7 +114,7 @@ TestCase {
         settings.popupFanIconSize = 34
         settings.popupHeightPercent = 50
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 11)
+        compare(data.version, 12)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.popupScale, 1.15)
@@ -148,7 +163,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 11)
+        compare(data.version, 12)
         compare(data.containers.length, 3)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -193,7 +208,7 @@ TestCase {
         // The profile round-trips the field and a schema-8 profile keeps none.
         verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 11)
+        compare(data.version, 12)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.containerHiddenEntries(id), ["skip.txt"])
@@ -201,5 +216,122 @@ TestCase {
         const legacy = createTemporaryObject(settingsFixture, test)
         verify(legacy.restore(data))
         compare(legacy.containerHiddenEntries(id), [])
+    }
+    function test_screenAndDesktopPreferences() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        compare(settings.screenMode, "all")
+        compare(settings.avoidInnerEdgeAutoHide, true)
+        settings.screenMode = "selected"
+        settings.selectedScreens = ["DP-1", "HDMI-A-1"]
+        settings.desktopMode = "selected"
+        settings.selectedDesktops = ["1", "2"]
+        settings.activityMode = "selected"
+        settings.selectedActivities = ["activity-a"]
+        settings.runningMarkersFollowDesktop = true
+        settings.avoidInnerEdgeAutoHide = false
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.version, 12)
+        compare(data.selectedScreens.length, 2)
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore(data))
+        compare(restored.screenMode, "selected")
+        compare(restored.selectedScreens.join(","), "DP-1,HDMI-A-1")
+        compare(restored.selectedDesktops.join(","), "1,2")
+        compare(restored.selectedActivities.join(","), "activity-a")
+        compare(restored.runningMarkersFollowDesktop, true)
+        compare(restored.avoidInnerEdgeAutoHide, false)
+        // Invalid values are ignored, never applied partially.
+        verify(restored.restore({version: 12, screenMode: "primary", selectedScreens: "DP-1",
+            desktopMode: "current", selectedDesktops: [{}], selectedActivities: new Array(17).fill("a"),
+            runningMarkersFollowDesktop: "yes"}))
+        compare(restored.screenMode, "selected")
+        compare(restored.selectedScreens.join(","), "DP-1,HDMI-A-1")
+        compare(restored.desktopMode, "selected")
+        compare(restored.runningMarkersFollowDesktop, true)
+        settings.screenMode = "primary"
+        compare(settings.screenMode, "all")
+        settings.desktopMode = "current"
+        compare(settings.desktopMode, "all")
+        settings.activityMode = "current"
+        compare(settings.activityMode, "all")
+        // A schema-11 profile keeps the new defaults.
+        const legacy = createTemporaryObject(settingsFixture, test)
+        verify(legacy.restore({version: 11}))
+        compare(legacy.screenMode, "all")
+        compare(legacy.desktopMode, "all")
+        compare(legacy.activityMode, "all")
+        compare(legacy.avoidInnerEdgeAutoHide, true)
+    }
+    function test_placementControls() {
+        const view = createTemporaryObject(placementFixture, test)
+        const settings = view.settings
+        view.screens = [{name: "DP-1", model: "Test panel"},
+            {name: "HDMI-A-1", model: "External panel"}]
+        settings.screenMode = "selected"
+        const screen = findChild(view, "screen-DP-1")
+        verify(screen !== null)
+        screen.checked = true
+        screen.clicked()
+        compare(settings.selectedScreens.join(","), "DP-1")
+        screen.checked = false
+        screen.clicked()
+        compare(settings.selectedScreens.length, 0)
+        settings.desktopMode = "selected"
+        const desktop = findChild(view, "desktop-2")
+        verify(desktop !== null)
+        desktop.checked = true
+        compare(settings.selectedDesktops.join(","), "2")
+        settings.activityMode = "selected"
+        const activity = findChild(view, "activity-work")
+        verify(activity !== null)
+        activity.checked = true
+        compare(settings.selectedActivities.join(","), "work")
+        const markers = findChild(view, "runningMarkersFollowDesktop")
+        verify(markers !== null)
+        markers.checked = true
+        compare(settings.runningMarkersFollowDesktop, true)
+    }
+    function test_disconnectedSelectionShowsFallback() {
+        const view = createTemporaryObject(placementFixture, test)
+        const settings = view.settings
+        settings.screenMode = "selected"
+        settings.selectedScreens = ["HDMI-A-1"]
+        // The saved screen is unplugged and stays visible as unavailable.
+        const missing = findChild(view, "screenMissing-HDMI-A-1")
+        verify(missing !== null)
+        verify(missing.checked)
+        verify(!missing.enabled)
+        // The connected screen carries the temporary fallback marker.
+        const fallback = findChild(view, "screen-DP-1")
+        verify(fallback !== null)
+        verify(fallback.text.indexOf("Fallback") >= 0)
+        verify(!fallback.checked)
+        // Checking it turns the fallback into the saved selection.
+        fallback.checked = true
+        fallback.clicked()
+        compare(settings.selectedScreens.join(","), "DP-1")
+        // A configured screen that reconnects clears the fallback marker.
+        settings.selectedScreens = ["HDMI-A-1"]
+        view.screens = [{name: "DP-1", model: "Test panel"},
+            {name: "HDMI-A-1", model: "External panel"}]
+        const reconnected = findChild(view, "screen-HDMI-A-1")
+        verify(reconnected !== null)
+        verify(reconnected.checked)
+        verify(reconnected.text.indexOf("Fallback") < 0)
+        settings.selectedScreens = ["DP-1"]
+        compare(fallback.text.indexOf("Fallback"), -1)
+    }
+    function test_placementCardScrollsAboveTheFooter() {
+        const view = createTemporaryObject(placementFixture, test,
+            {height: Kirigami.Units.gridUnit * 30})
+        const page = findChild(view, "settingsDockGeneral")
+        const viewport = findChild(view, "settingsGeneralViewport")
+        const last = findChild(view, "avoidInnerEdgeAutoHide")
+        verify(page !== null && viewport !== null && last !== null)
+        compare(viewport.contentHeight, page.implicitHeight)
+        compare(viewport.bottomMargin, 0)
+        viewport.contentY = Math.max(0, viewport.contentHeight - viewport.height)
+        const bottom = last.mapToItem(viewport, 0, last.height).y
+        verify(bottom <= viewport.height + 1)
     }
 }

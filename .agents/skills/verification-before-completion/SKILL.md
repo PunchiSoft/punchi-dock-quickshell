@@ -36,6 +36,8 @@ needed and which ones actually ran.
 - The `ctest` result is quoted with its filter, not summarized as "all good".
 - Every KDE or KWin claim names the session and versions it was observed on.
 - Every removed or weakened test is called out with its authorization.
+- The dock and settings window are closed and every test instance is stopped; no
+  test process is left running for the user.
 
 ## Gotchas
 

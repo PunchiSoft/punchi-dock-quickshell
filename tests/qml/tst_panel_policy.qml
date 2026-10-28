@@ -34,14 +34,21 @@ TestCase {
             compare(policy.exclusiveZone, 0)
         }
     }
-    function test_nativeModesAndReservation() {
+    function test_sharedEdgeKeepsEdgeModesVisible() {
         const policy = createTemporaryObject(fixture, this)
-        for (const mode of ["reserve", "autohide", "dodge-windows", "overlay"]) {
-            verify(policy.accepts(mode))
-            policy.mode = mode
-            compare(policy.mode, mode)
-            compare(policy.effectiveMode, mode)
-            compare(policy.exclusiveZone, mode === "reserve" ? 56 : 0)
-        }
+        policy.mode = "autohide"
+        compare(policy.effectiveMode, "autohide")
+        policy.edgeTriggerAvailable = false
+        compare(policy.effectiveMode, "overlay")
+        compare(policy.exclusiveZone, 0)
+        policy.mode = "dodge-windows"
+        compare(policy.effectiveMode, "overlay")
+        policy.mode = "reserve"
+        compare(policy.effectiveMode, "reserve")
+        compare(policy.exclusiveZone, 56)
+        policy.edgeTriggerAvailable = true
+        compare(policy.effectiveMode, "reserve")
+        policy.mode = "autohide"
+        compare(policy.effectiveMode, "autohide")
     }
 }

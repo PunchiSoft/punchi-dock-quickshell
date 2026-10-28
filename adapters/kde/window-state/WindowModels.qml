@@ -15,6 +15,16 @@ QtObject {
         filterByVirtualDesktop: false
         filterByActivity: false
     }
+    // Running markers filtered to the active virtual desktop and activity.
+    readonly property TaskManager.TasksModel currentDesktopTasks: TaskManager.TasksModel {
+        groupMode: TaskManager.TasksModel.GroupDisabled
+        filterMinimized: false
+        filterHidden: false
+        filterByVirtualDesktop: false
+        filterByCurrentVirtualDesktop: true
+        filterByActivity: true
+        activity: root.activityInfo.currentActivity
+    }
     // The visibility projection follows Plasma's panel model contract.
     readonly property TaskManager.TasksModel visibleTasks: TaskManager.TasksModel {
         groupMode: TaskManager.TasksModel.GroupDisabled

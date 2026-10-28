@@ -181,6 +181,33 @@ private slots:
         QVERIFY(!provider.isRunning(QStringLiteral("org.kde.konsole")));
         QTRY_VERIFY_WITH_TIMEOUT(QFileInfo::exists(directory.filePath(QStringLiteral("closed"))), 3000);
     }
+    void currentDesktopAndActivitiesAreParsed() {
+        QTemporaryDir directory;
+        const QString state = directory.filePath(QStringLiteral("state"));
+        const QString first = QStringLiteral("org.kde.konsole");
+        const QString second = QStringLiteral("org.kde.dolphin");
+        const QJsonArray activities{
+            QJsonObject{{QStringLiteral("id"), QStringLiteral("a-1")}, {QStringLiteral("name"),
+                QStringLiteral("Desktop activity")}, {QStringLiteral("current"), true}},
+            QJsonObject{{QStringLiteral("id"), QStringLiteral("a-2")}, {QStringLiteral("name"),
+                QStringLiteral("Work")}, {QStringLiteral("current"), false}}};
+        write(state, windowStateSnapshot(true, {first, second}, {}, {}, {first}, activities));
+        RunningApplications provider;
+        provider.setExecutable(fixture(directory));
+        provider.setEnabled(true);
+        provider.componentComplete();
+        QTRY_VERIFY_WITH_TIMEOUT(provider.available(), 3000);
+        QCOMPARE(provider.currentDesktopIds(), QStringList{first});
+        QCOMPARE(provider.activities().size(), 2);
+        const auto activity = provider.activities().first().toMap();
+        QCOMPARE(activity.value(QStringLiteral("id")).toString(), QStringLiteral("a-1"));
+        QCOMPARE(activity.value(QStringLiteral("name")).toString(), QStringLiteral("Desktop activity"));
+        QCOMPARE(activity.value(QStringLiteral("current")).toBool(), true);
+        // An app outside the running list is rejected as malformed.
+        write(state, windowStateSnapshot(true, {first}, {}, {}, {QStringLiteral("other-app")}, activities));
+        QTRY_VERIFY_WITH_TIMEOUT(!provider.available(), 3000);
+        provider.setEnabled(false);
+    }
     void backendUnavailableAndEofExit() {
         QProcess backend;
         backend.start(QStringLiteral(PUNCHI_TEST_BACKEND), {});

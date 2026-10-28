@@ -4,6 +4,7 @@
 .import "DefaultProfile.js" as DefaultProfile
 .import "LauncherIds.js" as LauncherIds
 .import "PanelModes.js" as PanelModes
+.import "ScreenSelection.js" as ScreenSelection
 
 // Portable profile document exchanged with the user. It is data only: a
 // profile never carries a command, a script or a path chosen by the file.
@@ -14,7 +15,8 @@ const version = 1
 const maximumBytes = 262144
 
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
-    "recentApplicationsEnabled", "updateBadgeEnabled"]
+    "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
+    "avoidInnerEdgeAutoHide"]
 
 function objectValue(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -51,6 +53,18 @@ function validate(profile) {
     if (own(profile, "dockEdge") && ["bottom", "left", "right"].indexOf(profile.dockEdge) < 0)
         return "invalid-field"
     if (own(profile, "panelMode") && !PanelModes.accepts(profile.panelMode))
+        return "invalid-field"
+    if (own(profile, "screenMode") && !ScreenSelection.acceptsMode(profile.screenMode))
+        return "invalid-field"
+    if (own(profile, "selectedScreens") && !ScreenSelection.validSelection(profile.selectedScreens))
+        return "invalid-field"
+    if (own(profile, "desktopMode") && !ScreenSelection.acceptsTargetMode(profile.desktopMode))
+        return "invalid-field"
+    if (own(profile, "selectedDesktops") && !ScreenSelection.validSelection(profile.selectedDesktops))
+        return "invalid-field"
+    if (own(profile, "activityMode") && !ScreenSelection.acceptsTargetMode(profile.activityMode))
+        return "invalid-field"
+    if (own(profile, "selectedActivities") && !ScreenSelection.validSelection(profile.selectedActivities))
         return "invalid-field"
     if (own(profile, "sizePercent")
             && !inRange(profile.sizePercent, DefaultProfile.limits.sizePercent, true))

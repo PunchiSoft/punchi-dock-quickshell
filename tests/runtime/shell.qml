@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import Quickshell
+import "../../config"
 import "../../modules/dock"
 
 ShellRoot {
@@ -10,8 +11,11 @@ ShellRoot {
     property int stage: 0
     property int renderedFrames: 0
 
+    ShellSettings { id: settings }
+    DockServices { id: services; settings: settings }
     Dock {
         id: dock
+        services: services
         onWindowConnected: console.warn("PUNCHI_WINDOW_CONNECTED")
     }
 
@@ -34,14 +38,14 @@ ShellRoot {
                     return
                 }
                 console.warn("PUNCHI_FRAME_RENDERED", dock.width, dock.height)
-                dock.visible = false
+                dock.requestedVisible = false
             } else if (root.stage === 1) {
                 if (dock.backingWindowVisible) {
                     console.error("PUNCHI_SESSION_FAILED_HIDE")
                     Qt.quit()
                     return
                 }
-                dock.visible = true
+                dock.requestedVisible = true
                 root.renderedFrames = 0
             } else {
                 if (!dock.backingWindowVisible || root.renderedFrames < 1) {
