@@ -30,6 +30,8 @@ ItemDelegate {
     property bool showLabels: true
     property bool iconsOnRight: true
     property bool motionEnabled: true
+    // The fan owns which signal paints the band; see FolderFanView.
+    property bool pointerEmphasis: true
     property int contentPadding: Kirigami.Units.smallSpacing
     property int labelSpacing: Kirigami.Units.smallSpacing
     property int itemIndex: -1
@@ -135,8 +137,8 @@ ItemDelegate {
             width: root.iconSize + Kirigami.Units.smallSpacing * 2
             height: Math.max(0, rowContent.height - Kirigami.Units.smallSpacing)
             radius: Kirigami.Units.cornerRadius
-            hovered: root.hovered
-            focused: root.visualFocus
+            hovered: root.hovered && root.pointerEmphasis
+            focused: root.visualFocus && !root.pointerEmphasis
             pressed: root.pressed
             motionEnabled: root.motionEnabled
         }
@@ -164,8 +166,8 @@ ItemDelegate {
                 anchors.leftMargin: root.labelHorizontalPadding
                 anchors.rightMargin: root.labelHorizontalPadding
                 text: root.label
-                hovered: root.hovered
-                focused: root.visualFocus
+                hovered: root.hovered && root.pointerEmphasis
+                focused: root.visualFocus && !root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 color: Kirigami.Theme.textColor
                 horizontalAlignment: root.iconsOnRight

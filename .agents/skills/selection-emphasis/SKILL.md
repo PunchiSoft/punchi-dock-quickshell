@@ -90,6 +90,34 @@ Do not use `hovered` to drive the same background, icon color or text color as
 selection. If a non-fill hover affordance is required, make it visually
 subordinate and confirm it cannot be mistaken for selection.
 
+## Transient rows: the pointer and the keyboard share one band
+
+Menus, context menus and folder arcs have no durable selection, so the pointer
+and the keyboard paint the same band. The exact owner is the input modality that
+moved last, and only the owner may show it:
+
+- The row declares `property bool pointerEmphasis: true`.
+- Real pointer motion over the surface sets it to `true`.
+- A focus reason of `Qt.TabFocusReason`, `Qt.BacktabFocusReason` or
+  `Qt.ShortcutFocusReason` sets it to `false`.
+- Every band binding consults it: `hovered: root.hovered && root.pointerEmphasis`
+  and `focused: root.visualFocus && !root.pointerEmphasis`.
+
+The owner is the surface that receives the pointer and the focus, never the
+delegate: a delegate cannot know which modality moved last. When the surface is
+a popup, connect to `root.Window.window` and `Window.activeFocusItem`; a
+`Window` object inside `Connections` warns and does not observe anything.
+
+Opening a popup with the pointer must forward `Qt.MouseFocusReason` so the first
+row holds focus without painting a band. Hardcoding `Qt.TabFocusReason` at open
+paints a keyboard band under a still pointer, which is the double hover this
+contract exists to prevent. Forward the caller's reason instead:
+`openFocusReason = fromKeyboard ? Qt.TabFocusReason : Qt.MouseFocusReason`.
+
+`scripts-dev/check-emphasis.py` (`emphasis_contract`) enforces the gate on every
+`PopupRowHighlight`, the owner declaration, and that `requestInitialFocus` never
+hardcodes `Qt.TabFocusReason`. Run it before touching a row component.
+
 ## Checklist
 
 - One filled selection at a time; no second hover fill.
@@ -98,12 +126,16 @@ subordinate and confirm it cannot be mistaken for selection.
 - Native style and components are preferred; custom backgrounds use theme roles.
 - Keyboard activation, `Accessible.name` and existing object names are preserved.
 - A component test asserts `hoverEnabled === false` while selection is active.
-- `qml_lint`, component tests and a light/dark visual check pass.
+- A transient row has one band: keyboard focus after a pointer open paints none,
+  and a keyboard move removes the pointer band.
+- `qml_lint`, `emphasis_contract`, component tests and a light/dark visual check
+  pass.
 
 ## Validation
 
 ```bash
-ctest --test-dir build --output-on-failure -R '^(qml_lint|dock_components)$'
+ctest --test-dir build --output-on-failure \
+  -R '^(qml_lint|emphasis_contract|dock_components|folder_container)$'
 ```
 
 Offscreen tests prove state contracts, not theme fidelity. Inspect the real

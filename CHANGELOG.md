@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Show one emphasis band at a time in the dock menu, the container menu and the
+  folder arc. These rows have no durable selection, so the pointer and the
+  keyboard now share a single band: the surface that receives both publishes
+  `pointerEmphasis`, real pointer motion takes the band, a Tab, Backtab or
+  Shortcut focus reason releases it, and every row binds its hover and focus fill
+  through that flag. Opening a popup with the pointer forwards the pointer's
+  focus reason instead of forcing `Qt.TabFocusReason`, which used to paint a
+  keyboard band under a pointer that had not moved. `emphasis_contract` fails the
+  build when a row drops the gate or when the initial focus hardcodes a keyboard
+  reason.
 - Restore the container context menu. The menu read a self-referencing settings
   property, so the folder section (sort, presentation and open actions) and the
   menu motion were missing; the popup now reads the dock settings.

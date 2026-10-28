@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma ComponentBehavior: Bound
 import QtQuick
+import QtQuick.Window
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../../components"
@@ -19,6 +20,39 @@ Item {
     property string entryPath: ""
     property bool directory: false
     property bool motionEnabled: true
+    property bool pointerEmphasis: true
+
+    // Exactly one row paints an emphasis band. Real pointer motion hands it to
+    // the pointer; a keyboard focus move hands it back to the keyboard, so a
+    // focused row and another hovered row never light up together.
+    property point lastPointerPosition: Qt.point(-1, -1)
+    HoverHandler {
+        onPointChanged: {
+            const position = point.position
+            if (position.x === root.lastPointerPosition.x
+                    && position.y === root.lastPointerPosition.y) return
+            root.lastPointerPosition = position
+            root.pointerEmphasis = true
+        }
+    }
+    // Window.activeFocusItem is typed as a bare item, so read the focus reason
+    // through an untyped helper the linter can follow.
+    function focusReasonOf(item): int {
+        return item ? item["focusReason"] : Qt.OtherFocusReason
+    }
+    Connections {
+        target: root.Window.window
+        function onActiveFocusItemChanged() {
+            const item = root.Window.activeFocusItem
+            if (!item) return
+            let ancestor = item
+            while (ancestor && ancestor !== root) ancestor = ancestor.parent
+            if (!ancestor) return
+            const reason = root.focusReasonOf(item)
+            root.pointerEmphasis = reason !== Qt.TabFocusReason
+                && reason !== Qt.BacktabFocusReason && reason !== Qt.ShortcutFocusReason
+        }
+    }
     property bool copyAvailable: true
     readonly property PopupMetrics metrics: PopupMetrics {}
     signal openLocationRequested()
@@ -74,6 +108,7 @@ Item {
             PopupActionRow {
                 id: openLocationRow
                 objectName: "folderEntryOpenLocation"
+                pointerEmphasis: root.pointerEmphasis
                 Layout.fillWidth: true
                 motionEnabled: root.motionEnabled
                 text: qsTr("Open in File Manager")
@@ -84,6 +119,7 @@ Item {
                 }
             }
             PopupActionRow {
+                pointerEmphasis: root.pointerEmphasis
                 objectName: "folderEntryCopyPath"
                 Layout.fillWidth: true
                 motionEnabled: root.motionEnabled

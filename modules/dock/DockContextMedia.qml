@@ -6,12 +6,14 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property bool motionEnabled: true
+    property bool pointerEmphasis: true
     property var media: null
     readonly property bool available: media !== null && media.available
     signal commandRequested(string command)
     spacing: 0
     implicitWidth: Math.max(previous.implicitWidth, playPause.implicitWidth, next.implicitWidth, stop.implicitWidth)
     DockContextAction {
+        pointerEmphasis: root.pointerEmphasis
         id: previous
         motionEnabled: root.motionEnabled
         objectName: "mediaPreviousAction"
@@ -22,6 +24,7 @@ ColumnLayout {
         onClicked: root.commandRequested("previous")
     }
     DockContextAction {
+        pointerEmphasis: root.pointerEmphasis
         id: playPause
         motionEnabled: root.motionEnabled
         objectName: "mediaPlayPauseAction"
@@ -32,6 +35,7 @@ ColumnLayout {
         onClicked: root.commandRequested("play-pause")
     }
     DockContextAction {
+        pointerEmphasis: root.pointerEmphasis
         id: next
         motionEnabled: root.motionEnabled
         objectName: "mediaNextAction"
@@ -42,6 +46,7 @@ ColumnLayout {
         onClicked: root.commandRequested("next")
     }
     DockContextAction {
+        pointerEmphasis: root.pointerEmphasis
         id: stop
         motionEnabled: root.motionEnabled
         objectName: "mediaStopAction"

@@ -13,6 +13,8 @@ import "../config"
 ItemDelegate {
     id: root
     property bool submenu: false
+    // The surface owns which signal paints the band; see DockContextContent.
+    property bool pointerEmphasis: true
     property bool marked: false
     property bool motionEnabled: true
     readonly property PopupMetrics metrics: PopupMetrics {}
@@ -72,8 +74,8 @@ ItemDelegate {
         hoverBorderColor: root.metrics.rowHoverBorderColor
         // A menu has no persistent selection: the pointer and the keyboard paint
         // the same band, as the native menu does.
-        hovered: root.enabled && root.hovered
-        focused: root.enabled && root.visualFocus
+        hovered: root.enabled && root.hovered && root.pointerEmphasis
+        focused: root.enabled && root.visualFocus && !root.pointerEmphasis
         pressed: root.enabled && root.down
         motionEnabled: root.motionEnabled
     }

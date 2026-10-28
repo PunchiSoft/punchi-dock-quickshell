@@ -1163,4 +1163,42 @@ TestCase {
         tryCompare(cursor, "hovered", false)
         window.close()
     }
+
+    function test_fanShowsOneEmphasisBandAtATime(): void {
+        const window = openWindow("bottom")
+        const popup = window.popup
+        verify(window.settings.setContainerLayout("item:downloads", "fan"))
+        tryCompare(popup.contentItem, "viewMode", "fan")
+        const fanView = findChild(popup.contentItem, "folderFanView")
+        tryVerify(function() { return fanView.visible && fanView.entryCount > 1 })
+        // Opening with the pointer focuses a row without painting a keyboard band.
+        tryVerify(function() { return fanView.focusedOrder >= 0 })
+        const focusedOrder = fanView.focusedOrder
+        const focusedRow = fanView.rowAt(focusedOrder)
+        verify(focusedRow !== null)
+        const focusedBand = findChild(focusedRow, "folderFanHighlight")
+        verify(focusedBand !== null)
+        verify(!focusedRow.visualFocus)
+        verify(focusedBand.color.a < 0.01)
+        verify(fanView.pointerEmphasis)
+        // A keyboard move hands the band to the focused row.
+        const target = focusedOrder === 2 ? 1 : 2
+        fanView.focusOrder(target, Qt.TabFocusReason)
+        const targetRow = fanView.rowAt(target)
+        verify(targetRow !== null)
+        const targetBand = findChild(targetRow, "folderFanHighlight")
+        verify(targetBand !== null)
+        verify(!fanView.pointerEmphasis)
+        wait(700)
+        verify(targetBand.color.a > 0.2)
+        verify(focusedBand.color.a < 0.01)
+        // Real pointer motion hands the emphasis back to the pointer.
+        const action = findChild(fanView, "folderFanOpenLocation")
+        verify(action !== null)
+        mouseMove(action, action.width / 2, action.height / 2)
+        tryVerify(function() { return fanView.pointerEmphasis })
+        wait(700)
+        verify(targetBand.color.a < 0.01)
+        window.close()
+    }
 }
