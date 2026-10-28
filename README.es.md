@@ -150,9 +150,11 @@ propia validación.
 - Contenedores de carpeta para cualquier carpeta local: presentaciones Grid,
   List, Detail y Fan, orden por contenedor, navegación por subcarpetas y lista
   de entradas ocultas. El contenedor integrado **Home** abre en Fan y muestra
-  solo las carpetas estándar de KDE/XDG con sus nombres localizados. Un dock
-  lateral presenta como Grid un abanico guardado, porque el arco necesita un
-  borde superior o inferior.
+  solo las carpetas estándar de KDE/XDG con sus nombres localizados; su perfil
+  inicial deja desactivada la navegación por subcarpetas, así que una carpeta
+  seleccionada se abre en el gestor de archivos. Un dock lateral presenta como
+  Grid un abanico guardado, porque el arco necesita un borde superior o
+  inferior.
 - Downloads con vistas Grid, List, Detail y Fan, navegación dentro de un globo
   temático y apertura nativa de archivos de KDE. Cada presentación termina con
   una fila **Open** y marca con un chevron las carpetas por las que se puede
@@ -417,7 +419,7 @@ catálogo de lanzadores del primer inicio y los valores que restaura **Reset def
 | Ajuste | Valor inicial actual |
 |---|---|
 | Superficie | Dock inferior por defecto; inferior, izquierda o derecha; todavía no hay barra superior personalizada |
-| Elementos fijados, en orden | Dolphin, Konsole, Home, Firefox, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
+| Elementos fijados, en orden | Dolphin, Konsole, Home, Browser, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Tamaño | 100% del tamaño base derivado del tema |
 | Magnificación con el puntero | Activada, con escala máxima del 200% |
 | Rebote al hacer clic | Activado |
@@ -428,7 +430,10 @@ catálogo de lanzadores del primer inicio y los valores que restaura **Reset def
 | Iconos | El tema de iconos del usuario, incluidas las notificaciones de cambio de tema de KDE |
 
 Son valores prototipo, no una garantía de que todas las aplicaciones predefinidas
-estén instaladas. Cambiar ajustes con Apply o Accept guarda los valores del
+estén instaladas. **Browser** nombra la función y no una aplicación: el elemento
+abre el navegador que KDE tiene como gestor preferido de enlaces web, así que
+sigue el predeterminado elegido en Configuración del sistema y nunca supone que
+Firefox esté instalado. Cambiar ajustes con Apply o Accept guarda los valores del
 usuario; los inicios posteriores los cargan. Un modo de inicio explícito puede
 sustituir el modo de visibilidad guardado. El formato actual es la versión 12 y
 acepta las versiones 1 a 11 mediante migración. La versión 7 añade el interruptor
