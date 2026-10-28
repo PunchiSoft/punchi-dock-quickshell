@@ -65,6 +65,12 @@ propia validación.
   tooltips, los menús contextuales, la navegación con flechas, los indicadores de
   ejecución y el borde nativo de ocultamiento automático siguen el borde elegido;
   los popups laterales se abren hacia dentro y los iconos permanecen derechos.
+- Un dock en cada pantalla conectada, con un perfil compartido. **Screens and
+  desktops** limita el dock a pantallas, escritorios virtuales y actividades de
+  KDE concretos, recuerda una pantalla elegida al desconectarse y reconectarse,
+  usa la pantalla principal mientras ninguna seleccionada está conectada y deja
+  visible un dock con auto-ocultar cuando su borde limita con otro monitor. Los
+  indicadores de ejecución pueden seguir el escritorio y la actividad actuales.
 - Aplicaciones fijadas configurables: descubre y busca aplicaciones instaladas
   mediante KDE, añade o reordena lanzadores y guarda las preferencias. Ocho
   lanzadores de aplicaciones predefinidos, más los contenedores Home y Downloads
@@ -172,9 +178,12 @@ aplicaciones y controles adicionales quedan para el futuro.
   visual completa sigue pendiente.
 - Solo instalación desde el código fuente y con prefijo CMake; no hay paquetes
   RPM/DEB, etiquetas ni binarios de versión.
-- La activación de ventanas, el transporte multimedia, el cursor de KDE y el
-  comportamiento con varios monitores todavía necesitan más validación en
-  sesión real.
+- La activación de ventanas, el transporte multimedia y el cursor de KDE todavía
+  necesitan más validación en sesión real. Una disposición de dos pantallas
+  (eDP-1 + HDMI-A-1, Plasma 6.7.5) probó docks por pantalla, selección de
+  pantalla, respaldo en la principal, filtrado por escritorio y actividad y
+  auto-ocultar en bordes compartidos el 2026-10-27; otras disposiciones, la
+  conexión física en caliente y el escalado fraccional siguen sin validarse.
 - La interfaz gráfica sigue en inglés; esta página es una traducción de la
   documentación.
 
@@ -412,6 +421,8 @@ catálogo de lanzadores del primer inicio y los valores que restaura **Reset def
 | Tamaño | 100% del tamaño base derivado del tema |
 | Magnificación con el puntero | Activada, con escala máxima del 200% |
 | Rebote al hacer clic | Activado |
+| Pantallas | Todas las pantallas conectadas, con un perfil compartido |
+| Escritorios virtuales y actividades | Todos los escritorios y actividades |
 | Visibilidad | Windows go below (`overlay`), sin reservar espacio de pantalla |
 | Movimiento reducido | Ajuste local desactivado; las preferencias de animación de KDE siguen aplicándose |
 | Iconos | El tema de iconos del usuario, incluidas las notificaciones de cambio de tema de KDE |
@@ -419,15 +430,17 @@ catálogo de lanzadores del primer inicio y los valores que restaura **Reset def
 Son valores prototipo, no una garantía de que todas las aplicaciones predefinidas
 estén instaladas. Cambiar ajustes con Apply o Accept guarda los valores del
 usuario; los inicios posteriores los cargan. Un modo de inicio explícito puede
-sustituir el modo de visibilidad guardado. El formato actual es la versión 11 y
-acepta las versiones 1 a 10 mediante migración. La versión 7 añade el interruptor
+sustituir el modo de visibilidad guardado. El formato actual es la versión 12 y
+acepta las versiones 1 a 11 mediante migración. La versión 7 añade el interruptor
 de aplicaciones recientes y su cantidad visible, la 8 guarda el icono elegido
 para una aplicación fijada, la 9 las entradas de carpeta que un contenedor deja
-fuera de su popup, la 10 el tamaño, la altura y el tamaño de icono del popup, y
-la 11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico;
-los perfiles anteriores sin esos campos usan cinco aplicaciones, el icono de la
-aplicación, la carpeta completa, las proporciones de referencia del popup y los
-tamaños de glifo del tema.
+fuera de su popup, la 10 el tamaño, la altura y el tamaño de icono del popup, la
+11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico, y la
+12 la selección de pantallas, escritorios virtuales y actividades más los dos
+interruptores de colocación; los perfiles anteriores sin esos campos usan cinco
+aplicaciones, el icono de la aplicación, la carpeta completa, las proporciones de
+referencia del popup, los tamaños de glifo del tema, todas las pantallas y todos
+los escritorios y actividades.
 
 La categoría **Profile** exporta los valores pendientes como un documento JSON
 portátil con esquema `punchi-dock-quickshell/profile` y versión de formato 1.
@@ -521,13 +534,11 @@ otro proyecto o duplicar la implementación del dock. Quickshell proporciona el
 alojamiento de ventanas; la integración con KDE se conecta explícitamente mediante
 los adaptadores. Un applet de Plasma, en cambio, lo aloja Plasma.
 
-Los ajustes guardados actuales describen un solo dock. Antes de soportar varios
-docks o paneles, hay que ampliar el almacenamiento con identificadores estables
-por instancia, pantalla y colocación de cada instancia, elementos y comportamiento
-ordenados, preferencias compartidas y módulos habilitados. Hay que definir el
-comportamiento con monitores desconectados y migrar los ajustes existentes sin
-sobrescribir las elecciones del usuario. La configuración multiinstancia es
-trabajo futuro.
+Los ajustes guardados actuales describen un perfil compartido que se aplica a
+cada pantalla permitida. Los perfiles por pantalla, la colocación o los elementos
+independientes por monitor y el almacenamiento por instancia siguen siendo
+trabajo futuro; necesitan identificadores estables y una migración que preserve
+el perfil compartido.
 
 KConfig es la opción nativa de almacenamiento de KDE recomendada para evaluar a
 medida que crece la configuración. La implementación actual sigue usando JSON;
@@ -576,9 +587,13 @@ conocidas.
 Una prueba aislada de sesión Wayland pasó el inicio, la prevención de duplicados,
 el renderizado, ocultar/reabrir y la restauración limitada. Las comprobaciones
 automatizadas no establecen la calidad visual final, el escalado fraccional, el
-comportamiento con varios monitores, el soporte de lectores de pantalla ni el
-cursor de inicio nativo de KDE. El changelog registra el alcance de validación
-actual y las carencias conocidas.
+soporte de lectores de pantalla, la conexión física en caliente, otras
+disposiciones de pantallas ni el cursor de inicio nativo de KDE. Una prueba real
+de dos pantallas cubrió docks por pantalla, selección, respaldo en la principal,
+filtrado por escritorio y actividad y auto-ocultar en bordes compartidos; la
+captura automatizada de pantalla completa no incluye superficies layer-shell, así
+que la inspección visual sigue siendo manual. El changelog registra el alcance de
+validación actual y las carencias conocidas.
 
 ## Desarrollo
 

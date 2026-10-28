@@ -6,7 +6,6 @@
 #include <QJsonArray>
 #include <climits>
 #include <cmath>
-
 namespace {
 QModelIndex selectedWindow(const QAbstractItemModel *model, const QString &desktopId)
 {
@@ -195,4 +194,25 @@ QJsonObject windowActionRequest(QAbstractItemModel *model, bool available,
         }
     return {{"version", 1}, {"type", "window-action-result"}, {"requestId", safeRequestId},
         {"desktopId", desktopId}, {"action", action}, {"status", status}};
+}
+
+QJsonArray activitiesSnapshot(const QObject *activityInfo, bool available)
+{
+    QJsonArray result;
+    if (!available || !activityInfo) return result;
+    QStringList ids;
+    if (!QMetaObject::invokeMethod(const_cast<QObject *>(activityInfo), "runningActivities",
+            Q_RETURN_ARG(QStringList, ids))) return result;
+    if (ids.size() > 64) return {};
+    const QString current = activityInfo->property("currentActivity").toString();
+    for (const auto &id : ids) {
+        if (id.isEmpty() || id.size() > 128) return {};
+        QString name;
+        if (!QMetaObject::invokeMethod(const_cast<QObject *>(activityInfo), "activityName",
+                Q_RETURN_ARG(QString, name), Q_ARG(QString, id))) return {};
+        if (name.size() > 128) return {};
+        result.append(QJsonObject{{QStringLiteral("id"), id}, {QStringLiteral("name"), name},
+            {QStringLiteral("current"), id == current}});
+    }
+    return result;
 }

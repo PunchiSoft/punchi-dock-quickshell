@@ -3,6 +3,7 @@ import QtQml
 import "DefaultProfile.js" as DefaultProfile
 import "LauncherIds.js" as LauncherIds
 import "PanelModes.js" as PanelModes
+import "ScreenSelection.js" as ScreenSelection
 import "../adapters/kde"
 
 QtObject {
@@ -29,6 +30,17 @@ QtObject {
     onPanelModeChanged: {
         if (panelMode === "desktop") panelMode = PanelModes.normalize(panelMode)
     }
+    property string screenMode: defaultProfile.screenMode
+    onScreenModeChanged: if (!ScreenSelection.acceptsMode(screenMode)) screenMode = "all"
+    property var selectedScreens: defaultProfile.selectedScreens
+    property string desktopMode: defaultProfile.desktopMode
+    onDesktopModeChanged: if (!ScreenSelection.acceptsTargetMode(desktopMode)) desktopMode = "all"
+    property var selectedDesktops: defaultProfile.selectedDesktops
+    property string activityMode: defaultProfile.activityMode
+    onActivityModeChanged: if (!ScreenSelection.acceptsTargetMode(activityMode)) activityMode = "all"
+    property var selectedActivities: defaultProfile.selectedActivities
+    property bool runningMarkersFollowDesktop: defaultProfile.runningMarkersFollowDesktop
+    property bool avoidInnerEdgeAutoHide: defaultProfile.avoidInnerEdgeAutoHide
     property bool magnificationEnabled: defaultProfile.magnificationEnabled
     property bool reducedMotion: defaultProfile.reducedMotion
     property bool bounceEnabled: defaultProfile.bounceEnabled
@@ -230,7 +242,9 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 11, downloadsView, containers, dockEdge, panelMode, sizePercent, magnificationEnabled,
+        return {version: 12, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
+            desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
+            avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount, updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent}
@@ -246,7 +260,7 @@ QtObject {
         bulkChange = true
         let applied = false
         try {
-            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].indexOf(data.version) < 0) return false
+            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].indexOf(data.version) < 0) return false
             const hasLegacyDownloadsView = LauncherIds.validLayout(data.downloadsView)
             const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
             if (LauncherIds.validContainers(data.containers)) {
@@ -266,6 +280,19 @@ QtObject {
             if (["bottom", "left", "right"].indexOf(data.dockEdge) >= 0) dockEdge = data.dockEdge
             else if (data.dockEdge === undefined) dockEdge = defaultProfile.dockEdge
             if (PanelModes.accepts(data.panelMode)) panelMode = PanelModes.normalize(data.panelMode)
+            if (ScreenSelection.acceptsMode(data.screenMode)) screenMode = data.screenMode
+            if (ScreenSelection.validSelection(data.selectedScreens))
+                selectedScreens = ScreenSelection.normalizeSelection(data.selectedScreens)
+            if (ScreenSelection.acceptsTargetMode(data.desktopMode)) desktopMode = data.desktopMode
+            if (ScreenSelection.validSelection(data.selectedDesktops))
+                selectedDesktops = ScreenSelection.normalizeSelection(data.selectedDesktops)
+            if (ScreenSelection.acceptsTargetMode(data.activityMode)) activityMode = data.activityMode
+            if (ScreenSelection.validSelection(data.selectedActivities))
+                selectedActivities = ScreenSelection.normalizeSelection(data.selectedActivities)
+            if (typeof data.runningMarkersFollowDesktop === "boolean")
+                runningMarkersFollowDesktop = data.runningMarkersFollowDesktop
+            if (typeof data.avoidInnerEdgeAutoHide === "boolean")
+                avoidInnerEdgeAutoHide = data.avoidInnerEdgeAutoHide
             if (inRange(data.sizePercent, DefaultProfile.limits.sizePercent, true))
                 sizePercent = data.sizePercent
             if (inRange(data.maximumIconScale, DefaultProfile.limits.maximumIconScale, false))

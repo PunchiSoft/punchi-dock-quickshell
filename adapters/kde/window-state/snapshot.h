@@ -96,12 +96,18 @@ inline QJsonObject windowVisibilitySnapshot(const QAbstractItemModel *model, boo
 }
 
 inline QByteArray windowStateSnapshot(bool available, const QStringList &ids = {},
-    const QJsonObject &visibility = {}, const QJsonArray &applications = {})
+    const QJsonObject &visibility = {}, const QJsonArray &applications = {},
+    const QStringList &currentDesktopIds = {}, const QJsonArray &activities = {})
 {
     QJsonObject object{{QStringLiteral("version"), 1},
         {QStringLiteral("available"), available},
         {QStringLiteral("desktopIds"), QJsonArray::fromStringList(available ? ids : QStringList())}};
-    if (available) object.insert(QStringLiteral("applications"), applications);
+    if (available) {
+        object.insert(QStringLiteral("applications"), applications);
+        object.insert(QStringLiteral("currentDesktopIds"),
+            QJsonArray::fromStringList(currentDesktopIds));
+        object.insert(QStringLiteral("activities"), activities);
+    }
     if (!visibility.isEmpty()) object.insert(QStringLiteral("visibility"), visibility);
     return QJsonDocument(object).toJson(QJsonDocument::Compact) + '\n';
 }

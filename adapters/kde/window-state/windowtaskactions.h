@@ -7,5 +7,6 @@
 
 QJsonObject windowActionsSnapshot(const QAbstractItemModel *model, bool available,
     const QVariantList &desktopIds, const QStringList &desktopNames, const QVariant &currentDesktop);
+QJsonArray activitiesSnapshot(const QObject *activityInfo, bool available);
 QJsonObject windowActionRequest(QAbstractItemModel *model, bool available,
     const QVariantList &desktopIds, const QJsonObject &request);

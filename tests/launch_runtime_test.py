@@ -124,13 +124,17 @@ ShellRoot {
                 'desktopId: "punchi-shell-launch-sentinel"'))
             (config / 'shell.qml').write_text('''import QtQuick
 import Quickshell
+import "config"
 import "modules/dock"
 import "components"
 ShellRoot {
     readonly property int applicationCount: DesktopEntries.applications.values.length
     property int completed: 0
+    ShellSettings { id: shellSettings }
+    DockServices { id: dockServices; settings: shellSettings }
     Dock {
         id: dock
+        services: dockServices
         onApplicationLaunchFinished: function(desktopId, success, error) {
             if (!success) {
                 console.error("PUNCHI_LAUNCH_FAILED", error)

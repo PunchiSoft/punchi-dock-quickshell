@@ -64,6 +64,14 @@ Scope {
         function onDownloadsViewChanged() { root.save() }
         function onDockEdgeChanged() { root.save() }
         function onPanelModeChanged() { root.save() }
+        function onScreenModeChanged() { root.save() }
+        function onSelectedScreensChanged() { root.save() }
+        function onDesktopModeChanged() { root.save() }
+        function onSelectedDesktopsChanged() { root.save() }
+        function onActivityModeChanged() { root.save() }
+        function onSelectedActivitiesChanged() { root.save() }
+        function onRunningMarkersFollowDesktopChanged() { root.save() }
+        function onAvoidInnerEdgeAutoHideChanged() { root.save() }
         function onSizePercentChanged() { root.save() }
         function onMaximumIconScaleChanged() { root.save() }
         function onMagnificationEnabledChanged() { root.save() }

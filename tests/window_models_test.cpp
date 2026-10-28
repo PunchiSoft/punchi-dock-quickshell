@@ -17,7 +17,8 @@ private slots:
         QVERIFY(models);
         auto *all = qobject_cast<QAbstractItemModel *>(models->property("allTasks").value<QObject *>());
         auto *visible = qobject_cast<QAbstractItemModel *>(models->property("visibleTasks").value<QObject *>());
-        QVERIFY(all); QVERIFY(visible);
+        auto *current = qobject_cast<QAbstractItemModel *>(models->property("currentDesktopTasks").value<QObject *>());
+        QVERIFY(all); QVERIFY(visible); QVERIFY(current);
         QVERIFY(all->metaObject()->indexOfMethod("requestActivate(QModelIndex)") >= 0);
         QVERIFY(all->metaObject()->indexOfMethod("requestToggleMinimized(QModelIndex)") >= 0);
         QVERIFY(all->metaObject()->indexOfMethod("requestNewInstance(QModelIndex)") >= 0);
@@ -27,6 +28,12 @@ private slots:
         QVERIFY(!all->property("filterByVirtualDesktop").toBool());
         for (const char *filter : {"filterMinimized", "filterHidden", "filterByCurrentVirtualDesktop", "filterByActivity"})
             QVERIFY2(visible->property(filter).toBool(), filter);
+        // Running markers keep minimized windows but follow the active desktop
+        // and activity, unlike the overlap projection.
+        QVERIFY(!current->property("filterMinimized").toBool());
+        QVERIFY(!current->property("filterHidden").toBool());
+        QVERIFY(current->property("filterByCurrentVirtualDesktop").toBool());
+        QVERIFY(current->property("filterByActivity").toBool());
         // Offscreen has no platform task source: successful resource loading and
         // filter configuration do not establish compositor roles or access.
         const auto unavailable = windowVisibilitySnapshot(visible, false, false);

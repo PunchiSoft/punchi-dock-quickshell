@@ -51,20 +51,26 @@ QVariantMap RunningApplications::windowActions(const QString &desktopId) const
     return m_available ? m_windowActions.value(normalized(desktopId)).toMap() : QVariantMap();
 }
 void RunningApplications::update(bool available, const QSet<QString> &ids, const QVariantList &applicationEntries,
-    const QVariantMap &windowActions, const QVariantList &virtualDesktops)
+    const QVariantMap &windowActions, const QVariantList &virtualDesktops,
+    const QStringList &currentDesktopIds, const QVariantList &activities)
 {
     if (!available) { m_visibility.clear(); m_activation.setAvailable(false); }
     const QSet<QString> next = available ? ids : QSet<QString>();
     const QVariantList nextEntries = available ? applicationEntries : QVariantList();
     const QVariantMap nextWindowActions = available ? windowActions : QVariantMap();
     const QVariantList nextDesktops = available ? virtualDesktops : QVariantList();
+    const QStringList nextCurrentDesktopIds = available ? currentDesktopIds : QStringList();
+    const QVariantList nextActivities = available ? activities : QVariantList();
     if (available == m_available && next == m_ids && nextEntries == m_applicationEntries
-        && nextWindowActions == m_windowActions && nextDesktops == m_virtualDesktops) return;
+        && nextWindowActions == m_windowActions && nextDesktops == m_virtualDesktops
+        && nextCurrentDesktopIds == m_currentDesktopIds && nextActivities == m_activities) return;
     m_available = available;
     m_ids = next;
     m_applicationEntries = nextEntries;
     m_windowActions = nextWindowActions;
     m_virtualDesktops = nextDesktops;
+    m_currentDesktopIds = nextCurrentDesktopIds;
+    m_activities = nextActivities;
     m_revision = m_revision == INT_MAX ? 0 : m_revision + 1;
     emit changed();
 }
@@ -119,7 +125,9 @@ void RunningApplications::consume()
             || (object.contains(QStringLiteral("activationAvailable"))
                 && !object.value(QStringLiteral("activationAvailable")).isBool())
             || (object.contains(QStringLiteral("windowActions")) && !object.value(QStringLiteral("windowActions")).isObject())
-            || (object.contains(QStringLiteral("virtualDesktops")) && !object.value(QStringLiteral("virtualDesktops")).isArray())) { stop(); return; }
+            || (object.contains(QStringLiteral("virtualDesktops")) && !object.value(QStringLiteral("virtualDesktops")).isArray())
+            || (object.contains(QStringLiteral("currentDesktopIds")) && !object.value(QStringLiteral("currentDesktopIds")).isArray())
+            || (object.contains(QStringLiteral("activities")) && !object.value(QStringLiteral("activities")).isArray())) { stop(); return; }
         const auto array = object.value(QStringLiteral("desktopIds")).toArray();
         if (array.size() > 1024) { stop(); return; }
         QSet<QString> ids;
@@ -188,7 +196,30 @@ void RunningApplications::consume()
             virtualDesktops.append(QVariantMap{{QStringLiteral("id"), desktopId.toVariant()},
                 {QStringLiteral("name"), name}, {QStringLiteral("current"), value.value(QStringLiteral("current")).toBool()}});
         }
-        update(object.value(QStringLiteral("available")).toBool(), ids, applications, windowActions, virtualDesktops);
+        QVariantList activities;
+        const auto activityArray = object.value(QStringLiteral("activities")).toArray();
+        if (activityArray.size() > 64) { stop(); return; }
+        for (const auto activity : activityArray) {
+            if (!activity.isObject()) { stop(); return; }
+            const auto value = activity.toObject();
+            const QString id = value.value(QStringLiteral("id")).toString();
+            const QString name = value.value(QStringLiteral("name")).toString().trimmed();
+            if (id.isEmpty() || id.size() > 128 || name.size() > 128
+                || !value.value(QStringLiteral("current")).isBool()) { stop(); return; }
+            activities.append(QVariantMap{{QStringLiteral("id"), id}, {QStringLiteral("name"), name},
+                {QStringLiteral("current"), value.value(QStringLiteral("current")).toBool()}});
+        }
+        QStringList currentDesktopIds;
+        const auto currentArray = object.value(QStringLiteral("currentDesktopIds")).toArray();
+        if (currentArray.size() > 1024) { stop(); return; }
+        for (const auto value : currentArray) {
+            if (!value.isString() || normalized(value.toString()).isEmpty()) { stop(); return; }
+            const QString id = normalized(value.toString());
+            if (!ids.contains(id)) { stop(); return; }
+            currentDesktopIds.append(id);
+        }
+        update(object.value(QStringLiteral("available")).toBool(), ids, applications, windowActions,
+            virtualDesktops, currentDesktopIds, activities);
         if (m_available) m_visibility.accept(object.value(QStringLiteral("visibility")).toObject());
         m_activation.setAvailable(m_available && object.value(QStringLiteral("activationAvailable")).toBool());
     }
