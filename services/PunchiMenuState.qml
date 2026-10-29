@@ -22,13 +22,36 @@ QtObject {
     readonly property int pageCapacity: Math.max(1, root.columns * root.rows)
     readonly property string safeSearch: root.searchText.trim().slice(0, 256)
 
+    // The catalogue is a QAbstractListModel, which publishes `count` and `get()`
+    // and no indexable length. An array stays supported so a fixture can drive
+    // the same listing without a model.
+    function applicationAt(index: int): var {
+        const source = root.applications
+        if (!source) return null
+        if (typeof source.get === "function") return source.get(index)
+        return source[index]
+    }
+    function applicationCount(): int {
+        const source = root.applications
+        if (!source) return 0
+        if (typeof source.count === "number") return source.count
+        if (typeof source.length === "number") return source.length
+        return 0
+    }
+    // Reading the model revision keeps this binding alive when the catalogue
+    // changes at runtime.
+    readonly property int catalogueRevision: {
+        const source = root.applications
+        return source && typeof source.revision === "number" ? source.revision : 0
+    }
+
     readonly property var filtered: {
         const result = []
         const query = root.safeSearch.toLocaleLowerCase()
-        const source = root.applications || []
-        const count = Math.min(source.length, root.maximumEntries)
+        root.catalogueRevision
+        const count = Math.min(root.applicationCount(), root.maximumEntries)
         for (let index = 0; index < count; index++) {
-            const application = source[index]
+            const application = root.applicationAt(index)
             if (!application) continue
             if (query.length > 0
                     && String(application.name || "").toLocaleLowerCase().indexOf(query) < 0)

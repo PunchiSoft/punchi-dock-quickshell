@@ -23,6 +23,29 @@ TestCase {
         PunchiMenuState { applications: test.catalogue; columns: 2; rows: 2 }
     }
 
+    // The real catalogue is a QAbstractListModel: it publishes count/get and no
+    // indexable length, so the listing must not depend on array indexing.
+    ListModel {
+        id: modelCatalogue
+        ListElement { name: "Aardvark"; iconName: "application-x-executable" }
+        ListElement { name: "Browser"; iconName: "internet-web-browser" }
+        ListElement { name: "Calculator"; iconName: "accessories-calculator" }
+    }
+    Component {
+        id: modelFixture
+        PunchiMenuState { applications: modelCatalogue; columns: 2; rows: 2 }
+    }
+
+    function test_listingReadsAModelWithoutIndexAccess() {
+        const state = createTemporaryObject(modelFixture, test)
+        compare(state.applicationCount(), 3)
+        compare(state.filtered.length, 3)
+        compare(state.filtered[1].name, "Browser")
+        state.searchText = "calc"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].name, "Calculator")
+    }
+
     function test_searchFiltersAndResetsTheSelection() {
         const state = createTemporaryObject(fixture, test)
         compare(state.filtered.length, 7)

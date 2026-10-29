@@ -10,7 +10,10 @@
   the first frame. `PunchiMenuState` owns the query, the page and the keyboard
   selection; the grid pages 4-8 columns by 3-5 rows with snap, arrows and the
   wheel, and every cell carries the four hover modes of the original menu
-  (`none`, `individual`, `pulse`, `bounce`).
+  (`none`, `individual`, `pulse`, `bounce`). The listing reads the catalogue
+  through its `count`/`get` model interface, so an installed application list
+  reaches the grid instead of an empty page, and the close affordance is
+  pinned to the surface corner of `menuCloseButtonPosition`.
 - The menu leads the dock. `DockApplicationsModel` prepends a fixed `item:menu`
   row before the pinned applications, and the row is excluded from the trailing
   special-item reordering, so the first slot cannot be taken by a later pin or

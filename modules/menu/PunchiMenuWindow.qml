@@ -203,9 +203,10 @@ PanelWindow {
         }
 
         Connections {
-            target: root.menuController
-            // The controller is assigned with the delegate, so the first
-            // evaluation can still see a null target.
+            // A `var` property starts as undefined, and assigning that to a
+            // QObject target warns; an explicit null keeps the first evaluation
+            // silent until the shell sets the controller.
+            target: root.menuController !== undefined ? root.menuController : null
             ignoreUnknownSignals: true
             function onOpened(screenKey) {
                 if (screenKey !== root.screenKey) return

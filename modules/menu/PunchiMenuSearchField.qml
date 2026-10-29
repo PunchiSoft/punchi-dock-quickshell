@@ -9,6 +9,7 @@ import org.kde.kirigami as Kirigami
 Controls.TextField {
     id: root
 
+    objectName: "menuSearchField"
     property bool motionEnabled: true
 
     readonly property bool frameActive: root.activeFocus || root.hovered

@@ -31,7 +31,24 @@ Item {
         search.forceActiveFocus()
     }
 
-    implicitHeight: content.implicitHeight
+    implicitHeight: Math.max(content.implicitHeight, root.controlSize)
+
+    // Pinned to the surface corner instead of the centred row: the original menu
+    // kept one close affordance in the configured corner and let the header stay
+    // symmetrical.
+    Controls.ToolButton {
+        objectName: "menuCloseButton"
+        anchors.top: parent.top
+        anchors.left: root.closeOnLeft ? parent.left : undefined
+        anchors.right: root.closeOnLeft ? undefined : parent.right
+        width: root.controlSize
+        height: root.controlSize
+        icon.name: "window-close-symbolic"
+        text: qsTr("Close menu")
+        Accessible.name: qsTr("Close menu")
+        focusPolicy: Qt.StrongFocus
+        onClicked: root.closeRequested()
+    }
 
     ColumnLayout {
         id: content
@@ -69,16 +86,6 @@ Item {
             Layout.alignment: Qt.AlignHCenter
             spacing: Kirigami.Units.smallSpacing
 
-            Controls.ToolButton {
-                Layout.preferredWidth: root.controlSize
-                Layout.preferredHeight: root.controlSize
-                visible: root.closeOnLeft
-                icon.name: "window-close-symbolic"
-                text: qsTr("Close menu")
-                Accessible.name: qsTr("Close menu")
-                onClicked: root.closeRequested()
-            }
-
             PunchiMenuSearchField {
                 id: search
                 Layout.preferredWidth: root.searchWidth
@@ -90,16 +97,6 @@ Item {
                     root.searchFocusRequested()
                 }
                 Keys.onEscapePressed: root.closeRequested()
-            }
-
-            Controls.ToolButton {
-                Layout.preferredWidth: root.controlSize
-                Layout.preferredHeight: root.controlSize
-                visible: !root.closeOnLeft
-                icon.name: "window-close-symbolic"
-                text: qsTr("Close menu")
-                Accessible.name: qsTr("Close menu")
-                onClicked: root.closeRequested()
             }
         }
     }
