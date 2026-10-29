@@ -11,6 +11,7 @@ Quickshell-specific workflows are new.
 | [animation-performance](animation-performance/SKILL.md) | Per-frame cost, cost classes, delegate and effect limits | a visual change may affect frame cost | `fluid-motion` |
 | [animations](animations/SKILL.md) | Motion policy, classification, durations, easing | a transition is added or judged | `fluid-motion`, `animation-performance` |
 | [architecture](architecture/SKILL.md) | Ownership, boundaries, dependency direction | a service, module, primitive or adapter is added | `kde-integration` |
+| [branch-baseline](branch-baseline/SKILL.md) | Branch base verification and the justified sub-branch | a change starts, a branch is created or switched, or the current base is in doubt | `modification-cycle` |
 | [code-review](code-review/SKILL.md) | Diff review with blocking and non-blocking findings | a change is about to be committed or opened | `control-connection-review`, `testing` |
 | [commit-push-versioning](commit-push-versioning/SKILL.md) | Delivery version, staged content, hand-off | the user asks to commit or push | `code-review`, `pr-delivery` |
 | [control-connection-review](control-connection-review/SKILL.md) | Intent-to-effect tracing through services and adapters | a control looks wired but has no effect | `kde-integration` |

@@ -44,11 +44,13 @@ upstream behavior applies to this session.
 
 ## Delivery branch
 
-Never make the first change on `main`. Before editing, update `main` and create
-one branch per modification from it, named `feat/<descriptor>`, or
-`fix/<descriptor>`, `docs/<descriptor>` or `chore/<descriptor>` when the change
-is a correction, documentation-only or repository-only. Do not reuse a branch
-that was already merged, and record the branch name in the change note.
+Never make the first change on `main`. Apply `branch-baseline` before creating the
+branch: it verifies local `main` against `origin/main`, proves the new branch
+starts from `main`, and requires a stated reason for the exceptional sub-branch.
+The name is `feat/<descriptor>`, or `fix/<descriptor>`, `docs/<descriptor>` or
+`chore/<descriptor>` when the change is a correction, documentation-only or
+repository-only. Do not reuse a branch that was already merged, and record the
+branch name in the change note.
 
 "Commit and push" approves the implemented work on that branch and, per
 `commit-push-versioning` and `pr-delivery`, publishes it with its delivery pull

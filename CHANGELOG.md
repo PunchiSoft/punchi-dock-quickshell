@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Add the `branch-baseline` skill and require work branches to prove their base.
+  The skill reads `git status`, compares `main` with `origin/main`, updates `main`
+  by fast-forward, creates the branch from it and confirms the base with
+  `git rev-list --left-right --count main...HEAD` (`0 0`) and an empty
+  `git log origin/main..HEAD`. A sub-branch is allowed only with a stated reason,
+  because a branch stacked on unpublished work by habit carries commits that are
+  not yours into review. `modification-cycle` defers branch creation to it, and
+  `AGENTS.md` names the same checks.
 - Record and enforce the component naming convention. `AGENTS.md` defines the
   `Punchi` prefix, the surface level that disambiguates two owners
   (`PunchiDock*`, `PunchiMenu*`) and the reserved QtQuick.Controls names, so
