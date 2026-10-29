@@ -32,7 +32,7 @@ DECLARATIONS = (
     ('README.es.md',
      capture(re.compile(rf'\*\*Versión actual:\*\* \*\*({VERSION})\*\*')), True),
     ('AGENTS.md',
-     capture(re.compile(rf'The latest released version is `({VERSION})`')), True),
+     capture(re.compile(rf'The declared version is `({VERSION})`')), True),
     ('modules/settings/PunchiSettingsAbout.qml',
      capture(re.compile(rf'applicationVersion: "({VERSION})"')), True),
     ('tests/runtime/application-items/tst_settings_window.qml',

@@ -1,5 +1,9 @@
 # Changelog
 
+No version has been published yet: this repository carries no tag and no release.
+The dated headings below are development snapshots, and the version the tree
+declares is `0.1.47`. Pending work accumulates under `Unreleased`.
+
 ## Unreleased
 
 - Draw the menu close control with the user's window decoration. A fixed

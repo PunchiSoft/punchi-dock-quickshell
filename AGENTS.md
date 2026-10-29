@@ -241,6 +241,7 @@ release or a version change. Keep those commits marked as `chore:` or `docs:`
 and leave the version unchanged. The `project_version` test fails when the
 tracked declarations disagree with the newest dated changelog heading.
 
-The latest released version is `0.1.47`. Do not create tags or releases unless
+The declared version is `0.1.47`, and it has no tag or release: no version has
+been published yet. Do not create tags or releases unless
 the user explicitly requests them. Keep configuration schema and QML module API
 versions separate from the application version.
