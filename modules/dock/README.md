@@ -1,6 +1,6 @@
 # Dock
 
-Dock.qml owns one Quickshell window per connected screen and its wiring.
+PunchiDock.qml owns one Quickshell window per connected screen and its wiring.
 PunchiDockServices.qml owns the models and services shared by every window, and
 PunchiDockIpc.qml is the single command surface addressed by screen key. Screen and
 virtual-desktop policy arrive as inputs, so a disallowed dock stays mapped

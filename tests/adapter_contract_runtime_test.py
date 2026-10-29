@@ -54,7 +54,7 @@ ShellRoot {
     Component.onCompleted: Qt.callLater(function() {
         // Consumers: PunchiApplicationLaunchService, PunchiApplicationActivationService,
         // PunchiApplicationContextService, PunchiTrashService, PunchiFolderNavigationController,
-        // Dock.qml and the settings catalog projections.
+        // PunchiDock.qml and the settings catalog projections.
         probe.checkMethods(application, "PunchiDesktopApplicationAdapter",
             ["launch", "actions", "launchAction", "canLaunchNewWindow", "openTrash",
              "openDownloads", "openHome", "openFolderLocation", "openFolderPath", "openFolderUrl",

@@ -43,7 +43,7 @@ ShellRoot {
     QtObject { id: launch; function openTrash(): bool { return true } }
     PunchiTrashService { id: trash; state: state; launcher: launch }
     // The fake launcher proves PunchiTrashService behavior; the real adapter guards
-    // the method surface Dock.qml injects. Never invoke it here: openTrash()
+    // the method surface PunchiDock.qml injects. Never invoke it here: openTrash()
     // would launch the user's file manager.
     PunchiDesktopApplicationAdapter { id: realLauncher }
     PunchiTrashService { id: realTrash; state: state; launcher: realLauncher }
