@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- Rename every QML type under `components/`, `config/`, `services/`, `modules/`
+  and `adapters/` to the `Punchi` convention, and empty the naming baseline. The
+  dock item family becomes `PunchiDockTile`, `PunchiDockBadge`, `PunchiDockTooltip`,
+  `PunchiDockHighlight` and `PunchiDockClickFeedback`, so "launcher" no longer
+  names both a dock item and an application launcher. Shared primitives keep the
+  product prefix and their form (`PunchiBalloonSurface`, `PunchiFanView`,
+  `PunchiAntialiasedSurface`, `PunchiTwoHopBounce`). The native `Punchi.Kde`
+  module keeps its own class names, so `Native.ApplicationCatalog` and
+  `Native.RunningApplications` still resolve. Records moved: `Dock.qml` is now
+  `modules/dock/PunchiDock.qml`, and `tests/qmllint-upstream.json` and the
+  `window-state` resource paths follow it. `tests/naming-baseline.json` is empty
+  and must stay empty: `component_naming` rejects a recorded name as well as a
+  stale entry and self-checks its own detection on a temporary tree, so a naming
+  failure is fixed by the rename and never by silencing the check.
 - Add the `branch-baseline` skill and require work branches to prove their base.
   The skill reads `git status`, compares `main` with `origin/main`, updates `main`
   by fast-forward, creates the branch from it and confirms the base with
@@ -38,7 +52,7 @@
   PackageKit and fwupd queries when the system bus is unavailable. The settings
   sliders drop `Kirigami.StyleHints`, which only exists from Kirigami 6.24;
   its default already disables tick marks, so nothing visual changes.
-  `WindowModels.qml` follows the active desktop through
+  `PunchiWindowModels.qml` follows the active desktop through
   `filterByVirtualDesktop` and `VirtualDesktopInfo.currentDesktop`, available
   from Plasma 6.3, instead of Plasma 6.7's `filterByCurrentVirtualDesktop`.
 - Group the build trees under `build/`. The setup, the start script, the restore
@@ -66,7 +80,7 @@
 - Open the browser this session prefers from the default **Browser** item. The
   first-run catalogue names a role instead of a desktop entry: an empty
   `desktopId` plus the ordered MIME types `x-scheme-handler/https`,
-  `x-scheme-handler/http` and `text/html` let `ApplicationCatalog` publish the
+  `x-scheme-handler/http` and `text/html` let `PunchiApplicationCatalog` publish the
   `storageId` that `KApplicationTrader::preferredService` returns, so a first run
   never assumes Firefox is installed and follows the default chosen in KDE
   System Settings, including a replaced or removed one. The item shows the
@@ -104,7 +118,7 @@
   opened, so a compositor-remembered or dragged size cannot replace it. Pages
   scroll inside the reference instead of resizing the window when optional
   screen, desktop or activity rows appear. Pages use the shared thin
-  `PopupScrollBar` (no trough) kept visible at rest, anchored to the reserved
+  `PunchiPopupScrollBar` (no trough) kept visible at rest, anchored to the reserved
   right gutter; scrolling and the indicator remain, but the vertical groove line
   no longer crosses the cards. Each selection list sits directly below its
   selector with a small caption, so the generated options are no longer one
@@ -126,7 +140,7 @@
 - Keep the dock visible when its configured edge borders another screen and
   `avoidInnerEdgeAutoHide` is enabled: an edge mode would have no free strip to
   reveal from, so that dock stays visible while other screens keep their mode.
-- Move the dock command surface into one `DockIpc` coordinator. The previous
+- Move the dock command surface into one `PunchiDockIpc` coordinator. The previous
   `dock` methods keep working on the primary screen, and `screenKeys`,
   `snapshotFor`, `revealFor` and `focusFor` address a specific screen.
 - Bump the saved profile to version 12 with `screenMode`, `selectedScreens`,
@@ -134,7 +148,7 @@
   `runningMarkersFollowDesktop` and `avoidInnerEdgeAutoHide`. Version 11 profiles
   load with the new defaults, and imported profiles validate every new field.
 - Add a **Profile** category that imports and exports a portable JSON profile of
-  dock items, folder containers and preferences. `config/DefaultProfile.js` is
+  dock items, folder containers and preferences. `config/PunchiDefaultProfile.js` is
   now the single first-run source for the launcher catalogue, pinned order,
   containers and preferences, so a fresh install and **Reset defaults** use the
   same data. Import accepts the portable document or a raw saved profile,
@@ -196,8 +210,8 @@
 ## 0.1.46 — 2026-10-27
 
 - Isolate the trial run. "Try it without installing" exports an absolute trial
-  profile inside the instance runtime directory, and `SettingsStore` and
-  `AutostartService` honour `PUNCHI_PROFILE_DIR`, so a trial starts from the
+  profile inside the instance runtime directory, and `PunchiSettingsStore` and
+  `PunchiAutostartService` honour `PUNCHI_PROFILE_DIR`, so a trial starts from the
   default dock items and never reads or rewrites the preferences an installed
   copy owns. The **Start with KDE Plasma** switch stays disabled during a trial,
   with a note saying that a trial cannot start at sign-in.
@@ -265,7 +279,7 @@
   scales the number, and reduced motion removes the halo while keeping the final
   state.
 - Follow the update front-end that is actually configured instead of assuming a
-  distribution. `UpdateNotice` resolves the pinned launcher of the first supported
+  distribution. `PunchiUpdateNotice` resolves the pinned launcher of the first supported
   front-end (`org.kde.discover`, then `org.gnome.Software`,
   `io.elementary.appcenter`, `update-manager`) and badges only that tile; a dock
   with none of them paints no badge. The data stays distribution-neutral:
@@ -723,7 +737,7 @@
   `CONTRIBUTING.md`, `tests/README.md`, `AGENTS.md` and the skills, so a fresh
   clone has no broken documentation links.
 - Corrected the documented settings-format version in the README to schema 6,
-  matching `ShellSettings.qml`.
+  matching `PunchiShellSettings.qml`.
 
 ## 0.1.11 — 2026-10-14
 
@@ -889,7 +903,7 @@
 - Fixed the saved presentation mode reverting after a Quickshell reload. The
   session snapshot was held as a property value, which Quickshell's reloader does
   not match, so the start-mode override re-applied on every reload and overwrote
-  live changes. SettingsStore is now a non-visual `Scope` so the session can be
+  live changes. PunchiSettingsStore is now a non-visual `Scope` so the session can be
   a real child that survives a reload. `settings_reload` passes.
 
 - Retained the native edge pointer through reveal until a real Wayland leave,

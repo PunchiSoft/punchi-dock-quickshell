@@ -8,7 +8,7 @@ Instructions and workflows are adapted from Punchi Dock Remastered and the
 Punchi Dock Rust foundation. The horizontal cosine wave, displacement integral, upward lift, and high-resolution
 icon sizing are adapted from Punchi Dock Remastered `DockItem.qml` (GPL-3.0-or-later).
 Its background MSAA pattern informs the shared antialiasing surface.
-`TwoHopBounce.qml` is reused with attribution, and `LauncherClickFeedback.qml`
+`PunchiTwoHopBounce.qml` is reused with attribution, and `PunchiDockClickFeedback.qml`
 adapts the bounce branch of `DockItemClickFeedback.qml` under GPL-3.0-or-later. The original
 rounded-image shader was reviewed but is not bundled: this stage uses named theme
 icons and geometric backgrounds, not image clipping.

@@ -4,7 +4,7 @@ import QtQuick
 import QtTest
 import QtQml.Models
 import "../../components"
-import "../../components/FanGeometry.js" as FanGeometry
+import "../../components/PunchiFanGeometry.js" as PunchiFanGeometry
 
 TestCase {
     id: test
@@ -24,7 +24,7 @@ TestCase {
             property alias launchSpy: launchSpy
             property alias openSpy: openSpy
             ListModel { id: contentsModel }
-            FanView {
+            PunchiFanView {
                 id: fan
                 x: 20
                 y: 20
@@ -103,21 +103,21 @@ TestCase {
         // A pill that fits inside its row needs no reserve at all.
         const fitting = {"iconSize": 42, "iconSpacing": 5, "labelWidth": 58,
             "labelHeight": 30, "rowHeight": 56, "iconsOnRight": true}
-        compare(FanGeometry.envelopeForRows(6, "bottom", fitting).leading, 0)
-        compare(FanGeometry.envelopeForRows(6, "bottom", fitting).trailing, 0)
+        compare(PunchiFanGeometry.envelopeForRows(6, "bottom", fitting).leading, 0)
+        compare(PunchiFanGeometry.envelopeForRows(6, "bottom", fitting).trailing, 0)
         // A tall pill on a short row leaves the band, and the reserve grows with
         // the far end of the arc, where the lean is largest.
         const leaning = {"iconSize": 40, "iconSpacing": 4, "labelWidth": 160,
             "labelHeight": 60, "rowHeight": 44, "iconsOnRight": true}
-        verify(FanGeometry.envelopeForRows(6, "bottom", leaning).leading > 0)
-        verify(FanGeometry.leanForIndex(0, 6, "bottom", 1.3)
-            > FanGeometry.leanForIndex(1, 6, "bottom", 1.3))
+        verify(PunchiFanGeometry.envelopeForRows(6, "bottom", leaning).leading > 0)
+        verify(PunchiFanGeometry.leanForIndex(0, 6, "bottom", 1.3)
+            > PunchiFanGeometry.leanForIndex(1, 6, "bottom", 1.3))
         // The row that faces the panel stands upright on every edge.
-        compare(Math.abs(FanGeometry.leanForIndex(5, 6, "bottom", 1.3)), 0)
-        compare(Math.abs(FanGeometry.leanForIndex(0, 6, "top", 1.3)), 0)
+        compare(Math.abs(PunchiFanGeometry.leanForIndex(5, 6, "bottom", 1.3)), 0)
+        compare(Math.abs(PunchiFanGeometry.leanForIndex(0, 6, "top", 1.3)), 0)
         // The sweep settles the panel-facing row first.
-        verify(FanGeometry.revealProgressForDistance(0, 0.5, 0.35)
-            > FanGeometry.revealProgressForDistance(1, 0.5, 0.35))
+        verify(PunchiFanGeometry.revealProgressForDistance(0, 0.5, 0.35)
+            > PunchiFanGeometry.revealProgressForDistance(1, 0.5, 0.35))
     }
 
     function test_rowsBeyondTheLimitStayOutsideTheBand(): void {

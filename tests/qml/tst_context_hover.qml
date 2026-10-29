@@ -17,7 +17,7 @@ TestCase {
             width: 500
             height: 500
             property alias content: content
-            DockContextContent { id: content; pinned: true }
+            PunchiDockContextContent { id: content; pinned: true }
         }
     }
     function init() { failOnWarning(/.*/) }

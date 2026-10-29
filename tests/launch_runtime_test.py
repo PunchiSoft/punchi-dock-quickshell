@@ -64,7 +64,7 @@ import "adapters/kde"
 ShellRoot {
     property int completed: 0
     property int failed: 0
-    DesktopApplicationAdapter {
+    PunchiDesktopApplicationAdapter {
         id: adapter
         onLaunchFinished: function(desktopId, success, error) {
             if (desktopId === "punchi-shell-broken-sentinel") {
@@ -84,7 +84,7 @@ ShellRoot {
         ListElement { appId: "missing"; desktopId: "punchi-shell-missing-entry" }
         ListElement { appId: "broken"; desktopId: "punchi-shell-broken-sentinel" }
     }
-    ApplicationLaunchService { id: service; entries: entries; adapter: adapter }
+    PunchiApplicationLaunchService { id: service; entries: entries; adapter: adapter }
     Timer {
         id: launchTimer
         interval: 100
@@ -119,7 +119,7 @@ ShellRoot {
 }
 ''')
         if '--window' in sys.argv:
-            model = config / 'services/DockFixtureModel.qml'
+            model = config / 'services/PunchiDockFixtureModel.qml'
             model.write_text(model.read_text().replace('desktopId: "org.kde.dolphin"',
                 'desktopId: "punchi-shell-launch-sentinel"'))
             (config / 'shell.qml').write_text('''import QtQuick
@@ -130,8 +130,8 @@ import "components"
 ShellRoot {
     readonly property int applicationCount: DesktopEntries.applications.values.length
     property int completed: 0
-    ShellSettings { id: shellSettings }
-    DockServices { id: dockServices; settings: shellSettings }
+    PunchiShellSettings { id: shellSettings }
+    PunchiDockServices { id: dockServices; settings: shellSettings }
     Dock {
         id: dock
         services: dockServices
@@ -153,10 +153,10 @@ ShellRoot {
         onTriggered: {
             if (applicationCount === 0) return
             for (let i = 0; i < dock.contentItem.children.length; ++i) {
-                const view = dock.contentItem.children[i] as DockView
+                const view = dock.contentItem.children[i] as PunchiDockView
                 if (!view) continue
                 for (let j = 0; j < view.children.length; ++j) {
-                    const tile = view.children[j] as LauncherTile
+                    const tile = view.children[j] as PunchiDockTile
                     if (!tile || tile.objectName !== "launcher-files") continue
                     activationTimer.stop()
                     tile.clicked()

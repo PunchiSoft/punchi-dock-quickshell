@@ -25,13 +25,13 @@ code reads correctly.
 
 The dock context menu's auto-hide action:
 
-1. `modules/dock/DockContextContent.qml:326` emits `autoHideRequested`.
-2. `modules/dock/DockContextPopup.qml:172` dismisses the popup and re-emits it.
-3. `modules/dock/Dock.qml:357` toggles `settings.panelMode` between `autohide`
+1. `modules/dock/PunchiDockContextContent.qml:326` emits `autoHideRequested`.
+2. `modules/dock/PunchiDockContextPopup.qml:172` dismisses the popup and re-emits it.
+3. `modules/dock/PunchiDock.qml:357` toggles `settings.panelMode` between `autohide`
    and `overlay`.
-4. `DockPanelPolicy` (`modules/dock/Dock.qml:147`) recomputes `effectiveMode`.
-5. `modules/dock/Dock.qml:99` rebinds `autoHide`, so
-   `DockVisibilityController.shouldHide` changes.
+4. `PunchiDockPanelPolicy` (`modules/dock/PunchiDock.qml:147`) recomputes `effectiveMode`.
+5. `modules/dock/PunchiDock.qml:99` rebinds `autoHide`, so
+   `PunchiDockVisibilityController.shouldHide` changes.
 6. The surface reads `boundedSlideProgress` and hides.
 
 A break at step 1 is a missing signal connection, at step 3 a missing write, at

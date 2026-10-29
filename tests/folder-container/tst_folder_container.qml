@@ -32,10 +32,10 @@ TestCase {
     FontMetrics { id: nameFontMetrics; font: Kirigami.Theme.defaultFont }
     SignalSpy { id: menuSortSpy; signalName: "folderSortRequested" }
     SignalSpy { id: menuLayoutSpy; signalName: "folderLayoutRequested" }
-    Component { id: editingFixture; SettingsEditService { settings: ShellSettings {} } }
+    Component { id: editingFixture; PunchiSettingsEditService { settings: PunchiShellSettings {} } }
     Component {
         id: folderMenuFixture
-        DockContextContent {
+        PunchiDockContextContent {
             folderItem: true
             folderContainer: QtObject {
                 property string title: "Owned folder"
@@ -46,9 +46,9 @@ TestCase {
     }
     Component {
         id: verticalFolderMenuFixture
-        DockContextContent {
+        PunchiDockContextContent {
             folderItem: true
-            settings: ShellSettings { dockEdge: "left" }
+            settings: PunchiShellSettings { dockEdge: "left" }
             folderContainer: QtObject {
                 property string title: "Owned folder"
                 property string layout: "fan"
@@ -62,9 +62,9 @@ TestCase {
             width: 780; height: 680
             property alias editor: editor
             property alias view: view
-            SettingsEditService {
+            PunchiSettingsEditService {
                 id: editor
-                settings: ShellSettings { pinnedIds: ["item:downloads", "item:trash"] }
+                settings: PunchiShellSettings { pinnedIds: ["item:downloads", "item:trash"] }
                 Component.onCompleted: begin()
             }
             Native.DockItemCatalog {
@@ -73,7 +73,7 @@ TestCase {
                 trashTitle: "Trash"
                 containers: editor.draft.containers
             }
-            SettingsView {
+            PunchiSettingsView {
                 id: view
                 anchors.fill: parent
                 currentPage: 0
@@ -97,7 +97,7 @@ TestCase {
             property alias opener: opener
             property alias settings: settings
             property alias copier: copier
-            ShellSettings { id: settings }
+            PunchiShellSettings { id: settings }
             QtObject {
                 id: copier
                 property var paths: []
@@ -118,21 +118,21 @@ TestCase {
             Item {
                 id: host
                 anchors.fill: parent
-                LauncherTile {
+                PunchiDockTile {
                     id: source
                     x: 340; y: 640
                     title: "Downloads"; iconName: "folder-downloads"; appId: "item:downloads"
                     reducedMotion: true
                     onActivated: popup.toggleForItem(source, "item:downloads", settings.container("item:downloads"))
                 }
-                LauncherTile {
+                PunchiDockTile {
                     id: homeSource
                     x: 240; y: 640
                     title: "Home"; iconName: "user-home"; appId: "item:folder:home"
                     reducedMotion: true
                     onActivated: popup.toggleForItem(homeSource, "item:folder:home", settings.container("item:folder:home"))
                 }
-                FolderContainerPopup {
+                PunchiFolderContainerPopup {
                     id: popup; hostWindow: window; settings: settings; opener: opener
                     clipboardService: copier
                 }
@@ -168,7 +168,7 @@ TestCase {
         tryCompare(window.settings, "downloadsView", ["grid", "list", "detail"][index])
     }
     function test_defaultAndMigration(): void {
-        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const settings = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         compare(settings.downloadsView, "grid")
         compare(settings.container("item:downloads").layout, "grid")
         compare(settings.pinnedIds.slice(-2).join(","), "item:downloads,item:trash")
@@ -254,7 +254,7 @@ TestCase {
         compare(window.popup.controller.history.length, 0)
     }
     function test_folderLayoutsBelongToEachItem(): void {
-        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const settings = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         const id = settings.addContainer("/tmp/owned-folder", "Owned folder", "folder")
         verify(id.length > 0)
         verify(settings.setContainerLayout("item:downloads", "detail"))
@@ -265,7 +265,7 @@ TestCase {
         compare(settings.container("item:downloads").sortMode, "modified")
         verify(settings.setContainerSortMode("item:downloads", "created"))
         verify(settings.setContainerSortMode(id, "kind"))
-        const restored = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const restored = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         verify(restored.restore(settings.snapshot()))
         compare(restored.container(id).layout, "list")
         compare(restored.container(id).sortMode, "kind")
@@ -360,11 +360,11 @@ TestCase {
     }
 
     function test_fanLayoutPersistsForTheContainer(): void {
-        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const settings = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         verify(settings.setContainerLayout("item:downloads", "fan"))
         compare(settings.container("item:downloads").layout, "fan")
         compare(settings.downloadsView, "fan")
-        const restored = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const restored = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         verify(restored.restore(settings.snapshot()))
         compare(restored.container("item:downloads").layout, "fan")
         compare(restored.downloadsView, "fan")
@@ -554,7 +554,7 @@ TestCase {
         window.close()
     }
     function test_browseSubfoldersSwitchGovernsNavigation(): void {
-        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const settings = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         // Existing profiles keep entering subfolders: the switch defaults on.
         compare(settings.container("item:downloads").browseSubfolders, true)
         compare(settings.containerBrowseSubfolders("item:downloads"), true)
@@ -566,7 +566,7 @@ TestCase {
         compare(settings.containerBrowseSubfolders("item:downloads"), false)
         verify(settings.setContainerSortMode("item:downloads", "name"))
         compare(settings.containerBrowseSubfolders("item:downloads"), false)
-        const restored = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const restored = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         verify(restored.restore(settings.snapshot()))
         compare(restored.containerBrowseSubfolders("item:downloads"), false)
         // A stored value of another type is not a valid container.

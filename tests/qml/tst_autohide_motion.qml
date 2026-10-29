@@ -15,8 +15,8 @@ TestCase {
     visible: true
     width: 840
     height: 320
-    Component { id: controller; DockVisibilityController { hideDelay: 1; transitionDuration: 120 } }
-    Component { id: dock; DockView { entries: DockFixtureModel {} } }
+    Component { id: controller; PunchiDockVisibilityController { hideDelay: 1; transitionDuration: 120 } }
+    Component { id: dock; PunchiDockView { entries: PunchiDockFixtureModel {} } }
     Component { id: nativeSensor; Native.AutoHideEdge {} }
     Component {
         id: reactiveSensor
@@ -27,8 +27,8 @@ TestCase {
             armed: !enabled && requestedArmed
         }
     }
-    MotionPreferences { id: preferences }
-    DockSlideGeometry { id: travelGeometry }
+    PunchiMotionPreferences { id: preferences }
+    PunchiDockSlideGeometry { id: travelGeometry }
     function init() { failOnWarning(/.*/) }
     function test_themeDurationIsNotFloored() {
         compare(preferences.slideDuration, preferences.reducedMotion ? 0 : Kirigami.Units.longDuration)

@@ -51,9 +51,9 @@ import Punchi.Kde as Native
 import "modules/dock"
 import "services"
 ShellRoot {
-    ApplicationCatalog { id: catalog }
-    RunningApplications { id: running; catalog: catalog }
-    PinnedApplications { id: pins; catalog: catalog; pinnedIds: ["desktop:punchi-running-sentinel.desktop"] }
+    PunchiApplicationCatalog { id: catalog }
+    PunchiRunningApplications { id: running; catalog: catalog }
+    PunchiPinnedApplications { id: pins; catalog: catalog; pinnedIds: ["desktop:punchi-running-sentinel.desktop"] }
     Native.DockApplicationsModel {
         id: entries
         pinned: pins
@@ -65,7 +65,7 @@ ShellRoot {
         visible: true
         implicitWidth: dock.implicitWidth
         implicitHeight: dock.implicitHeight
-        DockView { id: dock; anchors.fill: parent; entries: entries; applicationState: running; reducedMotion: true }
+        PunchiDockView { id: dock; anchors.fill: parent; entries: entries; applicationState: running; reducedMotion: true }
     }
     function find(item: var, name: string): var {
         if (item.objectName === name) return item

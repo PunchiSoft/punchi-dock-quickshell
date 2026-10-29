@@ -44,17 +44,17 @@ TestCase {
                 sourceModel: recentSource
                 maximumItems: 20
             }
-            ShellSettings { id: settings }
+            PunchiShellSettings { id: settings }
             Item {
                 anchors.fill: parent
-                LauncherTile {
+                PunchiDockTile {
                     id: source
                     x: 340; y: 640
                     title: "Recent applications"; iconName: "folder-temp"; appId: "item:recent"
                     reducedMotion: true
                     onActivated: popup.toggleForItem(source, false)
                 }
-                RecentApplicationsPopup {
+                PunchiRecentApplicationsPopup {
                     id: popup
                     hostWindow: window
                     settings: settings
@@ -75,7 +75,7 @@ TestCase {
                 enabled: true
                 sourceModel: ListModel {}
             }
-            RecentApplicationsContent {
+            PunchiRecentApplicationsContent {
                 id: content
                 anchors.fill: parent
                 selection: selection
@@ -87,12 +87,12 @@ TestCase {
     }
     Component {
         id: menuFixture
-        DockContextContent {
+        PunchiDockContextContent {
             id: menu
             property var layouts: []
             recentContainer: true
             recentContainerLayout: "list"
-            settings: ShellSettings {}
+            settings: PunchiShellSettings {}
             onRecentLayoutRequested: function(layout) { menu.layouts = menu.layouts.concat([layout]) }
         }
     }
@@ -119,7 +119,7 @@ TestCase {
                 property int recentApplicationsCount: 5
                 property var pinnedIds: ["files"]
             }
-            RecentApplications {
+            PunchiRecentApplications {
                 id: recent
                 settings: preferences
                 catalog: catalog

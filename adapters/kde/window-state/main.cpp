@@ -52,7 +52,7 @@ public:
                 self->m_sync = nullptr;
                 if (!self->m_global) { self->publish(); return; }
                 QQmlComponent component(&self->m_engine,
-                    QUrl(QStringLiteral("qrc:/adapters/kde/window-state/WindowModels.qml")));
+                    QUrl(QStringLiteral("qrc:/adapters/kde/window-state/PunchiWindowModels.qml")));
                 self->m_object.reset(component.create());
                 self->m_model = self->m_object ? qobject_cast<QAbstractItemModel *>(
                     self->m_object->property("allTasks").value<QObject *>()) : nullptr;

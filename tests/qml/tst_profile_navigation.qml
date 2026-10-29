@@ -12,7 +12,7 @@ TestCase {
     height: 800
     Component {
         id: fixture
-        SettingsWindow { settings: ShellSettings {} }
+        PunchiSettingsWindow { settings: PunchiShellSettings {} }
     }
 
     function test_profileCategoryKeepsAboutAndFocusesImport() {

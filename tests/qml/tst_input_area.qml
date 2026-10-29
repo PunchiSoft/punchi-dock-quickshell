@@ -7,13 +7,13 @@ import "../../services"
 
 TestCase {
     id: test
-    name: "DockInputArea"
+    name: "PunchiDockInputArea"
     when: windowShown
     visible: true
     width: 840
     height: 340
     SignalSpy { id: activated; signalName: "itemActivated" }
-    Component { id: areaFixture; DockInputArea { hostWidth: 200; hostHeight: 340 } }
+    Component { id: areaFixture; PunchiDockInputArea { hostWidth: 200; hostHeight: 340 } }
     Component {
         id: fixture
         Item {
@@ -26,13 +26,13 @@ TestCase {
             property alias visibilityState: state
             property alias area: area
             property alias view: view
-            DockVisibilityController {
+            PunchiDockVisibilityController {
                 id: state
                 hideDelay: 40
                 transitionDuration: 30
                 pointerInside: area.hovered
             }
-            DockInputArea {
+            PunchiDockInputArea {
                 id: area
                 hostWidth: host.width
                 hostHeight: host.height
@@ -44,9 +44,9 @@ TestCase {
                 enabled: state.edgeMode
                 onEntered: state.reveal()
             }
-            DockView {
+            PunchiDockView {
                 id: view
-                entries: DockFixtureModel {}
+                entries: PunchiDockFixtureModel {}
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom

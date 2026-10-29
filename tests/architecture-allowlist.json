@@ -1,7 +1,7 @@
 [
   {
-    "file": "config/ShellSettings.qml",
+    "file": "config/PunchiShellSettings.qml",
     "import": "../adapters/kde",
-    "reason": "Desktop motion preferences come from the KDE adapter (MotionPreferences); config owns the values, the adapter owns the KDE read, and no service sits between them."
+    "reason": "Desktop motion preferences come from the KDE adapter (PunchiMotionPreferences); config owns the values, the adapter owns the KDE read, and no service sits between them."
   }
 ]

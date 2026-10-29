@@ -7,12 +7,12 @@ import "../../components"
 
 TestCase {
     id: test
-    name: "PopupRowHighlight"
+    name: "PunchiPopupRowHighlight"
     when: windowShown
     width: 200
     height: 100
 
-    PopupRowHighlight {
+    PunchiPopupRowHighlight {
         id: highlight
         width: 120
         height: 40

@@ -10,16 +10,16 @@ TestCase {
     id: test
     name: "KdeApplicationMedia"
     when: windowShown
-    ApplicationMediaService { id: mediaSession; desktopId: "punchi-owned-media.desktop" }
-    ApplicationMediaService { id: unknown; desktopId: "unrelated-app.desktop" }
-    ApplicationMediaService { id: other; desktopId: "punchi-other-media.desktop" }
+    PunchiApplicationMediaService { id: mediaSession; desktopId: "punchi-owned-media.desktop" }
+    PunchiApplicationMediaService { id: unknown; desktopId: "unrelated-app.desktop" }
+    PunchiApplicationMediaService { id: other; desktopId: "punchi-other-media.desktop" }
     Window {
         id: viewport
         visible: true
         width: 600
         height: 600
         Item { id: anchor; x: 280; y: 550; width: 40; height: 40 }
-        DockContextPopup {
+        PunchiDockContextPopup {
             id: menu
             hostWindow: viewport
             media: mediaSession

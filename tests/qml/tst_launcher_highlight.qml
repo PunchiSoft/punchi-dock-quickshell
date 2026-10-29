@@ -7,12 +7,12 @@ import "../../services"
 
 TestCase {
     id: test
-    name: "LauncherHighlight"
+    name: "PunchiDockHighlight"
     when: windowShown
     visible: true
     width: 840
     height: 320
-    Component { id: fixture; DockView { entries: DockFixtureModel {} clickDuration: 0 } }
+    Component { id: fixture; PunchiDockView { entries: PunchiDockFixtureModel {} clickDuration: 0 } }
     function init() { failOnWarning(/.*/); mouseMove(test, 830, 310) }
     function test_pointerHoverAndClickNeverLeaveAKeyboardOutline() {
         const view = createTemporaryObject(fixture, test)

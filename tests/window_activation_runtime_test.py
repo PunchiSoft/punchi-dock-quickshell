@@ -67,8 +67,8 @@ ShellRoot {
         ListElement { appId: "closed"; desktopId: "punchi-activate-closed"; title: "Closed sentinel"; iconName: "utilities-terminal" }
         ListElement { appId: "failed"; desktopId: "punchi-activate-failed"; title: "Failed sentinel"; iconName: "utilities-terminal" }
     }
-    ApplicationCatalog { id: catalog }
-    RunningApplications { id: running; catalog: catalog }
+    PunchiApplicationCatalog { id: catalog }
+    PunchiRunningApplications { id: running; catalog: catalog }
     Native.DockApplicationsModel {
         id: dockEntries
         pinned: entries
@@ -79,7 +79,7 @@ ShellRoot {
         visible: true
         implicitWidth: dock.implicitWidth
         implicitHeight: dock.implicitHeight
-        DockView {
+        PunchiDockView {
             id: dock
             anchors.fill: parent
             entries: dockEntries
@@ -88,8 +88,8 @@ ShellRoot {
             onItemNewWindowRequested: function(appId) { activation.newWindow(appId) }
         }
     }
-    DesktopApplicationAdapter { id: adapter; activationItem: dock }
-    ApplicationLaunchService {
+    PunchiDesktopApplicationAdapter { id: adapter; activationItem: dock }
+    PunchiApplicationLaunchService {
         id: launcher
         entries: dockEntries
         adapter: adapter
@@ -98,7 +98,7 @@ ShellRoot {
             else probe.launches++
         }
     }
-    ApplicationActivationService {
+    PunchiApplicationActivationService {
         id: activation
         entries: dockEntries
         launcher: launcher

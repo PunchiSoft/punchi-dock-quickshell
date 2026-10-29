@@ -25,14 +25,14 @@ TestCase {
             property alias dock: dock
             property alias settings: settings
             property alias launch: launcher
-            ShellSettings { id: settings }
+            PunchiShellSettings { id: settings }
             Native.DockItemCatalog {
                 id: catalog
-                applications: ApplicationCatalog {}
+                applications: PunchiApplicationCatalog {}
                 containers: settings.containers
                 trashTitle: "Owned Trash"
             }
-            SettingsView {
+            PunchiSettingsView {
                 id: view
                 width: 850
                 height: 650
@@ -40,8 +40,8 @@ TestCase {
                 settings: settings
                 applicationCatalog: catalog
             }
-            PinnedApplications { id: pinned; catalog: catalog; pinnedIds: settings.pinnedIds }
-            DockView {
+            PunchiPinnedApplications { id: pinned; catalog: catalog; pinnedIds: settings.pinnedIds }
+            PunchiDockView {
                 id: dock
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -50,11 +50,11 @@ TestCase {
                 onItemActivated: function(appId) { launcher.launch(appId) }
             }
             Native.DesktopLauncher { id: adapter; activationItem: dock }
-            ApplicationLaunchService { id: launcher; entries: pinned; adapter: adapter }
+            PunchiApplicationLaunchService { id: launcher; entries: pinned; adapter: adapter }
         }
     }
-    Component { id: settingsFixture; ShellSettings {} }
-    Component { id: serviceFixture; ApplicationPinService { settings: null; catalog: null } }
+    Component { id: settingsFixture; PunchiShellSettings {} }
+    Component { id: serviceFixture; PunchiApplicationPinService { settings: null; catalog: null } }
     SignalSpy { id: completion; signalName: "launchCompleted" }
     function init() {
         // The isolated bus has no systemd user manager; retain its known KIO warning.

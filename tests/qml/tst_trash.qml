@@ -16,7 +16,7 @@ TestCase {
     height: 500
     Component {
         id: serviceFixture
-        TrashService {
+        PunchiTrashService {
             state: QtObject {
                 property bool available: true
                 property bool hasItems: true
@@ -30,12 +30,12 @@ TestCase {
             }
         }
     }
-    Component { id: motionFixture; TrashConfirmationMotion { duration: 80 } }
-    Component { id: settingsFixture; ShellSettings {} }
-    Component { id: menuFixture; DockContextContent { trashItem: true } }
+    Component { id: motionFixture; PunchiTrashConfirmationMotion { duration: 80 } }
+    Component { id: settingsFixture; PunchiShellSettings {} }
+    Component { id: menuFixture; PunchiDockContextContent { trashItem: true } }
     Component {
         id: contentFixture
-        TrashConfirmationContent { questionText: "Owned question"; warningText: "Owned warning"; canConfirm: true }
+        PunchiTrashConfirmationContent { questionText: "Owned question"; warningText: "Owned warning"; canConfirm: true }
     }
     Component {
         id: orderFixture
@@ -43,8 +43,8 @@ TestCase {
             width: 850; height: 800
             property alias settings: settings
             property alias view: view
-            ShellSettings { id: settings; pinnedIds: ["files", "browser", "item:trash"] }
-            SettingsEditService { id: edit; settings: settings }
+            PunchiShellSettings { id: settings; pinnedIds: ["files", "browser", "item:trash"] }
+            PunchiSettingsEditService { id: edit; settings: settings }
             ListModel {
                 id: catalog
                 ListElement { appId: "files"; desktopId: "org.kde.dolphin"; title: "Files"; iconName: "system-file-manager" }
@@ -53,7 +53,7 @@ TestCase {
                 function application(id: string): var { return null }
                 property int revision: 0
             }
-            SettingsView {
+            PunchiSettingsView {
                 id: view
                 anchors.fill: parent
                 settings: edit.draft

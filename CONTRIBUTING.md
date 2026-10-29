@@ -30,7 +30,7 @@ may change without migration.
   a version change.
 - When the maintainer prepares a release, move the `Unreleased` entries under a
   dated version heading and update `CMakeLists.txt`,
-  `modules/settings/SettingsAbout.qml`, `README.md`, `README.es.md`,
+  `modules/settings/PunchiSettingsAbout.qml`, `README.md`, `README.es.md`,
   `AGENTS.md` and the local `docs/versioning.md` record. The `project_version`
   test fails when those declarations disagree with the newest dated changelog
   heading.

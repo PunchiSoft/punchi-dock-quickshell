@@ -7,16 +7,16 @@ owns a capability contract and reports its unsupported case instead of faking it
 
 | Type | Capability |
 | --- | --- |
-| `ApplicationCatalogAdapter` | desktop-entry catalog and launch dispatch |
-| `ApplicationMediaAdapter` | Plasma MPRIS model behind `ApplicationMediaService` |
-| `ApplicationSearchAdapter` | search across installed desktop entries |
-| `DesktopApplicationAdapter` | launch an application through KService and activation |
-| `FilePlacesAdapter` | KIO places for the container surfaces |
-| `IconThemeAdapter` | KDE icon theme lookup and refresh |
-| `MotionPreferences` | Kirigami animation durations |
-| `RecentApplicationsAdapter`, `RecentApplicationsSelection` | KDE recent-application history and its selection model |
-| `RecentDocumentsAdapter` | recent documents through KDE history |
-| `UserProfile` | the account name and avatar |
+| `PunchiApplicationCatalogAdapter` | desktop-entry catalog and launch dispatch |
+| `PunchiApplicationMediaAdapter` | Plasma MPRIS model behind `PunchiApplicationMediaService` |
+| `PunchiApplicationSearchAdapter` | search across installed desktop entries |
+| `PunchiDesktopApplicationAdapter` | launch an application through KService and activation |
+| `PunchiFilePlacesAdapter` | KIO places for the container surfaces |
+| `PunchiIconThemeAdapter` | KDE icon theme lookup and refresh |
+| `PunchiMotionPreferences` | Kirigami animation durations |
+| `PunchiRecentApplicationsAdapter`, `PunchiRecentApplicationsSelection` | KDE recent-application history and its selection model |
+| `PunchiRecentDocumentsAdapter` | recent documents through KDE history |
+| `PunchiUserProfile` | the account name and avatar |
 
 ## Native types
 
@@ -26,7 +26,7 @@ sets, so no header reaches another group with a `../` chain.
 
 | Group | Types |
 | --- | --- |
-| `applications/` | `ApplicationCatalog`, `DockApplicationsModel`, `DockItemCatalog`, `RecentApplicationsAdapter`, `RecentApplicationsModel`, `DesktopEntry`, `DesktopLauncher`, `RunningApplications` |
+| `applications/` | `PunchiApplicationCatalog`, `DockApplicationsModel`, `DockItemCatalog`, `PunchiRecentApplicationsAdapter`, `RecentApplicationsModel`, `DesktopEntry`, `DesktopLauncher`, `PunchiRunningApplications` |
 | `windows/` | `WindowActivation`, `WindowVisibilityState`, `ScreenInfo`, `KWinMinimizeEffect`, `AutoHideEdge` |
 | `files/` | `FilePlaces`, `FolderContents`, `RecentDocuments`, `TrashState` |
 | `appearance/` | `IconThemeCatalog`, `IconThemeRefresh`, `PopupBlurController` |

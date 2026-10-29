@@ -30,8 +30,8 @@ ShellRoot {
     property int ticks: 0
     function reject(reason: string): void { console.error("PUNCHI_TRASH_FAILED", reason); Qt.quit() }
     Native.DockItemCatalog { id: items }
-    PinnedApplications { id: dockPins; catalog: items; pinnedIds: ["item:trash"] }
-    PinnedApplications { id: settingsPins; catalog: items; pinnedIds: ["item:trash"] }
+    PunchiPinnedApplications { id: dockPins; catalog: items; pinnedIds: ["item:trash"] }
+    PunchiPinnedApplications { id: settingsPins; catalog: items; pinnedIds: ["item:trash"] }
     QtObject {
         id: state
         property bool available: true
@@ -41,14 +41,14 @@ ShellRoot {
         function emptyAfterConfirmation(): bool { emptyCalls++; return true }
     }
     QtObject { id: launch; function openTrash(): bool { return true } }
-    TrashService { id: trash; state: state; launcher: launch }
-    // The fake launcher proves TrashService behavior; the real adapter guards
+    PunchiTrashService { id: trash; state: state; launcher: launch }
+    // The fake launcher proves PunchiTrashService behavior; the real adapter guards
     // the method surface Dock.qml injects. Never invoke it here: openTrash()
     // would launch the user's file manager.
-    DesktopApplicationAdapter { id: realLauncher }
-    TrashService { id: realTrash; state: state; launcher: realLauncher }
+    PunchiDesktopApplicationAdapter { id: realLauncher }
+    PunchiTrashService { id: realTrash; state: state; launcher: realLauncher }
     Window { visible: true; width: 480; height: 320 }
-    TrashConfirmationWindow {
+    PunchiTrashConfirmationWindow {
         id: confirmation
         service: trash
         questionText: "Owned confirmation question"
@@ -69,7 +69,7 @@ ShellRoot {
                     probe.reject("late item title did not reach both projections"); return
                 }
                 if (typeof realLauncher.openTrash !== "function" || typeof realTrash.open !== "function") {
-                    probe.reject("real adapter is missing the TrashService entry point"); return
+                    probe.reject("real adapter is missing the PunchiTrashService entry point"); return
                 }
                 if (!trash.requestEmpty()) { probe.reject("request refused"); return }
                 probe.stage++

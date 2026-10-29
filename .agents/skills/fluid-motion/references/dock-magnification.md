@@ -1,7 +1,7 @@
 # Continuous dock magnification
 
 Proximity magnification for Punchi Dock Quickshell. The behaviour already exists
-in `modules/dock/DockMagnification.qml`; this reference describes how to extend it
+in `modules/dock/PunchiDockMagnification.qml`; this reference describes how to extend it
 without breaking continuity. It does not authorize a rewrite.
 
 ## Current model

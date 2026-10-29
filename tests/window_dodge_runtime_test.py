@@ -45,14 +45,14 @@ import "services"
 import "config"
 import "adapters/kde/window-state"
 ShellRoot {
-    ShellSettings { id: settings; panelMode: "dodge-windows" }
-    DockFixtureModel { id: catalog }
-    RunningApplications { id: running; catalog: catalog }
-    WindowModels { id: nativeModels }
-    DockRestingGeometry { id: region; screenWidth: 800; screenHeight: 600;
+    PunchiShellSettings { id: settings; panelMode: "dodge-windows" }
+    PunchiDockFixtureModel { id: catalog }
+    PunchiRunningApplications { id: running; catalog: catalog }
+    PunchiWindowModels { id: nativeModels }
+    PunchiDockRestingGeometry { id: region; screenWidth: 800; screenHeight: 600;
         bodyWidth: 200; bodyHeight: 50; bottomClearance: 2; edgeMargin: 4 }
-    WindowOverlap { id: overlap; source: running.visibilityState; region: region.region }
-    DockVisibilityController {
+    PunchiWindowOverlap { id: overlap; source: running.visibilityState; region: region.region }
+    PunchiDockVisibilityController {
         id: visibility
         dodgeWindows: settings.panelMode === "dodge-windows"
         autoHide: settings.panelMode === "autohide"

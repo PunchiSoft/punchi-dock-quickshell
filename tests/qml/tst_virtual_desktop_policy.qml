@@ -5,12 +5,12 @@ import "../../config"
 import "../../services"
 
 TestCase {
-    name: "VirtualDesktopPolicy"
+    name: "PunchiVirtualDesktopPolicy"
 
     Component {
         id: fixture
-        VirtualDesktopPolicy {
-            settings: ShellSettings {}
+        PunchiVirtualDesktopPolicy {
+            settings: PunchiShellSettings {}
             runningApplications: QtObject {
                 property bool available: true
                 property var virtualDesktops: []

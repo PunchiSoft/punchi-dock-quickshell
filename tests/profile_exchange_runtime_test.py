@@ -32,8 +32,8 @@ import Quickshell.Io
 import "config"
 import "services"
 ShellRoot {
-    ShellSettings { id: settings }
-    ProfileExchangeService { id: exchange; target: settings }
+    PunchiShellSettings { id: settings }
+    PunchiProfileExchangeService { id: exchange; target: settings }
     IpcHandler {
         target: "profile"
         function snapshot(): string { return JSON.stringify(settings.snapshot()) }

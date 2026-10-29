@@ -14,18 +14,18 @@ TestCase {
     when: windowShown
     Component {
         id: settingsWindowFixture
-        SettingsWindow {
+        PunchiSettingsWindow {
             id: window
-            settings: ShellSettings {}
+            settings: PunchiShellSettings {}
             applicationCatalog: Native.DockItemCatalog {
-                applications: ApplicationCatalog {}
+                applications: PunchiApplicationCatalog {}
                 containers: window.settings.containers
                 trashTitle: "Owned Trash"
             }
             license: QtObject {
                 readonly property string text: "GNU GENERAL PUBLIC LICENSE\nVersion 3, 29 June 2007\n"
             }
-            readonly property PinnedApplications livePins: PinnedApplications {
+            readonly property PunchiPinnedApplications livePins: PunchiPinnedApplications {
                 catalog: window.applicationCatalog
                 pinnedIds: window.settings.pinnedIds
                 iconOverrides: window.settings.iconOverrides

@@ -28,7 +28,7 @@ ShellRoot {
         Item {
             id: host
             anchors.fill: parent
-            LauncherTooltip {
+            PunchiDockTooltip {
                 id: tooltip
                 parent: host
                 text: "Owned application"
@@ -39,7 +39,7 @@ ShellRoot {
                 palette.mid: "#abcdef"
                 Component.onCompleted: open()
             }
-            DockContextContent { id: menu; x: 240; y: 40 }
+            PunchiDockContextContent { id: menu; x: 240; y: 40 }
         }
     }
     Timer {

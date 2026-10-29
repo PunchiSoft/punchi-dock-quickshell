@@ -70,14 +70,14 @@ ShellRoot {
         visible: true
         implicitWidth: 600
         implicitHeight: 800
-        DockContextContent {
+        PunchiDockContextContent {
             places: context.places
             usesPlaces: context.usesPlaces
             recentDocuments: context.recentDocuments
             canLaunchNewWindow: context.canLaunchNewWindow
         }
     }
-    DesktopApplicationAdapter {
+    PunchiDesktopApplicationAdapter {
         id: adapter
         onLaunchFinished: function(id, success, error) {
             if (!success) probe.reject(error)
@@ -90,7 +90,7 @@ ShellRoot {
         ListElement { appId: "files"; desktopId: "punchi-places-sentinel" }
         ListElement { appId: "other"; desktopId: "punchi-other-sentinel" }
     }
-    ApplicationContextService { id: context; entries: entries; settings: settings; adapter: adapter }
+    PunchiApplicationContextService { id: context; entries: entries; settings: settings; adapter: adapter }
     Instantiator {
         id: rows
         model: context.places

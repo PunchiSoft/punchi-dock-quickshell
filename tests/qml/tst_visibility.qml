@@ -4,7 +4,7 @@ import QtTest
 import "../../modules/dock"
 TestCase {
     name: "DockAutoHide"
-    Component { id: fixture; DockVisibilityController { hideDelay: 40; transitionDuration: 40 } }
+    Component { id: fixture; PunchiDockVisibilityController { hideDelay: 40; transitionDuration: 40 } }
     function test_hide_then_edge_reveal_and_reversal() {
         const state = createTemporaryObject(fixture, this)
         state.autoHide = true

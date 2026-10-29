@@ -40,10 +40,10 @@ ShellRoot {
         }
         return null
     }
-    ShellSettings { id: preferences }
-    ApplicationCatalog { id: applications }
-    SettingsStore { id: store; settings: preferences }
-    SettingsWindow { id: window; settings: preferences; applicationCatalog: applications; onFrameSwapped: probe.frames++ }
+    PunchiShellSettings { id: preferences }
+    PunchiApplicationCatalog { id: applications }
+    PunchiSettingsStore { id: store; settings: preferences }
+    PunchiSettingsWindow { id: window; settings: preferences; applicationCatalog: applications; onFrameSwapped: probe.frames++ }
     Timer {
         interval: 100
         running: true

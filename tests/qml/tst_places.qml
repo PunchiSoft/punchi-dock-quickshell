@@ -34,7 +34,7 @@ TestCase {
                 id: recents
                 ListElement { resource: "file:///owned/recent"; name: "Owned recent"; iconName: "folder" }
             }
-            DockContextPopup {
+            PunchiDockContextPopup {
                 id: popup
                 hostWindow: viewport
                 places: placesModel

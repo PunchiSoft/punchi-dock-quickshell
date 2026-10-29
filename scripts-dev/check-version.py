@@ -33,7 +33,7 @@ DECLARATIONS = (
      capture(re.compile(rf'\*\*Versión actual:\*\* \*\*({VERSION})\*\*')), True),
     ('AGENTS.md',
      capture(re.compile(rf'The latest released version is `({VERSION})`')), True),
-    ('modules/settings/SettingsAbout.qml',
+    ('modules/settings/PunchiSettingsAbout.qml',
      capture(re.compile(rf'applicationVersion: "({VERSION})"')), True),
     ('tests/runtime/application-items/tst_settings_window.qml',
      capture(re.compile(rf'Punchi Dock Quickshell ({VERSION})')), True),

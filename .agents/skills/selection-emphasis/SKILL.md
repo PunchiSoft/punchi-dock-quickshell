@@ -70,7 +70,7 @@ ItemDelegate {
 ```
 
 The view passes `selectionActive: selectedId.length > 0`, so hover works only
-while the list has no current item. This is the existing `ApplicationListRow`
+while the list has no current item. This is the existing `PunchiApplicationListRow`
 contract.
 
 Navigation where an item is always current (settings categories, tabs):
@@ -115,7 +115,7 @@ contract exists to prevent. Forward the caller's reason instead:
 `openFocusReason = fromKeyboard ? Qt.TabFocusReason : Qt.MouseFocusReason`.
 
 `scripts-dev/check-emphasis.py` (`emphasis_contract`) enforces the gate on every
-`PopupRowHighlight`, the owner declaration, and that `requestInitialFocus` never
+`PunchiPopupRowHighlight`, the owner declaration, and that `requestInitialFocus` never
 hardcodes `Qt.TabFocusReason`. Run it before touching a row component.
 
 ## Checklist

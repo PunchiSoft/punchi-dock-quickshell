@@ -14,12 +14,12 @@ TestCase {
     height: 350
     Component {
         id: fixture
-        DockView {
+        PunchiDockView {
             id: dock
-            entries: DockFixtureModel {}
+            entries: PunchiDockFixtureModel {}
             reducedMotion: true
             magnificationEnabled: false
-            readonly property DockFocusPolicy testPolicy: DockFocusPolicy {
+            readonly property PunchiDockFocusPolicy testPolicy: PunchiDockFocusPolicy {
                 surfaceVisible: dock.visible
                 menuOpen: dock.contextMenuOpen
                 keyboardNavigationRequested: dock.keyboardNavigationRequested

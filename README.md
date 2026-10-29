@@ -400,7 +400,7 @@ If both files exist, the new filename takes precedence and neither is overwritte
 A trial run reads and writes its own profile instead, and that profile is
 deleted with the trial cleanup unless the confirmation is declined.
 Without a saved file, the application uses the defaults in
-[`config/DefaultProfile.js`](config/DefaultProfile.js), which also supplies the
+[`config/PunchiDefaultProfile.js`](config/PunchiDefaultProfile.js), which also supplies the
 first-run launcher catalogue and the values restored by **Reset defaults**:
 
 | Setting | Current first-run default |

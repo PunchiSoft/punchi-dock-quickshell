@@ -64,7 +64,7 @@ the origin. See [the shared doctrine](../references/motion-doctrine.md).
 
 ### Popup hover
 
-Popup rows share [PopupRowHighlight](../../../components/PopupRowHighlight.qml).
+Popup rows share [PunchiPopupRowHighlight](../../../components/PunchiPopupRowHighlight.qml).
 It owns hover, selection, focus, press, the fill fade, and the single hover pulse.
 Rows scale their content with `visualScale`; they never re-implement the profile.
 

@@ -24,7 +24,7 @@ def main():
         # Quickshell has no PanelWindow backend on Qt's offscreen platform.
         # Substitute only the host contract in this owned copy, keeping the
         # production wiring/content. Native edge protocol is tested separately.
-        dock_path = config / 'modules/dock/Dock.qml'
+        dock_path = config / 'modules/dock/PunchiDock.qml'
         dock_source = dock_path.read_text().replace('PanelWindow {', 'OffscreenDockHost {', 1)
         dock_source = dock_source.replace('anchors.bottom:', 'panelAnchors.bottom:')
         dock_source = dock_source.replace('anchors.top:', 'panelAnchors.top:')
@@ -73,10 +73,10 @@ import "config"
 import "modules/dock"
 import "services"
 ShellRoot {
-    ShellSettings { id: shellSettings }
-    DockServices { id: dockServices; settings: shellSettings }
+    PunchiShellSettings { id: shellSettings }
+    PunchiDockServices { id: dockServices; settings: shellSettings }
     Dock { id: dock; services: dockServices; configuring: true }
-    SettingsStore { settings: dock.preferences }
+    PunchiSettingsStore { settings: dock.preferences }
     function find(item: var, name: string): var {
         if (!item) return null
         if (item.objectName === name) return item
@@ -195,7 +195,7 @@ ShellRoot {
                                     and any(item.get('id') == 'downloads' and item.get('layout') == 'detail'
                                             for item in containers)): break
                         time.sleep(0.02)
-                    else: raise AssertionError('Position did not reach the owned SettingsStore file')
+                    else: raise AssertionError('Position did not reach the owned PunchiSettingsStore file')
             finally:
                 process.terminate()
                 try: process.wait(timeout=3)

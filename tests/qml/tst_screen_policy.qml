@@ -5,12 +5,12 @@ import "../../config"
 import "../../services"
 
 TestCase {
-    name: "ScreenPolicy"
+    name: "PunchiScreenPolicy"
 
     Component {
         id: fixture
-        ScreenPolicy {
-            settings: ShellSettings {}
+        PunchiScreenPolicy {
+            settings: PunchiShellSettings {}
             connectedScreens: [{name: "DP-1"}, {name: "HDMI-A-1"}]
             primaryScreenName: "HDMI-A-1"
         }

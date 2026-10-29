@@ -34,7 +34,10 @@ when more than one owns the concept (`PunchiDock*`, `PunchiMenu*`), and
 application menu; a context menu is `PunchiDockContext*` or `PunchiPopup*`.
 
 `component_naming` (`tests/naming_test.py`) enforces the prefix and the reserved
-QtQuick.Controls names against `tests/naming-baseline.json`.
+QtQuick.Controls names. `tests/naming-baseline.json` is empty and must stay
+empty: the test rejects a recorded name as well as a stale entry, so a naming
+failure is fixed by the rename and never by recording it. The test also runs a
+self-check on a temporary tree, so a green result means the checks can fail.
 
 Renaming a type is its own change:
 
@@ -42,8 +45,8 @@ Renaming a type is its own change:
    (`grep -rn 'OldName' --include=*.qml`), including fixtures under `tests/` and
    references in `docs/`.
 2. `git mv` the file so the history follows the rename.
-3. Update the type references, then drop the baseline entry the file no longer
-   needs; a stale entry fails the check.
+3. Update the type references. Do not add a baseline entry to quiet the check;
+   the baseline stays empty.
 4. Run `component_naming`, `architecture_contract` and `qml_lint`, then the
    component test that covers the surface.
 5. Record the rename once in `CHANGELOG.md`. Never leave a layer half renamed.
