@@ -7,7 +7,11 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts-dev'))
+from build_dir import resolve_build_dir  # noqa: E402
 
 
 def project_version(root: Path) -> str:
@@ -20,7 +24,7 @@ def project_version(root: Path) -> str:
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
     version = project_version(root)
-    build = root / 'build'
+    build = resolve_build_dir(root)
     if not (build / 'qml/Punchi/Kde/libpunchikdeplugin.so').is_file() \
             or not (build / 'punchi-window-state').is_file():
         print('Build artifacts are unavailable; run this test after building.')
@@ -73,7 +77,7 @@ def main() -> int:
         assert '[Desktop Action Stop]' in desktop_entry
         assert '[Desktop Action Settings]' in desktop_entry
         assert preferences.is_file()
-        assert (root / 'build').is_dir()
+        assert build.is_dir()
 
         qs = shutil.which('qs')
         if qs:
@@ -93,7 +97,7 @@ def main() -> int:
         assert not install_root.exists()
         assert not launcher.exists()
         assert preferences.is_file()
-        assert (root / 'build').is_dir()
+        assert build.is_dir()
 
         remove_settings = subprocess.run(
             ['bash', str(setup), '--uninstall', '--prefix', str(install_root),
@@ -103,7 +107,7 @@ def main() -> int:
         assert remove_settings.returncode == 0, \
             remove_settings.stdout + remove_settings.stderr
         assert not preferences.exists()
-        assert (root / 'build').is_dir()
+        assert build.is_dir()
 
     print('User setup install/uninstall: isolated cycle passed.')
     return 0

@@ -136,9 +136,115 @@ def check_dependency_maps(root: Path) -> None:
     debian, arch, family = result.stdout.split('---')
     assert 'quickshell' in debian
     assert 'qml6-module-org-kde-kirigami' in debian
+    assert 'qml6-module-org-kde-desktop' in debian
+    assert 'libkf6service-bin' in debian
+    assert 'libplasmaactivitiesstats1' in debian
     assert 'qt6-base' in arch
     assert 'extra-cmake-modules' in arch
     assert family.strip() == 'debian'
+
+
+def check_debian_backports_offer(root: Path) -> None:
+    """Quickshell without an apt candidate is installed from backports first."""
+    probe = r'''
+source scripts-user/lib/setup-common.sh
+source scripts-user/lib/setup-deps.sh
+PUNCHI_NO_PROGRESS=1
+punchi_distro_id() { printf '%s\n' debian; }
+punchi_os_release_value() {
+    [[ "${1:-}" == VERSION_CODENAME ]] && printf '%s\n' trixie
+}
+punchi_missing_packages() {
+    case "$1" in
+        runtime) printf '%s\n' quickshell ;;
+        build)
+            if [[ "${PUNCHI_TEST_EXTRA_PACKAGE:-}" == 1 ]]; then
+                printf '%s\n' cmake
+            fi
+            ;;
+    esac
+}
+punchi_apt_config_dir() { printf '%s\n' "${PUNCHI_TEST_APT_DIR:?}"; }
+punchi_confirm() {
+    case "$1" in
+        Enable\ *) return "${PUNCHI_TEST_ACCEPT_BACKPORTS:-0}" ;;
+        *) return 0 ;;
+    esac
+}
+punchi_offer_dependency_install debian 1
+'''
+
+    with tempfile.TemporaryDirectory(prefix='punchi-backports-test-') as temporary:
+        home = Path(temporary)
+        fake_bin = home / 'bin'
+        fake_bin.mkdir()
+        apt_log = home / 'apt.log'
+        apt_config = home / 'apt'
+        (apt_config / 'sources.list.d').mkdir(parents=True)
+
+        (fake_bin / 'apt-cache').write_text(
+            '#!/usr/bin/env bash\n'
+            'if [[ "${1:-}" == "policy" ]]; then\n'
+            '    printf "%s:\\n  Candidate: %s\\n" "${2:-}" '
+            '"${PUNCHI_TEST_CANDIDATE:-(none)}"\n'
+            'fi\n')
+        (fake_bin / 'apt-get').write_text(
+            '#!/usr/bin/env bash\n'
+            f'printf "%s\\n" "$*" >> "{apt_log}"\n')
+        (fake_bin / 'sudo').write_text(
+            '#!/usr/bin/env bash\n'
+            'exec "$@"\n')
+        for command in (fake_bin / 'apt-cache', fake_bin / 'apt-get',
+                        fake_bin / 'sudo'):
+            command.chmod(0o755)
+
+        def run(extra: Optional[dict] = None) -> subprocess.CompletedProcess:
+            environment = os.environ.copy()
+            environment.update({
+                'TERM': 'dumb',
+                'NO_COLOR': '1',
+                'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
+                'PUNCHI_TEST_APT_DIR': str(apt_config),
+            })
+            if extra:
+                environment.update(extra)
+            return subprocess.run(
+                [shutil.which('bash') or 'bash', '-c', probe],
+                cwd=root, env=environment, capture_output=True, text=True,
+                check=False, timeout=30)
+
+        accepted = run({'PUNCHI_TEST_ACCEPT_BACKPORTS': '0'})
+        assert accepted.returncode == 0, accepted.stdout + accepted.stderr
+        sources = apt_config / 'sources.list.d' / 'debian-backports.list'
+        assert sources.read_text().strip() == (
+            'deb http://deb.debian.org/debian trixie-backports main')
+        log = apt_log.read_text()
+        assert 'update' in log, log
+        assert 'install -y -t trixie-backports quickshell' in log, log
+        assert 'Quickshell was installed from trixie-backports.' in accepted.stdout
+        apt_log.write_text('')
+        sources.unlink()
+
+        declined = run({
+            'PUNCHI_TEST_ACCEPT_BACKPORTS': '1',
+            'PUNCHI_TEST_EXTRA_PACKAGE': '1',
+        })
+        assert declined.returncode == 0, declined.stdout + declined.stderr
+        assert not sources.exists()
+        log = apt_log.read_text()
+        assert 'install -y cmake' in log, log
+        assert 'quickshell' not in log, log
+        assert 'Quickshell remains missing.' in declined.stdout
+        assert 'sudo apt-get install -y -t trixie-backports quickshell' \
+            in declined.stdout
+
+        apt_log.write_text('')
+        available = run({'PUNCHI_TEST_CANDIDATE': '6.13.0-1'})
+        assert available.returncode == 0, available.stdout + available.stderr
+        assert not sources.exists()
+        log = apt_log.read_text()
+        assert 'install -y quickshell' in log, log
+        assert '-t trixie-backports' not in log, log
 
 
 def check_dependency_report_layout(root: Path) -> None:
@@ -148,6 +254,9 @@ source scripts-user/lib/setup-common.sh
 source scripts-user/lib/setup-progress.sh
 source scripts-user/lib/setup-deps.sh
 PUNCHI_NO_PROGRESS=1
+# The report picks its package manager with command -v; this probe runs on
+# hosts without rpm.
+rpm() { return 0; }
 punchi_distro_family() { printf '%s\n' fedora; }
 punchi_distro_id() { printf '%s\n' fedora; }
 punchi_distro_like() { :; }
@@ -675,6 +784,9 @@ def check_try_flow(root: Path) -> None:
             'NO_COLOR': '1',
         })
         environment.pop('PUNCHI_RUNTIME_DIR', None)
+        # Synthetic checkouts name their own tree, so the host distribution
+        # never decides where the fixture builds.
+        environment['PUNCHI_BUILD_DIR'] = str(checkout / 'build')
         (home / 'run').mkdir()
         result = subprocess.run(
             ['bash', str(checkout / 'scripts-user/setup.sh'), '--try',
@@ -828,6 +940,7 @@ def check_trial_cleanup(root: Path) -> None:
             'NO_COLOR': '1',
         })
         environment.pop('PUNCHI_ASSUME_YES', None)
+        environment['PUNCHI_BUILD_DIR'] = str(build)
         command = (
             f'punchi_project_root="{checkout}"; '
             f'source "{checkout}/scripts-user/lib/setup-common.sh"; '
@@ -885,6 +998,7 @@ def check_trial_refuses_running_copy(root: Path) -> None:
             'NO_COLOR': '1',
         })
         environment.pop('PUNCHI_RUNTIME_DIR', None)
+        environment['PUNCHI_BUILD_DIR'] = str(build)
         (home / 'run').mkdir()
 
         result = subprocess.run(
@@ -982,6 +1096,7 @@ def check_uninstall_cleanup_modes(root: Path) -> None:
             'TERM': 'dumb',
             'NO_COLOR': '1',
         })
+        environment['PUNCHI_BUILD_DIR'] = str(build)
         return {
             'checkout': checkout, 'build': build, 'install': install,
             'launcher': launcher, 'registration': registration,
@@ -1590,6 +1705,7 @@ def main() -> int:
     check_single_instance_guard(root, start)
     check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
     check_dependency_maps(root)
+    check_debian_backports_offer(root)
     check_dependency_report_layout(root)
     check_qt_tool_resolution(root)
     check_try_requires_checkout(root)

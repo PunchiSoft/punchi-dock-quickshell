@@ -32,6 +32,7 @@ public:
     QVariantList containers() const { return m_containers; }
     void setContainers(const QVariantList &value);
     int revision() const { return m_revision; }
+    QHash<int, QByteArray> roleNames() const override;
     Q_INVOKABLE QVariantMap get(int row) const;
     Q_INVOKABLE QVariantMap application(const QString &appId) const;
 signals:

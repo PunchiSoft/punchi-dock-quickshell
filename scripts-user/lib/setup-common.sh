@@ -22,6 +22,10 @@ if ! declare -F punchi_kde_session_detected >/dev/null 2>&1; then
     # shellcheck source=session-detect.sh
     source "$punchi_common_dir/session-detect.sh"
 fi
+if ! declare -F punchi_build_dir >/dev/null 2>&1; then
+    # shellcheck source=build-dir.sh
+    source "$punchi_common_dir/build-dir.sh"
+fi
 unset punchi_common_dir
 
 punchi_setup_cleanup_paths=()
@@ -385,10 +389,4 @@ punchi_source_checkout_available() {
     [[ -f "$punchi_project_root/CMakeLists.txt" \
         && -d "$punchi_project_root/adapters/kde/native" \
         && -d "$punchi_project_root/modules" ]]
-}
-
-punchi_build_artifacts_ready() {
-    [[ -f "$punchi_project_root/build/qml/Punchi/Kde/libpunchikdeplugin.so" \
-        && -f "$punchi_project_root/build/libpunchikde.so" \
-        && -x "$punchi_project_root/build/punchi-window-state" ]]
 }

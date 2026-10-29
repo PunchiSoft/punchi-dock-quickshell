@@ -40,7 +40,6 @@ ColumnLayout {
         objectName: root.controlName
         Layout.fillWidth: true
         stepSize: 2
-        Kirigami.StyleHints.tickMarkStepSize: -1
         Accessible.name: root.title
         Accessible.description: qsTr("%1 px").arg(Math.round(value))
         onMoved: root.moved(value)

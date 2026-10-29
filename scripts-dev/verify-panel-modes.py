@@ -13,6 +13,9 @@ import sys
 import tempfile
 import time
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_dir import resolve_build_dir  # noqa: E402
+
 
 def call(config, function, *arguments):
     return subprocess.run(['qs', 'ipc', '--path', str(config), 'call', 'dock', function,
@@ -28,11 +31,12 @@ def main():
         ]).returncode
     with tempfile.TemporaryDirectory(prefix='punchi-shell-panel-modes-') as temporary:
         config = Path(temporary)
+        artifacts = resolve_build_dir(root)
         for directory in ('components', 'config', 'services', 'modules', 'adapters', 'scripts-user'):
             shutil.copytree(root / directory, config / directory)
         (config / 'build').mkdir()
-        (config / 'build/qml').symlink_to(root / 'build/qml', target_is_directory=True)
-        (config / 'build/punchi-window-state').symlink_to(root / 'build/punchi-window-state')
+        (config / 'build/qml').symlink_to(artifacts / 'qml', target_is_directory=True)
+        (config / 'build/punchi-window-state').symlink_to(artifacts / 'punchi-window-state')
         (config / 'shell.qml').write_text('import Quickshell\nimport Quickshell.Io\n'
             'import "config"\nimport "modules/dock"\nShellRoot {\n'
             'ShellSettings { id: shellSettings }\n'
@@ -43,6 +47,8 @@ def main():
         env = os.environ.copy()
         env['WAYLAND_DEBUG'] = 'client'
         env['PUNCHI_DOCK_MODE'] = 'overlay'
+        # The probe tree is synthetic, so it names its own single build tree.
+        env['PUNCHI_BUILD_DIR'] = str(config / 'build')
         with log_path.open('w') as log:
             process = subprocess.Popen(['bash', str(config / 'scripts-user/start.sh'), 'overlay'],
                                        env=env, stdout=log, stderr=log)

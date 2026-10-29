@@ -21,6 +21,23 @@ unset punchi_install_dir
 punchi_build_worker() {
     local build_dir="${1:?build directory is required}"
     local jobs="${2:?job count is required}"
+    local variable=""
+    local cached_tool=""
+
+    # A cache written on another distribution can point at tools this system
+    # does not have, and CMake then fails before it can reconfigure.
+    if [[ -f "$build_dir/CMakeCache.txt" ]]; then
+        for variable in CMAKE_MAKE_PROGRAM CMAKE_CXX_COMPILER CMAKE_C_COMPILER; do
+            cached_tool="$(sed -n -E "s/^${variable}:FILEPATH=(.*)\$/\1/p" \
+                "$build_dir/CMakeCache.txt" 2>/dev/null | head -n 1)"
+            if [[ -n "$cached_tool" && ! -e "$cached_tool" ]]; then
+                printf 'Discarding the cached build in %s: %s points at %s\n' \
+                    "$build_dir" "$variable" "$cached_tool" >&2
+                rm -rf -- "$build_dir"
+                break
+            fi
+        done
+    fi
 
     punchi_progress_update 8 configure
     if ! cmake -S "$punchi_project_root" -B "$build_dir" -G Ninja; then
@@ -34,9 +51,24 @@ punchi_build_checkout() {
     punchi_source_checkout_available \
         || punchi_die "Build and install actions require the source checkout."
 
-    local build_dir="$punchi_project_root/build"
+    local build_dir=""
+    build_dir="$(punchi_build_dir)"
     if [[ -L "$build_dir" ]]; then
         punchi_die "Refusing a symbolic link as the build directory: $build_dir"
+    fi
+    # An override decides where a build writes and where a stale cache is
+    # removed, so it must be an absolute path outside the system locations and
+    # never a symbolic link; removing it also requires a cache of this project.
+    if [[ -n "${PUNCHI_BUILD_DIR:-}" ]]; then
+        case "$build_dir" in
+            /*) ;;
+            *) punchi_die "PUNCHI_BUILD_DIR must be an absolute path: $build_dir" ;;
+        esac
+        case "$build_dir" in
+            /|/home|/usr|/usr/local|/opt|"$HOME")
+                punchi_die "Refusing unsafe build directory: $build_dir"
+                ;;
+        esac
     fi
 
     local jobs=""
@@ -60,7 +92,7 @@ punchi_build_checkout() {
         return 1
     fi
 
-    if ! punchi_build_artifacts_ready; then
+    if ! punchi_build_artifacts_ready "$build_dir"; then
         punchi_write_failure_log "build" "$transcript" || true
         punchi_error "The build finished without the expected native artifacts."
         return 1
@@ -74,6 +106,9 @@ punchi_copy_runtime_tree() {
     local directory=""
     local file=""
     local relative=""
+    local build_dir=""
+
+    build_dir="$(punchi_build_dir_existing || punchi_build_dir)"
 
     cp -a -- "$punchi_project_root/shell.qml" "$staging/"
     for directory in modules components services config assets; do
@@ -88,9 +123,9 @@ punchi_copy_runtime_tree() {
     done < <(find "$punchi_project_root/adapters/kde" -type f -name '*.qml' -print)
 
     mkdir -p "$staging/build/qml"
-    cp -a -- "$punchi_project_root/build/qml/Punchi" "$staging/build/qml/"
-    cp -a -- "$punchi_project_root/build/libpunchikde.so" "$staging/build/"
-    cp -a -- "$punchi_project_root/build/punchi-window-state" "$staging/build/"
+    cp -a -- "$build_dir/qml/Punchi" "$staging/build/qml/"
+    cp -a -- "$build_dir/libpunchikde.so" "$staging/build/"
+    cp -a -- "$build_dir/punchi-window-state" "$staging/build/"
     cp -a -- "$punchi_project_root/scripts-user" "$staging/"
     for file in README.md LICENSE NOTICE.md CHANGELOG.md CONTRIBUTING.md SECURITY.md; do
         [[ -f "$punchi_project_root/$file" ]] \
@@ -462,9 +497,15 @@ punchi_remove_installed_files() {
 }
 
 punchi_remove_build_output() {
-    local build_dir="$punchi_project_root/build"
+    local build_dir="${1:-}"
     local cached_source=""
 
+    if [[ -z "$build_dir" ]]; then
+        build_dir="$(punchi_build_dir_existing)" || true
+        if [[ -z "$build_dir" ]]; then
+            build_dir="$(punchi_build_dir)"
+        fi
+    fi
     if [[ ! -e "$build_dir" && ! -L "$build_dir" ]]; then
         punchi_info "No build output was found in $build_dir."
         return 0

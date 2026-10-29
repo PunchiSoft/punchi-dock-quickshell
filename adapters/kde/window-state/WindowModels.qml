@@ -20,8 +20,10 @@ QtObject {
         groupMode: TaskManager.TasksModel.GroupDisabled
         filterMinimized: false
         filterHidden: false
-        filterByVirtualDesktop: false
-        filterByCurrentVirtualDesktop: true
+        // Follows the active desktop without Plasma 6.7's
+        // filterByCurrentVirtualDesktop, which earlier releases lack.
+        filterByVirtualDesktop: true
+        virtualDesktop: root.virtualDesktopInfo.currentDesktop
         filterByActivity: true
         activity: root.activityInfo.currentActivity
     }
@@ -30,7 +32,8 @@ QtObject {
         groupMode: TaskManager.TasksModel.GroupDisabled
         filterMinimized: true
         filterHidden: true
-        filterByCurrentVirtualDesktop: true
+        filterByVirtualDesktop: true
+        virtualDesktop: root.virtualDesktopInfo.currentDesktop
         filterByActivity: true
         activity: root.activityInfo.currentActivity
     }

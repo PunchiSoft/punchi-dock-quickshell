@@ -128,6 +128,9 @@ show_header() {
         punchi_warning 'Session: KDE Plasma/KWin not detected (required)'
     fi
     printf 'Install root: %s\n' "$install_root"
+    if punchi_source_checkout_available; then
+        printf 'Build output: %s\n' "$(punchi_build_dir)"
+    fi
     if [[ -n "$installed_version" ]]; then
         if punchi_source_checkout_available && [[ "$installed_version" != "$version" ]]; then
             punchi_warning "Installed copy: $installed_version (outdated; source is $version)"
@@ -427,8 +430,10 @@ punchi_action_uninstall() {
     punchi_warning "Uninstall will stop this project's checkout and installed copies,"
     punchi_warning "restore owned KWin settings, and remove:"
     printf '  - %s\n' "$install_root"
+    local build_dir=""
+    build_dir="$(punchi_build_dir_existing)" || build_dir="$(punchi_build_dir)"
     if (( PUNCHI_REMOVE_BUILD == 1 )) && punchi_source_checkout_available; then
-        printf '  - %s\n' "$punchi_project_root/build"
+        printf '  - %s\n' "$build_dir"
     fi
 
     punchi_choose_cleanup_mode
@@ -451,9 +456,9 @@ punchi_action_uninstall() {
         fi
 
         if (( PUNCHI_REMOVE_BUILD == 0 )) && punchi_source_checkout_available \
-            && [[ -d "$punchi_project_root/build" ]] \
+            && [[ -d "$build_dir" ]] \
             && [[ -t 0 ]] && [[ "${PUNCHI_ASSUME_YES:-0}" != "1" ]]; then
-            if punchi_confirm "Also remove the source checkout's build/ directory? [y/N]: " n; then
+            if punchi_confirm "Also remove the source checkout's build output ($build_dir)? [y/N]: " n; then
                 PUNCHI_REMOVE_BUILD=1
             fi
         fi

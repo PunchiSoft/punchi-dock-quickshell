@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
-for punchi_library in session-detect notice-dialog; do
+for punchi_library in session-detect notice-dialog build-dir; do
     if [[ ! -r "$project_root/scripts-user/lib/$punchi_library.sh" ]]; then
         printf 'Punchi Dock Quickshell is incomplete: scripts-user/lib/%s.sh is missing. Reinstall it.\n' \
             "$punchi_library" >&2
@@ -14,6 +14,8 @@ unset punchi_library
 source "$project_root/scripts-user/lib/session-detect.sh"
 # shellcheck source=lib/notice-dialog.sh
 source "$project_root/scripts-user/lib/notice-dialog.sh"
+# shellcheck source=lib/build-dir.sh
+source "$project_root/scripts-user/lib/build-dir.sh"
 usage() {
     printf '%s\n' 'Usage: start.sh [reserve|autohide|dodge-windows|overlay]'
     printf '%s\n' 'Starts Punchi Dock Quickshell in the foreground. Plasma stays running.'
@@ -140,22 +142,25 @@ if existing_root="$(existing_registration_root)"; then
 fi
 
 export PUNCHI_DOCK_MODE="$panel_mode"
-qml_root="$project_root/build/qml"
+build_dir="$(punchi_build_dir_existing)" || build_dir="$(punchi_build_dir)"
+qml_root="$build_dir/qml"
 if [[ ! -f "$qml_root/Punchi/Kde/libpunchikdeplugin.so" ]]; then
     qml_root="$project_root/qml"
 fi
 if [[ ! -f "$qml_root/Punchi/Kde/libpunchikdeplugin.so" ]]; then
-    printf '%s\n' 'Build the KDE launcher first: cmake -S . -B build && cmake --build build' >&2
+    printf 'Build the KDE launcher first: cmake -S . -B %s && cmake --build %s\n' \
+        "$build_dir" "$build_dir" >&2
     exit 1
 fi
 # The plugin loads this library from a relative path; a build that was only
 # partially replaced would otherwise fail later with a missing QML type.
 if [[ ! -f "$qml_root/Punchi/Kde/libpunchikde.so" \
-    && ! -f "$project_root/build/libpunchikde.so" ]]; then
-    printf '%s\n' 'The native QML library is missing. Rebuild and reinstall: cmake --build build' >&2
+    && ! -f "$build_dir/libpunchikde.so" ]]; then
+    printf 'The native QML library is missing. Rebuild and reinstall: cmake --build %s\n' \
+        "$build_dir" >&2
     exit 1
 fi
-backend="$project_root/build/punchi-window-state"
+backend="$build_dir/punchi-window-state"
 if [[ ! -x "$backend" ]]; then
     backend="$project_root/../../libexec/punchi-dock-quickshell/punchi-window-state"
 fi
@@ -163,7 +168,8 @@ if [[ ! -x "$backend" ]]; then
     backend="$project_root/../../lib/punchi-dock-quickshell/punchi-window-state"
 fi
 if [[ ! -x "$backend" ]]; then
-    printf '%s\n' 'Build the KDE window backend first: cmake -S . -B build && cmake --build build' >&2
+    printf 'Build the KDE window backend first: cmake -S . -B %s && cmake --build %s\n' \
+        "$build_dir" "$build_dir" >&2
     exit 1
 fi
 export QML_IMPORT_PATH="$qml_root${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"

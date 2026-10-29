@@ -34,12 +34,18 @@ compositor's rules, and without a dialog tool the application-menu launcher
 still shows its own notification. `PUNCHI_ALLOW_NON_KDE=1` skips the guard, and
 `PUNCHI_NOTICE_DIALOG=0|1` forces the dialog off or on. Install/build offer to
 install missing dependencies for the detected distribution and write a
-timestamped build-failure log under the user's Documents directory.
+timestamped build-failure log under the user's Documents directory. On Debian,
+when Quickshell has no apt candidate, the offer asks once before enabling the
+matching `<codename>-backports` suite and installing it from there; declining
+keeps the other missing packages installable.
 
 Install and build report each phase (`[i/N] ✓ Label: State`) and run the long
 steps behind one animated progress line that is rewritten in place. Output is
 still captured, and a failed step prints its last lines before the failure log
-is written. The dependency check uses the same line while it collects the
+is written. Every build writes to its own tree, `build-<distribution ID>` (for
+example `build-debian`), so a checkout tested on several systems never reuses
+another one's objects or CMake cache; a plain `build/` is still read when it is
+the only complete tree. `PUNCHI_BUILD_DIR` overrides the location. The dependency check uses the same line while it collects the
 report, then replays the captured listing so the result stays on screen. Inside
 the build and trial phases that listing is a summary: one row per section with
 ready counts, expanding only the missing items and omitting the check title, the

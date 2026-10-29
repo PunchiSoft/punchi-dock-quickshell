@@ -5,12 +5,16 @@
 from pathlib import Path
 import os
 import subprocess
+import sys
 import tempfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts-dev'))
+from build_dir import resolve_build_dir  # noqa: E402
 
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
-    build = root / 'build'
+    build = resolve_build_dir(root)
     if not (build / 'punchi-window-state').is_file():
         print('Build artifacts are unavailable; run this test after building.')
         return 0

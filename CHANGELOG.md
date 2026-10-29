@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+- Correct the Debian runtime package mappings, recognize Quickshell installed
+  outside package management and install it from Debian backports.
+  `scripts-user/lib/setup-deps.sh` checks Debian 13's actual package names
+  (`qml6-module-org-kde-desktop`, `libkf6service-bin`, and
+  `libplasmaactivitiesstats1`) instead of unverified placeholders, treats the
+  Quickshell package as satisfied whenever `qs` is already on PATH, and, when
+  Debian has no Quickshell candidate in the configured suites, offers to enable
+  the matching `<codename>-backports` source with an explicit confirmation
+  before installing it. Declining that offer keeps the other missing packages
+  installable because a package without a candidate no longer aborts the whole
+  `apt-get` call.
+- Load the dock on the KDE stack Debian 13 ships. `CMakeLists.txt` requires
+  KF6WindowSystem 6.13 and `DesktopLauncher` falls back to
+  `KWaylandExtras::requestXdgActivationToken()` until 6.19 provides
+  `xdgActivationToken()`, `DockItemCatalog` publishes its own role names because
+  Qt 6.8's `QConcatenateTablesProxyModel` has none, and `UpdateState` skips the
+  PackageKit and fwupd queries when the system bus is unavailable. The settings
+  sliders drop `Kirigami.StyleHints`, which only exists from Kirigami 6.24;
+  its default already disables tick marks, so nothing visual changes.
+  `WindowModels.qml` follows the active desktop through
+  `filterByVirtualDesktop` and `VirtualDesktopInfo.currentDesktop`, available
+  from Plasma 6.3, instead of Plasma 6.7's `filterByCurrentVirtualDesktop`.
+- Keep one build tree per distribution. The setup, the start script, the restore
+  script, the developer scripts and the tests resolve `build-<ID>` (for example
+  `build-debian`) and fall back to a plain `build/` only when it is the only
+  complete tree, so testing several systems never reuses another one's objects
+  or CMake cache. `PUNCHI_BUILD_DIR` overrides the location and is validated
+  before it is used or removed, `scripts-user/lib/build-dir.sh` owns the rule,
+  and a stale cache naming a tool this system lacks is discarded before CMake
+  reconfigures.
 - Offer the recent applications as a container. **Presentation** in General now
   chooses between the extra launchers and one item with the fixed `folder-temp`
   glyph that opens a container with the same entries; the container is the new
