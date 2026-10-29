@@ -165,9 +165,15 @@ TestCase {
         const content = window.popup.contentItem
         const list = findChild(content, "recentApplicationsList")
         tryCompare(list, "count", 3)
-        tryVerify(function() { return findChild(list, "recentApplicationRow-1") !== null })
+        // The list builds its delegates asynchronously, so the reference is
+        // captured by the wait instead of resolved again before the click.
+        let row = null
+        tryVerify(function() {
+            row = findChild(list, "recentApplicationRow-1")
+            return row !== null
+        }, 5000, "the recent application row is listed")
         activationSpy.clear()
-        mouseClick(findChild(list, "recentApplicationRow-1"))
+        mouseClick(row)
         compare(activationSpy.count, 1)
         compare(activationSpy.signalArguments[0][0], "desktop:org.kde.gwenview.desktop")
         window.close()

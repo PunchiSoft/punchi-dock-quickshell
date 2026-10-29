@@ -41,6 +41,20 @@ session; visual approval requires inspection, not merely frame rendering.
 Each test owns temporary data and cleans processes, caches, and sockets even
 on signal/timeout. Preserve behavioral assertions and record unavailable checks.
 
+An interaction waits for observable state, never for wall-clock time. A wait that
+resolves a delegate (`findChild(...) !== null`) captures the reference inside the
+wait, because an asynchronously rebuilt model can drop the delegate between a
+lookup and its use. A wait on state that crosses a process, a bus, or a service
+declares its own budget below the 35-second isolated-runner deadline, and a failed
+`verify` states what did not happen. `test_timing_contract` enforces the delegate
+rule and the budget; it has no baseline, so a hit is fixed in the test.
+
+A flaky test is stabilized, not retried and not quarantined by default.
+`tests/flaky-tests.json` stays empty; an entry needs an open issue, a written
+reason and an expiry date, and `flaky_quarantine` fails once that date passes. The
+CI run excludes quarantined tests from the blocking selection and re-runs them
+where a failure warns instead of failing the pipeline.
+
 A documentation-only change runs no test. READMEs, `docs/`, `AGENTS.md`, the
 changelog and skill prose are observed by no test, so a green suite is not
 evidence about them and an unbuilt tree is not a failure of the change. Add only

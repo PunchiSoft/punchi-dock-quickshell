@@ -13,6 +13,9 @@
 #                 bash /work/scripts-dev/ci-headless.sh'
 #
 # Set PUNCHI_SKIP_PACKAGES=1 to reuse an image that already has the packages.
+# PUNCHI_JUNIT names a repository-relative JUnit report, PUNCHI_CTEST_REGEX and
+# PUNCHI_CTEST_REPEAT select and repeat tests, and tests/flaky-tests.json keeps
+# quarantined tests out of the blocking run.
 
 set -euo pipefail
 
@@ -64,12 +67,56 @@ if [[ "${EUID}" -eq 0 ]]; then
     tar -C "$repo_root" --exclude=./build --exclude='./build-*' --exclude=./.git \
         --exclude=./docs --exclude=./scratch -cf - . | tar -xf - -C "$workspace"
     chown -R punchi: "$workspace"
-    exec runuser -u punchi -- env HOME=/home/punchi PUNCHI_SKIP_PACKAGES=1 \
-        bash "$workspace/scripts-dev/ci-headless.sh"
+    status=0
+    runuser -u punchi -- env HOME=/home/punchi PUNCHI_SKIP_PACKAGES=1 \
+        bash "$workspace/scripts-dev/ci-headless.sh" || status=$?
+    # The tests wrote their report inside the copy, and the mounted checkout is
+    # where the workflow collects it, so it comes back here.
+    if [[ -n "${PUNCHI_JUNIT:-}" && -f "$workspace/$PUNCHI_JUNIT" ]]; then
+        mkdir -p "$repo_root/${PUNCHI_JUNIT%/*}"
+        cp "$workspace/$PUNCHI_JUNIT" "$repo_root/$PUNCHI_JUNIT"
+    fi
+    exit "$status"
 fi
 
 cd "$repo_root"
 cmake --preset dev
 cmake --build --preset dev
 ruff check tests scripts-dev
-ctest --preset headless
+
+# Quarantined tests are excluded from the blocking run and re-run on their own, so
+# a known flake reports itself without hiding a regression.
+quarantined="$(python3 - <<'PYTHON'
+import json
+from pathlib import Path
+entries = json.loads(Path('tests/flaky-tests.json').read_text())['quarantined']
+print('|'.join(entry['test'] for entry in entries))
+PYTHON
+)"
+
+ctest_args=(--test-dir build/dev --output-on-failure)
+if [[ -n "${PUNCHI_JUNIT:-}" ]]; then
+    # CTest resolves a relative report path inside the build directory, so the
+    # repository-relative name is made absolute here.
+    junit_report="$repo_root/$PUNCHI_JUNIT"
+    mkdir -p "${junit_report%/*}"
+    ctest_args+=("--output-junit" "$junit_report")
+fi
+if [[ -n "${PUNCHI_CTEST_REGEX:-}" ]]; then
+    ctest_args+=(-R "$PUNCHI_CTEST_REGEX")
+else
+    ctest_args+=(-L 'unit|qml')
+    if [[ -n "$quarantined" ]]; then
+        ctest_args+=(-E "$quarantined")
+    fi
+fi
+if [[ -n "${PUNCHI_CTEST_REPEAT:-}" ]]; then
+    ctest_args+=("--repeat" "$PUNCHI_CTEST_REPEAT")
+fi
+ctest "${ctest_args[@]}"
+
+if [[ -n "$quarantined" ]]; then
+    echo "Quarantined tests (non-blocking): $quarantined"
+    ctest --test-dir build/dev --output-on-failure -R "$quarantined" \
+        --repeat until-pass:2 || echo "::warning::a quarantined test failed; see tests/flaky-tests.json"
+fi
