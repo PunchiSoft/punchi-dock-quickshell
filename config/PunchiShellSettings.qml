@@ -58,6 +58,25 @@ QtObject {
             recentApplicationsContainerLayout = defaultProfile.recentApplicationsContainerLayout
     }
     property bool updateBadgeEnabled: defaultProfile.updateBadgeEnabled
+    // Fullscreen menu. The opacity keeps the original floor so the desktop never
+    // shows through enough to make the grid unreadable, and the icon scale stays
+    // inside the range the tile can render without upscaling.
+    property real menuBackgroundOpacity: defaultProfile.menuBackgroundOpacity
+    property bool menuBackgroundBlurEnabled: defaultProfile.menuBackgroundBlurEnabled
+    property bool menuShowDistributionName: defaultProfile.menuShowDistributionName
+    property bool menuShowPageArrows: defaultProfile.menuShowPageArrows
+    property bool menuShowLabels: defaultProfile.menuShowLabels
+    property real menuIconScale: defaultProfile.menuIconScale
+    property string menuCloseButtonPosition: defaultProfile.menuCloseButtonPosition
+    property string menuHoverAnimation: defaultProfile.menuHoverAnimation
+    onMenuHoverAnimationChanged: {
+        if (["none", "individual", "pulse", "bounce"].indexOf(menuHoverAnimation) < 0)
+            menuHoverAnimation = defaultProfile.menuHoverAnimation
+    }
+    onMenuCloseButtonPositionChanged: {
+        if (["left", "right"].indexOf(menuCloseButtonPosition) < 0)
+            menuCloseButtonPosition = defaultProfile.menuCloseButtonPosition
+    }
     // Popup presentation for the folder containers. The dock menus share the
     // same visual language but keep the platform sizes. The scale multiplies the
     // row and cell sizes, the first icon size is the base glyph of a folder grid,
@@ -259,13 +278,15 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 13, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
+        return {version: 14, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
             desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
             avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount, recentApplicationsPresentation, recentApplicationsContainerLayout,
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
-            popupHeightPercent}
+            popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
+            menuShowDistributionName, menuShowPageArrows, menuShowLabels, menuIconScale,
+            menuCloseButtonPosition, menuHoverAnimation}
     }
     function validPopupIconSize(value, maximum): bool {
         return value === 0 || (Number.isInteger(value) && value >= popupIconSizeMinimum
@@ -278,7 +299,7 @@ QtObject {
         bulkChange = true
         let applied = false
         try {
-            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13].indexOf(data.version) < 0) return false
+            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].indexOf(data.version) < 0) return false
             const hasLegacyDownloadsView = PunchiDockItemIds.validLayout(data.downloadsView)
             const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
             if (PunchiDockItemIds.validContainers(data.containers)) {
@@ -325,8 +346,19 @@ QtObject {
                 popupFanIconSize = data.popupFanIconSize
             if (inRange(data.popupHeightPercent, PunchiDefaultProfile.limits.popupHeightPercent, true))
                 popupHeightPercent = data.popupHeightPercent
+            if (inRange(data.menuBackgroundOpacity,
+                    PunchiDefaultProfile.limits.menuBackgroundOpacity, false))
+                menuBackgroundOpacity = data.menuBackgroundOpacity
+            if (inRange(data.menuIconScale, PunchiDefaultProfile.limits.menuIconScale, false))
+                menuIconScale = data.menuIconScale
+            if (["left", "right"].indexOf(data.menuCloseButtonPosition) >= 0)
+                menuCloseButtonPosition = data.menuCloseButtonPosition
+            if (["none", "individual", "pulse", "bounce"].indexOf(data.menuHoverAnimation) >= 0)
+                menuHoverAnimation = data.menuHoverAnimation
             for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled",
-                    "recentApplicationsEnabled", "updateBadgeEnabled"])
+                    "recentApplicationsEnabled", "updateBadgeEnabled",
+                    "menuBackgroundBlurEnabled", "menuShowDistributionName",
+                    "menuShowPageArrows", "menuShowLabels"])
                 if (typeof data[key] === "boolean") this[key] = data[key]
             if (inRange(data.recentApplicationsCount,
                     PunchiDefaultProfile.limits.recentApplicationsCount, true))

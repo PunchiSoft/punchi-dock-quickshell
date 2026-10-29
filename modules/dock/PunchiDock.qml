@@ -34,6 +34,8 @@ PanelWindow {
     PunchiDockConfigurationController { hostWindow: root; active: root.configuring
         visibilityProperty: "requestedVisible" }
     signal settingsRequested()
+    // The dock owns the click; the shell decides which surface answers it.
+    signal menuRequested(string screenKey)
     signal applicationLaunchFinished(string desktopId, bool success, string error)
 
     // The user-close action unmaps the window. Placement policy keeps the
@@ -520,6 +522,14 @@ PanelWindow {
         onSettingsRequested: root.settingsRequested()
         onItemActivated: function(appId) {
             contextMenu.dismiss()
+            // The menu leader opens the fullscreen menu instead of launching an
+            // application; the controller decides which screen owns it.
+            if (appId === "item:menu") {
+                folderPopup.dismiss()
+                recentPopup.dismiss()
+                root.menuRequested(root.screen ? root.screen.name : "")
+                return
+            }
             const container = root.settings.container(appId)
             const tile = view.itemForId(appId)
             // Enter on a focused launcher keeps its band; a pointer click does not

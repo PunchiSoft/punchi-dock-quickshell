@@ -117,7 +117,7 @@ TestCase {
         compare(settings.pinnedIds[settings.pinnedIds.length-1],"item:trash")
         verify(settings.restore({version:1,pinnedIds:["files","browser"]}))
         compare(settings.pinnedIds,["files","browser","item:downloads","item:trash"])
-        compare(settings.snapshot().version, 13)
+        compare(settings.snapshot().version, 14)
         compare(settings.snapshot().containers.length,2)
         compare(settings.snapshot().containers[0].id,"downloads")
         compare(settings.snapshot().containers[1].id,"home")

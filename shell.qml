@@ -8,6 +8,7 @@ import Quickshell
 import "config"
 import Punchi.Kde as Native
 import "modules/dock"
+import "modules/menu"
 import "modules/settings"
 import "services"
 
@@ -26,6 +27,9 @@ ShellRoot {
     }
     // One catalog, window backend and update tracker serve every dock window.
     PunchiDockServices { id: dockServices; settings: shellSettings }
+    // One owner decides which screen holds the fullscreen menu, so the
+    // dock item, the IPC commands and the surfaces never disagree.
+    PunchiMenuController { id: menuController }
     Native.ScreenInfo { id: screenInfo }
     PunchiScreenPolicy {
         id: screenPolicy
@@ -38,6 +42,19 @@ ShellRoot {
         settings: shellSettings
         runningApplications: dockServices.runningApplications
     }
+    // One menu surface per screen; the controller decides which one is open.
+    Variants {
+        id: menuWindows
+        model: Quickshell.screens
+        delegate: PunchiMenuWindow {
+            property var modelData
+            screen: modelData
+            settings: shellSettings
+            menuController: menuController
+            applications: dockServices.catalog
+            distribution: dockServices.distribution
+        }
+    }
     Variants {
         id: dockWindows
         model: Quickshell.screens
@@ -49,10 +66,12 @@ ShellRoot {
             screen: modelData
             configuring: settingsWindow.visible
             onSettingsRequested: settingsWindow.open()
+            onMenuRequested: function(screenKey) { menuController.toggle(screenKey) }
         }
     }
     PunchiDockIpc {
         docks: dockWindows.instances
+        menuController: menuController
         settings: shellSettings
         primaryScreenName: screenPolicy.primaryScreenName
         onSettingsRequested: settingsWindow.open()

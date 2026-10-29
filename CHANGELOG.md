@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+- Add the fullscreen application menu (`PunchiMenu`) as an overlay layer
+  surface, one per screen. `PunchiMenuController` decides which screen owns the
+  open surface, so the dock item, `qs ipc call dock menuToggle` and the surfaces
+  never disagree. The surface pre-exists per screen, so opening never constructs
+  the menu inside the click, and the neighbouring pages are cached 600 ms after
+  the first frame. `PunchiMenuState` owns the query, the page and the keyboard
+  selection; the grid pages 4-8 columns by 3-5 rows with snap, arrows and the
+  wheel, and every cell carries the four hover modes of the original menu
+  (`none`, `individual`, `pulse`, `bounce`).
+- The menu leads the dock. `DockApplicationsModel` prepends a fixed `item:menu`
+  row before the pinned applications, and the row is excluded from the trailing
+  special-item reordering, so the first slot cannot be taken by a later pin or
+  by a running application.
+- Menu settings live in their own settings category instead of inside the menu:
+  a Plasma applet had to embed its settings view, and this shell does not. The
+  profile gains `menuBackgroundOpacity`, `menuBackgroundBlurEnabled`,
+  `menuShowDistributionName`, `menuShowPageArrows`, `menuShowLabels`,
+  `menuIconScale`, `menuCloseButtonPosition` and `menuHoverAnimation`, with the
+  schema moved to version 14 and the same range validation as the rest.
+- `PunchiDistributionInfo` (KOSRelease) supplies the header identity that
+  Quickshell does not expose.
 - Rename every QML type under `components/`, `config/`, `services/`, `modules/`
   and `adapters/` to the `Punchi` convention, and empty the naming baseline. The
   dock item family becomes `PunchiDockTile`, `PunchiDockBadge`, `PunchiDockTooltip`,

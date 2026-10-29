@@ -13,6 +13,8 @@ Scope {
     id: root
     required property var docks
     required property PunchiShellSettings settings
+    // Owner of the fullscreen menu; empty until the shell composes it.
+    property var menuController: null
     // Preferred target for the legacy commands. Empty until the screen policy
     // reports the system primary screen.
     property string primaryScreenName: ""
@@ -73,6 +75,23 @@ Scope {
         function focusFor(screenKey: string): bool {
             const dock = root.dockFor(screenKey)
             return dock ? dock.focus() : false
+        }
+        // Menu commands resolve against the controller, so they work even when
+        // the menu is the only surface the session asked for.
+        function menuOpen(screenKey: string): bool {
+            const target = screenKey.length > 0 ? screenKey : root.primaryScreenName
+            return root.menuController ? root.menuController.open(target) : false
+        }
+        function menuClose(): bool {
+            return root.menuController ? root.menuController.close() : false
+        }
+        function menuToggle(screenKey: string): bool {
+            const target = screenKey.length > 0 ? screenKey : root.primaryScreenName
+            return root.menuController ? root.menuController.toggle(target) : false
+        }
+        function menuState(): string {
+            return JSON.stringify({screenKey: root.menuController
+                ? root.menuController.openScreenKey : ""})
         }
     }
 }

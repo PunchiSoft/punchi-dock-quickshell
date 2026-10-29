@@ -4,6 +4,7 @@ import QtQml
 import Quickshell
 import Punchi.Kde as Native
 import "../../config"
+import "../../adapters/kde"
 import "../../config/PunchiRecentPresentation.js" as PunchiRecentPresentation
 import "../../services"
 
@@ -23,6 +24,7 @@ Scope {
     readonly property alias dockItems: dockItems
     readonly property alias minimizeEffects: minimizeEffects
     readonly property alias clipboard: clipboard
+    readonly property alias distribution: distributionInfo
 
     PunchiApplicationCatalog { id: availableApps }
     Native.DockItemCatalog {
@@ -50,6 +52,10 @@ Scope {
     }
     Native.DockApplicationsModel {
         id: dockItems
+        // The menu leads the dock. Its title is the only state it needs, and the
+        // dock window turns a click on it into the open intent.
+        leadingTitle: qsTr("Menu")
+        leadingIcon: "start-here-kde"
         pinned: fixtureModel
         catalog: itemCatalog
         recent: recentApplications.selection
@@ -70,4 +76,5 @@ Scope {
     }
     Native.KWinMinimizeEffectController { id: minimizeEffects }
     PunchiClipboardService { id: clipboard }
+    PunchiDistributionInfo { id: distributionInfo }
 }
