@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import QtTest
+import org.kde.kirigami as Kirigami
 import "../../modules/menu"
 
 TestCase {
@@ -74,5 +75,20 @@ TestCase {
         mouseMove(tile, 10, 10)
         tryCompare(highlight, "hovered", true)
         compare(highlight.scale, 1.0)
+    }
+
+    function test_iconKeepsItsRequestedSizeBeforeTheCellIsLaidOut() {
+        const tile = createTemporaryObject(fixture, test)
+        verify(tile !== null)
+        // A cell without a width must not collapse the icon to one pixel: Qt's
+        // SVG renderer reports that raster as an oversized buffer.
+        tile.width = 0
+        tryCompare(tile, "availableWidth", 0)
+        compare(tile.iconPixels, tile.iconSize)
+        // Once the cell has a width the icon never exceeds it.
+        tile.width = 120
+        tryCompare(tile, "availableWidth", 120 - Kirigami.Units.gridUnit)
+        verify(tile.iconPixels <= tile.availableWidth)
+        compare(tile.contentWidth, tile.availableWidth)
     }
 }

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Draw the menu close control with the user's window decoration. A fixed
+  symbolic icon vanished under icon themes that do not ship it, so
+  `PunchiDecorationButtonProvider` reads the selected Aurorae theme from
+  `kwinrc`, validates the `close`/`minimize`/`maximize`/`restore` resources and
+  publishes their paths and button size. `PunchiDecorationButton` renders those
+  buttons with the decoration's own states and falls back to a theme icon, so the
+  control is never invisible. The same component serves the future thumbnail
+  views.
 - Add the fullscreen application menu (`PunchiMenu`) as an overlay layer
   surface, one per screen. `PunchiMenuController` decides which screen owns the
   open surface, so the dock item, `qs ipc call dock menuToggle` and the surfaces
@@ -19,6 +27,17 @@
   it back to the keyboard, so hover and the keyboard cursor never paint two
   bands at once. Hover still shows the hand cursor and the configured hover
   animation; `emphasis_contract` now gates `PunchiMenuHighlight` as well.
+- The menu grid follows the Launchpad reference: seven columns by five rows,
+  a cell-derived icon size and one-line labels, with the search field at a
+  fifth of the width. The surface no longer assigns `exclusiveZone`, which
+  forced `ExclusionMode.Normal` and kept the menu inside the area the dock
+  reserved instead of covering the screen.
+- The first open of the grid no longer prints
+  `qt.svg.draw: The requested buffer size is too big, ignoring`. The buffer was
+  not large but degenerate: a cell reached its icon before it had a width, so
+  `PunchiMenuTile` rasterized the theme icon at one pixel and Qt mapped the
+  icon's SVG filter region onto a `1x0` rectangle. The icon now keeps its
+  requested size until the cell can bound it.
 - The menu leads the dock. `DockApplicationsModel` prepends a fixed `item:menu`
   row before the pinned applications, and the row is excluded from the trailing
   special-item reordering, so the first slot cannot be taken by a later pin or
