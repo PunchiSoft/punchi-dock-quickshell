@@ -4,36 +4,40 @@ import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 
-// One application cell. Hover, press and selection are separate inputs so the
-// pointer never looks like the keyboard cursor, and the hover animation is the
-// same four-mode behaviour the original menu offered.
+// One application cell. The surface decides which modality owns the single
+// emphasis band, so this cell never paints hover and keyboard selection at the
+// same time; the pointer still gets its hand cursor and its hover animation.
 Item {
     id: root
 
     required property string title
     required property string iconName
     property bool selected: false
+    // Published by the surface: true while the pointer moved last.
+    property bool pointerEmphasis: true
     property bool motionEnabled: true
     property bool showLabel: true
     property string hoverAnimation: "pulse"
     property int iconSize: Kirigami.Units.iconSizes.huge
 
-    readonly property bool hovered: pointer.containsMouse
-    readonly property real labelHeight: root.showLabel
-        ? Math.ceil(Kirigami.Theme.defaultFont.pixelSize * 2.4) : 0
+    readonly property bool hovered: pointer.containsMouse && root.pointerEmphasis
 
     signal activated()
+    // The pointer entered this cell; the surface turns it into the current row so
+    // exactly one band is painted.
+    signal pointerEntered()
 
     Accessible.role: Accessible.Button
     Accessible.name: root.title
     Accessible.description: qsTr("Open %1").arg(root.title)
+    Accessible.focused: root.selected && !root.pointerEmphasis
     Accessible.onPressAction: root.activated()
 
     PunchiMenuHighlight {
         id: highlight
         anchors.fill: parent
-        hovered: root.hovered
-        selected: root.selected
+        hovered: root.hovered && root.pointerEmphasis
+        selected: root.selected && !root.pointerEmphasis
         pressed: pointer.pressed
         motionEnabled: root.motionEnabled
         animationMode: root.hoverAnimation
@@ -54,7 +58,8 @@ Item {
             Controls.Label {
                 visible: root.showLabel
                 width: parent.width
-                height: root.labelHeight
+                height: root.showLabel
+                    ? Math.ceil(Kirigami.Theme.defaultFont.pixelSize * 2.4) : 0
                 text: root.title
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideMiddle
@@ -69,8 +74,11 @@ Item {
 
     MouseArea {
         id: pointer
+        objectName: "menuTilePointer"
         anchors.fill: parent
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onEntered: root.pointerEntered()
         onClicked: root.activated()
     }
 }

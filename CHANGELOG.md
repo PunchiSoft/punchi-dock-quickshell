@@ -14,6 +14,11 @@
   through its `count`/`get` model interface, so an installed application list
   reaches the grid instead of an empty page, and the close affordance is
   pinned to the surface corner of `menuCloseButtonPosition`.
+- The menu keeps one emphasis band. The grid owns `pointerEmphasis`, real
+  pointer motion hands the band to the pointer and the next key press hands
+  it back to the keyboard, so hover and the keyboard cursor never paint two
+  bands at once. Hover still shows the hand cursor and the configured hover
+  animation; `emphasis_contract` now gates `PunchiMenuHighlight` as well.
 - The menu leads the dock. `DockApplicationsModel` prepends a fixed `item:menu`
   row before the pinned applications, and the row is excluded from the trailing
   special-item reordering, so the first slot cannot be taken by a later pin or

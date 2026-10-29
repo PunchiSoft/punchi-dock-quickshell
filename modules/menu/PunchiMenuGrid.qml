@@ -17,6 +17,11 @@ FocusScope {
     property bool showPageArrows: true
     property real iconScale: 1.0
     property string hoverAnimation: "pulse"
+    // Which modality owns the single band. The pointer owns it while it moves
+    // over the surface; the next key press hands it back to the keyboard, so two
+    // tiles never paint a band at the same time.
+    property bool pointerEmphasis: true
+    property point lastPointerPosition: Qt.point(-1, -1)
     // The surface states whether it is on screen. The page cache is only warmed
     // once the menu is actually visible, so the opening gesture never pays the
     // construction of the neighbouring pages.
@@ -35,6 +40,21 @@ FocusScope {
     readonly property real pageWidth: Math.max(1, pagesView.width)
 
     signal launchRequested(int index)
+
+    HoverHandler {
+        id: surfacePointer
+        onPointChanged: {
+            const position = point.position
+            if (position.x === root.lastPointerPosition.x
+                    && position.y === root.lastPointerPosition.y) return
+            root.lastPointerPosition = position
+            root.pointerEmphasis = true
+        }
+    }
+
+    function takeKeyboardEmphasis(): void {
+        root.pointerEmphasis = false
+    }
 
     function syncPage(): void {
         if (!root.menuState) return
@@ -123,6 +143,7 @@ FocusScope {
                             showLabel: root.showLabels
                             motionEnabled: root.motionEnabled
                             hoverAnimation: root.hoverAnimation
+                            onPointerEntered: if (root.state) root.state.currentIndex = absoluteIndex
                             iconSize: root.iconSize
                             selected: root.menuState && root.menuState.currentIndex === absoluteIndex
                             onActivated: root.launchRequested(absoluteIndex)

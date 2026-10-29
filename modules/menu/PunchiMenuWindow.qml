@@ -176,11 +176,12 @@ PanelWindow {
         }
 
         Keys.onEscapePressed: root.menuController.close()
-        Keys.onLeftPressed: menuState.moveHorizontal(-1)
-        Keys.onRightPressed: menuState.moveHorizontal(1)
-        Keys.onUpPressed: menuState.moveVertical(-1)
-        Keys.onDownPressed: menuState.moveVertical(1)
+        Keys.onLeftPressed: { grid.takeKeyboardEmphasis(); menuState.moveHorizontal(-1) }
+        Keys.onRightPressed: { grid.takeKeyboardEmphasis(); menuState.moveHorizontal(1) }
+        Keys.onUpPressed: { grid.takeKeyboardEmphasis(); menuState.moveVertical(-1) }
+        Keys.onDownPressed: { grid.takeKeyboardEmphasis(); menuState.moveVertical(1) }
         Keys.onPressed: function(event) {
+            grid.takeKeyboardEmphasis()
             if (event.key === Qt.Key_PageDown) { menuState.selectPage(1); event.accepted = true }
             else if (event.key === Qt.Key_PageUp) { menuState.selectPage(-1); event.accepted = true }
             else if (event.key === Qt.Key_Home) { menuState.selectFirst(); event.accepted = true }
