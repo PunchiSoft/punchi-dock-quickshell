@@ -114,7 +114,7 @@ TestCase {
         settings.popupFanIconSize = 34
         settings.popupHeightPercent = 50
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 13)
+        compare(data.version, 14)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.popupScale, 1.15)
@@ -148,7 +148,7 @@ TestCase {
         settings.recentApplicationsContainerLayout = "fan"
         compare(settings.effectiveRecentApplicationsLayout, "fan")
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 13)
+        compare(data.version, 14)
         compare(data.recentApplicationsPresentation, "icons")
         compare(data.recentApplicationsContainerLayout, "fan")
         const restored = createTemporaryObject(settingsFixture, test)
@@ -211,7 +211,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 13)
+        compare(data.version, 14)
         compare(data.containers.length, 3)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -256,7 +256,7 @@ TestCase {
         // The profile round-trips the field and a schema-8 profile keeps none.
         verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 13)
+        compare(data.version, 14)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.containerHiddenEntries(id), ["skip.txt"])
@@ -278,7 +278,7 @@ TestCase {
         settings.runningMarkersFollowDesktop = true
         settings.avoidInnerEdgeAutoHide = false
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 13)
+        compare(data.version, 14)
         compare(data.selectedScreens.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))

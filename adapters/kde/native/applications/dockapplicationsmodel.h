@@ -21,6 +21,10 @@ class DockApplicationsModel : public QAbstractListModel
     Q_PROPERTY(bool recentContainer READ recentContainer WRITE setRecentContainer NOTIFY recentContainerChanged)
     Q_PROPERTY(QString recentContainerTitle READ recentContainerTitle WRITE setRecentContainerTitle NOTIFY recentContainerChanged)
     Q_PROPERTY(QString recentContainerIcon READ recentContainerIcon WRITE setRecentContainerIcon NOTIFY recentContainerChanged)
+    // The menu item is a fixed leader: it stays first, it is never reordered and
+    // the settings editor does not offer it. An empty title disables it.
+    Q_PROPERTY(QString leadingTitle READ leadingTitle WRITE setLeadingTitle NOTIFY leadingChanged)
+    Q_PROPERTY(QString leadingIcon READ leadingIcon WRITE setLeadingIcon NOTIFY leadingChanged)
     Q_PROPERTY(int count READ rowCount NOTIFY countChanged)
 public:
     enum Role { AppId = Qt::UserRole + 1, DesktopId, Title, Icon };
@@ -41,6 +45,10 @@ public:
     void setRecentContainer(bool enabled);
     void setRecentContainerTitle(const QString &title);
     void setRecentContainerIcon(const QString &icon);
+    QString leadingTitle() const { return m_leadingTitle; }
+    QString leadingIcon() const { return m_leadingIcon; }
+    void setLeadingTitle(const QString &title);
+    void setLeadingIcon(const QString &icon);
     int rowCount(const QModelIndex &parent = {}) const override;
     QVariant data(const QModelIndex &index, int role) const override;
     QHash<int, QByteArray> roleNames() const override;
@@ -49,6 +57,7 @@ signals:
     void sourcesChanged();
     void countChanged();
     void recentContainerChanged();
+    void leadingChanged();
 private:
     struct Row { QString id; QPersistentModelIndex source; QVariantMap fallback; };
     void connectSource(QAbstractItemModel *model);
@@ -59,6 +68,7 @@ private:
     QVariantList m_runningApplications;
     bool m_recentContainer = false;
     QString m_recentContainerTitle, m_recentContainerIcon;
+    QString m_leadingTitle, m_leadingIcon;
     QList<Row> m_rows;
     bool m_scheduled = false;
 };

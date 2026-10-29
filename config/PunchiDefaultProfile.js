@@ -14,7 +14,11 @@ const limits = {
     popupListIconSize: {minimum: 24, maximum: 64},
     popupFanIconSize: {minimum: 24, maximum: 56},
     popupHeightPercent: {minimum: 40, maximum: 90},
-    recentApplicationsCount: {minimum: 1, maximum: 20}
+    recentApplicationsCount: {minimum: 1, maximum: 20},
+    // The menu keeps the original floor of 0.50, so the desktop never shows
+    // through enough to make the grid unreadable.
+    menuBackgroundOpacity: {minimum: 0.50, maximum: 1.0},
+    menuIconScale: {minimum: 0.75, maximum: 1.5}
 }
 
 // `desktopId` names the desktop entry an item launches. An empty one plus
@@ -36,7 +40,7 @@ const launchers = [
 ]
 
 const profile = {
-    version: 13,
+    version: 14,
     downloadsView: "grid",
     dockEdge: "bottom",
     panelMode: "overlay",
@@ -74,6 +78,19 @@ const profile = {
     popupListIconSize: 0,
     popupFanIconSize: 0,
     popupHeightPercent: 80,
+    // Fullscreen menu presentation. The backdrop keeps the original floor of
+    // 0.50 opacity, the distribution title and the page arrows are optional,
+    // and the close button keeps the original corner choice.
+    menuBackgroundOpacity: 0.6,
+    menuBackgroundBlurEnabled: true,
+    menuShowDistributionName: true,
+    menuShowPageArrows: true,
+    menuShowLabels: true,
+    menuIconScale: 1.0,
+    menuCloseButtonPosition: "right",
+    // The original menu offered four hover behaviours; the pointer
+    // animation is the same on every cell so the surface stays calm.
+    menuHoverAnimation: "pulse",
     containers: [
         {id: "downloads", path: "", title: qsTr("Downloads"), icon: "folder-downloads",
             layout: "grid", sortMode: "modified", browseSubfolders: true, hiddenEntries: []},

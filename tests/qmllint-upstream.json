@@ -16,5 +16,11 @@
     "file": "modules/dock/PunchiDock.qml",
     "message": "Type margins is used but it is not resolved",
     "category": "unresolved-type"
+  },
+  {
+    "severity": "Warning",
+    "file": "modules/menu/PunchiMenuWindow.qml",
+    "message": "Type PanelWindow is not creatable.",
+    "category": "uncreatable-type"
   }
 ]

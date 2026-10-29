@@ -121,6 +121,21 @@ QVariantMap DockApplicationsModel::get(int row) const
         result.insert(QString::fromUtf8(it.value()), data(index(row), it.key()));
     return result;
 }
+void DockApplicationsModel::setLeadingTitle(const QString &title)
+{
+    if (m_leadingTitle == title) return;
+    m_leadingTitle = title;
+    schedule();
+    emit leadingChanged();
+}
+void DockApplicationsModel::setLeadingIcon(const QString &icon)
+{
+    if (m_leadingIcon == icon) return;
+    m_leadingIcon = icon;
+    schedule();
+    emit leadingChanged();
+}
+
 void DockApplicationsModel::schedule()
 {
     if (m_scheduled) return;
@@ -131,6 +146,17 @@ void DockApplicationsModel::rebuild()
 {
     QList<Row> next, runningCandidates, recentCandidates;
     QList<Row> trailingItems;
+    if (!m_leadingTitle.isEmpty()) {
+        const auto iconName = m_leadingIcon.isEmpty()
+            ? QStringLiteral("start-here-kde") : m_leadingIcon;
+        next.append({QStringLiteral("item:menu"), {},
+            {{QStringLiteral("appId"), QStringLiteral("item:menu")},
+                {QStringLiteral("title"), m_leadingTitle},
+                {QStringLiteral("iconName"), iconName},
+                // The dock opens the menu instead of launching an application,
+                // so the row publishes no desktop id.
+                {QStringLiteral("desktopId"), QString()}}});
+    }
     QSet<QString> identities, appIds;
     for (int row = 0; m_pinned && row < m_pinned->rowCount(); ++row) {
         const auto source = m_pinned->index(row, 0);
@@ -196,7 +222,10 @@ void DockApplicationsModel::rebuild()
     }
     // Running applications join before trailing special items. A special item
     // explicitly moved into the middle retains its chosen position.
-    while (!next.isEmpty() && next.last().id.startsWith(QLatin1String("item:")))
+    // The menu leader keeps its first position even when nothing is pinned; the
+    // remaining special items still trail the applications.
+    const int leaderRows = m_leadingTitle.isEmpty() ? 0 : 1;
+    while (next.size() > leaderRows && next.last().id.startsWith(QLatin1String("item:")))
         trailingItems.prepend(next.takeLast());
     // Keep existing running applications in place as other windows open/close.
     for (const auto &previous : m_rows) {

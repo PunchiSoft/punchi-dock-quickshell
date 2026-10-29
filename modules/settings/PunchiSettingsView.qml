@@ -42,13 +42,14 @@ Pane {
     // Preserve enough preferred height for the unified item picker.
     implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
         Math.max(generalPage.implicitHeight, popupsPage.implicitHeight,
-            profilePage.implicitHeight)
+            Math.max(profilePage.implicitHeight, menuPage.implicitHeight))
         + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
         if (currentPage === 0) itemsPage.focusFirst()
         else if (currentPage === 1) generalPage.focusFirst()
         else if (currentPage === 2) popupsPage.focusFirst()
         else if (currentPage === 3) aboutPage.focusFirst()
+        else if (currentPage === 5) menuPage.focusFirst()
         else profilePage.focusFirst()
     }
     function cancelAddingItem(restoreFocus: bool): void { itemsPage.cancelAddItem(restoreFocus) }
@@ -59,6 +60,7 @@ Pane {
         case 2: return {page: popupsPage, viewport: popupViewport}
         case 3: return {page: aboutPage, viewport: aboutViewport}
         case 4: return {page: profilePage, viewport: profileViewport}
+        case 5: return {page: menuPage, viewport: menuViewport}
         }
         return null
     }
@@ -136,6 +138,17 @@ Pane {
                     highlighted: checked
                     ButtonGroup.group: navigation
                     onClicked: { root.currentPage = 2; popupsPage.focusFirst() }
+                }
+                PunchiSettingsCategoryButton {
+                    objectName: "menuSettingsPage"
+                    Layout.fillWidth: true
+                    text: qsTr("Menu")
+                    icon.name: "start-here-kde"
+                    checkable: true
+                    checked: root.currentPage === 5
+                    highlighted: checked
+                    ButtonGroup.group: navigation
+                    onClicked: { root.currentPage = 5; menuPage.focusFirst() }
                 }
                 Item { Layout.fillHeight: true }
                 PunchiSettingsCategoryButton {
@@ -324,6 +337,38 @@ Pane {
                             objectName: "settingsDockProfile"
                             exchange: profileExchange
                             width: profileViewport.width
+                        }
+                    }
+                }
+                ScrollView {
+                    id: menuScroll
+                    objectName: "settingsMenuScroll"
+                    Layout.minimumHeight: 0
+                    clip: true
+                    contentWidth: availableWidth
+                    rightPadding: ScrollBar.vertical.width + Kirigami.Units.smallSpacing * 2
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical: PunchiPopupScrollBar {
+                        objectName: "settingsMenuScrollBar"
+                        orientation: Qt.Vertical
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: implicitWidth
+                        alwaysVisible: true
+                        motionEnabled: !root.settings.reducedMotion
+                    }
+                    Flickable {
+                        id: menuViewport
+                        objectName: "settingsMenuViewport"
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: menuPage.implicitHeight
+                        PunchiDockMenuSettings {
+                            id: menuPage
+                            settings: root.settings
+                            width: menuViewport.width
                         }
                     }
                 }

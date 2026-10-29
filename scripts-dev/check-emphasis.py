@@ -15,7 +15,9 @@ from pathlib import Path
 import re
 import sys
 
-BAND = 'PunchiPopupRowHighlight'
+# Every QML row that paints one band belongs to the same contract.
+BANDS = ('PunchiPopupRowHighlight', 'PunchiMenuHighlight')
+BAND = BANDS[0]
 OWNER = 'property bool pointerEmphasis'
 BAND_GATE = re.compile(r'^\s*(hovered|focused|selected):\s*(.+)$')
 INITIAL_FOCUS = re.compile(r'\bfunction (requestInitialFocus|tryInitialFocus)\b')
@@ -23,7 +25,8 @@ INITIAL_FOCUS = re.compile(r'\bfunction (requestInitialFocus|tryInitialFocus)\b'
 
 def band_blocks(text):
     """Yield (line, block) for each emphasis band declared in a QML file."""
-    for match in re.finditer(rf'\b{BAND}\s*\{{', text):
+    pattern = '|'.join(rf'\b{name}\s*\{{' for name in BANDS)
+    for match in re.finditer(pattern, text):
         start = match.end()
         depth = 1
         index = start
@@ -51,7 +54,8 @@ def check_bands(relative, text, failures):
 
 
 def check_owner(relative, text, failures):
-    owns = BAND in text or re.search(r'pointerEmphasis\s*=', text) is not None
+    owns = any(name in text for name in BANDS) \
+        or re.search(r'pointerEmphasis\s*=', text) is not None
     if owns and OWNER not in text:
         failures.append(f'{relative}: writes pointerEmphasis without declaring '
                         f'"{OWNER}"')
@@ -76,7 +80,8 @@ def main():
     for directory in ('components', 'modules'):
         for path in sorted((root / directory).rglob('*.qml')):
             text = path.read_text()
-            if BAND not in text and 'pointerEmphasis' not in text:
+            if not any(name in text for name in BANDS) \
+                    and 'pointerEmphasis' not in text:
                 continue
             relative = path.relative_to(root)
             checked += 1

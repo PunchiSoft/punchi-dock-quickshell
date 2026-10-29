@@ -47,6 +47,7 @@ qt_add_qml_module(punchikde
         adapters/kde/native/appearance/popupblurcontroller.h adapters/kde/native/appearance/popupblurcontroller.cpp
         adapters/kde/native/appearance/iconthemerefresh.h adapters/kde/native/appearance/iconthemerefresh.cpp
         adapters/kde/native/appearance/iconthemecatalog.h adapters/kde/native/appearance/iconthemecatalog.cpp
+        adapters/kde/native/appearance/decorationbuttonprovider.h adapters/kde/native/appearance/decorationbuttonprovider.cpp
         adapters/kde/native/files/foldercontents.h adapters/kde/native/files/foldercontents.cpp
         adapters/kde/native/applications/desktopentry.h
         adapters/kde/native/files/recentdocuments.h adapters/kde/native/files/recentdocuments.cpp
@@ -64,7 +65,8 @@ qt_add_qml_module(punchikde
         adapters/kde/native/windows/autohideedge.h adapters/kde/native/windows/autohideedge.cpp
         adapters/kde/native/windows/screeninfo.h adapters/kde/native/windows/screeninfo.cpp
         adapters/kde/native/windows/kwinminimizeeffect.h adapters/kde/native/windows/kwinminimizeeffect.cpp
-        adapters/kde/native/profile/profilefile.h adapters/kde/native/profile/profilefile.cpp)
+        adapters/kde/native/profile/profilefile.h adapters/kde/native/profile/profilefile.cpp
+        adapters/kde/native/profile/distributioninfo.h adapters/kde/native/profile/distributioninfo.cpp)
 target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
 # The QML plugin loads the implementation library from a relative path so that
 # the user-local copy and the packaging layout never resolve it through the

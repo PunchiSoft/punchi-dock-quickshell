@@ -17,7 +17,8 @@ const maximumBytes = 262144
 
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
     "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
-    "avoidInnerEdgeAutoHide"]
+    "avoidInnerEdgeAutoHide", "menuBackgroundBlurEnabled", "menuShowDistributionName",
+    "menuShowPageArrows", "menuShowLabels"]
 
 function objectValue(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -87,6 +88,19 @@ function validate(profile) {
         return "invalid-field"
     if (own(profile, "popupHeightPercent")
             && !inRange(profile.popupHeightPercent, PunchiDefaultProfile.limits.popupHeightPercent, true))
+        return "invalid-field"
+    if (own(profile, "menuBackgroundOpacity")
+            && !inRange(profile.menuBackgroundOpacity,
+                PunchiDefaultProfile.limits.menuBackgroundOpacity, false))
+        return "invalid-field"
+    if (own(profile, "menuIconScale")
+            && !inRange(profile.menuIconScale, PunchiDefaultProfile.limits.menuIconScale, false))
+        return "invalid-field"
+    if (own(profile, "menuCloseButtonPosition")
+            && ["left", "right"].indexOf(profile.menuCloseButtonPosition) < 0)
+        return "invalid-field"
+    if (own(profile, "menuHoverAnimation")
+            && ["none", "individual", "pulse", "bounce"].indexOf(profile.menuHoverAnimation) < 0)
         return "invalid-field"
     if (own(profile, "recentApplicationsCount")
             && !inRange(profile.recentApplicationsCount,
