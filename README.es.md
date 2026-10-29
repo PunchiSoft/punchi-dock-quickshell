@@ -43,7 +43,8 @@ escritorio: el asistente de instalación se niega a instalar fuera de KDE Plasma
 en Wayland, y si se arranca una copia instalada en otro entorno, indica la
 sesión detectada y muestra un diálogo del sistema en lugar de ejecutarse.
 
-**Versión actual:** **0.1.47**. El [changelog](CHANGELOG.md) registra los
+**Versión actual:** **0.1.47** (instantánea de desarrollo, sin publicar — el
+repositorio no tiene tag ni release). El [changelog](CHANGELOG.md) registra los
 cambios entregados y su validación. Los límites de compatibilidad y validación
 se describen más abajo.
 

@@ -54,6 +54,14 @@ ColumnLayout {
                     wrapMode: Text.Wrap
                 }
                 Label {
+                    objectName: "aboutVersionStage"
+                    Layout.fillWidth: true
+                    text: qsTr("Development snapshot, not published")
+                    font: Kirigami.Theme.smallFont
+                    color: Kirigami.Theme.disabledTextColor
+                    wrapMode: Text.WordWrap
+                }
+                Label {
                     objectName: "aboutProjectDescription"
                     Layout.fillWidth: true
                     text: qsTr("An animated, configurable dock for KDE Plasma, built with Quickshell and native Qt/KDE integration.")

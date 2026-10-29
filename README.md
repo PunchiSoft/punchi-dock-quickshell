@@ -40,7 +40,8 @@ assistant refuses to install outside KDE Plasma on Wayland, and starting an
 installed copy elsewhere names the session it found and shows a system dialog
 instead of running.
 
-**Current version:** **0.1.47**. The [changelog](CHANGELOG.md) records the
+**Current version:** **0.1.47** (development snapshot, not published — the
+repository carries no tag or release). The [changelog](CHANGELOG.md) records the
 delivered changes and their validation. Compatibility and validation limits are
 documented below.
 
