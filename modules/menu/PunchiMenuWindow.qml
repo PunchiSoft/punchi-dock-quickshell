@@ -29,11 +29,14 @@ PanelWindow {
     readonly property var profileDefaults: PunchiDefaultProfile.profile
     readonly property bool motionEnabled: !(root.settings
         ? root.settings.reducedMotion : root.profileDefaults.reducedMotion)
-    readonly property int gridColumns: Math.max(4, Math.min(8,
-        Math.floor(Math.max(1, root.width) / (Kirigami.Units.gridUnit * 7))))
+    // Launchpad shows seven columns by five rows on a 1440x900 screen, and that
+    // ratio holds on larger displays: the cell pitch grows, the count does not.
+    // The bounds shrink the grid on a small screen instead of clipping it.
+    readonly property int gridColumns: Math.max(4, Math.min(7,
+        Math.floor(Math.max(1, root.width) / (Kirigami.Units.gridUnit * 8))))
     readonly property int gridRows: Math.max(3, Math.min(5,
         Math.floor(Math.max(1, content.height - header.height)
-            / (Kirigami.Units.gridUnit * 6))))
+            / (Kirigami.Units.gridUnit * 6.5))))
     readonly property string distributionName: root.distribution
         ? String(root.distribution.name || "") : ""
     readonly property string distributionLogo: root.distribution
@@ -45,7 +48,9 @@ PanelWindow {
     anchors.bottom: true
     anchors.left: true
     anchors.right: true
-    exclusiveZone: 0
+    // No `exclusiveZone`: assigning it forces ExclusionMode.Normal, which places
+    // the surface inside the area other panels reserved instead of covering the
+    // screen. Ignore reserves nothing and ignores their reservations.
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     // Stay mapped while the closing fade runs, then leave the compositor alone.

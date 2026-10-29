@@ -35,7 +35,17 @@ FocusScope {
         const requested = Number(root.iconScale)
         return Number.isFinite(requested) ? Math.max(0.75, Math.min(1.5, requested)) : 1.0
     }
-    readonly property int iconSize: Math.round(Kirigami.Units.iconSizes.huge * root.safeIconScale)
+    // The cell, not a fixed token, decides the glyph: the reference draws the icon
+    // at roughly 54% of the row pitch and 42% of the column pitch, so the grid
+    // keeps its air on a large screen and still fits on a small one.
+    readonly property real cellWidth: Math.max(1, (root.pageWidth
+        - Kirigami.Units.gridUnit * 2
+        - Kirigami.Units.mediumSpacing * (root.columnCount - 1)) / root.columnCount)
+    readonly property real cellHeight: Math.max(1, (pagesView.height
+        - Kirigami.Units.smallSpacing * (root.rowCount - 1)) / root.rowCount)
+    readonly property int iconSize: Math.round(Math.max(Kirigami.Units.iconSizes.medium,
+        Math.min(Kirigami.Units.iconSizes.enormous,
+            Math.min(root.cellHeight * 0.54, root.cellWidth * 0.42))) * root.safeIconScale)
     readonly property int pageCount: root.menuState ? root.menuState.pageCount : 1
     readonly property real pageWidth: Math.max(1, pagesView.width)
 
@@ -133,11 +143,18 @@ FocusScope {
 
                             readonly property int absoluteIndex: pageDelegate.firstIndex + index
 
-                            width: Math.max(1, (pagesView.width
-                                - Kirigami.Units.gridUnit * 2
-                                - gridLayout.columnSpacing * (root.columnCount - 1)) / root.columnCount)
-                            height: Math.max(1, (pagesView.height
-                                - gridLayout.rowSpacing * (root.rowCount - 1)) / root.rowCount)
+                            width: {
+                                const raw = (pagesView.width - Kirigami.Units.gridUnit * 2
+                                    - gridLayout.columnSpacing * (root.columnCount - 1))
+                                    / Math.max(1, root.columnCount)
+                                return Number.isFinite(raw) && raw > 1 ? raw : 1
+                            }
+                            height: {
+                                const raw = (pagesView.height
+                                    - gridLayout.rowSpacing * (root.rowCount - 1))
+                                    / Math.max(1, root.rowCount)
+                                return Number.isFinite(raw) && raw > 1 ? raw : 1
+                            }
                             title: String(modelData.name || modelData.title || "")
                             iconName: String(modelData.iconName || "")
                             showLabel: root.showLabels

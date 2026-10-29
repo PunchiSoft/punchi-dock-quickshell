@@ -43,7 +43,8 @@ Controls.TextField {
         anchors.leftMargin: Kirigami.Units.smallSpacing
         anchors.verticalCenter: parent.verticalCenter
         width: Kirigami.Units.iconSizes.small
-        height: width
+        height: Kirigami.Units.iconSizes.small
+        roundToIconSize: true
         source: "system-search-symbolic"
         color: Kirigami.Theme.textColor
         Accessible.ignored: true
