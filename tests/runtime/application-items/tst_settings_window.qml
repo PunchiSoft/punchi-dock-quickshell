@@ -84,8 +84,11 @@ TestCase {
         for (const character of "punchi-add-sentinel") keyClick(character)
         const results = resultsOf(dialog)
         tryCompare(results, "count", 1)
-        tryVerify(function() { return findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop") !== null })
-        const row = findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop")
+        let row = null
+        tryVerify(function() {
+            row = findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop")
+            return row !== null
+        }, 5000, "the catalog result reaches the dialog")
         mouseClick(row)
         tryCompare(resultsArea(dialog), "active", false)
     }
@@ -398,9 +401,13 @@ TestCase {
         page.containerPath = ownedDownloadsPath()
         grabImage(page)
         tryVerify(function() { return list.count === 2 })
-        tryVerify(function() { return findChild(selection, "folderEntry-owned-report.txt") !== null })
-        const report = findChild(selection, "folderEntry-owned-report.txt")
-        verify(report !== null, "the owned report is listed")
+        // The list rebuilds as the folder model arrives, so the reference is
+        // captured by the wait instead of resolved again afterwards.
+        let report = null
+        tryVerify(function() {
+            report = findChild(selection, "folderEntry-owned-report.txt")
+            return report !== null
+        }, 5000, "the owned report is listed")
         compare(report.checked, true, "a folder shows every entry by default")
         compare(findChild(selection, "folderEntrySelectionCount").text, "All shown")
 
@@ -422,9 +429,11 @@ TestCase {
         verify(details !== null, "the details pane lists the container entries")
         const detailsList = findChild(details, "folderEntrySelectionList")
         tryVerify(function() { return detailsList.count === 2 })
-        tryVerify(function() { return findChild(details, "folderEntry-owned-photo.jpg") !== null })
-        const photo = findChild(details, "folderEntry-owned-photo.jpg")
-        verify(photo !== null)
+        let photo = null
+        tryVerify(function() {
+            photo = findChild(details, "folderEntry-owned-photo.jpg")
+            return photo !== null
+        }, 5000, "the details pane lists the owned photo")
         compare(photo.checked, true)
         grabImage(view)
         mouseClick(photo)
