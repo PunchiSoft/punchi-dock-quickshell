@@ -132,7 +132,7 @@ ShellRoot {
     property int completed: 0
     PunchiShellSettings { id: shellSettings }
     PunchiDockServices { id: dockServices; settings: shellSettings }
-    Dock {
+    PunchiDock {
         id: dock
         services: dockServices
         onApplicationLaunchFinished: function(desktopId, success, error) {

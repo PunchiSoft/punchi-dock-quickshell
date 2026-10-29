@@ -75,7 +75,7 @@ import "services"
 ShellRoot {
     PunchiShellSettings { id: shellSettings }
     PunchiDockServices { id: dockServices; settings: shellSettings }
-    Dock { id: dock; services: dockServices; configuring: true }
+    PunchiDock { id: dock; services: dockServices; configuring: true }
     PunchiSettingsStore { settings: dock.preferences }
     function find(item: var, name: string): var {
         if (!item) return null

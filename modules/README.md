@@ -6,7 +6,7 @@ dock contexts imports a module's internals.
 
 | Module | Owns | Entry |
 | --- | --- | --- |
-| `dock/` | the dock window, magnification, contexts and their policies | `Dock.qml` |
+| `dock/` | the dock window, magnification, contexts and their policies | `PunchiDock.qml` |
 | `folders/` | folder containers over the native KDirModel provider | `PunchiFolderContainerPopup.qml` |
 | `recent/` | the recent-applications and recent-documents containers | `PunchiRecentApplicationsPopup.qml` |
 | `settings/` | the settings window and its pages | `PunchiSettingsWindow.qml` |
