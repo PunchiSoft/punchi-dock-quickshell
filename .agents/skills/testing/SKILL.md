@@ -15,8 +15,10 @@ before selecting tests: a test exists to catch a named regression.
 2. Choose the cheapest level that can observe it: Qt Quick Test for Qt-only
    views, a Quickshell probe for registered shell types, C++ for native logic,
    a real session for KWin behavior.
-3. Rebuild and configure the graph before running the complete suite.
-4. Run the scoped test first, then the full suite.
+3. Rebuild and configure the graph only when native code or build registration
+   changed.
+4. Run the scoped test first. Escalate to the complete suite only when the
+   scoped result depends on it, and say which dependency required it.
 5. Confirm isolation: each test owns temporary data and cleans processes,
    caches, and sockets on success, failure, signal, and timeout.
 6. Record what could not be executed, and at which level it stays unverified.
@@ -38,6 +40,13 @@ shell types. Lint requires matching type metadata. KWin behavior needs a real
 session; visual approval requires inspection, not merely frame rendering.
 Each test owns temporary data and cleans processes, caches, and sockets even
 on signal/timeout. Preserve behavioral assertions and record unavailable checks.
+
+A documentation-only change runs no test. READMEs, `docs/`, `AGENTS.md`, the
+changelog and skill prose are observed by no test, so a green suite is not
+evidence about them and an unbuilt tree is not a failure of the change. Add only
+the check whose input you edited, such as `project_foundation` for a skill's
+frontmatter or `component_naming` for `tests/naming-baseline.json`. Documentation
+shipped with code is validated as code.
 Always verify the scoped restore route when changing startup/window lifecycle.
 Close every dock and settings window and stop every Punchi Dock Quickshell
 process started for a test; leave no test instance running on success, failure,

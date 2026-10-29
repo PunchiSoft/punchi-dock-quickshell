@@ -68,6 +68,32 @@ Review cohesion at roughly 300–400 lines; extract responsibilities, not arbitr
 line quotas. Avoid empty feature implementations. Stub module directories are
 not implemented capabilities. Keep QML interfaces explicit and small.
 
+## Component naming
+
+A QML type's name is its file name and each layer directory is flat, so the
+prefix is the namespace. The prefix states whose concept the type is before it
+states what the type does. A name that states only a function is ambiguous once a
+second surface performs it: a dock item that launches applications is not the
+application launcher.
+
+- Every QML type under `components/`, `config/`, `services/`, `modules/` and
+  `adapters/` starts with `Punchi`.
+- When more than one surface owns the concept, a second level names the surface:
+  `PunchiDock*` for the dock and its items, `PunchiMenu*` for the application
+  menu.
+- A primitive shared by several surfaces keeps the product prefix and names its
+  form: `PunchiBalloonSurface`, `PunchiFanView`, `PunchiEntryButton`.
+- `menu` means the application menu. Context menus and popups are
+  `PunchiDockContext*` and `PunchiPopup*`.
+- Never create a local type named after a Qt or KDE type it would shadow, such as
+  `Menu`, `MenuItem`, `MenuBar`, `MenuSeparator` or `MenuBarItem`.
+- The native QML module stays `Punchi.Kde`; a type name never repeats it.
+
+`tests/naming_test.py` (`component_naming`) enforces the prefix and the reserved
+names. Types that predate the rule are listed in `tests/naming-baseline.json`;
+that list may only shrink, and a stale entry fails the test. Renaming them is its
+own mechanical change, never a side effect of another feature.
+
 ## UI and state
 
 Use Qt Quick Controls, theme palettes, and verified Kirigami components when
@@ -159,6 +185,15 @@ the `unit`, `qml` or `session` label, and CI runs `scripts-dev/ci-headless.sh` o
 Fedora 44 selecting `unit|qml` only. Lint/type metadata, component behavior,
 real Quickshell loading, visual inspection, and desktop compatibility are separate
 levels of evidence. Never present offscreen success as visual or KWin validation.
+
+Classify the change before validating it. A change that edits only prose —
+READMEs, `CHANGELOG.md`, `docs/`, `AGENTS.md`, skill text, code comments — runs no
+build, lint or test: no test observes prose, so a result proves nothing about the
+change and running one only spends time. Run the single check whose input you
+actually touched, for example `project_foundation` after a skill's frontmatter or
+`component_naming` after `tests/naming-baseline.json`, and nothing more. A change
+that alters code, build registration or a file a test parses follows the normal
+route, and a documentation update shipped with code follows the code.
 
 Tests own unique temporary XDG data, caches, processes, and sockets. Clean after
 success, failure, signal, and timeout. Session probes isolate their runtime dir
