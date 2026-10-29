@@ -90,10 +90,11 @@ application launcher.
 - The native QML module stays `Punchi.Kde`; a type name never repeats it.
 
 `tests/naming_test.py` (`component_naming`) enforces the prefix and the reserved
-names. Every existing type already complies, so `tests/naming-baseline.json` is
-empty; it only records a deliberate future exemption with a written reason, and a
-stale entry fails the test. Renaming a type is its own mechanical change, never a
-side effect of another feature.
+names. Every type already complies, and `tests/naming-baseline.json` is empty and
+stays empty: a naming failure is fixed by renaming the type, never by recording it
+in the baseline, and the test rejects both a recorded name and a stale entry. A new
+type must carry the prefix before it lands. Renaming a type is its own mechanical
+change, never a side effect of another feature.
 
 ## UI and state
 

@@ -12,7 +12,10 @@
   module keeps its own class names, so `Native.ApplicationCatalog` and
   `Native.RunningApplications` still resolve. Records moved: `Dock.qml` is now
   `modules/dock/PunchiDock.qml`, and `tests/qmllint-upstream.json` and the
-  `window-state` resource paths follow it. `tests/naming-baseline.json` is empty.
+  `window-state` resource paths follow it. `tests/naming-baseline.json` is empty
+  and must stay empty: `component_naming` rejects a recorded name as well as a
+  stale entry and self-checks its own detection on a temporary tree, so a naming
+  failure is fixed by the rename and never by silencing the check.
 - Add the `branch-baseline` skill and require work branches to prove their base.
   The skill reads `git status`, compares `main` with `origin/main`, updates `main`
   by fast-forward, creates the branch from it and confirms the base with

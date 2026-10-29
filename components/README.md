@@ -20,5 +20,6 @@ second word states the surface that owns the type (`PunchiDock*`, `PunchiMenu*`)
 and a primitive shared by several surfaces names its form
 (`PunchiBalloonSurface`, `PunchiFanView`). `menu` means the application menu;
 context menus are `PunchiDockContext*` and `PunchiPopup*`. Every type here
-already complies, `tests/naming-baseline.json` is empty, and `component_naming`
-fails on a new type that skips the rule.
+already complies, `tests/naming-baseline.json` is empty and stays empty, and
+`component_naming` fails on a new type that skips the rule or on any attempt to
+record one in the baseline.

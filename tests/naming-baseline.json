@@ -1,4 +1,4 @@
 {
-  "reason": "Types written before the naming convention in AGENTS.md. The list may only shrink: a new type must already carry the Punchi prefix, and a renamed type drops its entry in the same change.",
+  "reason": "Every type under components/, config/, services/, modules/ and adapters/ already carries the Punchi prefix, so this record stays empty. It must not grow: a naming failure is fixed by renaming the type, not by recording it, and component_naming fails both a recorded name and a stale entry. Changing that rule means changing tests/naming_test.py, which is a visible review decision instead of a quiet edit to the data.",
   "pending": []
 }
