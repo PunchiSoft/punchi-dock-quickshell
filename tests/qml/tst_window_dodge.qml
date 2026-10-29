@@ -14,11 +14,11 @@ TestCase {
     visible: true
     width: 900
     height: 500
-    Component { id: controller; DockVisibilityController { dodgeWindows: true; hideDelay: 10; transitionDuration: 30 } }
-    Component { id: geometry; DockRestingGeometry { screenX: -1920; screenY: -200; screenWidth: 1920; screenHeight: 1080; bodyWidth: 480; bodyHeight: 54; bottomClearance: 2; edgeMargin: 4 } }
-    Component { id: general; DockGeneralSettings { width: 700; height: 440; settings: ShellSettings {} } }
-    Component { id: preferences; ShellSettings {} }
-    Component { id: policy; DockPanelPolicy {} }
+    Component { id: controller; PunchiDockVisibilityController { dodgeWindows: true; hideDelay: 10; transitionDuration: 30 } }
+    Component { id: geometry; PunchiDockRestingGeometry { screenX: -1920; screenY: -200; screenWidth: 1920; screenHeight: 1080; bodyWidth: 480; bodyHeight: 54; bottomClearance: 2; edgeMargin: 4 } }
+    Component { id: general; PunchiDockGeneralSettings { width: 700; height: 440; settings: PunchiShellSettings {} } }
+    Component { id: preferences; PunchiShellSettings {} }
+    Component { id: policy; PunchiDockPanelPolicy {} }
     function init() { failOnWarning(/.*/) }
     function test_unknownAndNonoverlappingRemainVisible() {
         const state = createTemporaryObject(controller, test)

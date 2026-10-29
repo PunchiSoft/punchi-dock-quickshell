@@ -12,12 +12,12 @@ TestCase {
     when: windowShown
     width: 600
     height: 900
-    Component { id: fixture; SettingsView { settings: ShellSettings {} } }
-    Component { id: settingsFixture; ShellSettings {} }
+    Component { id: fixture; PunchiSettingsView { settings: PunchiShellSettings {} } }
+    Component { id: settingsFixture; PunchiShellSettings {} }
     Component {
         id: placementFixture
-        SettingsView {
-            settings: ShellSettings {}
+        PunchiSettingsView {
+            settings: PunchiShellSettings {}
             screens: [{name: "DP-1", model: "Test panel"}]
             primaryScreenName: "DP-1"
             runningApplications: QtObject {
@@ -28,7 +28,7 @@ TestCase {
             }
         }
     }
-    Component { id: modelFixture; PinnedApplications { catalog: DockFixtureModel {}
+    Component { id: modelFixture; PunchiPinnedApplications { catalog: PunchiDockFixtureModel {}
         pinnedIds: [] } }
     function test_reactive_controls_and_reset() {
         const view = createTemporaryObject(fixture, test)

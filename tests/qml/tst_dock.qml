@@ -20,20 +20,20 @@ TestCase {
 
     Component {
         id: fixture
-        DockView {
+        PunchiDockView {
             id: dock
-            entries: DockFixtureModel {}
+            entries: PunchiDockFixtureModel {}
             property alias testGeometry: geometry
             property alias testContent: content
-            property ShellSettings preferences: ShellSettings {}
+            property PunchiShellSettings preferences: PunchiShellSettings {}
             property QtObject minimizeController: QtObject {
                 property bool available: true
                 property bool squashAvailable: true
                 property bool magicLampAvailable: true
                 property string effect: "squash"
             }
-            PopupAnchor { id: geometry }
-            DockContextContent {
+            PunchiPopupAnchor { id: geometry }
+            PunchiDockContextContent {
                 id: content
                 visible: false
                 settings: dock.preferences
@@ -52,13 +52,13 @@ TestCase {
 
     Component {
         id: modelessFixture
-        DockView {
+        PunchiDockView {
             id: dock
-            entries: DockFixtureModel {}
+            entries: PunchiDockFixtureModel {}
             readonly property var inputWindow: Window.window
             property alias testMenu: menu
             contextMenuOpen: menu.visible || menu.preparingToShow
-            DockContextPopup {
+            PunchiDockContextPopup {
                 id: menu
                 hostWindow: dock.inputWindow
             }

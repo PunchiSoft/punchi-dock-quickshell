@@ -28,12 +28,12 @@ ShellRoot {
         Item {
             id: surface
             anchors.fill: parent
-            LauncherTile { id: app; title: "Owned app"; iconName: "owned-app"; x: 40; y: 40; tooltipsEnabled: false; targetIconScale: 1.25 }
-            LauncherTile { id: empty; title: "Owned empty"; iconName: "user-trash"; x: 140; y: 40; tooltipsEnabled: false }
-            LauncherTile { id: full; title: "Owned full"; iconName: "user-trash-full"; x: 240; y: 40; tooltipsEnabled: false }
-            DockContextAction { id: action; text: "Owned action"; icon.name: "owned-app"; x: 40; y: 140; width: 240 }
-            ApplicationListRow { id: row; text: "Owned row"; iconName: "owned-app"; x: 40; y: 240; width: 240 }
-            TrashConfirmationContent { id: confirmation; questionText: "Owned question"; warningText: "Owned warning"; x: 400; y: 40 }
+            PunchiDockTile { id: app; title: "Owned app"; iconName: "owned-app"; x: 40; y: 40; tooltipsEnabled: false; targetIconScale: 1.25 }
+            PunchiDockTile { id: empty; title: "Owned empty"; iconName: "user-trash"; x: 140; y: 40; tooltipsEnabled: false }
+            PunchiDockTile { id: full; title: "Owned full"; iconName: "user-trash-full"; x: 240; y: 40; tooltipsEnabled: false }
+            PunchiDockContextAction { id: action; text: "Owned action"; icon.name: "owned-app"; x: 40; y: 140; width: 240 }
+            PunchiApplicationListRow { id: row; text: "Owned row"; iconName: "owned-app"; x: 40; y: 240; width: 240 }
+            PunchiTrashConfirmationContent { id: confirmation; questionText: "Owned question"; warningText: "Owned warning"; x: 400; y: 40 }
         }
     }
     Timer {

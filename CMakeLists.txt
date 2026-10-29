@@ -93,7 +93,7 @@ add_library(punchi_task_identity STATIC adapters/kde/window-state/taskidentity.c
 target_link_libraries(punchi_task_identity PUBLIC Qt6::Gui KF6::Service KF6::CoreAddons)
 target_link_libraries(punchi-window-state PRIVATE punchi_task_identity)
 qt_add_resources(punchi-window-state "window_models" PREFIX "/"
-    FILES adapters/kde/window-state/WindowModels.qml)
+    FILES adapters/kde/window-state/PunchiWindowModels.qml)
 
 set(PUNCHI_INSTALL_DATADIR "${CMAKE_INSTALL_DATADIR}/punchi-dock-quickshell")
 install(FILES shell.qml DESTINATION "${PUNCHI_INSTALL_DATADIR}")
@@ -227,7 +227,7 @@ if(BUILD_TESTING)
     target_link_libraries(window_models_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     target_link_libraries(window_models_test PRIVATE punchi_task_identity)
     qt_add_resources(window_models_test "window_models_test_resource" PREFIX "/"
-        FILES adapters/kde/window-state/WindowModels.qml)
+        FILES adapters/kde/window-state/PunchiWindowModels.qml)
     pkg_check_modules(WaylandServer REQUIRED IMPORTED_TARGET wayland-server)
     add_executable(autohide_edge_test tests/autohide_edge_test.cpp adapters/kde/native/windows/autohideedge.cpp)
     target_include_directories(autohide_edge_test PRIVATE ${CMAKE_SOURCE_DIR})

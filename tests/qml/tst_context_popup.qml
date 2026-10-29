@@ -21,17 +21,17 @@ TestCase {
             height: baseHeight + Math.ceil(menu.topOverflow)
             property alias testView: dock
             property alias testMenu: menu
-            DockView {
+            PunchiDockView {
                 id: dock
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 height: implicitHeight
-                entries: DockFixtureModel {}
+                entries: PunchiDockFixtureModel {}
                 magnificationEnabled: false
                 onItemActivated: menu.dismiss()
                 contextMenuOpen: menu.visible || menu.preparingToShow
             }
-            DockContextPopup {
+            PunchiDockContextPopup {
                 id: menu
                 hostWindow: viewport
                 hostBaseHeight: viewport.baseHeight
@@ -56,21 +56,21 @@ TestCase {
             property alias testGeometry: geometry
             property alias testView: dock
             property alias testMenu: menu
-            DockWindowGeometry {
+            PunchiDockWindowGeometry {
                 id: geometry
                 baseHeight: dock.implicitHeight
                 screenHeight: 700
             }
-            DockView {
+            PunchiDockView {
                 id: dock
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
                 height: implicitHeight
-                entries: DockFixtureModel {}
+                entries: PunchiDockFixtureModel {}
                 contextMenuOpen: menu.visible || menu.preparingToShow
                 onItemActivated: menu.dismiss()
             }
-            DockContextPopup {
+            PunchiDockContextPopup {
                 id: menu
                 hostWindow: viewport
                 hostBaseHeight: geometry.baseHeight

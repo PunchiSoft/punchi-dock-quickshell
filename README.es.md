@@ -425,7 +425,7 @@ no existe; el archivo original se conserva como copia de seguridad. Si existen
 ambos, prevalece el nombre nuevo y no se sobrescribe ninguno. Una prueba lee y
 escribe su propio perfil, que se elimina con la limpieza de la prueba salvo que
 rechaces la confirmación. Sin archivo guardado, la aplicación usa los valores por defecto de
-[`config/DefaultProfile.js`](config/DefaultProfile.js), que también aporta el
+[`config/PunchiDefaultProfile.js`](config/PunchiDefaultProfile.js), que también aporta el
 catálogo de lanzadores del primer inicio y los valores que restaura **Reset defaults**:
 
 | Ajuste | Valor inicial actual |

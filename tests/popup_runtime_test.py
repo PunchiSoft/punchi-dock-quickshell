@@ -32,7 +32,7 @@ ShellRoot {
         implicitWidth: 480
         implicitHeight: 320
         Item { id: icon; x: 200; y: 260; width: 40; height: 40 }
-        DockContextPopup {
+        PunchiDockContextPopup {
             id: menu
             hostWindow: host
             appId: "sentinel"

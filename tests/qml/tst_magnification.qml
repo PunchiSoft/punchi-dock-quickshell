@@ -9,7 +9,7 @@ import "../../services"
 
 TestCase {
     id: test
-    name: "DockMagnification"
+    name: "PunchiDockMagnification"
     when: windowShown
     visible: true
     width: 840
@@ -17,11 +17,11 @@ TestCase {
 
     Component {
         id: fixture
-        DockView { entries: DockFixtureModel {} }
+        PunchiDockView { entries: PunchiDockFixtureModel {} }
     }
     Component {
         id: referenceWave
-        DockMagnification {
+        PunchiDockMagnification {
             itemPitch: 72
             iconSize: 40
             itemSize: 40

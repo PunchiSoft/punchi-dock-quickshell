@@ -27,7 +27,7 @@ ShellRoot {
         Qt.exit(1)
     }
 
-    AutostartService { id: autostart }
+    PunchiAutostartService { id: autostart }
     FileView {
         id: entry
         path: autostart.path
@@ -139,7 +139,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory(prefix='punchi-autostart-') as temporary:
         root = Path(temporary)
         (root / 'services').mkdir()
-        shutil.copy2(project / 'services' / 'AutostartService.qml', root / 'services' / 'AutostartService.qml')
+        shutil.copy2(project / 'services' / 'PunchiAutostartService.qml', root / 'services' / 'PunchiAutostartService.qml')
         (root / 'scripts-user').mkdir()
         launcher = root / 'scripts-user' / 'launcher.sh'
         launcher.write_text('#!/bin/sh\nexit 0\n')

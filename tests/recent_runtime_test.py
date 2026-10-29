@@ -114,9 +114,9 @@ ShellRoot {
         visible: true
         implicitWidth: 480
         implicitHeight: 640
-        DockContextContent { recentDocuments: context.recentDocuments; canLaunchNewWindow: context.canLaunchNewWindow; pinned: context.pinned }
+        PunchiDockContextContent { recentDocuments: context.recentDocuments; canLaunchNewWindow: context.canLaunchNewWindow; pinned: context.pinned }
     }
-    DesktopApplicationAdapter {
+    PunchiDesktopApplicationAdapter {
         id: adapter
         onLaunchFinished: function(id, success, error) {
             if (!success) probe.reject(error)
@@ -128,7 +128,7 @@ ShellRoot {
         id: entries
         ListElement { appId: "desktop:punchi-recent-sentinel.desktop"; desktopId: "punchi-recent-sentinel" }
     }
-    ApplicationContextService { id: context; entries: entries; settings: settings; adapter: adapter }
+    PunchiApplicationContextService { id: context; entries: entries; settings: settings; adapter: adapter }
     Instantiator {
         id: rows
         model: context.recentDocuments

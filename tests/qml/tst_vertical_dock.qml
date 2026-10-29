@@ -15,12 +15,12 @@ TestCase {
     visible: true
     width: 1000
     height: 1000
-    Component { id: viewFixture; DockView { entries: DockFixtureModel {} waveEnterDuration: 0; waveLeaveDuration: 0 } }
-    Component { id: areaFixture; DockInputArea { hostWidth: 1000; hostHeight: 1000; contentBounds: Qt.rect(100, 200, 300, 400) } }
-    Component { id: regionFixture; DockRestingGeometry { screenX: -800; screenY: 50; screenWidth: 800; screenHeight: 600; bodyWidth: 60; bodyHeight: 300; edgeMargin: 5; bottomClearance: 3 } }
-    Component { id: settingsFixture; ShellSettings {} }
-    Component { id: editorFixture; SettingsEditService {} }
-    Component { id: windowFixture; SettingsWindow { settings: ShellSettings {} } }
+    Component { id: viewFixture; PunchiDockView { entries: PunchiDockFixtureModel {} waveEnterDuration: 0; waveLeaveDuration: 0 } }
+    Component { id: areaFixture; PunchiDockInputArea { hostWidth: 1000; hostHeight: 1000; contentBounds: Qt.rect(100, 200, 300, 400) } }
+    Component { id: regionFixture; PunchiDockRestingGeometry { screenX: -800; screenY: 50; screenWidth: 800; screenHeight: 600; bodyWidth: 60; bodyHeight: 300; edgeMargin: 5; bottomClearance: 3 } }
+    Component { id: settingsFixture; PunchiShellSettings {} }
+    Component { id: editorFixture; PunchiSettingsEditService {} }
+    Component { id: windowFixture; PunchiSettingsWindow { settings: PunchiShellSettings {} } }
     Component {
         id: menuFixture
         Window {
@@ -31,9 +31,9 @@ TestCase {
             property real slideOffset: 0
             property alias view: dock
             property alias menu: popup
-            DockView {
+            PunchiDockView {
                 id: dock
-                entries: DockFixtureModel {}
+                entries: PunchiDockFixtureModel {}
                 dockEdge: host.edge
                 transform: Translate { id: slide; x: host.slideOffset }
                 sceneTranslation: Qt.point(slide.x, slide.y)
@@ -42,7 +42,7 @@ TestCase {
                 contextMenuOpen: popup.visible || popup.preparingToShow
                 onItemActivated: popup.dismiss()
             }
-            DockContextPopup {
+            PunchiDockContextPopup {
                 id: popup
                 dockEdge: host.edge
                 hostWindow: host

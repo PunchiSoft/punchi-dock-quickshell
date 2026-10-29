@@ -11,9 +11,9 @@ ShellRoot {
     property int stage: 0
     property int renderedFrames: 0
 
-    ShellSettings { id: settings }
-    DockServices { id: services; settings: settings }
-    Dock {
+    PunchiShellSettings { id: settings }
+    PunchiDockServices { id: services; settings: settings }
+    PunchiDock {
         id: dock
         services: services
         onWindowConnected: console.warn("PUNCHI_WINDOW_CONNECTED")

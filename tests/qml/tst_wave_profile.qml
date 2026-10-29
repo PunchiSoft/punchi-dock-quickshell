@@ -14,7 +14,7 @@ TestCase {
     visible: true
     Component {
         id: waveFixture
-        DockMagnification {
+        PunchiDockMagnification {
             iconSize: 40
             itemSize: 44
             itemPitch: 46
@@ -26,7 +26,7 @@ TestCase {
             leaveDuration: 0
         }
     }
-    Component { id: viewFixture; DockView { entries: DockFixtureModel {} } }
+    Component { id: viewFixture; PunchiDockView { entries: PunchiDockFixtureModel {} } }
     function init(): void {
         failOnWarning(/.*/)
         mouseMove(test, 1090, 350)

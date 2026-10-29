@@ -11,7 +11,7 @@ private slots:
     void nativeResourceModelsAndGeometryRoles() {
         QQmlEngine engine;
         QQmlComponent component(&engine,
-            QUrl(QStringLiteral("qrc:/adapters/kde/window-state/WindowModels.qml")));
+            QUrl(QStringLiteral("qrc:/adapters/kde/window-state/PunchiWindowModels.qml")));
         QVERIFY2(component.isReady(), qPrintable(component.errorString()));
         std::unique_ptr<QObject> models(component.create());
         QVERIFY(models);

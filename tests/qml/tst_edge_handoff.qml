@@ -8,7 +8,7 @@ TestCase {
     name: "EdgePointerHandoff"
     Component {
         id: fixture
-        DockVisibilityController {
+        PunchiDockVisibilityController {
             property bool nativePointerInside: false
             property bool dockPointerInside: false
             pointerInside: nativePointerInside || dockPointerInside

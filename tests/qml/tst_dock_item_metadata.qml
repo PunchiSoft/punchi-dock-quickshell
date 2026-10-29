@@ -23,10 +23,10 @@ TestCase {
             property alias view: view
             // Observe the native row before any QML title binding is supplied.
             Native.DockItemCatalog { id: catalog }
-            PinnedApplications { id: dockPins; catalog: catalog; pinnedIds: ["item:trash"] }
-            PinnedApplications { id: settingsPins; catalog: catalog; pinnedIds: ["item:trash"] }
+            PunchiPinnedApplications { id: dockPins; catalog: catalog; pinnedIds: ["item:trash"] }
+            PunchiPinnedApplications { id: settingsPins; catalog: catalog; pinnedIds: ["item:trash"] }
             Native.DockApplicationsModel { id: items; pinned: dockPins; catalog: catalog }
-            DockView { id: view; anchors.bottom: parent.bottom; entries: items; magnificationEnabled: false }
+            PunchiDockView { id: view; anchors.bottom: parent.bottom; entries: items; magnificationEnabled: false }
         }
     }
     function init(): void { failOnWarning(/.*/) }

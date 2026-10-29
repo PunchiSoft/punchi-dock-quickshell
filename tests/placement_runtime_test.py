@@ -30,8 +30,8 @@ import "modules/dock"
 ShellRoot {
     id: probe
     property int settingsOpened: 0
-    ShellSettings { id: settings }
-    ScreenPolicy {
+    PunchiShellSettings { id: settings }
+    PunchiScreenPolicy {
         id: policy
         settings: settings
         connectedScreens: [
@@ -39,7 +39,7 @@ ShellRoot {
             {name: "RIGHT", x: 1920, y: 0, width: 2560, height: 1440}]
         primaryScreenName: "RIGHT"
     }
-    VirtualDesktopPolicy {
+    PunchiVirtualDesktopPolicy {
         id: desktopPolicy
         settings: settings
         runningApplications: QtObject {
@@ -63,7 +63,7 @@ ShellRoot {
         function focus(): bool { return true }
         function snapshot(): string { return JSON.stringify({screen: "RIGHT"}) }
     }
-    DockIpc {
+    PunchiDockIpc {
         docks: [dockLeft, dockRight]
         settings: settings
         primaryScreenName: policy.primaryScreenName

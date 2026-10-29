@@ -27,8 +27,8 @@ import Quickshell.Io
 import "config"
 import "services"
 ShellRoot {
-    ShellSettings { id: settings }
-    SettingsStore { id: store; settings: settings }
+    PunchiShellSettings { id: settings }
+    PunchiSettingsStore { id: store; settings: settings }
     IpcHandler {
         target: "store"
         function snapshot(): string {

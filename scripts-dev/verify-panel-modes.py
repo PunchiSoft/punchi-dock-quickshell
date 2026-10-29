@@ -39,8 +39,8 @@ def main():
         (config / 'build/punchi-window-state').symlink_to(artifacts / 'punchi-window-state')
         (config / 'shell.qml').write_text('import Quickshell\nimport Quickshell.Io\n'
             'import "config"\nimport "modules/dock"\nShellRoot {\n'
-            'ShellSettings { id: shellSettings }\n'
-            'DockServices { id: dockServices; settings: shellSettings }\n'
+            'PunchiShellSettings { id: shellSettings }\n'
+            'PunchiDockServices { id: dockServices; settings: shellSettings }\n'
             'Dock { id: dock; services: dockServices }\n'
             'IpcHandler { target: "probe"; function dismiss(): bool { dock.requestedVisible = false; return true } } }\n')
         log_path = config / 'wayland.log'

@@ -2,8 +2,8 @@
 import QtQuick
 import QtTest
 import "../../config"
-import "../../config/DefaultProfile.js" as DefaultProfile
-import "../../config/ProfileDocument.js" as ProfileDocument
+import "../../config/PunchiDefaultProfile.js" as PunchiDefaultProfile
+import "../../config/PunchiProfileDocument.js" as PunchiProfileDocument
 import "../../services"
 
 TestCase {
@@ -27,8 +27,8 @@ TestCase {
             return {ok: true}
         }
     }
-    ShellSettings { id: settings }
-    ProfileExchangeService { id: exchange; target: settings; file: fakeFile }
+    PunchiShellSettings { id: settings }
+    PunchiProfileExchangeService { id: exchange; target: settings; file: fakeFile }
 
     function resetExchange() {
         settings.reset()
@@ -42,7 +42,7 @@ TestCase {
     function test_shell_settings_start_from_the_first_run_profile() {
         resetExchange()
         const snapshot = settings.snapshot()
-        const defaults = DefaultProfile.fresh()
+        const defaults = PunchiDefaultProfile.fresh()
         compare(snapshot.version, defaults.version)
         for (const key of Object.keys(defaults))
             compare(JSON.stringify(snapshot[key]), JSON.stringify(defaults[key]), key)
@@ -52,11 +52,11 @@ TestCase {
         resetExchange()
         settings.panelMode = "autohide"
         settings.pinnedIds = ["files"]
-        const imported = DefaultProfile.fresh()
+        const imported = PunchiDefaultProfile.fresh()
         imported.panelMode = "reserve"
         imported.sizePercent = 80
         imported.pinnedIds = ["terminal", "item:trash"]
-        fakeFile.documents = ({"file:///incoming.json": ProfileDocument.serialize(imported)})
+        fakeFile.documents = ({"file:///incoming.json": PunchiProfileDocument.serialize(imported)})
 
         verify(exchange.importFrom("file:///incoming.json"))
         verify(exchange.hasPending)
@@ -69,7 +69,7 @@ TestCase {
         compare(exchange.notice, "Profile loaded. Review the changes, then apply or accept them.")
         verify(!exchange.hasPending)
 
-        fakeFile.documents = ({"file:///incoming.json": ProfileDocument.serialize(imported)})
+        fakeFile.documents = ({"file:///incoming.json": PunchiProfileDocument.serialize(imported)})
         verify(exchange.importFrom("file:///incoming.json"))
         exchange.cancelImport()
         compare(settings.panelMode, "reserve")
@@ -97,7 +97,7 @@ TestCase {
         settings.sizePercent = 80
         verify(exchange.exportTo("file:///export.json"))
         compare(fakeFile.lastPath, "file:///export.json")
-        const exported = ProfileDocument.parse(fakeFile.lastWritten)
+        const exported = PunchiProfileDocument.parse(fakeFile.lastWritten)
         verify(exported.ok)
         compare(exported.profile.panelMode, "reserve")
         compare(exported.profile.sizePercent, 80)

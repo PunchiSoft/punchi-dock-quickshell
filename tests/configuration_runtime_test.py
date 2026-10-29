@@ -39,25 +39,25 @@ ShellRoot {
         }
         return null
     }
-    ShellSettings { id: preferences }
-    SettingsStore { settings: preferences }
+    PunchiShellSettings { id: preferences }
+    PunchiSettingsStore { settings: preferences }
     // No PanelWindow backend exists offscreen; exercise its shared controllers
     // with a real FloatingWindow, without claiming layer-shell/KWin evidence.
     FloatingWindow { id: host; visible: true; implicitWidth: 200; implicitHeight: 80 }
-    DockConfigurationController { hostWindow: host; active: settingsWindow.visible }
-    DockPanelPolicy {
+    PunchiDockConfigurationController { hostWindow: host; active: settingsWindow.visible }
+    PunchiDockPanelPolicy {
         id: policy
         mode: preferences.panelMode
         baseHeight: preferences.itemSize
     }
-    DockVisibilityController {
+    PunchiDockVisibilityController {
         id: visibility
         autoHide: policy.effectiveMode === "autohide"
         dodgeWindows: policy.effectiveMode === "dodge-windows"
         configuring: settingsWindow.visible
         reducedMotion: preferences.effectiveReducedMotion
     }
-    SettingsWindow { id: settingsWindow; settings: preferences }
+    PunchiSettingsWindow { id: settingsWindow; settings: preferences }
     IpcHandler {
         target: "dock"
         function openSettings(): bool { settingsWindow.open(); return true }

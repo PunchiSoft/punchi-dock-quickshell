@@ -14,9 +14,9 @@ TestCase {
     visible: true
     width: 900
     height: 400
-    readonly property DockMetrics metrics: DockMetrics {}
+    readonly property PunchiDockMetrics metrics: PunchiDockMetrics {}
 
-    // Mirrors ApplicationCatalog: count/get, with KDE's `.desktop` storage ids.
+    // Mirrors PunchiApplicationCatalog: count/get, with KDE's `.desktop` storage ids.
     component RowCatalog: QtObject {
         property var rows: []
         readonly property int count: rows.length
@@ -46,11 +46,11 @@ TestCase {
 
     Component {
         id: stillFixture
-        DockView {
-            entries: DockFixtureModel {}
+        PunchiDockView {
+            entries: PunchiDockFixtureModel {}
             reducedMotion: true
-            updateState: UpdateNotice {
-                settings: ShellSettings {}
+            updateState: PunchiUpdateNotice {
+                settings: PunchiShellSettings {}
                 catalog: test.badgeCatalog
                 backend: QtObject {
                     property int revision: 0
@@ -70,11 +70,11 @@ TestCase {
 
     Component {
         id: animatedFixture
-        DockView {
-            entries: DockFixtureModel {}
+        PunchiDockView {
+            entries: PunchiDockFixtureModel {}
             reducedMotion: false
-            updateState: UpdateNotice {
-                settings: ShellSettings {}
+            updateState: PunchiUpdateNotice {
+                settings: PunchiShellSettings {}
                 catalog: test.badgeCatalog
                 backend: QtObject {
                     property int revision: 0
@@ -94,11 +94,11 @@ TestCase {
 
     Component {
         id: gnomeFixture
-        DockView {
+        PunchiDockView {
             entries: GnomeEntries {}
             reducedMotion: true
-            updateState: UpdateNotice {
-                settings: ShellSettings {}
+            updateState: PunchiUpdateNotice {
+                settings: PunchiShellSettings {}
                 catalog: test.gnomeCatalog
                 backend: QtObject {
                     property int revision: 0
@@ -119,11 +119,11 @@ TestCase {
     // Same dock, but no supported update front-end is pinned.
     Component {
         id: noUpdaterFixture
-        DockView {
-            entries: DockFixtureModel {}
+        PunchiDockView {
+            entries: PunchiDockFixtureModel {}
             reducedMotion: true
-            updateState: UpdateNotice {
-                settings: ShellSettings {}
+            updateState: PunchiUpdateNotice {
+                settings: PunchiShellSettings {}
                 catalog: RowCatalog {
                     rows: [{appId: "discover", desktopId: "org.kde.discover.devel.desktop"}]
                 }

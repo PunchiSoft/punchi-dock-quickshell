@@ -42,7 +42,7 @@ Do not copy the original applet's installation or compatibility claims.
 - `README.md` and `README.es.md` have no generator. A change to one is
   incomplete until the other matches.
 - The release version appears in `CMakeLists.txt`,
-  `modules/settings/SettingsAbout.qml`, both READMEs, `CHANGELOG.md`, `AGENTS.md`
+  `modules/settings/PunchiSettingsAbout.qml`, both READMEs, `CHANGELOG.md`, `AGENTS.md`
   and `docs/versioning.md`. Updating only one declaration leaves the others
   stale.
 - `tests/foundation_test.py` proves links resolve and headings are well formed,
@@ -56,7 +56,7 @@ Do not copy the original applet's installation or compatibility claims.
 python3 tests/foundation_test.py
 python3 scripts-dev/check-version.py
 rg -n '0\.1\.[0-9]{2}' README.md README.es.md CMakeLists.txt \
-   modules/settings/SettingsAbout.qml CHANGELOG.md AGENTS.md docs/versioning.md
+   modules/settings/PunchiSettingsAbout.qml CHANGELOG.md AGENTS.md docs/versioning.md
 ```
 
 Report which claims were re-verified and which remain unverified.

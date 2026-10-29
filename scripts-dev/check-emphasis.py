@@ -5,7 +5,7 @@
 A row shows one emphasis band at a time. The pointer owns it while the pointer
 moves; the keyboard owns it while the keyboard moves. A row cannot know that by
 itself, so its owner publishes ``pointerEmphasis`` and every band binding has to
-consult it through ``PopupRowHighlight``.
+consult it through ``PunchiPopupRowHighlight``.
 
 The checks are static: they catch the shape that produced the double hover, not
 whether a specific pixel was painted.
@@ -15,7 +15,7 @@ from pathlib import Path
 import re
 import sys
 
-BAND = 'PopupRowHighlight'
+BAND = 'PunchiPopupRowHighlight'
 OWNER = 'property bool pointerEmphasis'
 BAND_GATE = re.compile(r'^\s*(hovered|focused|selected):\s*(.+)$')
 INITIAL_FOCUS = re.compile(r'\bfunction (requestInitialFocus|tryInitialFocus)\b')

@@ -14,8 +14,8 @@ TestCase {
     height: 400
     Component {
         id: fixture
-        DockView {
-            entries: DockFixtureModel {}
+        PunchiDockView {
+            entries: PunchiDockFixtureModel {}
             reducedMotion: true
             applicationState: QtObject {
                 property int revision: 0

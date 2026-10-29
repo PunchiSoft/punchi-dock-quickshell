@@ -18,21 +18,21 @@ TestCase {
 
     Component {
         id: waveFixture
-        DockView {
-            entries: DockFixtureModel {}
+        PunchiDockView {
+            entries: PunchiDockFixtureModel {}
             clickDuration: 30
         }
     }
     Component {
         id: bounceFixture
-        TwoHopBounce {
+        PunchiTwoHopBounce {
             duration: 30
             onProgressChanged: test.samples.push(progress)
         }
     }
     Component {
         id: serviceFixture
-        ApplicationLaunchService { entries: DockFixtureModel {} }
+        PunchiApplicationLaunchService { entries: PunchiDockFixtureModel {} }
     }
     QtObject {
         id: fakeAdapter
@@ -66,7 +66,7 @@ TestCase {
 
     function test_defaultReferenceGeometry() {
         const dock = view()
-        const settings = createTemporaryObject(Qt.createComponent("../../config/ShellSettings.qml"), test)
+        const settings = createTemporaryObject(Qt.createComponent("../../config/PunchiShellSettings.qml"), test)
         verify(settings !== null)
         compare(dock.iconSize, settings.iconSize)
         compare(dock.itemSize, settings.itemSize)

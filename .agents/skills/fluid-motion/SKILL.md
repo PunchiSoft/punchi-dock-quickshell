@@ -77,7 +77,7 @@ signal, never independent timers.
 
 When input is pointer position, output must be a continuous function of it. See
 [dock magnification](references/dock-magnification.md); the dock already
-implements the wave in `modules/dock/DockMagnification.qml` and it must not be
+implements the wave in `modules/dock/PunchiDockMagnification.qml` and it must not be
 replaced with `hovered ? 1.5 : 1.0`.
 
 ## Durations

@@ -13,8 +13,8 @@ TestCase {
     when: windowShown
     Component {
         id: fixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             autostart: QtObject {
                 objectName: "autostartService"
                 property bool active: false
@@ -31,8 +31,8 @@ TestCase {
     }
     Component {
         id: placementWindowFixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             screens: [{name: "DP-1", model: "Internal panel"},
                 {name: "HDMI-A-1", model: "External panel"}]
             primaryScreenName: "DP-1"
@@ -46,8 +46,8 @@ TestCase {
     }
     Component {
         id: singleScreenWindowFixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             screens: [{name: "DP-1", model: "Internal panel"}]
             primaryScreenName: "DP-1"
             runningApplications: QtObject {
@@ -62,22 +62,22 @@ TestCase {
         id: populatedWindowFixture
         // This fixture covers the original eight application rows. Special-item
         // ordering and the new defaults have their own explicit regressions.
-        SettingsWindow {
-            settings: ShellSettings { pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular"] }
-            applicationCatalog: DockFixtureModel {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings { pinnedIds: ["files", "terminal", "browser", "kate", "systemsettings", "discover", "gwenview", "okular"] }
+            applicationCatalog: PunchiDockFixtureModel {}
         }
     }
     Component {
         id: emptyItemsWindowFixture
-        SettingsWindow {
-            settings: ShellSettings { pinnedIds: [] }
-            applicationCatalog: DockFixtureModel {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings { pinnedIds: [] }
+            applicationCatalog: PunchiDockFixtureModel {}
         }
     }
     Component {
         id: itemManagementWindowFixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             applicationCatalog: ListModel {
                 ListElement { appId: "files"; desktopId: "org.kde.dolphin"; title: "Files"; iconName: "folder" }
                 ListElement { appId: "terminal"; desktopId: "org.kde.konsole"; title: "Terminal"; iconName: "utilities-terminal" }
@@ -93,34 +93,34 @@ TestCase {
             }
         }
     }
-    // Mirrors UpdateNotice: names only the sources that answered.
+    // Mirrors PunchiUpdateNotice: names only the sources that answered.
     component UpdateStub: QtObject {
         property var availableSources: ["system", "flatpak", "firmware"]
         property string backendName: "dnf5"
     }
     Component {
         id: updateNoteFixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             updates: UpdateStub {}
         }
     }
     Component {
         id: noUpdateSourcesFixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             updates: UpdateStub { availableSources: []; backendName: "" }
         }
     }
-    Component { id: serviceFixture; SettingsEditService { settings: ShellSettings {} } }
-    Component { id: pinsFixture; PinnedApplications { catalog: DockFixtureModel {} pinnedIds: [] } }
-    Component { id: applicationRowFixture; ApplicationListRow {} }
+    Component { id: serviceFixture; PunchiSettingsEditService { settings: PunchiShellSettings {} } }
+    Component { id: pinsFixture; PunchiPinnedApplications { catalog: PunchiDockFixtureModel {} pinnedIds: [] } }
+    Component { id: applicationRowFixture; PunchiApplicationListRow {} }
     Component {
         id: untrackedRecentFixture
-        SettingsWindow {
+        PunchiSettingsWindow {
             id: untrackedRecentWindow
             property int trackingCalls: 0
-            settings: ShellSettings {}
+            settings: PunchiShellSettings {}
             recentApplications: QtObject {
                 property bool available: true
                 property bool trackingEnabled: false
@@ -132,8 +132,8 @@ TestCase {
     // is not queried, so `available` reports false.
     Component {
         id: hiddenRecentFixture
-        SettingsWindow {
-            settings: ShellSettings { recentApplicationsEnabled: false }
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings { recentApplicationsEnabled: false }
             recentApplications: QtObject {
                 property bool available: false
                 property bool trackingEnabled: true
@@ -144,8 +144,8 @@ TestCase {
     }
     Component {
         id: trackedRecentFixture
-        SettingsWindow {
-            settings: ShellSettings {}
+        PunchiSettingsWindow {
+            settings: PunchiShellSettings {}
             recentApplications: QtObject {
                 property bool available: true
                 property bool trackingEnabled: true

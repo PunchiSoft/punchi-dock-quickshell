@@ -9,7 +9,7 @@ TestCase {
     name: "ActivateOrLaunch"
     Component {
         id: fixture
-        ApplicationActivationService {
+        PunchiApplicationActivationService {
             id: coordinator
             entries: ListModel {
                 ListElement { appId: "files"; desktopId: "org.kde.dolphin.desktop" }

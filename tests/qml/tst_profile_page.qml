@@ -38,7 +38,7 @@ TestCase {
 
     Component {
         id: fixture
-        SettingsProfilePage { exchange: fakeExchange }
+        PunchiSettingsProfilePage { exchange: fakeExchange }
     }
 
     function resetFake() {

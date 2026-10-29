@@ -5,7 +5,7 @@ import "../../modules/dock"
 
 TestCase {
     name: "DockPanelModes"
-    Component { id: fixture; DockPanelPolicy { baseHeight: 54; bottomClearance: 2 } }
+    Component { id: fixture; PunchiDockPanelPolicy { baseHeight: 54; bottomClearance: 2 } }
 
     function test_modesAndLiveReservation() {
         const policy = createTemporaryObject(fixture, this)

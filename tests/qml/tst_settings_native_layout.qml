@@ -23,12 +23,12 @@ TestCase {
             property url faceIconUrl: Qt.resolvedUrl("../fixtures/avatar.svg")
         }
     }
-    Component { id: profileFixture; UserProfile {} }
-    Component { id: headerFixture; SettingsUserHeader {} }
-    Component { id: windowFixture; SettingsWindow { settings: ShellSettings {} } }
+    Component { id: profileFixture; PunchiUserProfile {} }
+    Component { id: headerFixture; PunchiSettingsUserHeader {} }
+    Component { id: windowFixture; PunchiSettingsWindow { settings: PunchiShellSettings {} } }
     Component {
         id: scaleFixture
-        SettingsScaleControl {
+        PunchiSettingsScaleControl {
             property bool mirroredLabels: false
             LayoutMirroring.enabled: mirroredLabels
             LayoutMirroring.childrenInherit: true

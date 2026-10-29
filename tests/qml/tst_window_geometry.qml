@@ -4,7 +4,7 @@ import "../../modules/dock"
 
 TestCase {
     name: "DockWindowAllocation"
-    DockWindowGeometry { id: geometry }
+    PunchiDockWindowGeometry { id: geometry }
     function test_screenMetricsAndEdgeFallbacks() {
         geometry.baseHeight = 166
         geometry.screenHeight = 1080

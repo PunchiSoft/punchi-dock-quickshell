@@ -41,45 +41,45 @@ ShellRoot {
         for (const property of properties)
             if (!(property in owner)) probe.fail(name + "." + property + " is missing")
     }
-    DesktopApplicationAdapter { id: application }
-    ApplicationCatalogAdapter { id: catalog }
-    ApplicationSearchAdapter { id: search }
-    RecentDocumentsAdapter { id: recent }
-    RecentApplicationsAdapter { id: recentApplications }
-    RecentApplicationsSelection { id: recentApplicationsSelection }
-    FilePlacesAdapter { id: places }
-    ApplicationMediaAdapter { id: media }
-    UserProfile { id: profile }
-    MotionPreferences { id: motion }
+    PunchiDesktopApplicationAdapter { id: application }
+    PunchiApplicationCatalogAdapter { id: catalog }
+    PunchiApplicationSearchAdapter { id: search }
+    PunchiRecentDocumentsAdapter { id: recent }
+    PunchiRecentApplicationsAdapter { id: recentApplications }
+    PunchiRecentApplicationsSelection { id: recentApplicationsSelection }
+    PunchiFilePlacesAdapter { id: places }
+    PunchiApplicationMediaAdapter { id: media }
+    PunchiUserProfile { id: profile }
+    PunchiMotionPreferences { id: motion }
     Component.onCompleted: Qt.callLater(function() {
-        // Consumers: ApplicationLaunchService, ApplicationActivationService,
-        // ApplicationContextService, TrashService, FolderNavigationController,
+        // Consumers: PunchiApplicationLaunchService, PunchiApplicationActivationService,
+        // PunchiApplicationContextService, PunchiTrashService, PunchiFolderNavigationController,
         // Dock.qml and the settings catalog projections.
-        probe.checkMethods(application, "DesktopApplicationAdapter",
+        probe.checkMethods(application, "PunchiDesktopApplicationAdapter",
             ["launch", "actions", "launchAction", "canLaunchNewWindow", "openTrash",
              "openDownloads", "openHome", "openFolderLocation", "openFolderPath", "openFolderUrl",
              "openPlace", "openRecent"])
-        probe.checkProperties(application, "DesktopApplicationAdapter",
+        probe.checkProperties(application, "PunchiDesktopApplicationAdapter",
             ["applicationCount", "activationItem", "launchFinished"])
-        probe.checkMethods(catalog, "ApplicationCatalogAdapter", ["get", "application"])
-        probe.checkProperties(catalog, "ApplicationCatalogAdapter", ["count", "revision", "presets"])
-        probe.checkProperties(search, "ApplicationSearchAdapter", ["sourceModel", "query", "count"])
-        probe.checkMethods(recent, "RecentDocumentsAdapter", ["forget"])
-        probe.checkProperties(recent, "RecentDocumentsAdapter", ["sourceModel", "desktopId", "count"])
-        probe.checkMethods(recentApplications, "RecentApplicationsAdapter",
+        probe.checkMethods(catalog, "PunchiApplicationCatalogAdapter", ["get", "application"])
+        probe.checkProperties(catalog, "PunchiApplicationCatalogAdapter", ["count", "revision", "presets"])
+        probe.checkProperties(search, "PunchiApplicationSearchAdapter", ["sourceModel", "query", "count"])
+        probe.checkMethods(recent, "PunchiRecentDocumentsAdapter", ["forget"])
+        probe.checkProperties(recent, "PunchiRecentDocumentsAdapter", ["sourceModel", "desktopId", "count"])
+        probe.checkMethods(recentApplications, "PunchiRecentApplicationsAdapter",
                             ["recordAccess", "setTrackingEnabled", "openTrackingSettings"])
-        probe.checkProperties(recentApplications, "RecentApplicationsAdapter",
+        probe.checkProperties(recentApplications, "PunchiRecentApplicationsAdapter",
                             ["enabled", "available", "trackingEnabled"])
-        probe.checkProperties(recentApplicationsSelection, "RecentApplicationsSelection",
+        probe.checkProperties(recentApplicationsSelection, "PunchiRecentApplicationsSelection",
             ["sourceModel", "enabled", "maximumItems", "excludedStorageIds", "count", "items"])
-        probe.checkMethods(places, "FilePlacesAdapter", ["enterGroup", "leaveGroup"])
-        probe.checkProperties(places, "FilePlacesAdapter",
+        probe.checkMethods(places, "PunchiFilePlacesAdapter", ["enterGroup", "leaveGroup"])
+        probe.checkProperties(places, "PunchiFilePlacesAdapter",
             ["sourceModel", "desktopId", "count", "remainingCount", "showAll", "groupName"])
-        probe.checkMethods(media, "ApplicationMediaAdapter", ["refresh"])
-        probe.checkProperties(media, "ApplicationMediaAdapter",
+        probe.checkMethods(media, "PunchiApplicationMediaAdapter", ["refresh"])
+        probe.checkProperties(media, "PunchiApplicationMediaAdapter",
             ["desktopId", "desktopEntry", "revision", "player", "players", "playing"])
-        probe.checkProperties(profile, "UserProfile", ["displayName", "photoUrl", "avatarSource"])
-        probe.checkProperties(motion, "MotionPreferences",
+        probe.checkProperties(profile, "PunchiUserProfile", ["displayName", "photoUrl", "avatarSource"])
+        probe.checkProperties(motion, "PunchiMotionPreferences",
             ["reducedMotion", "clickDuration", "enterDuration", "leaveDuration", "slideDuration"])
         if (probe.failures === 0) {
             console.warn("PUNCHI_ADAPTER_CONTRACT_OK")

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQuick
 import QtTest
-import "../../components/EntryLayout.js" as FolderLayout
+import "../../components/PunchiEntryLayout.js" as FolderLayout
 
 // The arrangement law is pure, so its cost model is checked without a scene.
 TestCase {

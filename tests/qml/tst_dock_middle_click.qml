@@ -13,7 +13,7 @@ TestCase {
     function init() { failOnWarning(/.*/) }
     Component {
         id: fixture
-        DockView {
+        PunchiDockView {
             entries: ListModel {
                 ListElement { appId: "files"; title: "Files"; iconName: "folder" }
                 ListElement { appId: "browser"; title: "Browser"; iconName: "internet-web-browser" }

@@ -20,20 +20,20 @@ ShellRoot {
         target: Quickshell
         function onReloadCompleted() { Quickshell.inhibitReloadPopup() }
     }
-    ShellSettings {
+    PunchiShellSettings {
         id: shellSettings
         panelMode: Quickshell.env("PUNCHI_DOCK_MODE") || "overlay"
     }
     // One catalog, window backend and update tracker serve every dock window.
-    DockServices { id: dockServices; settings: shellSettings }
+    PunchiDockServices { id: dockServices; settings: shellSettings }
     Native.ScreenInfo { id: screenInfo }
-    ScreenPolicy {
+    PunchiScreenPolicy {
         id: screenPolicy
         settings: shellSettings
         connectedScreens: Quickshell.screens
         primaryScreenName: screenInfo.primaryName
     }
-    VirtualDesktopPolicy {
+    PunchiVirtualDesktopPolicy {
         id: desktopPolicy
         settings: shellSettings
         runningApplications: dockServices.runningApplications
@@ -41,7 +41,7 @@ ShellRoot {
     Variants {
         id: dockWindows
         model: Quickshell.screens
-        delegate: Dock {
+        delegate: PunchiDock {
             property var modelData
             services: dockServices
             screenPolicy: screenPolicy
@@ -51,16 +51,16 @@ ShellRoot {
             onSettingsRequested: settingsWindow.open()
         }
     }
-    DockIpc {
+    PunchiDockIpc {
         docks: dockWindows.instances
         settings: shellSettings
         primaryScreenName: screenPolicy.primaryScreenName
         onSettingsRequested: settingsWindow.open()
     }
-    SettingsStore { settings: shellSettings }
-    AutostartService { id: autostart }
-    LicenseDocument { id: licenseDocument }
-    SettingsWindow {
+    PunchiSettingsStore { settings: shellSettings }
+    PunchiAutostartService { id: autostart }
+    PunchiLicenseDocument { id: licenseDocument }
+    PunchiSettingsWindow {
         id: settingsWindow
         settings: shellSettings
         applicationCatalog: dockServices.applicationCatalog
