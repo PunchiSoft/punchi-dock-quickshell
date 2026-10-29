@@ -51,19 +51,17 @@ punchi_running_path() {
 punchi_backend_for() {
     local root=""
     local candidate=""
-    local distro_build=""
+    local distro=""
     for root in "$@"; do
-        distro_build=""
-        # Match the per-distribution tree the setup builds, then the plain one.
-        if declare -F punchi_build_distro_id >/dev/null 2>&1 \
-            && distro_build="$(punchi_build_distro_id 2>/dev/null)" \
-            && [[ -n "$distro_build" ]]; then
-            distro_build="$root/build-$distro_build/punchi-window-state"
-        else
-            distro_build=""
+        distro=""
+        # Match the distribution tree the setup builds under build/, then the flat
+        # and plain trees of the earlier layouts.
+        if declare -F punchi_build_distro_id >/dev/null 2>&1; then
+            distro="$(punchi_build_distro_id 2>/dev/null || true)"
         fi
         for candidate in \
-            ${distro_build:+"$distro_build"} \
+            ${distro:+"$root/build/build-$distro/punchi-window-state"} \
+            ${distro:+"$root/build-$distro/punchi-window-state"} \
             "$root/build/punchi-window-state" \
             "$root/../../libexec/punchi-dock-quickshell/punchi-window-state" \
             "$root/../../lib/punchi-dock-quickshell/punchi-window-state"; do
