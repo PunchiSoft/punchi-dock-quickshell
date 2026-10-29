@@ -14,7 +14,11 @@ import json
 def main():
     root = Path(__file__).resolve().parents[1]
     capture = '--capture' in sys.argv[2:]
-    evidence = Path(tempfile.mkdtemp(prefix='downloads-preview-', dir=root / 'notes/changes')) if capture else None
+    evidence = None
+    if capture:
+        assets = root / 'docs/records/assets/changes/change-2026-10-13-downloads-container-proposal'
+        assets.mkdir(parents=True, exist_ok=True)
+        evidence = Path(tempfile.mkdtemp(prefix='downloads-preview-', dir=assets))
     with tempfile.TemporaryDirectory(prefix='punchi-folders-') as temporary:
         owned = Path(temporary)
         home = owned / 'home'
@@ -54,13 +58,13 @@ def main():
         user_dirs.append('XDG_DOWNLOAD_DIR="$HOME/Owned Downloads"')
         (config / 'user-dirs.dirs').write_text('\n'.join(user_dirs) + '\n')
         env.update(HOME=str(home), XDG_CONFIG_HOME=str(config), QT_NO_XDG_DESKTOP_PORTAL='1')
-        input_path = root / 'tests/folders'
+        input_path = root / 'tests/folder-container'
         if capture:
             preview = owned / 'preview'
             for name in ('modules', 'services', 'components', 'adapters', 'config', 'assets'):
                 shutil.copytree(root / name, preview / name)
             input_path = preview / 'tests/folders'
-            shutil.copytree(root / 'tests/folders', input_path)
+            shutil.copytree(root / 'tests/folder-container', input_path)
             fixture = input_path / 'tst_folder_container.qml'
             source = fixture.read_text()
             # Native KDE style and palettes belong exclusively to this fixture.

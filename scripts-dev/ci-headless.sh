@@ -62,7 +62,7 @@ if [[ "${EUID}" -eq 0 ]]; then
     rm -rf "$workspace"
     mkdir -p "$workspace"
     tar -C "$repo_root" --exclude=./build --exclude='./build-*' --exclude=./.git \
-        --exclude=./docs --exclude=./notes -cf - . | tar -xf - -C "$workspace"
+        --exclude=./docs --exclude=./scratch -cf - . | tar -xf - -C "$workspace"
     chown -R punchi: "$workspace"
     exec runuser -u punchi -- env HOME=/home/punchi PUNCHI_SKIP_PACKAGES=1 \
         bash "$workspace/scripts-dev/ci-headless.sh"

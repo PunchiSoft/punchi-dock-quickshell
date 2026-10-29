@@ -35,7 +35,7 @@ respect protected-test authorization.
 ## Gotchas
 
 - Deleting an untracked or ignored file leaves no reachable object. `backup/`,
-  `scratch/`, `build/`, `notes/` and `docs/` are ignored in this repository.
+  `scratch/`, `build/` and `docs/` are ignored in this repository.
 - Deleting a QML file leaves stale CMake lists and import paths that fail only
   when the shell loads, not when it builds.
 - Removing a setting without a schema migration leaves the stored JSON key
