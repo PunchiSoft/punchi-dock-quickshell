@@ -47,6 +47,7 @@ qt_add_qml_module(punchikde
         adapters/kde/native/appearance/popupblurcontroller.h adapters/kde/native/appearance/popupblurcontroller.cpp
         adapters/kde/native/appearance/iconthemerefresh.h adapters/kde/native/appearance/iconthemerefresh.cpp
         adapters/kde/native/appearance/iconthemecatalog.h adapters/kde/native/appearance/iconthemecatalog.cpp
+        adapters/kde/native/appearance/decorationbuttonprovider.h adapters/kde/native/appearance/decorationbuttonprovider.cpp
         adapters/kde/native/files/foldercontents.h adapters/kde/native/files/foldercontents.cpp
         adapters/kde/native/applications/desktopentry.h
         adapters/kde/native/files/recentdocuments.h adapters/kde/native/files/recentdocuments.cpp

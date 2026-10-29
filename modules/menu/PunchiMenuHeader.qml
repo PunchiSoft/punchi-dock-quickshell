@@ -4,6 +4,8 @@ import QtQuick
 import QtQuick.Controls as Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "../../components"
+import "../../adapters/kde"
 
 // Header of the fullscreen menu: the distribution identity centred above the
 // search entry, with the close affordance pinned to the configured corner.
@@ -18,7 +20,10 @@ Item {
     property string closeButtonPosition: "right"
     property alias searchText: search.text
     property bool motionEnabled: true
-    property int searchWidth: Kirigami.Units.gridUnit * 24
+    // Roughly a fifth of the surface, as in the reference, with a floor a
+    // placeholder still fits and a ceiling that stops it spanning the menu.
+    property int searchWidth: Math.round(Math.max(Kirigami.Units.gridUnit * 12,
+        Math.min(Kirigami.Units.gridUnit * 26, width * 0.18)))
 
     readonly property bool closeOnLeft: root.closeButtonPosition === "left"
     readonly property int controlSize: Kirigami.Units.gridUnit * 2
@@ -36,19 +41,25 @@ Item {
     // Pinned to the surface corner instead of the centred row: the original menu
     // kept one close affordance in the configured corner and let the header stay
     // symmetrical.
-    Controls.ToolButton {
+    PunchiDecorationButton {
         objectName: "menuCloseButton"
         anchors.top: parent.top
         anchors.left: root.closeOnLeft ? parent.left : undefined
         anchors.right: root.closeOnLeft ? undefined : parent.right
         width: root.controlSize
         height: root.controlSize
-        icon.name: "window-close-symbolic"
+        role: "close"
+        // The decoration of the user's window, with a theme icon as fallback so the
+        // control is never invisible when the decoration ships no button.
+        decorationImagePath: decorationButtons.pathFor("close")
+        decorationButtonSize: decorationButtons.buttonSize
+        fallbackIconName: "window-close"
+        activePointerStates: true
         text: qsTr("Close menu")
         Accessible.name: qsTr("Close menu")
-        focusPolicy: Qt.StrongFocus
         onClicked: root.closeRequested()
     }
+    PunchiDecorationButtonProvider { id: decorationButtons }
 
     ColumnLayout {
         id: content
@@ -66,8 +77,11 @@ Item {
                 spacing: Kirigami.Units.smallSpacing
 
                 Kirigami.Icon {
-                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                    Layout.preferredHeight: Layout.preferredWidth
+                    implicitWidth: Kirigami.Units.iconSizes.small
+                    implicitHeight: Kirigami.Units.iconSizes.small
+                    Layout.preferredWidth: implicitWidth
+                    Layout.preferredHeight: implicitHeight
+                    roundToIconSize: true
                     source: root.distributionLogo
                     visible: root.showDistributionName
                         && root.distributionLogo.length > 0 && valid

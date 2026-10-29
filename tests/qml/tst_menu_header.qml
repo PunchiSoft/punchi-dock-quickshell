@@ -24,6 +24,9 @@ TestCase {
         verify(button !== null)
         compare(button.width, header.controlSize)
         compare(button.height, header.controlSize)
+        // The control is never invisible: it draws the decoration button or
+        // the theme icon fallback.
+        verify(button.visible)
         // Right is the default, so the button ends at the header's right edge.
         fuzzyCompare(button.x + button.width, header.width, 0.5)
         fuzzyCompare(button.y, 0, 0.5)
@@ -39,6 +42,22 @@ TestCase {
         verify(search !== null)
         const centre = search.mapToItem(header, search.width / 2, 0).x
         fuzzyCompare(centre, header.width / 2, 1)
+    }
+
+    function test_closeButtonUsesTheDecorationWithAFallback() {
+        const header = createTemporaryObject(fixture, test)
+        verify(header !== null)
+        const button = findChild(header, "menuCloseButton")
+        verify(button !== null)
+        compare(button.role, "close")
+        compare(button.fallbackIconName, "window-close")
+        // A decoration path either resolves to the user's theme or stays empty and
+        // the fallback icon paints; both keep the control visible.
+        if (button.decorationImagePath.length > 0) {
+            verify(button.decorationImagePath.endsWith(".svg"))
+            verify(button.decorationButtonSize.width >= 8)
+        }
+        verify(button.implicitWidth >= button.fallbackIconSize)
     }
 
     function test_closeRequestIsEmittedOnce() {
