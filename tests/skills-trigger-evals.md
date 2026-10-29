@@ -36,21 +36,23 @@ Should trigger:
 | 8 | "este texto nuevo de aviso, ¿lo apruebo?" | `notice-copy-approval` | approval question, not a copy request |
 | 9 | "borrá el popup viejo y sus restos" | `safe-removal-review` | imperative deletion with implicit consumer checks |
 | 10 | "the popup row and the selected row look the same" | `selection-emphasis` | visual complaint, not a state-model term |
+| 11 | "voy a empezar esto, armame la rama" | `branch-baseline` | asks for a branch, never mentions `main` or the base |
 
 Should not trigger, near misses:
 
 | # | Query | Must not trigger | Why it is a near miss |
 |---|---|---|---|
-| 11 | "explain how Qt Quick bindings work" | `code-review` | reviews vocabulary, general knowledge request |
-| 12 | "add a comment to the PR on GitHub" | `verification-before-completion` | "PR" appears, but the task is a GitHub action |
-| 13 | "rename `theme` to `palette` across the repo" | `requirements-capture` | mechanical refactor already scoped |
-| 14 | "what does agentskills.io say about allowed-tools?" | `skill-authoring` | external documentation lookup |
-| 15 | "why does Plasma restart my panel after login?" | `kde-integration` | Plasma topic, but a user-environment question |
-| 16 | "increase the popup width by 20 px" | `selection-emphasis` | popup geometry, not selection emphasis |
-| 17 | "translate the README to English" | `localization` | documentation language, not runtime catalogs |
-| 18 | "delete build/ and rebuild" | `safe-removal-review` | generated output, no consumer graph |
-| 19 | "summarize what changed in 0.1.45" | `code-review` | changelog reading, no diff review |
-| 20 | "does this animation look good to you?" | `motion-review` | aesthetic opinion, no audit requested |
+| 12 | "explain how Qt Quick bindings work" | `code-review` | reviews vocabulary, general knowledge request |
+| 13 | "add a comment to the PR on GitHub" | `verification-before-completion` | "PR" appears, but the task is a GitHub action |
+| 14 | "rename `theme` to `palette` across the repo" | `requirements-capture` | mechanical refactor already scoped |
+| 15 | "what does agentskills.io say about allowed-tools?" | `skill-authoring` | external documentation lookup |
+| 16 | "why does Plasma restart my panel after login?" | `kde-integration` | Plasma topic, but a user-environment question |
+| 17 | "increase the popup width by 20 px" | `selection-emphasis` | popup geometry, not selection emphasis |
+| 18 | "translate the README to English" | `localization` | documentation language, not runtime catalogs |
+| 19 | "delete build/ and rebuild" | `safe-removal-review` | generated output, no consumer graph |
+| 20 | "summarize what changed in 0.1.45" | `code-review` | changelog reading, no diff review |
+| 21 | "does this animation look good to you?" | `motion-review` | aesthetic opinion, no audit requested |
+| 22 | "mergeá esta rama en main" | `branch-baseline` | `main` appears, but the task is a merge request |
 
 ## Recording
 

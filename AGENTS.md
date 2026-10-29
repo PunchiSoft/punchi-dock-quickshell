@@ -156,8 +156,13 @@ Use `commit-push-versioning` whenever a commit or push is requested; derive
 application version changes from the newest delivery in `CHANGELOG.md`.
 Start every modification on a branch created from updated `main` (`feat/`,
 `fix/`, `docs/` or `chore/` prefix), never on `main` itself; one branch per
-modification, recorded in the change note. Merging, tags, releases and pull
-requests need their own explicit request.
+modification, recorded in the change note. Apply `branch-baseline` first: verify
+local `main` against `origin/main`, create the branch from `main`, and confirm the
+base with `git rev-list --left-right --count main...HEAD` (`0 0`) and an empty
+`git log origin/main..HEAD`. A sub-branch is the exception and needs a stated
+reason; a branch stacked on unpublished work by habit attaches commits that are
+not yours. Merging, tags, releases and pull requests need their own explicit
+request.
 Record scope and evidence before changing code; do not start with a full suite.
 Apply domain skills as their stages begin, then validate after implementation.
 
