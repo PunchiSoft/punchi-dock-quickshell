@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Record and enforce the component naming convention. `AGENTS.md` defines the
+  `Punchi` prefix, the surface level that disambiguates two owners
+  (`PunchiDock*`, `PunchiMenu*`) and the reserved QtQuick.Controls names, so
+  "menu" means the application menu and a dock item is not called a launcher.
+  `tests/naming_test.py` (`component_naming`) checks the rule against
+  `tests/naming-baseline.json`, which lists the 119 types written before it and
+  may only shrink; a new non-compliant type, a shadowing name or a stale entry
+  fails the build.
+
 - Correct the Debian runtime package mappings, recognize Quickshell installed
   outside package management and install it from Debian backports.
   `scripts-user/lib/setup-deps.sh` checks Debian 13's actual package names

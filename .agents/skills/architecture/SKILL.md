@@ -25,6 +25,29 @@ output, and an explicit consumer.
    quota.
 7. Update the architecture record in the same change.
 
+## Naming
+
+The type name is the file name and each layer directory is flat, so the prefix is
+the namespace. Read the rule in `AGENTS.md`: `Punchi` first, then the surface
+when more than one owns the concept (`PunchiDock*`, `PunchiMenu*`), and
+`Punchi<Form>` for a primitive shared by several surfaces. `menu` means the
+application menu; a context menu is `PunchiDockContext*` or `PunchiPopup*`.
+
+`component_naming` (`tests/naming_test.py`) enforces the prefix and the reserved
+QtQuick.Controls names against `tests/naming-baseline.json`.
+
+Renaming a type is its own change:
+
+1. List the file, its importers and its consumers first
+   (`grep -rn 'OldName' --include=*.qml`), including fixtures under `tests/` and
+   references in `docs/`.
+2. `git mv` the file so the history follows the rename.
+3. Update the type references, then drop the baseline entry the file no longer
+   needs; a stale entry fails the check.
+4. Run `component_naming`, `architecture_contract` and `qml_lint`, then the
+   component test that covers the surface.
+5. Record the rename once in `CHANGELOG.md`. Never leave a layer half renamed.
+
 ## Boundaries
 
 Keep root composition small, views declarative, providers independent of
@@ -53,13 +76,15 @@ project services.
 ## Validation
 
 ```bash
-ctest --test-dir build --output-on-failure -R 'architecture_contract|adapter_contract|dock_components'
+ctest --test-dir build --output-on-failure -R 'architecture_contract|component_naming|adapter_contract|dock_components'
 ```
 
 `architecture_contract` parses the quoted relative imports of every layer
 directory and fails on an upward import or a root-level declaration in
 `shell.qml`. A deliberate exception goes in `tests/architecture-allowlist.json`
-with a written reason; a stale entry fails too.
+with a written reason; a stale entry fails too. `component_naming` fails on a new
+type without the `Punchi` prefix, on a reserved QtQuick.Controls name and on a
+stale `tests/naming-baseline.json` entry.
 
 - The ownership statement names exactly one consumer per output.
 - `docs/architecture.md` matches the tree; a stale record is a defect.

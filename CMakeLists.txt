@@ -366,6 +366,8 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/foundation_test.py)
     add_test(NAME architecture_contract COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/architecture_test.py)
+    add_test(NAME component_naming COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/naming_test.py)
     add_test(NAME project_version COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-version.py)
     add_test(NAME emphasis_contract COMMAND ${Python3_EXECUTABLE}
@@ -376,7 +378,7 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
-    set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract user_setup_scripts autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
+    set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract component_naming user_setup_scripts autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 
@@ -406,6 +408,7 @@ if(BUILD_TESTING)
         window_capability
         project_foundation
         architecture_contract
+        component_naming
         project_version
         emphasis_contract
         profile_exchange
