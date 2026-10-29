@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "adapters/kde/native/profilefile.h"
+#include "adapters/kde/native/profile/profilefile.h"
 
 #include <QDir>
 #include <QFile>

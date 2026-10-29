@@ -10,7 +10,7 @@
 #include <KApplicationTrader>
 #include <KSycoca>
 #include "adapters/kde/window-state/snapshot.h"
-#include "adapters/kde/native/runningapplications.h"
+#include "adapters/kde/native/applications/runningapplications.h"
 
 class RunningStateTest : public QObject
 {

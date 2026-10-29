@@ -5,10 +5,10 @@
 #include <KJob>
 #include <QStandardItemModel>
 #include <QAbstractItemModelTester>
-#include "adapters/kde/native/trashstate.h"
-#include "adapters/kde/native/dockitemcatalog.h"
-#include "adapters/kde/native/applicationcatalog.h"
-#include "adapters/kde/native/dockapplicationsmodel.h"
+#include "adapters/kde/native/files/trashstate.h"
+#include "adapters/kde/native/applications/dockitemcatalog.h"
+#include "adapters/kde/native/applications/applicationcatalog.h"
+#include "adapters/kde/native/applications/dockapplicationsmodel.h"
 
 class OwnedLister : public KCoreDirLister {
     Q_OBJECT

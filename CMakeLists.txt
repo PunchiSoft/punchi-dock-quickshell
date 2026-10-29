@@ -43,28 +43,28 @@ qt_add_qml_module(punchikde
     URI Punchi.Kde
     VERSION 1.0
     OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/qml/Punchi/Kde
-    SOURCES adapters/kde/native/desktoplauncher.h adapters/kde/native/desktoplauncher.cpp
-        adapters/kde/native/popupblurcontroller.h adapters/kde/native/popupblurcontroller.cpp
-        adapters/kde/native/iconthemerefresh.h adapters/kde/native/iconthemerefresh.cpp
-        adapters/kde/native/iconthemecatalog.h adapters/kde/native/iconthemecatalog.cpp
-        adapters/kde/native/foldercontents.h adapters/kde/native/foldercontents.cpp
-        adapters/kde/native/desktopentry.h
-        adapters/kde/native/recentdocuments.h adapters/kde/native/recentdocuments.cpp
-        adapters/kde/native/recentapplicationsadapter.h adapters/kde/native/recentapplicationsadapter.cpp
-        adapters/kde/native/recentapplicationsmodel.h adapters/kde/native/recentapplicationsmodel.cpp
-        adapters/kde/native/fileplaces.h adapters/kde/native/fileplaces.cpp
-        adapters/kde/native/applicationcatalog.h adapters/kde/native/applicationcatalog.cpp
-        adapters/kde/native/dockitemcatalog.h adapters/kde/native/dockitemcatalog.cpp
-        adapters/kde/native/trashstate.h adapters/kde/native/trashstate.cpp
-        adapters/kde/native/updatestate.h adapters/kde/native/updatestate.cpp
-        adapters/kde/native/dockapplicationsmodel.h adapters/kde/native/dockapplicationsmodel.cpp
-        adapters/kde/native/runningapplications.h adapters/kde/native/runningapplications.cpp
-        adapters/kde/native/windowvisibilitystate.h adapters/kde/native/windowvisibilitystate.cpp
-        adapters/kde/native/windowactivation.h adapters/kde/native/windowactivation.cpp
-        adapters/kde/native/autohideedge.h adapters/kde/native/autohideedge.cpp
-        adapters/kde/native/screeninfo.h adapters/kde/native/screeninfo.cpp
-        adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp
-        adapters/kde/native/profilefile.h adapters/kde/native/profilefile.cpp)
+    SOURCES adapters/kde/native/applications/desktoplauncher.h adapters/kde/native/applications/desktoplauncher.cpp
+        adapters/kde/native/appearance/popupblurcontroller.h adapters/kde/native/appearance/popupblurcontroller.cpp
+        adapters/kde/native/appearance/iconthemerefresh.h adapters/kde/native/appearance/iconthemerefresh.cpp
+        adapters/kde/native/appearance/iconthemecatalog.h adapters/kde/native/appearance/iconthemecatalog.cpp
+        adapters/kde/native/files/foldercontents.h adapters/kde/native/files/foldercontents.cpp
+        adapters/kde/native/applications/desktopentry.h
+        adapters/kde/native/files/recentdocuments.h adapters/kde/native/files/recentdocuments.cpp
+        adapters/kde/native/applications/recentapplicationsadapter.h adapters/kde/native/applications/recentapplicationsadapter.cpp
+        adapters/kde/native/applications/recentapplicationsmodel.h adapters/kde/native/applications/recentapplicationsmodel.cpp
+        adapters/kde/native/files/fileplaces.h adapters/kde/native/files/fileplaces.cpp
+        adapters/kde/native/applications/applicationcatalog.h adapters/kde/native/applications/applicationcatalog.cpp
+        adapters/kde/native/applications/dockitemcatalog.h adapters/kde/native/applications/dockitemcatalog.cpp
+        adapters/kde/native/files/trashstate.h adapters/kde/native/files/trashstate.cpp
+        adapters/kde/native/updates/updatestate.h adapters/kde/native/updates/updatestate.cpp
+        adapters/kde/native/applications/dockapplicationsmodel.h adapters/kde/native/applications/dockapplicationsmodel.cpp
+        adapters/kde/native/applications/runningapplications.h adapters/kde/native/applications/runningapplications.cpp
+        adapters/kde/native/windows/windowvisibilitystate.h adapters/kde/native/windows/windowvisibilitystate.cpp
+        adapters/kde/native/windows/windowactivation.h adapters/kde/native/windows/windowactivation.cpp
+        adapters/kde/native/windows/autohideedge.h adapters/kde/native/windows/autohideedge.cpp
+        adapters/kde/native/windows/screeninfo.h adapters/kde/native/windows/screeninfo.cpp
+        adapters/kde/native/windows/kwinminimizeeffect.h adapters/kde/native/windows/kwinminimizeeffect.cpp
+        adapters/kde/native/profile/profilefile.h adapters/kde/native/profile/profilefile.cpp)
 target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
 # The QML plugin loads the implementation library from a relative path so that
 # the user-local copy and the packaging layout never resolve it through the
@@ -72,12 +72,22 @@ target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6
 set_target_properties(punchikdeplugin PROPERTIES
     INSTALL_RPATH "$ORIGIN:$ORIGIN/../../.."
     BUILD_WITH_INSTALL_RPATH ON)
-target_include_directories(punchikde PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/native)
+# The native adapter sources are grouped by domain, and a few headers include one
+# from another group. Every group stays on the include path so a quoted include
+# resolves without a `../` chain, and the tests below inherit the same list.
+set(PUNCHI_NATIVE_INCLUDE_DIRS
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/appearance
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/applications
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/files
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/profile
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/updates
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/windows)
+include_directories(${PUNCHI_NATIVE_INCLUDE_DIRS})
 target_link_libraries(punchikde PRIVATE punchi_edge_protocols)
 add_executable(punchi-window-state adapters/kde/window-state/main.cpp
-    adapters/kde/window-state/registration.cpp adapters/kde/window-state/windowactivation.cpp
+    adapters/kde/window-state/registration.cpp adapters/kde/window-state/activationdecision.cpp
     adapters/kde/window-state/windowtaskactions.cpp
-    adapters/kde/native/kwinminimizeeffect.h adapters/kde/native/kwinminimizeeffect.cpp)
+    adapters/kde/native/windows/kwinminimizeeffect.h adapters/kde/native/windows/kwinminimizeeffect.cpp)
 target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml Qt6::DBus KF6::ConfigCore KF6::Service KF6::WindowSystem PkgConfig::WaylandClient)
 add_library(punchi_task_identity STATIC adapters/kde/window-state/taskidentity.cpp)
 target_link_libraries(punchi_task_identity PUBLIC Qt6::Gui KF6::Service KF6::CoreAddons)
@@ -132,7 +142,7 @@ include(CTest)
 if(BUILD_TESTING)
     find_package(Qt6 REQUIRED COMPONENTS Test)
     find_package(Python3 REQUIRED COMPONENTS Interpreter)
-    add_executable(folder_contents_test tests/folder_contents_test.cpp adapters/kde/native/foldercontents.cpp)
+    add_executable(folder_contents_test tests/folder_contents_test.cpp adapters/kde/native/files/foldercontents.cpp)
     target_include_directories(folder_contents_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(folder_contents_test PRIVATE Qt6::Test Qt6::Widgets Qt6::Qml KF6::KIOFileWidgets)
     add_test(NAME folder_contents COMMAND ${Python3_EXECUTABLE}
@@ -140,28 +150,28 @@ if(BUILD_TESTING)
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:folder_contents_test>)
     set_tests_properties(folder_contents PROPERTIES TIMEOUT 45)
     add_executable(trash_state_test tests/trash_state_test.cpp
-        adapters/kde/native/trashstate.cpp adapters/kde/native/dockitemcatalog.cpp
-        adapters/kde/native/applicationcatalog.cpp adapters/kde/native/dockapplicationsmodel.cpp)
+        adapters/kde/native/files/trashstate.cpp adapters/kde/native/applications/dockitemcatalog.cpp
+        adapters/kde/native/applications/applicationcatalog.cpp adapters/kde/native/applications/dockapplicationsmodel.cpp)
     target_include_directories(trash_state_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(trash_state_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::KIOCore KF6::Service)
     add_test(NAME trash_state COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:trash_state_test>)
     set_tests_properties(trash_state PROPERTIES TIMEOUT 45)
-    add_executable(update_state_test tests/update_state_test.cpp adapters/kde/native/updatestate.cpp)
+    add_executable(update_state_test tests/update_state_test.cpp adapters/kde/native/updates/updatestate.cpp)
     target_include_directories(update_state_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(update_state_test PRIVATE Qt6::Test Qt6::DBus)
     add_test(NAME update_state COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:update_state_test>)
     set_tests_properties(update_state PROPERTIES TIMEOUT 60)
     add_executable(task_identity_test tests/task_identity_test.cpp
-        adapters/kde/window-state/windowactivation.cpp
-        adapters/kde/native/applicationcatalog.cpp adapters/kde/native/dockapplicationsmodel.cpp)
+        adapters/kde/window-state/activationdecision.cpp
+        adapters/kde/native/applications/applicationcatalog.cpp adapters/kde/native/applications/dockapplicationsmodel.cpp)
     target_include_directories(task_identity_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(task_identity_test PRIVATE Qt6::Test Qt6::Qml Qt6::Quick punchi_task_identity)
     add_executable(kwin_minimize_effect_test tests/kwin_minimize_effect_test.cpp
-        adapters/kde/native/kwinminimizeeffect.cpp)
-    target_include_directories(kwin_minimize_effect_test PRIVATE ${CMAKE_SOURCE_DIR}/adapters/kde/native)
+        adapters/kde/native/windows/kwinminimizeeffect.cpp)
+    target_include_directories(kwin_minimize_effect_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(kwin_minimize_effect_test PRIVATE Qt6::Test Qt6::DBus KF6::ConfigCore)
     target_compile_definitions(kwin_minimize_effect_test PRIVATE
         PUNCHI_RESTORE_SCRIPT="${CMAKE_SOURCE_DIR}/scripts-user/restore-kde.sh")
@@ -170,13 +180,13 @@ if(BUILD_TESTING)
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/task_identity_test.py $<TARGET_FILE:task_identity_test>)
     set_tests_properties(task_identity PROPERTIES TIMEOUT 45)
-    add_executable(dock_applications_test tests/dock_applications_test.cpp adapters/kde/native/dockapplicationsmodel.cpp)
+    add_executable(dock_applications_test tests/dock_applications_test.cpp adapters/kde/native/applications/dockapplicationsmodel.cpp)
     target_include_directories(dock_applications_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(dock_applications_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     add_test(NAME dock_applications COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:dock_applications_test>)
     add_executable(application_catalog_test tests/application_catalog_test.cpp
-        adapters/kde/native/applicationcatalog.cpp)
+        adapters/kde/native/applications/applicationcatalog.cpp)
     target_include_directories(application_catalog_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(application_catalog_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     add_test(NAME application_catalog COMMAND ${Python3_EXECUTABLE}
@@ -185,29 +195,29 @@ if(BUILD_TESTING)
         $<TARGET_FILE:application_catalog_test>)
     set_tests_properties(application_catalog PROPERTIES TIMEOUT 45)
     add_executable(recent_applications_model_test tests/recent_applications_model_test.cpp
-        adapters/kde/native/recentapplicationsmodel.cpp)
+        adapters/kde/native/applications/recentapplicationsmodel.cpp)
     target_include_directories(recent_applications_model_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(recent_applications_model_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml)
     add_test(NAME recent_applications_model COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_model_test>)
     add_executable(icon_theme_catalog_test tests/icon_theme_catalog_test.cpp
-        adapters/kde/native/iconthemecatalog.cpp)
+        adapters/kde/native/appearance/iconthemecatalog.cpp)
     target_include_directories(icon_theme_catalog_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(icon_theme_catalog_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml
         Qt6::Concurrent KF6::ConfigCore)
     add_test(NAME icon_theme_catalog COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:icon_theme_catalog_test>)
     add_executable(recent_applications_tracking_test tests/recent_applications_tracking_test.cpp
-        adapters/kde/native/recentapplicationsadapter.cpp)
+        adapters/kde/native/applications/recentapplicationsadapter.cpp)
     target_include_directories(recent_applications_tracking_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(recent_applications_tracking_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml
         KF6::ConfigCore KF6::Service KF6::KIOGui Plasma::ActivitiesStats Plasma::Activities)
     add_test(NAME recent_applications_tracking COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_tracking_test>)
     add_executable(window_activation_test tests/window_activation_test.cpp
-        adapters/kde/window-state/windowactivation.cpp
-        adapters/kde/native/runningapplications.cpp adapters/kde/native/windowactivation.cpp
-        adapters/kde/native/windowvisibilitystate.cpp adapters/kde/window-state/windowtaskactions.cpp)
+        adapters/kde/window-state/activationdecision.cpp
+        adapters/kde/native/applications/runningapplications.cpp adapters/kde/native/windows/windowactivation.cpp
+        adapters/kde/native/windows/windowvisibilitystate.cpp adapters/kde/window-state/windowtaskactions.cpp)
     target_include_directories(window_activation_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(window_activation_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     target_link_libraries(window_activation_test PRIVATE punchi_task_identity)
@@ -219,14 +229,14 @@ if(BUILD_TESTING)
     qt_add_resources(window_models_test "window_models_test_resource" PREFIX "/"
         FILES adapters/kde/window-state/WindowModels.qml)
     pkg_check_modules(WaylandServer REQUIRED IMPORTED_TARGET wayland-server)
-    add_executable(autohide_edge_test tests/autohide_edge_test.cpp adapters/kde/native/autohideedge.cpp)
+    add_executable(autohide_edge_test tests/autohide_edge_test.cpp adapters/kde/native/windows/autohideedge.cpp)
     target_include_directories(autohide_edge_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(autohide_edge_test PRIVATE Qt6::Test Qt6::Qml punchi_edge_protocols PkgConfig::WaylandServer)
-    add_executable(profile_file_test tests/profile_file_test.cpp adapters/kde/native/profilefile.cpp)
+    add_executable(profile_file_test tests/profile_file_test.cpp adapters/kde/native/profile/profilefile.cpp)
     target_include_directories(profile_file_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(profile_file_test PRIVATE Qt6::Test Qt6::Core Qt6::Qml)
-    add_executable(running_state_test tests/running_state_test.cpp adapters/kde/native/runningapplications.cpp
-        adapters/kde/native/windowvisibilitystate.cpp adapters/kde/native/windowactivation.cpp)
+    add_executable(running_state_test tests/running_state_test.cpp adapters/kde/native/applications/runningapplications.cpp
+        adapters/kde/native/windows/windowvisibilitystate.cpp adapters/kde/native/windows/windowactivation.cpp)
     target_include_directories(running_state_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(running_state_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     target_link_libraries(running_state_test PRIVATE punchi_task_identity)
@@ -315,7 +325,7 @@ if(BUILD_TESTING)
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/window_dodge_runtime_test.py)
     set_tests_properties(window_dodge_runtime PROPERTIES TIMEOUT 45)
-    add_test(NAME application_launch COMMAND ${Python3_EXECUTABLE}
+    add_test(NAME launch_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/launch_runtime_test.py)
     add_test(NAME popup_runtime COMMAND ${Python3_EXECUTABLE}
@@ -330,7 +340,7 @@ if(BUILD_TESTING)
     add_test(NAME application_items COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/application_items_test.py)
-    add_test(NAME settings_theme COMMAND ${Python3_EXECUTABLE}
+    add_test(NAME settings_theme_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_theme_runtime_test.py)
     add_test(NAME profile_exchange COMMAND ${Python3_EXECUTABLE}
@@ -366,7 +376,7 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
-    set_tests_properties(qml_lint dock_components application_launch popup_runtime recent_documents places_runtime application_items settings_theme configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract user_setup_scripts autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
+    set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract user_setup_scripts autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 
@@ -413,10 +423,10 @@ if(BUILD_TESTING)
         window_activation_runtime
         running_marker_runtime
         window_dodge_runtime
-        application_launch
+        launch_runtime
         popup_runtime
         places_runtime
-        settings_theme
+        settings_theme_runtime
         configuration_runtime
         placement_runtime
         settings_reload

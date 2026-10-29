@@ -6,9 +6,9 @@
 #include <QFile>
 #include <QJsonDocument>
 #include <climits>
-#include "adapters/kde/window-state/windowactivation.h"
+#include "adapters/kde/window-state/activationdecision.h"
 #include "adapters/kde/window-state/windowtaskactions.h"
-#include "adapters/kde/native/runningapplications.h"
+#include "adapters/kde/native/applications/runningapplications.h"
 
 class ActivationModel : public QStandardItemModel {
     Q_OBJECT

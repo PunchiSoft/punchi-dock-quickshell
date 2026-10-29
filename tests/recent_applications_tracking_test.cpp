@@ -4,7 +4,7 @@
 #include <KConfigGroup>
 #include <QFile>
 #include <QTemporaryDir>
-#include "adapters/kde/native/recentapplicationsadapter.h"
+#include "adapters/kde/native/applications/recentapplicationsadapter.h"
 
 // kactivitymanagerd's StatsPlugin::WhatToRemember values.
 class RecentApplicationsTrackingTest : public QObject {

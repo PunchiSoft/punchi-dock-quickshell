@@ -2,7 +2,7 @@
 #include <QtTest>
 #include <QStandardItemModel>
 #include <QAbstractItemModelTester>
-#include "adapters/kde/native/dockapplicationsmodel.h"
+#include "adapters/kde/native/applications/dockapplicationsmodel.h"
 
 class DockApplicationsTest : public QObject {
     Q_OBJECT

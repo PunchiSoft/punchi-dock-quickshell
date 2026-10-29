@@ -3,9 +3,9 @@
 #include <QStandardItemModel>
 #include <QIcon>
 #include "adapters/kde/window-state/snapshot.h"
-#include "adapters/kde/window-state/windowactivation.h"
-#include "adapters/kde/native/applicationcatalog.h"
-#include "adapters/kde/native/dockapplicationsmodel.h"
+#include "adapters/kde/window-state/activationdecision.h"
+#include "adapters/kde/native/applications/applicationcatalog.h"
+#include "adapters/kde/native/applications/dockapplicationsmodel.h"
 
 class IdentityTasks : public QStandardItemModel {
     Q_OBJECT

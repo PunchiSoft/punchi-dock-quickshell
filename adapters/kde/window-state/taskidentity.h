@@ -2,7 +2,7 @@
 #pragma once
 #include <QAbstractItemModel>
 #include <QUrl>
-#include "../native/desktopentry.h"
+#include "../native/applications/desktopentry.h"
 
 inline QString normalizedApplicationId(QString id)
 {

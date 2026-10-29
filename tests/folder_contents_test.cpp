@@ -5,7 +5,7 @@
 #include <QStandardPaths>
 #include <QTemporaryDir>
 #include <KIO/DeleteJob>
-#include "adapters/kde/native/foldercontents.h"
+#include "adapters/kde/native/files/foldercontents.h"
 
 class FolderContentsTest : public QObject {
     Q_OBJECT

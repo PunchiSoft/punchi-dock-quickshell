@@ -2,7 +2,7 @@
 #include <QtTest>
 #include <QStandardItemModel>
 #include <QAbstractItemModelTester>
-#include "adapters/kde/native/recentapplicationsmodel.h"
+#include "adapters/kde/native/applications/recentapplicationsmodel.h"
 
 class RecentApplicationsModelTest : public QObject {
     Q_OBJECT

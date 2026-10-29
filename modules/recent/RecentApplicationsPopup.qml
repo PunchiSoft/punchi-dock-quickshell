@@ -5,7 +5,7 @@ import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
 import "../../config"
-import "../dock"
+import "../../components"
 
 // Popup host of the recent-applications container. It mirrors the folder
 // container plumbing: one anchor to the dock icon, a serial so a retarget never
@@ -54,7 +54,7 @@ Popup {
         : Math.max(0, capturedBaseY + (hostWindow ? hostWindow.height - hostBaseHeight : 0)
             - height - Kirigami.Units.smallSpacing)
 
-    DockContextAnchor {
+    PopupAnchor {
         id: anchor
         followRenderedIcon: root.visible || root.preparingToShow
     }

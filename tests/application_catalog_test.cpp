@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QtTest>
 #include <QStandardItemModel>
-#include "adapters/kde/native/applicationcatalog.h"
+#include "adapters/kde/native/applications/applicationcatalog.h"
 
 // The owned default browser and editor come from tests/application_catalog_test.py.
 class ApplicationCatalogTest : public QObject {

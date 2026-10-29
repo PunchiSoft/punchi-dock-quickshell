@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "adapters/kde/native/iconthemecatalog.h"
+#include "adapters/kde/native/appearance/iconthemecatalog.h"
 #include <QDateTime>
 #include <QDir>
 #include <QFile>
