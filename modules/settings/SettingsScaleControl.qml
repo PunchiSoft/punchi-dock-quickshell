@@ -26,7 +26,6 @@ ColumnLayout {
         id: slider
         objectName: root.controlName
         Layout.fillWidth: true
-        Kirigami.StyleHints.tickMarkStepSize: -1
         Accessible.name: root.title
         Accessible.description: qsTr("%1%").arg(Math.round(value))
         onMoved: root.moved(value)

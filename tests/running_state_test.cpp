@@ -223,10 +223,11 @@ private slots:
     void scopedDesktopRegistrationAndCollision() {
         const QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
             + QStringLiteral("/applications/org.punchi.Shell.WindowState.desktop");
-        QString legacyExecutable = QStringLiteral(PUNCHI_TEST_BACKEND);
-        QVERIFY(legacyExecutable.contains(QStringLiteral("/punchi-dock-quickshell/build/punchi-window-state")));
-        legacyExecutable.replace(QStringLiteral("/punchi-dock-quickshell/build/punchi-window-state"),
-            QStringLiteral("/punchi-shell/build/punchi-window-state"));
+        const QString backend = QStringLiteral(PUNCHI_TEST_BACKEND);
+        QVERIFY(backend.endsWith(QStringLiteral("/punchi-window-state")));
+        // A registration from another checkout, which this backend must migrate.
+        const QString legacyExecutable
+            = QStringLiteral("/tmp/punchi-shell/build/punchi-window-state");
         const QByteArray legacyRegistration = QStringLiteral("[Desktop Entry]\nType=Application\n"
             "Name=Punchi Shell Window State\nNoDisplay=true\nTerminal=false\n"
             "Exec=\"%1\"\nX-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n")

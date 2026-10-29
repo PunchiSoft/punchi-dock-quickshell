@@ -57,13 +57,13 @@ punchi_debian_runtime_packages() {
     printf '%s\n' \
         quickshell \
         qml6-module-org-kde-kirigami \
-        qml6-module-org-kde-qqc2desktopstyle \
+        qml6-module-org-kde-desktop \
         qml6-module-org-kde-ksvg \
         qml6-module-org-kde-kirigamiaddons-components \
-        qml6-module-org-kde-kservice \
+        libkf6service-bin \
         plasma-workspace \
         libplasmaactivities6 \
-        plasma-activities-stats
+        libplasmaactivitiesstats1
 }
 
 punchi_debian_build_packages() {
@@ -159,6 +159,9 @@ punchi_package_group() {
 punchi_package_installed() {
     local package="${1:?package is required}"
     local family="${2:-}"
+    if [[ "$package" == "quickshell" ]] && command -v qs >/dev/null 2>&1; then
+        return 0
+    fi
     case "$family" in
         fedora)
             command -v rpm >/dev/null 2>&1 || return 2
@@ -188,6 +191,67 @@ punchi_missing_packages() {
             printf '%s\n' "$package"
         fi
     done < <(punchi_package_group "$family" "$group")
+}
+
+# Debian stable does not carry every runtime dependency, so the setup can add
+# the matching backports suite after an explicit confirmation.
+punchi_debian_backports_suite() {
+    local codename=""
+    [[ "$(punchi_distro_id)" == "debian" ]] || return 1
+    codename="$(punchi_os_release_value VERSION_CODENAME || true)"
+    [[ "$codename" =~ ^[a-z0-9-]+$ ]] || return 1
+    printf '%s-backports\n' "$codename"
+}
+
+punchi_debian_package_available() {
+    local package="${1:?package is required}"
+    local candidate=""
+    command -v apt-cache >/dev/null 2>&1 || return 2
+    # The field labels follow the locale, so keep apt-cache in C.
+    candidate="$(LC_ALL=C apt-cache policy "$package" 2>/dev/null \
+        | sed -n 's/^  Candidate: //p' | head -n 1)" || candidate=""
+    [[ -n "$candidate" && "$candidate" != "(none)" ]]
+}
+
+# Kept as a function so the setup tests can point it at a temporary directory.
+punchi_apt_config_dir() {
+    printf '%s\n' /etc/apt
+}
+
+punchi_debian_backports_configured() {
+    local suite="${1:?suite is required}"
+    local config_dir=""
+    local file=""
+    config_dir="$(punchi_apt_config_dir)"
+    for file in "$config_dir/sources.list" "$config_dir"/sources.list.d/*; do
+        [[ -f "$file" ]] || continue
+        if grep -qE "(^|[[:space:]])${suite}([[:space:]]|$)" "$file" 2>/dev/null; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+punchi_debian_enable_backports() {
+    local suite="${1:?suite is required}"
+    local config_dir=""
+    local file=""
+    local line=""
+    config_dir="$(punchi_apt_config_dir)"
+    file="$config_dir/sources.list.d/debian-backports.list"
+    if ! punchi_debian_backports_configured "$suite"; then
+        line="deb http://deb.debian.org/debian $suite main"
+        if [[ -f "$file" ]]; then
+            # Keep an existing file that belongs to the user instead of
+            # replacing it.
+            printf '\n%s\n' "$line" | sudo tee -a "$file" >/dev/null || return 1
+        else
+            printf '%s\n' "$line" | sudo tee "$file" >/dev/null || return 1
+        fi
+    fi
+    # Refresh even when the suite was already configured: the candidate may be
+    # missing only because the package lists predate it.
+    sudo apt-get update || return 1
 }
 
 punchi_qt_bin_directories() {
@@ -624,10 +688,13 @@ punchi_offer_dependency_install() {
     local family="${1:?distribution family is required}"
     local status="${2:-1}"
     local -a missing=()
+    local -a installable=()
     local -a install_command=()
     local -a update_command=()
     local package=""
     local label=""
+    local suite=""
+    local quickshell_handled=0
 
     [[ "$status" != "0" ]] || return 0
 
@@ -643,19 +710,51 @@ punchi_offer_dependency_install() {
     )
     (( ${#missing[@]} > 0 )) || return 0
 
+    # Quickshell has no candidate in the configured suites on some Debian
+    # releases. Installing it in the same apt call would abort every package, so
+    # it is resolved first and kept out of the batched command.
+    if [[ "$family" == "debian" ]] \
+        && printf '%s\n' "${missing[@]}" | grep -qx 'quickshell' \
+        && ! punchi_debian_package_available quickshell; then
+        if suite="$(punchi_debian_backports_suite)"; then
+            quickshell_handled=1
+            punchi_warning "Quickshell is not available in the configured Debian suites."
+            punchi_info "Debian publishes it in the $suite suite."
+            if command -v sudo >/dev/null 2>&1 \
+                && punchi_confirm "Enable $suite and install Quickshell from it? [y/N]: " n; then
+                if punchi_debian_enable_backports "$suite" \
+                    && sudo apt-get install -y -t "$suite" quickshell; then
+                    punchi_success "Quickshell was installed from $suite."
+                else
+                    punchi_info "Quickshell remains missing. Enable $suite and run: sudo apt-get install -y -t $suite quickshell"
+                fi
+            else
+                punchi_info "Quickshell remains missing. Enable $suite and run: sudo apt-get install -y -t $suite quickshell"
+            fi
+        fi
+    fi
+
+    for package in "${missing[@]}"; do
+        if [[ "$package" == "quickshell" ]] && (( quickshell_handled == 1 )); then
+            continue
+        fi
+        installable+=("$package")
+    done
+    (( ${#installable[@]} > 0 )) || return 0
+
     case "$family" in
         fedora)
             label="Fedora"
-            install_command=(sudo dnf install "${missing[@]}")
+            install_command=(sudo dnf install "${installable[@]}")
             ;;
         debian)
             label="Debian/Ubuntu"
             update_command=(sudo apt-get update)
-            install_command=(sudo apt-get install -y "${missing[@]}")
+            install_command=(sudo apt-get install -y "${installable[@]}")
             ;;
         arch)
             label="Arch"
-            install_command=(sudo pacman -S --needed "${missing[@]}")
+            install_command=(sudo pacman -S --needed "${installable[@]}")
             ;;
         *)
             return 0

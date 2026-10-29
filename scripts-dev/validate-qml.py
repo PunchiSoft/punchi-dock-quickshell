@@ -8,13 +8,16 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_dir import resolve_build_dir  # noqa: E402
+
 
 def main():
     root = Path(__file__).resolve().parents[1]
     files = [root / 'shell.qml']
     for directory in ('components', 'config', 'services', 'modules', 'adapters', 'tests/qml', 'tests/runtime', 'tests/folders'):
         files.extend(sorted((root / directory).rglob('*.qml')))
-    result = subprocess.run([sys.argv[1], '-I', str(root / 'build/qml'), '--max-warnings', '0', *map(str, files)],
+    result = subprocess.run([sys.argv[1], '-I', str(resolve_build_dir(root) / 'qml'), '--max-warnings', '0', *map(str, files)],
                             cwd=root, capture_output=True, text=True)
     output = result.stdout + result.stderr
     print(output, end='')

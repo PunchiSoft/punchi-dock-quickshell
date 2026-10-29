@@ -2,6 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 set -euo pipefail
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+if [[ -r "$project_root/scripts-user/lib/build-dir.sh" ]]; then
+    # shellcheck source=lib/build-dir.sh
+    source "$project_root/scripts-user/lib/build-dir.sh"
+fi
 
 punchi_instance_path() {
     local runtime_root="${PUNCHI_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-}}"
@@ -47,12 +51,23 @@ punchi_running_path() {
 punchi_backend_for() {
     local root=""
     local candidate=""
+    local distro_build=""
     for root in "$@"; do
+        distro_build=""
+        # Match the per-distribution tree the setup builds, then the plain one.
+        if declare -F punchi_build_distro_id >/dev/null 2>&1 \
+            && distro_build="$(punchi_build_distro_id 2>/dev/null)" \
+            && [[ -n "$distro_build" ]]; then
+            distro_build="$root/build-$distro_build/punchi-window-state"
+        else
+            distro_build=""
+        fi
         for candidate in \
+            ${distro_build:+"$distro_build"} \
             "$root/build/punchi-window-state" \
             "$root/../../libexec/punchi-dock-quickshell/punchi-window-state" \
             "$root/../../lib/punchi-dock-quickshell/punchi-window-state"; do
-            if [[ -x "$candidate" ]]; then
+            if [[ -n "$candidate" && -x "$candidate" ]]; then
                 printf '%s\n' "$candidate"
                 return 0
             fi

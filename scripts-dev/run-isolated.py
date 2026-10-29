@@ -7,7 +7,11 @@ import os
 from pathlib import Path
 import signal
 import subprocess
+import sys
 import tempfile
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_dir import resolve_build_dir  # noqa: E402
 
 
 def interrupted(signum, _frame):
@@ -55,7 +59,7 @@ def main():
                     destination.symlink_to(entry)
         env['XDG_DATA_DIRS'] = os.pathsep.join((str(root / 'data'), data_dirs))
         env['QT_QUICK_CONTROLS_STYLE'] = 'Basic'
-        native_imports = str(Path(__file__).resolve().parents[1] / 'build/qml')
+        native_imports = str(resolve_build_dir(Path(__file__).resolve().parents[1]) / 'qml')
         env['QML_IMPORT_PATH'] = os.pathsep.join(filter(None, (native_imports, env.get('QML_IMPORT_PATH', ''))))
         # Offscreen Qt otherwise lacks a platform theme for named KDE icons.
         env.setdefault('QT_QPA_PLATFORMTHEME', 'kde')

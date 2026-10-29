@@ -94,6 +94,17 @@ void DockItemCatalog::rebuildContainers() {
         ++m_containerRows;
     }
 }
+QHash<int, QByteArray> DockItemCatalog::roleNames() const {
+    if (m_applications && !m_applications->roleNames().isEmpty()) {
+        auto roles = m_applications->roleNames();
+        const auto specialRoles = m_specials.roleNames();
+        for (auto it = specialRoles.cbegin(); it != specialRoles.cend(); ++it) {
+            roles.insert(it.key(), it.value());
+        }
+        return roles;
+    }
+    return m_specials.roleNames();
+}
 QVariantMap DockItemCatalog::get(int row) const {    QVariantMap result;
     if (row < 0 || row >= rowCount()) return result;
     const auto roles = roleNames();

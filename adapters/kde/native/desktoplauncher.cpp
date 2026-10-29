@@ -6,6 +6,8 @@
 
 #include <KIO/ApplicationLauncherJob>
 #include <KWaylandExtras>
+#include <kwindowsystem_version.h>
+#include <memory>
 #include <QFutureWatcher>
 #include <QGuiApplication>
 #include <QQuickWindow>
@@ -156,6 +158,7 @@ bool DesktopLauncher::enqueue(const KService::Ptr &service, const QString &deskt
 
     // Capture the input serial synchronously inside the user's activation handler.
     const quint32 serial = KWaylandExtras::lastInputSerial(window);
+#if KWINDOWSYSTEM_VERSION >= QT_VERSION_CHECK(6, 19, 0)
     auto *watcher = new QFutureWatcher<QString>(this);
     auto *timeout = new QTimer(watcher);
     timeout->setSingleShot(true);
@@ -179,6 +182,34 @@ bool DesktopLauncher::enqueue(const KService::Ptr &service, const QString &deskt
     });
     timeout->start(2000);
     watcher->setFuture(KWaylandExtras::xdgActivationToken(window, serial, service->desktopEntryName()));
+#else
+    auto *timeout = new QTimer(this);
+    timeout->setSingleShot(true);
+    auto connection = std::make_shared<QMetaObject::Connection>();
+    auto cleanup = [this, timeout, connection] {
+        timeout->stop();
+        timeout->deleteLater();
+        QObject::disconnect(*connection);
+    };
+    *connection = connect(KWaylandExtras::self(), &KWaylandExtras::xdgActivationTokenArrived, this,
+        [this, cleanup, service, desktopId, action, urls, serial](int arrivedSerial, const QString &token) {
+            if (serial != 0 && static_cast<quint32>(arrivedSerial) != serial) return;
+            cleanup();
+            if (token.isEmpty()) {
+                --m_pending;
+                emit launchFinished(desktopId, false, QStringLiteral("Wayland activation token was unavailable"));
+                return;
+            }
+            startJob(service, desktopId, token.toUtf8(), action, urls);
+        });
+    connect(timeout, &QTimer::timeout, this, [this, cleanup, desktopId] {
+        cleanup();
+        --m_pending;
+        emit launchFinished(desktopId, false, QStringLiteral("Wayland activation request timed out"));
+    });
+    timeout->start(2000);
+    KWaylandExtras::requestXdgActivationToken(window, serial, service->desktopEntryName());
+#endif
     return true;
 }
 

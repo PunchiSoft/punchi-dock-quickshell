@@ -223,6 +223,7 @@ void UpdateState::refresh()
 
 void UpdateState::readBackendName(int generation)
 {
+    if (!QDBusConnection::systemBus().isConnected()) return;
     QDBusMessage message = QDBusMessage::createMethodCall(QString::fromLatin1(packageKitService),
         QString::fromLatin1(packageKitPath), QStringLiteral("org.freedesktop.DBus.Properties"),
         QStringLiteral("Get"));
@@ -241,6 +242,10 @@ void UpdateState::readBackendName(int generation)
 
 void UpdateState::startSystem(int generation)
 {
+    if (!QDBusConnection::systemBus().isConnected()) {
+        finishSystem(generation, false, 0, 0);
+        return;
+    }
     QDBusMessage message = QDBusMessage::createMethodCall(QString::fromLatin1(packageKitService),
         QString::fromLatin1(packageKitPath), QString::fromLatin1(packageKitInterface),
         QStringLiteral("CreateTransaction"));
@@ -327,6 +332,10 @@ void UpdateState::startFlatpak(int generation)
 
 void UpdateState::startFirmware(int generation)
 {
+    if (!QDBusConnection::systemBus().isConnected()) {
+        finishFirmware(generation, false, 0);
+        return;
+    }
     QDBusMessage message = QDBusMessage::createMethodCall(QString::fromLatin1(fwupdService),
         QString::fromLatin1(fwupdPath), QString::fromLatin1(fwupdInterface), QStringLiteral("GetDevices"));
     auto *watcher = new QDBusPendingCallWatcher(QDBusConnection::systemBus().asyncCall(message), this);

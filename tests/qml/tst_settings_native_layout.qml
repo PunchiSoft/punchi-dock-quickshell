@@ -153,7 +153,6 @@ TestCase {
         const size = control(window, "iconSize")
         const zoom = control(window, "zoomScale")
         compare(zoom.stepSize, 10)
-        compare(zoom.Kirigami.StyleHints.tickMarkStepSize, -1)
         size.forceActiveFocus(Qt.TabFocusReason)
         keyClick(Qt.Key_End)
         compare(view.settings.sizePercent, 150)

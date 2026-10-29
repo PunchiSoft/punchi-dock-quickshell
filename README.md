@@ -323,7 +323,11 @@ requirements.
 
 Use `./scripts-user/setup.sh --check-deps` to inspect the current environment.
 Adding `--install-missing` additionally offers the distribution-specific install
-command for Fedora, Debian/Ubuntu or Arch and asks before running it.
+command for Fedora, Debian/Ubuntu or Arch and asks before running it. On Debian,
+Quickshell is not part of the stable suite: when it has no apt candidate, the
+assistant offers to enable the matching `<codename>-backports` source with an
+explicit confirmation and installs `quickshell` from it. Declining that offer
+keeps the other missing packages installable.
 
 If the native build fails, the assistant writes a timestamped log under the
 user's Documents directory (`punchi-dock-quickshell-setup-*.log`) with the
@@ -471,10 +475,15 @@ non-interactive use; `--keep-build` is a compatibility alias for the default.
 For a prefix-based installation:
 
 ```bash
-cmake -S . -B build -G Ninja
-cmake --build build
-cmake --install build --prefix ~/.local
+cmake -S . -B "build-$(. /etc/os-release && printf '%s' "$ID")" -G Ninja
+cmake --build "build-$(. /etc/os-release && printf '%s' "$ID")"
+cmake --install "build-$(. /etc/os-release && printf '%s' "$ID")" --prefix ~/.local
 ```
+
+The setup assistant and the scripts use one build tree per distribution,
+`build-<ID>` such as `build-debian` or `build-fedora`, and a plain `build/`
+remains only as the fallback for existing checkouts. `PUNCHI_BUILD_DIR`
+overrides the location.
 
 This installs `bin/punchi-dock-quickshell`, the QML tree under
 `share/punchi-dock-quickshell`, the window backend under
@@ -483,8 +492,9 @@ entry point resolves its prefix, so it also works with `/usr` or another
 `CMAKE_INSTALL_PREFIX`. This route is intended for packaging and advanced
 deployments; `scripts-user/setup.sh` remains the guided per-user installer.
 
-`cmake --build build --target uninstall` removes the files recorded in
-`install_manifest.txt`. `cpack --config build/CPackConfig.cmake` creates a
+`cmake --build "build-$(. /etc/os-release && printf '%s' "$ID")" --target uninstall`
+removes the files recorded in `install_manifest.txt`.
+`cpack --config "build-$(. /etc/os-release && printf '%s' "$ID")/CPackConfig.cmake"` creates a
 portable TGZ archive. RPM and DEB packages are still future work; the CMake
 install rules do not declare distribution-level dependencies.
 
