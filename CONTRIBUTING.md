@@ -35,6 +35,35 @@ may change without migration.
   test fails when those declarations disagree with the newest dated changelog
   heading.
 
+## Repository tree
+
+| Path | Owns | Never holds |
+| --- | --- | --- |
+| `shell.qml` | composition of the enabled top-level modules | state, logic, commands |
+| `modules/<feature>/` | one surface and its own interaction | shared primitives |
+| `components/` | visual primitives with two or more confirmed consumers | feature state, commands |
+| `services/` | data and coordination | visual items |
+| `adapters/kde/` | the KDE boundary: QML adapters, `native/` C++ grouped by domain, `protocols/`, `window-state/` | dock surfaces |
+| `config/` | settings schema, defaults and shared design metrics | persistence side effects |
+| `tests/` | every CTest entry; see [tests/README.md](tests/README.md) | shipped QML |
+| `scripts-user/` | reversible user entry points and their `lib/` | developer-only tooling |
+| `scripts-dev/` | developer tooling; see [scripts-dev/README.md](scripts-dev/README.md) | runtime dependencies |
+| `assets/` | brand assets referenced by CMake and both READMEs | build output |
+| `cmake/` | CMake modules and templates | generated files |
+| `.agents/` | [AGENTS.md](AGENTS.md), the skills and their catalog | runtime code |
+| `.github/` | workflows and issue/pull-request templates | credentials |
+| `docs/` | local engineering record, ignored by Git | anything a build reads |
+
+- Every layer directory carries a README that states what belongs to it, and a new
+  subdirectory is added to that README's inventory.
+- A new top-level directory needs a row in this table and a reason. If it changes the
+  dependency direction, `tests/architecture_test.py` needs a matching rule or a written
+  allowlist entry.
+- Generated output, captures, credentials and build trees never live in a tracked
+  directory.
+- `docs/` and every other ignored path never appears as a link target from a tracked
+  file, because a clone does not receive it.
+
 ## Local development
 
 Install the dependencies once (`--install-missing` offers the distribution

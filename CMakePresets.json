@@ -9,9 +9,9 @@
     {
       "name": "dev",
       "displayName": "Development build with the test graph",
-      "description": "Configures into build/, the directory scripts-dev resolves for QML metadata.",
+      "description": "Configures into build/dev, the generic tree for CI and a single machine; the setup writes build/build-<distribution ID> instead.",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "BUILD_TESTING": "ON"
       }

@@ -48,8 +48,7 @@ runtime copy.
   new approval even when the meaning is unchanged.
 - A notice about a failure must say what the user can do next; a bare cause
   leaves them stuck.
-- `docs/` and `notes/` text is engineering record, not runtime copy, and needs no
-  approval.
+- `docs/` text is engineering record, not runtime copy, and needs no approval.
 - Wrapping approved copy in `qsTr` is expected. Translating it before approval is
   rework.
 - A destructive confirmation cannot reuse a neutral note: emphasis is part of the

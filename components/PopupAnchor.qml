@@ -1,4 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
+// One popup anchor per surface: it captures the launcher the popup was opened from
+// and follows the rendered icon while the magnification moves it. The dock contexts,
+// the folder container and the recent container share it.
 pragma ComponentBehavior: Bound
 import QtQuick
 

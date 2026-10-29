@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include <QtTest>
 #include <QVariantMap>
-#include "adapters/kde/native/updatestate.h"
+#include "adapters/kde/native/updates/updatestate.h"
 
 class UpdateStateTest : public QObject
 {

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "windowactivation.h"
-#include "../window-state/taskidentity.h"
+#include "../../window-state/taskidentity.h"
 #include <QJsonDocument>
 #include <climits>
 #include <cmath>

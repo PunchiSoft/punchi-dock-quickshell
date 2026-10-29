@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "adapters/kde/native/autohideedge.h"
+#include "adapters/kde/native/windows/autohideedge.h"
 #include "kde-screen-edge-v1-server.h"
 #include "wlr-layer-shell-unstable-v1-server.h"
 #include <QtTest>

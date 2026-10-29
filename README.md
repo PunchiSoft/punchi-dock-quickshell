@@ -159,6 +159,11 @@ an application-launcher surface and additional controls remain future work.
 
 - Alpha software: behavior, configuration and native APIs may change without
   migration.
+- Quickshell 0.3.0 logs one harmless `WARN: QSettings::value: Empty key passed`
+  at startup in some distributions, including Debian 13. It appears before the
+  shell loads and with an empty configuration, so this project does not produce
+  it; it does not change behavior, and the full startup log keeps it for
+  diagnosis.
 - Requires KDE Plasma/KWin on Wayland. Other desktops and compositors are not
   supported. X11 is out of scope and no support work is planned.
 - Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked
@@ -475,15 +480,16 @@ non-interactive use; `--keep-build` is a compatibility alias for the default.
 For a prefix-based installation:
 
 ```bash
-cmake -S . -B "build-$(. /etc/os-release && printf '%s' "$ID")" -G Ninja
-cmake --build "build-$(. /etc/os-release && printf '%s' "$ID")"
-cmake --install "build-$(. /etc/os-release && printf '%s' "$ID")" --prefix ~/.local
+cmake -S . -B "build/build-$(. /etc/os-release && printf '%s' "$ID")" -G Ninja
+cmake --build "build/build-$(. /etc/os-release && printf '%s' "$ID")"
+cmake --install "build/build-$(. /etc/os-release && printf '%s' "$ID")" --prefix ~/.local
 ```
 
-The setup assistant and the scripts use one build tree per distribution,
-`build-<ID>` such as `build-debian` or `build-fedora`, and a plain `build/`
-remains only as the fallback for existing checkouts. `PUNCHI_BUILD_DIR`
-overrides the location.
+The setup assistant and the scripts group one build tree per distribution under
+`build/`, as `build/build-debian` or `build/build-fedora`, and `cmake --preset
+dev` writes the generic single-machine tree `build/dev`. The flat `build-<ID>`
+and plain `build/` trees of the earlier layouts are still read when they are the
+only complete ones. `PUNCHI_BUILD_DIR` overrides the location.
 
 This installs `bin/punchi-dock-quickshell`, the QML tree under
 `share/punchi-dock-quickshell`, the window backend under
@@ -492,9 +498,9 @@ entry point resolves its prefix, so it also works with `/usr` or another
 `CMAKE_INSTALL_PREFIX`. This route is intended for packaging and advanced
 deployments; `scripts-user/setup.sh` remains the guided per-user installer.
 
-`cmake --build "build-$(. /etc/os-release && printf '%s' "$ID")" --target uninstall`
+`cmake --build "build/build-$(. /etc/os-release && printf '%s' "$ID")" --target uninstall`
 removes the files recorded in `install_manifest.txt`.
-`cpack --config "build-$(. /etc/os-release && printf '%s' "$ID")/CPackConfig.cmake"` creates a
+`cpack --config "build/build-$(. /etc/os-release && printf '%s' "$ID")/CPackConfig.cmake"` creates a
 portable TGZ archive. RPM and DEB packages are still future work; the CMake
 install rules do not declare distribution-level dependencies.
 

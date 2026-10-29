@@ -12,7 +12,7 @@ import subprocess
 
 
 def resolve_build_dir(root: Path) -> Path:
-    """Return the tree holding artifacts: `build-<distro>`, else legacy `build/`."""
+    """Return the tree holding artifacts: `build/build-<distro>` or a fallback."""
     library = root / 'scripts-user/lib/build-dir.sh'
     script = (f'punchi_project_root={shlex.quote(str(root))}; '
               f'source {shlex.quote(str(library))}; '
@@ -20,4 +20,4 @@ def resolve_build_dir(root: Path) -> Path:
     result = subprocess.run(['bash', '-c', script], capture_output=True,
                             text=True, check=False)
     resolved = result.stdout.strip()
-    return Path(resolved) if resolved else root / 'build'
+    return Path(resolved) if resolved else root / 'build' / 'build'

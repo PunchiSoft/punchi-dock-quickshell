@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "registration.h"
 #include "snapshot.h"
-#include "windowactivation.h"
+#include "activationdecision.h"
 #include "windowtaskactions.h"
 #include "commandreader.h"
-#include "../native/kwinminimizeeffect.h"
+#include "../native/windows/kwinminimizeeffect.h"
 #include <QGuiApplication>
 #include <QtGui/qguiapplication_platform.h>
 #include <QSocketNotifier>

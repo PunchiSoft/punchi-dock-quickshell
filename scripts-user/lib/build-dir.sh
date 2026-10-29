@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# One build tree per distribution, so testing several systems keeps its objects,
-# caches and generated QML metadata apart and a stale cache can never be reused
-# by the wrong one.
+# One build tree per distribution, grouped under a single `build/` directory, so
+# testing several systems keeps its objects, caches and generated QML metadata
+# apart, keeps the checkout ordered, and a stale cache can never be reused by the
+# wrong one.
 #
 # Shared by the setup assistant, the start script and the restore script, which
 # run without loading the rest of the setup libraries.
@@ -35,8 +36,9 @@ punchi_build_distro_id() {
     return 1
 }
 
-# The tree a build writes to. PUNCHI_BUILD_DIR is an explicit override; the
-# setup assistant validates it before it is used and removed.
+# The tree a build writes to: `build/build-<distribution ID>` inside the shared
+# `build/` directory. PUNCHI_BUILD_DIR is an explicit override; the setup
+# assistant validates it before it is used and removed.
 punchi_build_dir() {
     local root=""
     local distro=""
@@ -46,10 +48,10 @@ punchi_build_dir() {
         return 0
     fi
     if distro="$(punchi_build_distro_id)"; then
-        printf '%s/build-%s\n' "$root" "$distro"
+        printf '%s/build/build-%s\n' "$root" "$distro"
         return 0
     fi
-    printf '%s/build\n' "$root"
+    printf '%s/build/build\n' "$root"
 }
 
 punchi_build_artifacts_ready() {
@@ -60,19 +62,30 @@ punchi_build_artifacts_ready() {
         && -x "$dir/punchi-window-state" ]]
 }
 
-# A complete tree to run or install from: the distribution tree first, then the
-# plain build/ written before the per-distribution layout existed.
+# Every complete tree a run or an install may use, most specific first: the
+# distribution tree, the generic `build/dev` tree written by `cmake --preset dev`,
+# and the flat trees written before the trees were grouped under `build/`.
+punchi_build_dir_candidates() {
+    local root=""
+    local distro=""
+    root="$(punchi_build_root)"
+    punchi_build_dir
+    printf '%s\n' "$root/build/dev"
+    if distro="$(punchi_build_distro_id)"; then
+        printf '%s\n' "$root/build-$distro"
+    fi
+    printf '%s\n' "$root/build"
+}
+
+# A complete tree to run or install from. A `build/` directory that only holds the
+# per-distribution trees carries no artifacts of its own and is skipped here.
 punchi_build_dir_existing() {
     local dir=""
-    dir="$(punchi_build_dir)" || return 1
-    if punchi_build_artifacts_ready "$dir"; then
-        printf '%s\n' "$dir"
-        return 0
-    fi
-    dir="$(punchi_build_root)/build"
-    if punchi_build_artifacts_ready "$dir"; then
-        printf '%s\n' "$dir"
-        return 0
-    fi
+    while IFS= read -r dir; do
+        if punchi_build_artifacts_ready "$dir"; then
+            printf '%s\n' "$dir"
+            return 0
+        fi
+    done < <(punchi_build_dir_candidates)
     return 1
 }

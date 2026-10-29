@@ -170,9 +170,9 @@ instance and must be left untouched.
 
 Public `README.md`, `README.es.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
 `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `NOTICE.md`, skills and tests are tracked.
-`docs/` is a local development record and is not published
-with the repository; private `notes/`, SDK trees, build output, credentials and
-local diagnostics are ignored. New record directories
+`docs/` is the local development record and is not published with the repository;
+it is also its own single record root, with dated records under `docs/records/`.
+SDK trees, build output, credentials and local diagnostics stay ignored. New record directories
 have an index and a template when they host a repeatable workflow. Record durable
 architecture changes in `CHANGELOG.md` and the local `docs/` record; no private
 evidence goes in tracked files.

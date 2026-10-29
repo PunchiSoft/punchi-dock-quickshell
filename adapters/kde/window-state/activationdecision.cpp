@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "windowactivation.h"
+#include "activationdecision.h"
 #include <QDateTime>
 #include <QMetaObject>
 #include <climits>

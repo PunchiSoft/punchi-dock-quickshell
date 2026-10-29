@@ -20,8 +20,11 @@ from PIL import Image
 def main():
     root = Path(__file__).resolve().parents[1]
     # Explicit development-only evidence; the normal test leaves no artifacts.
-    captures = Path(tempfile.mkdtemp(prefix='tooltip-theme-preview-', dir=root / 'notes/reviews')) \
-        if sys.argv[1:] == ['--capture'] else None
+    captures = None
+    if sys.argv[1:] == ['--capture']:
+        assets = root / 'docs/records/assets/reviews/tooltip-theme'
+        assets.mkdir(parents=True, exist_ok=True)
+        captures = Path(tempfile.mkdtemp(prefix='tooltip-theme-preview-', dir=assets))
     with tempfile.TemporaryDirectory(prefix='punchi-tooltip-theme-') as temporary:
         owned = Path(temporary)
         for name in ('components', 'config', 'adapters', 'modules', 'services'):

@@ -50,20 +50,22 @@ punchi_running_path() {
 
 punchi_backend_for() {
     local root=""
+    local build=""
     local candidate=""
-    local distro_build=""
     for root in "$@"; do
-        distro_build=""
-        # Match the per-distribution tree the setup builds, then the plain one.
-        if declare -F punchi_build_distro_id >/dev/null 2>&1 \
-            && distro_build="$(punchi_build_distro_id 2>/dev/null)" \
-            && [[ -n "$distro_build" ]]; then
-            distro_build="$root/build-$distro_build/punchi-window-state"
-        else
-            distro_build=""
+        # The build library already owns where a tree may live, including the
+        # preset's build/dev and the flat trees of the earlier layouts, so the
+        # backend follows the same order instead of repeating it.
+        if declare -F punchi_build_dir_candidates >/dev/null 2>&1; then
+            while IFS= read -r build; do
+                candidate="$build/punchi-window-state"
+                if [[ -x "$candidate" ]]; then
+                    printf '%s\n' "$candidate"
+                    return 0
+                fi
+            done < <(punchi_project_root="$root" punchi_build_dir_candidates)
         fi
         for candidate in \
-            ${distro_build:+"$distro_build"} \
             "$root/build/punchi-window-state" \
             "$root/../../libexec/punchi-dock-quickshell/punchi-window-state" \
             "$root/../../lib/punchi-dock-quickshell/punchi-window-state"; do

@@ -15,7 +15,7 @@ from build_dir import resolve_build_dir  # noqa: E402
 def main():
     root = Path(__file__).resolve().parents[1]
     files = [root / 'shell.qml']
-    for directory in ('components', 'config', 'services', 'modules', 'adapters', 'tests/qml', 'tests/runtime', 'tests/folders'):
+    for directory in ('components', 'config', 'services', 'modules', 'adapters', 'tests/qml', 'tests/runtime', 'tests/folder-container'):
         files.extend(sorted((root / directory).rglob('*.qml')))
     result = subprocess.run([sys.argv[1], '-I', str(resolve_build_dir(root) / 'qml'), '--max-warnings', '0', *map(str, files)],
                             cwd=root, capture_output=True, text=True)

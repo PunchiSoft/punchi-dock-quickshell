@@ -11,8 +11,9 @@ source of scope; inferred implementation details must not expand the feature.
 
 Record context, request, included/excluded scope, risks, sequential plan,
 implementation, validation, and next decisions. For substantial later changes,
-use ignored `notes/changes/change-YYYY-MM-DD-descriptor.md`; create its index and
-template when first needed. Stage boundaries live in the local `docs/roadmap.md`.
+use the ignored `docs/records/changes/change-YYYY-MM-DD-descriptor.md` with
+`docs/records/changes/template.md`. Stage boundaries live in the local
+`docs/roadmap.md`.
 
 Start from `requirements-capture` when the scope or the acceptance criteria are
 not already explicit in the request.

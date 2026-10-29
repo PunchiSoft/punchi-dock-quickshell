@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
+import "../../components"
 
 Popup {
     id: root
@@ -92,7 +93,7 @@ Popup {
         if (sourceItem && sourceItem.visible && sourceItem.enabled)
             sourceItem.forceActiveFocus(Qt.PopupFocusReason)
     }
-    DockContextAnchor {
+    PopupAnchor {
         id: geometry
         followRenderedIcon: root.vertical && (root.visible || root.preparingToShow)
     }

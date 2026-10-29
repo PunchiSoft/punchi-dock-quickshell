@@ -57,6 +57,51 @@ def layer_imports(path, root):
         yield number, match.group('path'), top, False
 
 
+def module_import_edges(root):
+    """Return (from_module, to_module) for every module-to-module QML import."""
+    edges = set()
+    for path in sorted((root / 'modules').rglob('*.qml')):
+        source = relative(path, root).split('/')[1]
+        for _, target, top, escapes in layer_imports(path, root):
+            if escapes or top != 'modules':
+                continue
+            parts = Path(target).parts
+            if len(parts) > 1 and parts[1] != source:
+                edges.add((source, parts[1]))
+    return edges
+
+
+def find_module_cycle(edges):
+    """Return one module cycle as a closed list of names, or an empty list."""
+    graph = {}
+    for source, target in edges:
+        graph.setdefault(source, set()).add(target)
+    path_stack, done = [], set()
+
+    def walk(node):
+        path_stack.append(node)
+        for target in sorted(graph.get(node, ())):
+            if target in path_stack:
+                return path_stack[path_stack.index(target):] + [target]
+            if target in done:
+                continue
+            found = walk(target)
+            if found:
+                return found
+        path_stack.pop()
+        done.add(node)
+        return []
+
+    for node in sorted(graph):
+        if node in done:
+            continue
+        found = walk(node)
+        if found:
+            return found
+        path_stack.clear()
+    return []
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     allowlist = json.loads((root / ALLOWLIST).read_text())
@@ -89,6 +134,18 @@ def main():
     for source, target in allowed.keys() - used:
         violations.append((source, 0, target, 'stale allowlist entry',
             'remove it: the import is gone or already allowed'))
+    if find_module_cycle({('a', 'b'), ('b', 'a')}) != ['a', 'b', 'a']:
+        print('Architecture: the module cycle detector failed its self-check.',
+              file=sys.stderr)
+        return 1
+    module_imports = module_import_edges(root)
+    module_edges = len(module_imports)
+    cycle = find_module_cycle(module_imports)
+    if cycle:
+        chain = ' -> '.join(f'modules/{name}' for name in cycle)
+        violations.append((chain, 0, '', 'circular module dependency',
+            'keep one direction: a feature module uses services, components, config and '
+            'adapters, and the surface that hosts another module never gets an import back'))
     shell = (root / 'shell.qml').read_text(encoding='utf-8').splitlines()
     if len(shell) > SHELL_LINE_LIMIT:
         violations.append(('shell.qml', len(shell), '', f'{len(shell)} lines over the {SHELL_LINE_LIMIT} limit',
@@ -106,7 +163,7 @@ def main():
         print(f'Architecture: {len(violations)} violation(s).', file=sys.stderr)
         return 1
     print(f'Architecture: {files} QML files, {edges} layer imports, '
-          f'{len(allowed)} allowlisted, 0 violations.')
+          f'{module_edges} module imports, {len(allowed)} allowlisted, 0 violations.')
     return 0
 
 

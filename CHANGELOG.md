@@ -24,14 +24,16 @@
   `WindowModels.qml` follows the active desktop through
   `filterByVirtualDesktop` and `VirtualDesktopInfo.currentDesktop`, available
   from Plasma 6.3, instead of Plasma 6.7's `filterByCurrentVirtualDesktop`.
-- Keep one build tree per distribution. The setup, the start script, the restore
-  script, the developer scripts and the tests resolve `build-<ID>` (for example
-  `build-debian`) and fall back to a plain `build/` only when it is the only
-  complete tree, so testing several systems never reuses another one's objects
-  or CMake cache. `PUNCHI_BUILD_DIR` overrides the location and is validated
-  before it is used or removed, `scripts-user/lib/build-dir.sh` owns the rule,
-  and a stale cache naming a tool this system lacks is discarded before CMake
-  reconfigures.
+- Group the build trees under `build/`. The setup, the start script, the restore
+  script, the developer scripts and the tests resolve `build/build-<ID>` (for
+  example `build/build-debian`), `cmake --preset dev` writes the generic
+  `build/dev` tree, and the flat `build-<ID>` and plain `build/` trees of the
+  earlier layouts are still read when they are the only complete ones, so testing
+  several systems never reuses another one's objects or CMake cache while the
+  checkout stays ordered. `PUNCHI_BUILD_DIR` overrides the location and is
+  validated before it is used or removed, `scripts-user/lib/build-dir.sh` owns the
+  rule, and a stale cache naming a tool this system lacks is discarded before
+  CMake reconfigures.
 - Offer the recent applications as a container. **Presentation** in General now
   chooses between the extra launchers and one item with the fixed `folder-temp`
   glyph that opens a container with the same entries; the container is the new

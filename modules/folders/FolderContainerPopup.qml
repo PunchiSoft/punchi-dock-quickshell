@@ -5,7 +5,7 @@ import QtQuick.Controls
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
 import "../../config"
-import "../dock"
+import "../../components"
 
 Popup {
     id: root
@@ -93,7 +93,7 @@ Popup {
         onOpenDispatched: root.dismiss()
         onOperationRejected: console.warn("Punchi Dock Quickshell: folder activation rejected")
     }
-    DockContextAnchor {
+    PopupAnchor {
         id: anchor
         followRenderedIcon: root.visible || root.preparingToShow
     }

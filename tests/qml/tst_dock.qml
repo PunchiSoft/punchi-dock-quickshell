@@ -6,6 +6,7 @@ import QtQuick.Window
 import QtTest
 import org.kde.kirigami as Kirigami
 import "../../modules/dock"
+import "../../components"
 import "../../services"
 import "../../config"
 
@@ -31,7 +32,7 @@ TestCase {
                 property bool magicLampAvailable: true
                 property string effect: "squash"
             }
-            DockContextAnchor { id: geometry }
+            PopupAnchor { id: geometry }
             DockContextContent {
                 id: content
                 visible: false

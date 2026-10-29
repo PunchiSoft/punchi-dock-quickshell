@@ -24,9 +24,10 @@ branding, current status, architecture links, developer guidance, and license.
 - Distinguish implemented behavior, intended scope, and validated environments.
 - Use only working local links and real commands; no hypothetical release URLs,
   passing badges, screenshots, or build instructions presented as current.
-- Keep public `docs/` portable and local `notes/` private.
 - Keep `docs/` local and out of the published repository; publish only
   `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md`, `NOTICE.md` and the skills.
+- Keep one record root: living documents at `docs/`, dated records under
+  `docs/records/`, and their evidence in `docs/records/assets/`.
 - Preserve historical records; update living architecture docs when rules change.
 - Every documentation directory has an index README; repeatable local record
   workflows also have a template when that directory is introduced.

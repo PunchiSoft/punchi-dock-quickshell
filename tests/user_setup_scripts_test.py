@@ -7,6 +7,7 @@ from typing import Optional
 import os
 import pty
 import select
+import shlex
 import shutil
 import subprocess
 import tempfile
@@ -142,6 +143,66 @@ def check_dependency_maps(root: Path) -> None:
     assert 'qt6-base' in arch
     assert 'extra-cmake-modules' in arch
     assert family.strip() == 'debian'
+
+
+def check_build_tree_layout(root: Path) -> None:
+    """The build trees stay grouped under build/ and older layouts still resolve."""
+    library = root / 'scripts-user/lib/build-dir.sh'
+
+    def resolve(checkout: Path, distro: str, expression: str,
+                override: str = '') -> str:
+        os_release = checkout / 'os-release'
+        os_release.write_text(f'ID={distro}\n')
+        environment = f'PUNCHI_OS_RELEASE_FILE={shlex.quote(str(os_release))}; '
+        if override:
+            environment += f'PUNCHI_BUILD_DIR={shlex.quote(override)}; '
+        result = subprocess.run(
+            ['bash', '-c',
+             f'punchi_project_root={shlex.quote(str(checkout))}; '
+             f'{environment}'
+             f'source {shlex.quote(str(library))}; {expression}'],
+            capture_output=True, text=True, check=False)
+        assert result.returncode == 0, result.stderr
+        return result.stdout.strip()
+
+    def make_tree(directory: Path) -> None:
+        (directory / 'qml/Punchi/Kde').mkdir(parents=True)
+        (directory / 'qml/Punchi/Kde/libpunchikdeplugin.so').write_text('')
+        (directory / 'libpunchikde.so').write_text('')
+        backend = directory / 'punchi-window-state'
+        backend.write_text('')
+        backend.chmod(0o755)
+
+    with tempfile.TemporaryDirectory(prefix='punchi-build-layout-test-') as temporary:
+        checkout = Path(temporary) / 'checkout'
+        checkout.mkdir()
+        grouped = checkout / 'build/build-debian'
+        assert resolve(checkout, 'debian', 'punchi_build_dir') == str(grouped)
+        assert resolve(checkout, 'fedora', 'punchi_build_dir') == \
+            str(checkout / 'build/build-fedora'), 'Each distribution keeps its own tree'
+        assert resolve(checkout, 'debian', 'punchi_build_dir_existing || echo') == \
+            '', 'An empty checkout resolves no complete tree'
+
+        flat = checkout / 'build-debian'
+        make_tree(flat)
+        assert resolve(checkout, 'debian', 'punchi_build_dir_existing') == str(flat), \
+            'The flat build-<ID> tree stays readable'
+
+        preset = checkout / 'build/dev'
+        make_tree(preset)
+        assert resolve(checkout, 'debian', 'punchi_build_dir_existing') == str(preset), \
+            'The generic build/dev tree is preferred over the flat tree'
+
+        make_tree(grouped)
+        assert resolve(checkout, 'debian', 'punchi_build_dir_existing') == str(grouped), \
+            'The distribution tree is preferred once it holds artifacts'
+
+        override = Path(temporary) / 'custom'
+        make_tree(override)
+        assert resolve(checkout, 'debian', 'punchi_build_dir', str(override)) == \
+            str(override), 'PUNCHI_BUILD_DIR overrides the location'
+        assert resolve(checkout, 'debian', 'punchi_build_dir_existing', str(override)) == \
+            str(override), 'The override is the first complete tree'
 
 
 def check_debian_backports_offer(root: Path) -> None:
@@ -1705,6 +1766,7 @@ def main() -> int:
     check_single_instance_guard(root, start)
     check_restore_active_instance(root, root / 'scripts-user/restore-kde.sh')
     check_dependency_maps(root)
+    check_build_tree_layout(root)
     check_debian_backports_offer(root)
     check_dependency_report_layout(root)
     check_qt_tool_resolution(root)
@@ -1724,9 +1786,9 @@ def main() -> int:
     check_update_check(root)
     check_git_missing(root)
     check_autostart_uninstall(root)
-    print('User setup scripts: syntax, help, menu, maps, Qt tools, logs, '
-          'environment notices, restore, instance guard, try path, presentation '
-          'and update check passed.')
+    print('User setup scripts: syntax, help, menu, maps, build trees, Qt tools, '
+          'logs, environment notices, restore, instance guard, try path, '
+          'presentation and update check passed.')
     return 0
 
 
