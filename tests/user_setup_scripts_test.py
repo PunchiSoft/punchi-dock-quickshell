@@ -227,8 +227,9 @@ punchi_missing_packages() {
 }
 punchi_apt_config_dir() { printf '%s\n' "${PUNCHI_TEST_APT_DIR:?}"; }
 punchi_confirm() {
+    printf '%s\n' "$1" >> "${PUNCHI_TEST_PROMPT_LOG:?}"
     case "$1" in
-        Enable\ *) return "${PUNCHI_TEST_ACCEPT_BACKPORTS:-0}" ;;
+        Add\ *) return "${PUNCHI_TEST_ACCEPT_BACKPORTS:-0}" ;;
         *) return 0 ;;
     esac
 }
@@ -240,6 +241,8 @@ punchi_offer_dependency_install debian 1
         fake_bin = home / 'bin'
         fake_bin.mkdir()
         apt_log = home / 'apt.log'
+        prompt_log = home / 'prompts.log'
+        prompt_log.write_text('')
         apt_config = home / 'apt'
         (apt_config / 'sources.list.d').mkdir(parents=True)
 
@@ -266,6 +269,7 @@ punchi_offer_dependency_install debian 1
                 'NO_COLOR': '1',
                 'PATH': f'{fake_bin}:{environment.get("PATH", "")}',
                 'PUNCHI_TEST_APT_DIR': str(apt_config),
+                'PUNCHI_TEST_PROMPT_LOG': str(prompt_log),
             })
             if extra:
                 environment.update(extra)
@@ -283,7 +287,16 @@ punchi_offer_dependency_install debian 1
         assert 'update' in log, log
         assert 'install -y -t trixie-backports quickshell' in log, log
         assert 'Quickshell was installed from trixie-backports.' in accepted.stdout
+        assert 'Missing dependencies (1)' in accepted.stdout, accepted.stdout
+        assert 'Required repository' in accepted.stdout, accepted.stdout
+        assert 'Repository added: trixie-backports' in accepted.stdout, accepted.stdout
+        prompts = prompt_log.read_text().splitlines()
+        assert prompts == [
+            'Add trixie-backports? [y/N]: ',
+            'Install the 1 missing package now? [y/N]: ',
+        ], prompts
         apt_log.write_text('')
+        prompt_log.write_text('')
         sources.unlink()
 
         declined = run({
@@ -298,6 +311,15 @@ punchi_offer_dependency_install debian 1
         assert 'Quickshell remains missing.' in declined.stdout
         assert 'sudo apt-get install -y -t trixie-backports quickshell' \
             in declined.stdout
+        # The repository question and the install question stay separate, and a
+        # declined repository keeps quickshell out of the batched apt call.
+        assert 'Repository added' not in declined.stdout, declined.stdout
+        prompts = prompt_log.read_text().splitlines()
+        assert prompts == [
+            'Add trixie-backports? [y/N]: ',
+            'Install the 1 missing package now? [y/N]: ',
+        ], prompts
+        prompt_log.write_text('')
 
         apt_log.write_text('')
         available = run({'PUNCHI_TEST_CANDIDATE': '6.13.0-1'})
@@ -306,6 +328,44 @@ punchi_offer_dependency_install debian 1
         log = apt_log.read_text()
         assert 'install -y quickshell' in log, log
         assert '-t trixie-backports' not in log, log
+
+
+def check_install_failure_clock_hint(root: Path) -> None:
+    """A signature that is not valid yet is reported as a clock problem."""
+    probe = r'''
+source scripts-user/lib/setup-common.sh
+source scripts-user/lib/setup-deps.sh
+PUNCHI_NO_PROGRESS=1
+punchi_run_install_step bash -c 'printf "%s\n" "${PUNCHI_TEST_APT_MESSAGE:?}" >&2; exit 100'
+'''
+
+    def run(message: str) -> subprocess.CompletedProcess:
+        environment = os.environ.copy()
+        environment.update({
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+            'PUNCHI_TEST_APT_MESSAGE': message,
+        })
+        return subprocess.run(
+            [shutil.which('bash') or 'bash', '-c', probe],
+            cwd=root, env=environment, capture_output=True, text=True,
+            check=False, timeout=30)
+
+    ahead = run('W: signature verification failed: Not live until '
+                '2999-01-01T00:00:00Z')
+    assert ahead.returncode != 0
+    assert 'the system clock is behind' in ahead.stdout, ahead.stdout
+    assert '2999-01-01T00:00:00Z' in ahead.stdout, ahead.stdout
+    assert 'timedatectl set-local-rtc 1' in ahead.stdout, ahead.stdout
+
+    behind = run('W: signature verification failed: Not live until '
+                 '2000-01-01T00:00:00Z')
+    assert behind.returncode != 0
+    assert 'the system clock is behind' not in behind.stdout, behind.stdout
+
+    unrelated = run('E: Unable to locate package quickshell')
+    assert unrelated.returncode != 0
+    assert 'clock' not in unrelated.stdout, unrelated.stdout
 
 
 def check_dependency_report_layout(root: Path) -> None:
@@ -1777,6 +1837,7 @@ def main() -> int:
     check_dependency_maps(root)
     check_build_tree_layout(root)
     check_debian_backports_offer(root)
+    check_install_failure_clock_hint(root)
     check_dependency_report_layout(root)
     check_qt_tool_resolution(root)
     check_try_requires_checkout(root)
