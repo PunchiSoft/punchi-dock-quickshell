@@ -1,0 +1,41 @@
+name: Stability
+
+# Repetition is the only way to see a flake that a single run hides, so this
+# workflow repeats the interaction tests instead of guarding a pull request. It
+# lives in its own file on purpose: a check that never applies to a pull request
+# must not appear as a skipped check on one.
+on:
+  schedule:
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stability-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The same digest as `.github/workflows/ci.yml`; a workflow cannot share `env`,
+  # so both files carry it and both are refreshed together.
+  FEDORA_IMAGE: fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+
+jobs:
+  repeat:
+    name: repeat
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Repeat the interaction tests
+        env:
+          PUNCHI_CTEST_REGEX: application_media|application_items|dock_components
+          PUNCHI_CTEST_REPEAT: until-fail:10
+        run: >-
+          docker run --rm --volume "$PWD:/src" --workdir /src
+          --env PUNCHI_CTEST_REGEX --env PUNCHI_CTEST_REPEAT "$FEDORA_IMAGE"
+          bash scripts-dev/ci-headless.sh
