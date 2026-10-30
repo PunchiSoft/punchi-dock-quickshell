@@ -374,6 +374,10 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-version.py)
     add_test(NAME emphasis_contract COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-emphasis.py)
+    add_test(NAME test_timing_contract COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/test_timing_test.py)
+    add_test(NAME flaky_quarantine COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/check-flaky-quarantine.py)
     add_test(NAME user_setup_scripts COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
     add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
@@ -388,6 +392,8 @@ if(BUILD_TESTING)
     # Plasma/KWin Wayland session and is never selected by CI.
     set(PUNCHI_QML_TESTS qml_lint dock_components folder_container)
     set(PUNCHI_UNIT_TESTS
+        test_timing_contract
+        flaky_quarantine
         folder_contents
         trash_state
         update_state

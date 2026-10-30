@@ -334,8 +334,12 @@ TestCase {
         spy.target = content
         const tile = findChild(view, "launcher-browser")
         mouseClick(tile, tile.width / 2, tile.height / 2, Qt.RightButton)
-        tryVerify(function() { return findChild(content, "desktopAction-new-window") !== null })
-        const action = findChild(content, "desktopAction-new-window")
+        let action = null
+        tryVerify(function() {
+            action = findChild(content, "desktopAction-new-window")
+            return action !== null
+        }, 5000, "the desktop action is offered")
+        verify(action !== null, "the desktop action is offered")
         verify(action.height < Kirigami.Units.gridUnit * 2)
         verify(findChild(content, "closeDockContextAction") === null)
         action.forceActiveFocus()
@@ -370,8 +374,11 @@ TestCase {
         content.visible = true
         const spy = createTemporaryQmlObject('import QtTest; SignalSpy { signalName: "recentRequested" }', test)
         spy.target = content
-        tryVerify(function() { return findChild(content, "recentDocument-/owned/picture with spaces.png") !== null })
-        const recent = findChild(content, "recentDocument-/owned/picture with spaces.png")
+        let recent = null
+        tryVerify(function() {
+            recent = findChild(content, "recentDocument-/owned/picture with spaces.png")
+            return recent !== null
+        }, 5000, "the recent document is listed")
         recent.forceActiveFocus()
         keyClick(Qt.Key_Return)
         compare(spy.signalArguments[0][0], "/owned/picture with spaces.png")

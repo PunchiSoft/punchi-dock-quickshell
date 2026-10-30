@@ -1,0 +1,9 @@
+{
+  "comment": [
+    "Tests known to fail without a real defect in the code, and therefore kept out of",
+    "the blocking CI run and re-run on their own. The list must stay empty by default:",
+    "a flaky test is stabilized, not quarantined. An entry needs an open issue, a",
+    "reason and an expiry date, and it fails `flaky_quarantine` once the date passes."
+  ],
+  "quarantined": []
+}

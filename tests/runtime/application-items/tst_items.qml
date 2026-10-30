@@ -89,8 +89,11 @@ TestCase {
         tryVerify(function() { return area.active && area.item !== null })
         const results = findChild(area.item, "applicationSearchResults")
         tryCompare(results, "count", 1)
-        tryVerify(function() { return findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop") !== null })
-        const row = findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop")
+        let row = null
+        tryVerify(function() {
+            row = findChild(results, "applicationResult-desktop:punchi-add-sentinel.desktop")
+            return row !== null
+        }, 5000, "the catalog result is offered")
         mouseClick(row)
     }
     function test_draftAcceptCancelAndNativeLaunch() {

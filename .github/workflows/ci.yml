@@ -6,9 +6,20 @@ on:
       - main
   pull_request:
   workflow_dispatch:
+  # Repetition is the only way to see a flake that a single run hides, so the
+  # stability job below runs on a schedule instead of on every pull request.
+  schedule:
+    - cron: '30 4 * * *'
 
 permissions:
   contents: read
+
+env:
+  # Pinned by digest so a refreshed base image cannot change the validation graph
+  # without a reviewable commit. Refresh it with the command recorded in
+  # docs/development.md. The Fedora packages are still resolved on every run, so
+  # this pins the base image, not the dependency versions.
+  FEDORA_IMAGE: fedora:44@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
@@ -30,6 +41,42 @@ jobs:
       # because the runner image has no git for actions/checkout. The script
       # owns the package list, the preset and the label filter.
       - name: Build and test the headless graph
+        env:
+          PUNCHI_JUNIT: build/ctest-junit.xml
         run: >-
-          docker run --rm --volume "$PWD:/src" --workdir /src fedora:44
+          docker run --rm --volume "$PWD:/src" --workdir /src
+          --env PUNCHI_JUNIT "$FEDORA_IMAGE"
+          bash scripts-dev/ci-headless.sh
+      # The report is what names the failing tests; the status alone only says
+      # "Failing after 5m" and hides which test broke.
+      - name: Publish the test report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ctest-report
+          path: build/ctest-junit.xml
+          if-no-files-found: warn
+      - name: Name the failing tests
+        if: failure()
+        run: python3 scripts-dev/report-junit-failures.py build/ctest-junit.xml
+
+  stability:
+    name: stability
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # `--repeat until-fail:10` stops at the first repetition that fails, so a red
+      # run reports the rate instead of spending the whole timeout.
+      - name: Repeat the interaction tests
+        env:
+          PUNCHI_CTEST_REGEX: application_media|application_items|dock_components
+          PUNCHI_CTEST_REPEAT: until-fail:10
+        run: >-
+          docker run --rm --volume "$PWD:/src" --workdir /src
+          --env PUNCHI_CTEST_REGEX --env PUNCHI_CTEST_REPEAT "$FEDORA_IMAGE"
           bash scripts-dev/ci-headless.sh
