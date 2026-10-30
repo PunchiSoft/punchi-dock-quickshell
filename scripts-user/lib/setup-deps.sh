@@ -387,6 +387,119 @@ punchi_report_cells() {
     done
 }
 
+# Prints "  Label      item · item" and wraps on separators at the terminal
+# width, so a long package list stays a few readable lines.
+punchi_report_list_line() {
+    local label="${1:?label is required}"
+    shift
+    (($#)) || return 0
+    local separator=', '
+    if punchi_ui_terminal_supports_unicode 1; then
+        separator=' · '
+    fi
+    local width=""
+    width="$(punchi_report_width)"
+    local column="${#label}"
+    (( column < 9 )) && column=9
+    column=$(( column + 2 ))
+    local continuation=""
+    printf -v continuation '%*s' $(( 2 + column )) ''
+    local line=""
+    printf -v line '  %-*s' "$column" "$label"
+    local started=0
+    local item=""
+    for item in "$@"; do
+        if (( started == 0 )); then
+            line="$line$item"
+            started=1
+            continue
+        fi
+        if (( ${#line} + ${#separator} + ${#item} > width )); then
+            printf '%s\n' "$line"
+            line="$continuation$item"
+            continue
+        fi
+        line="$line$separator$item"
+    done
+    printf '%s\n' "$line"
+}
+
+punchi_missing_commands() {
+    local group="${1:?command group is required}"
+    local command_name=""
+    while IFS= read -r command_name; do
+        [[ -n "$command_name" ]] || continue
+        if ! punchi_resolve_command "$command_name" >/dev/null 2>&1; then
+            printf '%s\n' "$command_name"
+        fi
+    done < <(punchi_command_group "$group")
+}
+
+punchi_command_ready_summary() {
+    local group="${1:?command group is required}"
+    local ready=0
+    local total=0
+    local command_name=""
+    while IFS= read -r command_name; do
+        [[ -n "$command_name" ]] || continue
+        total=$(( total + 1 ))
+        if punchi_resolve_command "$command_name" >/dev/null 2>&1; then
+            ready=$(( ready + 1 ))
+        fi
+    done < <(punchi_command_group "$group")
+    printf '%s %d/%d\n' "$group" "$ready" "$total"
+}
+
+punchi_python_ready_summary() {
+    command -v python3 >/dev/null 2>&1 || return 0
+    local module=""
+    local ready=0
+    local total=0
+    for module in dbus gi; do
+        total=$(( total + 1 ))
+        if python3 -c "import $module" >/dev/null 2>&1; then
+            ready=$(( ready + 1 ))
+        fi
+    done
+    printf 'python %d/%d\n' "$ready" "$total"
+}
+
+# The install offer restates only the decision: what is missing, and one
+# readiness summary line for everything the detailed report already listed.
+punchi_report_missing_dependencies() {
+    (($#)) || return 0
+    local -a commands=()
+    local -a present=()
+    local group=""
+    local command_name=""
+
+    for group in runtime build validation; do
+        while IFS= read -r command_name; do
+            [[ -n "$command_name" ]] || continue
+            commands+=("$command_name")
+        done < <(punchi_missing_commands "$group")
+        present+=("$(punchi_command_ready_summary "$group")")
+    done
+    command_name="$(punchi_python_ready_summary || true)"
+    [[ -n "$command_name" ]] && present+=("$command_name")
+    if punchi_kde_session_detected; then
+        present+=("Plasma session")
+    fi
+    if punchi_resolve_command git >/dev/null 2>&1; then
+        present+=("git")
+    fi
+
+    punchi_rule
+    printf 'Missing dependencies (%d)\n' "$#"
+    if ((${#commands[@]})); then
+        punchi_report_list_line "Commands" "${commands[@]}"
+    fi
+    punchi_report_list_line "Packages" "$@"
+    if ((${#present[@]})); then
+        punchi_report_list_line "Present" "${present[@]}"
+    fi
+}
+
 punchi_report_command_group() {
     local group="${1:?command group is required}"
     local detail="${2:-1}"
@@ -684,6 +797,76 @@ punchi_dependency_check() {
     return "$status"
 }
 
+# Runs a command, streams its output and keeps a copy to explain a failure.
+punchi_run_install_step() {
+    local log=""
+    log="$(mktemp "${TMPDIR:-/tmp}/punchi-install.XXXXXX")"
+    punchi_register_cleanup "$log"
+    local status=0
+    local errexit=0
+    case $- in *e*) errexit=1 ;; esac
+    set +e
+    "$@" 2>&1 | tee "$log"
+    # PIPESTATUS[0] is the command's own result whether or not pipefail is set.
+    status="${PIPESTATUS[0]}"
+    if (( errexit == 1 )); then
+        set -e
+    fi
+    if (( status != 0 )); then
+        punchi_explain_install_failure "$log"
+    fi
+    rm -f -- "$log"
+    return "$status"
+}
+
+# apt refuses a signature whose validity starts in the future, which is what a
+# clock behind real time produces. Naming the cause is the difference between a
+# retry loop and a fix. The steps print once per run: a second failing step only
+# repeats the shortfall.
+punchi_install_clock_hint_shown="${punchi_install_clock_hint_shown:-0}"
+
+punchi_explain_install_failure() {
+    local log="${1:-}"
+    [[ -s "$log" ]] || return 0
+    local valid_from=""
+    valid_from="$(grep -oE 'Not live until [0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:]+Z' "$log" \
+        | head -n 1 | awk '{print $4}')" || valid_from=""
+    if [[ -z "$valid_from" ]]; then
+        grep -qiE 'signature verification failed|is not signed|no está firmado' "$log" \
+            || return 0
+    fi
+    local now=""
+    now="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    if [[ -n "$valid_from" ]] && [[ ! "$now" < "$valid_from" ]]; then
+        # The signature is already valid, so the clock is not the cause.
+        return 0
+    fi
+    if (( punchi_install_clock_hint_shown == 1 )); then
+        punchi_info "The clock is still behind; correct it as shown above."
+        return 0
+    fi
+    punchi_install_clock_hint_shown=1
+    punchi_warning "apt rejected a repository signature; the system clock is behind."
+    if [[ -n "$valid_from" ]]; then
+        printf '  Clock (UTC)          %s\n' "$now"
+        printf '  Signature valid from %s\n' "$valid_from"
+    fi
+    punchi_info "Every signature check fails until the clock is corrected:"
+    punchi_info "  sudo timedatectl set-local-rtc 1 --adjust-system-clock"
+    punchi_info "  sudo apt-get install -y systemd-timesyncd"
+    punchi_info "  sudo systemctl enable --now systemd-timesyncd"
+}
+
+# Quotes one command array as a copyable shell fragment, without a trailing
+# space. Bash resolves the nameref in the caller's scope.
+punchi_quote_words() {
+    local -n quote_words=$1
+    ((${#quote_words[@]})) || return 0
+    local quoted=""
+    printf -v quoted '%q ' "${quote_words[@]}"
+    printf '%s\n' "${quoted% }"
+}
+
 punchi_offer_dependency_install() {
     local family="${1:?distribution family is required}"
     local status="${2:-1}"
@@ -691,10 +874,14 @@ punchi_offer_dependency_install() {
     local -a installable=()
     local -a install_command=()
     local -a update_command=()
+    local -a quickshell_command=()
     local package=""
     local label=""
     local suite=""
-    local quickshell_handled=0
+    local quickshell_suite=""
+    local quickshell_excluded=0
+    local install_total=0
+    local plan_failed=0
 
     [[ "$status" != "0" ]] || return 0
 
@@ -710,21 +897,38 @@ punchi_offer_dependency_install() {
     )
     (( ${#missing[@]} > 0 )) || return 0
 
+    punchi_report_missing_dependencies "${missing[@]}"
+
     # Quickshell has no candidate in the configured suites on some Debian
-    # releases. Installing it in the same apt call would abort every package, so
-    # it is resolved first and kept out of the batched command.
+    # releases, and asking for it in the batched call would abort every package.
+    # The repository question stays separate from the install question so each
+    # answer only decides one thing.
     if [[ "$family" == "debian" ]] \
         && printf '%s\n' "${missing[@]}" | grep -qx 'quickshell' \
         && ! punchi_debian_package_available quickshell; then
         if suite="$(punchi_debian_backports_suite)"; then
-            quickshell_handled=1
-            punchi_warning "Quickshell is not available in the configured Debian suites."
-            punchi_info "Debian publishes it in the $suite suite."
+            # Without a candidate in the configured suites, quickshell in the
+            # batched call would abort every other package.
+            quickshell_excluded=1
+            punchi_heading "Required repository"
+            local others=$(( ${#missing[@]} - 1 ))
+            local others_noun="packages"
+            local others_verb="come"
+            if (( others == 1 )); then
+                others_noun="package"
+                others_verb="comes"
+            fi
+            if (( others > 0 )); then
+                printf '  %s publishes quickshell; the other %d %s %s from the configured suites.\n' \
+                    "$suite" "$others" "$others_noun" "$others_verb"
+            else
+                printf '  %s publishes quickshell.\n' "$suite"
+            fi
             if command -v sudo >/dev/null 2>&1 \
-                && punchi_confirm "Enable $suite and install Quickshell from it? [y/N]: " n; then
-                if punchi_debian_enable_backports "$suite" \
-                    && sudo apt-get install -y -t "$suite" quickshell; then
-                    punchi_success "Quickshell was installed from $suite."
+                && punchi_confirm "Add $suite? [y/N]: " n; then
+                if punchi_run_install_step punchi_debian_enable_backports "$suite"; then
+                    punchi_success "Repository added: $suite"
+                    quickshell_suite="$suite"
                 else
                     punchi_info "Quickshell remains missing. Enable $suite and run: sudo apt-get install -y -t $suite quickshell"
                 fi
@@ -735,12 +939,20 @@ punchi_offer_dependency_install() {
     fi
 
     for package in "${missing[@]}"; do
-        if [[ "$package" == "quickshell" ]] && (( quickshell_handled == 1 )); then
+        if [[ "$package" == "quickshell" ]] && (( quickshell_excluded == 1 )); then
+            if [[ -n "$quickshell_suite" ]]; then
+                quickshell_command=(sudo apt-get install -y -t "$quickshell_suite" quickshell)
+                install_total=$(( install_total + 1 ))
+            fi
             continue
         fi
         installable+=("$package")
+        install_total=$(( install_total + 1 ))
     done
-    (( ${#installable[@]} > 0 )) || return 0
+
+    if (( ${#installable[@]} == 0 )) && (( ${#quickshell_command[@]} == 0 )); then
+        return 0
+    fi
 
     case "$family" in
         fedora)
@@ -749,8 +961,10 @@ punchi_offer_dependency_install() {
             ;;
         debian)
             label="Debian/Ubuntu"
-            update_command=(sudo apt-get update)
-            install_command=(sudo apt-get install -y "${installable[@]}")
+            if (( ${#installable[@]} > 0 )); then
+                update_command=(sudo apt-get update)
+                install_command=(sudo apt-get install -y "${installable[@]}")
+            fi
             ;;
         arch)
             label="Arch"
@@ -761,28 +975,57 @@ punchi_offer_dependency_install() {
             ;;
     esac
 
-    if [[ "$family" != "fedora" ]]; then
-        punchi_warning "The $label package mapping is best-effort and unvalidated."
+    if (( ${#quickshell_command[@]} > 0 )); then
+        punchi_info "Quickshell is installed on its own so a missing candidate cannot abort the batch."
     fi
-    printf 'Install the missing packages with:\n  '
+    local -a plan_parts=()
+    local part=""
     if (( ${#update_command[@]} > 0 )); then
-        printf '%q ' "${update_command[@]}"
-        printf '&& '
+        plan_parts+=("$(punchi_quote_words update_command)")
     fi
-    printf '%q ' "${install_command[@]}"
-    printf '\n'
+    if (( ${#quickshell_command[@]} > 0 )); then
+        plan_parts+=("$(punchi_quote_words quickshell_command)")
+    fi
+    if (( ${#install_command[@]} > 0 )); then
+        plan_parts+=("$(punchi_quote_words install_command)")
+    fi
+    local command_text=""
+    for part in "${plan_parts[@]}"; do
+        if [[ -z "$command_text" ]]; then
+            command_text="$part"
+        else
+            command_text="$command_text && $part"
+        fi
+    done
+    printf 'Command: %s\n' "$command_text"
 
     if ! command -v sudo >/dev/null 2>&1; then
         punchi_info "sudo is not available; run the command above as an administrator."
         return 0
     fi
-    if ! punchi_confirm "Install these packages now with sudo? [y/N]: " n; then
+    local package_word="packages"
+    (( install_total == 1 )) && package_word="package"
+    if ! punchi_confirm "Install the $install_total missing $package_word now? [y/N]: " n; then
         punchi_info "No packages were installed."
         return 0
     fi
     if (( ${#update_command[@]} > 0 )); then
-        "${update_command[@]}" || return 1
+        punchi_run_install_step "${update_command[@]}" || return 1
     fi
-    "${install_command[@]}" || return 1
+    if (( ${#quickshell_command[@]} > 0 )); then
+        if punchi_run_install_step "${quickshell_command[@]}"; then
+            punchi_success "Quickshell was installed from $quickshell_suite."
+        else
+            # The batched packages can still install; only report the shortfall.
+            punchi_info "Quickshell remains missing. Enable $quickshell_suite and run: sudo apt-get install -y -t $quickshell_suite quickshell"
+            plan_failed=1
+        fi
+    fi
+    if (( ${#install_command[@]} > 0 )); then
+        punchi_run_install_step "${install_command[@]}" || return 1
+    fi
+    if (( plan_failed == 1 )); then
+        return 1
+    fi
     punchi_success "Package installation finished. Re-run the dependency check."
 }

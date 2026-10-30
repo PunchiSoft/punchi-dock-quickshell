@@ -6,6 +6,15 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The dependency check asks one thing at a time. It lists the missing commands
+  and packages together, summarises what is already present in one line, and
+  keeps the Debian backports question separate from the install question, so
+  adding a repository and installing packages are two decisions instead of one
+  bundled prompt that was repeated when the repository was declined. A failing
+  `apt` step now names its cause: when a signature is not valid yet, the report
+  compares that timestamp with the system clock and prints the `timedatectl` and
+  `systemd-timesyncd` commands that correct it, instead of leaving the user to
+  retry the same block.
 - Draw the menu close control with the user's window decoration. A fixed
   symbolic icon vanished under icon themes that do not ship it, so
   `PunchiDecorationButtonProvider` reads the selected Aurorae theme from
