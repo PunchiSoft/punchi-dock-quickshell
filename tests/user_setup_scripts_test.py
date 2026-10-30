@@ -315,6 +315,9 @@ source scripts-user/lib/setup-common.sh
 source scripts-user/lib/setup-progress.sh
 source scripts-user/lib/setup-deps.sh
 PUNCHI_NO_PROGRESS=1
+# setup.sh installs this teardown for the entry point; the probe calls the
+# dependency check directly, so it installs the same trap and proves it runs.
+trap punchi_setup_cleanup EXIT
 # The report picks its package manager with command -v; this probe runs on
 # hosts without rpm.
 rpm() { return 0; }
@@ -359,10 +362,16 @@ printf 'STATUS=%s\n' "$?"
         })
         if extra:
             environment.update(extra)
-        return subprocess.run(
-            [shutil.which('bash') or 'bash', '-c', probe, 'layout', detail],
-            cwd=root, env=environment, capture_output=True, text=True,
-            check=False, timeout=30)
+        with tempfile.TemporaryDirectory(prefix='punchi-deps-layout-') as temporary:
+            environment['TMPDIR'] = temporary
+            result = subprocess.run(
+                [shutil.which('bash') or 'bash', '-c', probe, 'layout', detail],
+                cwd=root, env=environment, capture_output=True, text=True,
+                check=False, timeout=30)
+            leftovers = sorted(path.name for path in Path(temporary).iterdir())
+            assert not leftovers, \
+                'the dependency report left temporary files: ' + ', '.join(leftovers)
+            return result
 
     compact = run('0')
     assert compact.returncode == 0, compact.stdout + compact.stderr
