@@ -156,8 +156,8 @@ Item {
             fan.requestInitialFocus(reason)
             return
         }
-        if (!grid || !list) return
-        const view = root.viewMode === "grid" ? grid : list
+        if (!gridView || !list) return
+        const view = root.viewMode === "grid" ? gridView : list
         if (view.currentItem) view.currentItem.forceActiveFocus(reason)
         else header.focusFirst()
     }
@@ -169,7 +169,7 @@ Item {
             return
         }
         root.requestCurrentIndexSync()
-        const view = root.viewMode === "grid" ? grid : list
+        const view = root.viewMode === "grid" ? gridView : list
         view.contentY = Math.max(0, Math.min(root.controller.scrollPosition, Math.max(0, view.contentHeight - view.height)))
         const restoreFocus = navigationFocusPending
         navigationFocusPending = false
@@ -187,12 +187,12 @@ Item {
         Qt.callLater(root.syncCurrentIndex)
     }
     function syncCurrentIndex(): void {
-        if (!grid || !list) return
+        if (!gridView || !list) return
         const gridIndex = root.gridActionSelected || root.entryCount === 0
             ? root.entryCount : root.controller.selectedIndex
         const listIndex = root.listActionSelected ? root.entryCount
             : root.controller.selectedIndex
-        if (grid.currentIndex !== gridIndex) grid.currentIndex = gridIndex
+        if (gridView.currentIndex !== gridIndex) gridView.currentIndex = gridIndex
         if (list.currentIndex !== listIndex) list.currentIndex = listIndex
     }
     function requestInitialFocus(reason): void {
@@ -263,7 +263,7 @@ Item {
         enabled: !root.fanMode
         acceptedButtons: Qt.RightButton
         onTapped: function(eventPoint) {
-            const view = root.viewMode === "grid" ? grid : list
+            const view = root.viewMode === "grid" ? gridView : list
             const local = view.mapFromItem(root, eventPoint.position.x, eventPoint.position.y)
             const index = view.indexAt(local.x + view.contentX, local.y + view.contentY)
             if (index >= 0)
@@ -318,7 +318,7 @@ Item {
                 enabled: !root.fanMode
                 acceptedDevices: PointerDevice.Mouse
                 onWheel: function(event) {
-                    const view = root.viewMode === "grid" ? grid : list
+                    const view = root.viewMode === "grid" ? gridView : list
                     if (view.contentHeight > view.height)
                         view.flick(0, event.angleDelta.y * 2)
                 }
@@ -336,7 +336,7 @@ Item {
                 horizontalAlignment: Text.AlignHCenter
             }
             GridView {
-                id: grid
+                id: gridView
                 objectName: "folderGrid"
                 anchors.fill: parent
                 visible: root.viewMode === "grid" && !root.controller.contents.loading && root.controller.contents.error.length === 0
@@ -360,7 +360,7 @@ Item {
                     required directory
                     objectName: locationAction
                         ? "folderOpenLocation" : "folderGridEntry-" + index
-                    width: grid.cellWidth; height: grid.cellHeight
+                    width: gridView.cellWidth; height: gridView.cellHeight
                     grid: true
                     metrics: root.metrics
                     motionEnabled: root.motionEnabled
@@ -376,9 +376,9 @@ Item {
                         root.openEntryMenu(anchor, root.controller.contents.get(gridEntry.index))
                     }
                     Keys.onLeftPressed: root.selectGrid(Math.max(0, gridEntry.index - 1))
-                    Keys.onRightPressed: root.selectGrid(Math.min(grid.count - 1, gridEntry.index + 1))
+                    Keys.onRightPressed: root.selectGrid(Math.min(gridView.count - 1, gridEntry.index + 1))
                     Keys.onUpPressed: root.selectGrid(Math.max(0, gridEntry.index - root.columns))
-                    Keys.onDownPressed: root.selectGrid(Math.min(grid.count - 1, gridEntry.index + root.columns))
+                    Keys.onDownPressed: root.selectGrid(Math.min(gridView.count - 1, gridEntry.index + root.columns))
                 }
                 onCurrentIndexChanged: {
                     positionViewAtIndex(currentIndex, GridView.Contain)
