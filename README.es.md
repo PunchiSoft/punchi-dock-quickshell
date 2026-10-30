@@ -13,12 +13,14 @@
 > comportamiento, configuración, API nativas y documentación sin migración.
 > Fedora 44 con KDE Plasma 6.7.5 y KWin 6.7.5 en Wayland, comprobado el
 > 2026-10-20, es el entorno principal validado. Arch Linux (rolling, comprobado
-> el 2026-10-19: Plasma/KWin 6.8.0, Qt 6.12.0, KF6 6.31.0, Quickshell 0.3.2)
-> superó una compilación y una prueba de inicio inicial; la validación de uso
-> prolongado y visual completa sigue pendiente. X11 está fuera del alcance y no
-> se planea trabajar en su soporte. Otras distribuciones y compositores no
-> están validados. Todavía no hay una versión estable, paquete
-> oficial, compromiso de soporte ni garantía de compatibilidad.
+> el 2026-10-19: Plasma/KWin 6.8.0, Qt 6.12.0, KF6 6.31.0, Quickshell 0.3.2) y
+> Debian 13.7 KDE (comprobado el 2026-10-30: Plasma/KWin 6.3.6, Qt 6.8.2, KF6
+> 6.13.0, Quickshell 0.3.0) superaron una compilación y una prueba de inicio
+> inicial; la validación de uso prolongado y visual completa sigue pendiente.
+> X11 está fuera del alcance y no se planea trabajar en su soporte. Otras
+> distribuciones y compositores no están validados. Todavía no hay una versión
+> estable, paquete oficial, compromiso de soporte ni garantía de
+> compatibilidad.
 
 Punchi Dock Quickshell combina magnificación animada, lanzadores de aplicaciones
 configurables, acciones contextuales y transporte multimedia de KDE, una ventana
@@ -184,9 +186,9 @@ aplicaciones y controles adicionales quedan para el futuro.
 - Requiere KDE Plasma/KWin en Wayland. Otros escritorios y compositores no están
   soportados. X11 está fuera del alcance y no se planea trabajar en su soporte.
 - Fedora 44 con KDE Plasma 6.7.5 y KWin 6.7.5 en Wayland, comprobado el
-  2026-10-20, es el entorno principal validado. Arch Linux superó una
-  compilación y una prueba de inicio inicial; la validación de uso prolongado y
-  visual completa sigue pendiente.
+  2026-10-20, es el entorno principal validado. Arch Linux y Debian 13.7 KDE
+  superaron una compilación y una prueba de inicio inicial; la validación de uso
+  prolongado y visual completa sigue pendiente.
 - Solo instalación desde el código fuente y con prefijo CMake; no hay paquetes
   RPM/DEB, etiquetas ni binarios de versión.
 - La activación de ventanas, el transporte multimedia y el cursor de KDE todavía
@@ -296,6 +298,7 @@ opción necesita una copia instalada.
 |:---:|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | Versiones comprobadas el 2026-10-20 |
 | 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versiones comprobadas el 2026-10-19; compilación e inicio inicial probados; falta validar uso prolongado y comportamiento visual; avisos de Mesa/Zink; no es una declaración de compatibilidad para toda instalación de Arch |
+| 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 0.3.0 | Versiones comprobadas el 2026-10-30; el asistente instaló todas las dependencias y el dock compiló y arrancó en un equipo; falta validar uso prolongado y comportamiento visual completo; Quickshell viene de `trixie-backports` |
 | ⚪ | Nobara KDE, Fedora Kinoite (KDE Plasma inmutable), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | No probadas |
 | ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | No probadas |
 | ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | No probadas |
@@ -307,9 +310,12 @@ opción necesita una copia instalada.
 
 Solo Fedora 44 tiene el grafo de validación automatizada completo. Lista basada
 en la [wiki de distribuciones de KDE Community](https://community.kde.org/Distributions).
-Plasma 6.8.0 se publicó el 2026-10-14. Arch confirmó compilación e inicio, pero
-el uso prolongado y el comportamiento visual aún necesitan validación; esto no
-es una declaración de compatibilidad para todas las instalaciones de Arch.
+Plasma 6.8.0 se publicó el 2026-10-14. Arch y Debian 13 confirmaron compilación
+e inicio, pero el uso prolongado y el comportamiento visual aún necesitan
+validación; esto no es una declaración de compatibilidad para todas las
+instalaciones de Arch o Debian. En Debian 13, Quickshell se publica en
+`trixie-backports` y no en la suite de la versión, por lo que el asistente
+ofrece añadir esa suite.
 
 El asistente informa las dependencias en dos grupos. Los nombres de paquetes y
 los comandos de instalación de cada distribución permanecen en `scripts-user/`;

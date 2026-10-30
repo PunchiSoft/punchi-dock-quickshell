@@ -130,16 +130,21 @@ def check_dependency_maps(root: Path) -> None:
         ['bash', '-c',
          f'source "{common}"; source "{library}"; '
          'punchi_package_group debian runtime; echo ---; '
+         'punchi_package_group debian build; echo ---; '
          'punchi_package_group arch build; echo ---; '
          'punchi_distro_family ubuntu debian'],
         cwd=root, capture_output=True, text=True, check=False)
     assert result.returncode == 0, result.stderr
-    debian, arch, family = result.stdout.split('---')
+    debian, debian_build, arch, family = result.stdout.split('---')
     assert 'quickshell' in debian
     assert 'qml6-module-org-kde-kirigami' in debian
     assert 'qml6-module-org-kde-desktop' in debian
     assert 'libkf6service-bin' in debian
     assert 'libplasmaactivitiesstats1' in debian
+    # pkg-config is the build command no other Debian package in the list
+    # depends on, so it has to be named: a live image ships it, a minimal
+    # install does not.
+    assert 'pkg-config' in debian_build
     assert 'qt6-base' in arch
     assert 'extra-cmake-modules' in arch
     assert family.strip() == 'debian'

@@ -14,10 +14,12 @@
 > Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked
 > 2026-10-20, is the primary validated environment. Arch Linux (rolling,
 > checked 2026-10-19: Plasma/KWin 6.8.0, Qt 6.12.0, KF6 6.31.0, Quickshell
-> 0.3.2) has a successful build and initial-start test; prolonged-use and full
-> visual validation remain pending. X11 is out of scope and no support work is
-> planned. Other distributions and compositors are unvalidated. There is no
-> stable release, package, support commitment or compatibility guarantee yet.
+> 0.3.2) and Debian 13.7 KDE (checked 2026-10-30: Plasma/KWin 6.3.6, Qt 6.8.2,
+> KF6 6.13.0, Quickshell 0.3.0) have a successful build and initial-start test;
+> prolonged-use and full visual validation remain pending. X11 is out of scope
+> and no support work is planned. Other distributions and compositors are
+> unvalidated. There is no stable release, package, support commitment or
+> compatibility guarantee yet.
 
 Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, KDE context actions and media transport, a settings window and
@@ -168,9 +170,9 @@ an application-launcher surface and additional controls remain future work.
 - Requires KDE Plasma/KWin on Wayland. Other desktops and compositors are not
   supported. X11 is out of scope and no support work is planned.
 - Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked
-  2026-10-20, is the primary validated environment. Arch Linux has passed a
-  build and initial-start test; prolonged-use and full visual validation remain
-  pending.
+  2026-10-20, is the primary validated environment. Arch Linux and Debian 13.7
+  KDE have passed a build and initial-start test; prolonged-use and full visual
+  validation remain pending.
 - English UI only for now; [README.es.md](README.es.md) is a documentation
   translation.
 - Source and CMake prefix installs only; no RPM/DEB packages, tags or release
@@ -277,6 +279,7 @@ installed copy.
 |:---:|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 0.2.1 | Versions checked 2026-10-20 |
 | 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.0 | 6.8.0 | 6.12.0 | 6.31.0 | 0.3.2 | Versions checked 2026-10-19; build and initial start tested; prolonged-use and full visual validation pending; Mesa/Zink warnings; not a compatibility claim for this exact set |
+| 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 0.3.0 | Versions checked 2026-10-30; the setup assistant installed every dependency and the dock then built and started on one machine; prolonged use and full visual validation pending; Quickshell comes from `trixie-backports` |
 | ⚪ | Nobara KDE, Fedora Kinoite (immutable KDE Plasma), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | Untested |
 | ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | Untested |
 | ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | Untested |
@@ -288,9 +291,11 @@ installed copy.
 
 Only Fedora 44 has the complete automated validation graph. List based on the
 [KDE Community wiki — Distributions](https://community.kde.org/Distributions).
-Plasma 6.8.0 was released on 2026-10-14. Arch was confirmed to build and start,
-but prolonged use and visual behavior still need validation; this is not a
-compatibility claim for every Arch installation.
+Plasma 6.8.0 was released on 2026-10-14. Arch and Debian 13 were confirmed to
+build and start, but prolonged use and visual behavior still need validation;
+this is not a compatibility claim for every Arch or Debian installation. On
+Debian 13, Quickshell is published in `trixie-backports`, not in the release
+suite, so the setup assistant offers to add that suite.
 
 The setup assistant reports dependencies in two groups. Distribution-specific
 package names and install commands stay in `scripts-user/`; this list names the
