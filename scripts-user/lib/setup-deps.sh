@@ -71,6 +71,7 @@ punchi_debian_build_packages() {
         cmake \
         ninja-build \
         g++ \
+        pkg-config \
         extra-cmake-modules \
         qt6-base-dev \
         qt6-declarative-dev \
