@@ -370,8 +370,11 @@ Item {
             icon.name: "window-unpin"
             onClicked: root.unpinRequested()
         }
+        // Only divides rows that really exist above it; a leading separator would
+        // sit alone under the surface border on the dock background menu.
         PunchiDockContextSeparator {
-            visible: !root.trashItem && (root.dockBackground || root.actions.length > 0 || root.canLaunchNewWindow
+            objectName: "contextActionsSeparator"
+            visible: !root.trashItem && (root.actions.length > 0 || root.canLaunchNewWindow
                 || root.canPin || root.pinned || recentContent.visible || placesContent.visible)
             Layout.fillWidth: true
         }

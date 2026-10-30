@@ -251,6 +251,13 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
   "Check runtime and build dependencies" keeps the full inventory, now laid out
   in columns sized to the terminal and falling back to one item per line when the
   window is narrow.
+- The dock background menu no longer opens with a stray divider. Its separator
+  before the `Dock` section was visible whenever the menu belonged to the dock
+  background, even with no row above it, so it drew a full-width line under the
+  surface border; it now depends only on the rows that really exist above it
+  (desktop entry actions, recent files, places, launch and pin actions).
+  `test_dockBackgroundMenuDoesNotOpenWithSeparator` keeps the leading case hidden
+  and still requires the divider once an action exists.
 
 ## 0.1.47 — 2026-10-27
 

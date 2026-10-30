@@ -200,6 +200,18 @@ TestCase {
         compare(edgeSpy.signalArguments[0][0], "left")
     }
 
+    function test_dockBackgroundMenuDoesNotOpenWithSeparator() {
+        const view = createView()
+        const content = view.testContent
+        content.visible = true
+        const separator = findChild(content, "contextActionsSeparator")
+        verify(separator !== null)
+        compare(content.dockBackground, true)
+        compare(separator.visible, false)
+        content.actions = [{actionId: "new-window", name: "New Window", icon: "window-new"}]
+        compare(separator.visible, true)
+    }
+
     function test_unpinnedRunningApplicationOffersPinToDock() {
         const view = createView()
         const content = view.testContent
