@@ -72,7 +72,9 @@ Options:
   --keep-build        Kept for compatibility; build output is kept by default.
   --install-missing   With --check-deps, offer to install missing packages for
                       the detected distribution. It never runs without
-                      confirmation; non-Fedora package maps are best-effort.
+                      confirmation; Debian/Ubuntu and Arch maps were matched to
+                      one installation each, so verify names if your release
+                      differs.
   --pull              With --check-updates, run git pull --ff-only when the
                       checkout is behind. It refuses when tracked files have
                       modifications and never rebases, resets or stashes. The
@@ -146,6 +148,12 @@ show_quick_instructions() {
 
     punchi_heading "Instructions"
     cat <<EOF
+Cloning on a fresh system
+  git is required to clone and this assistant never installs it:
+    Fedora          sudo dnf install git
+    Debian/Ubuntu   sudo apt-get install git
+    Arch            sudo pacman -S git
+
 Guided setup
   Punchi Dock Quickshell requires KDE Plasma/KWin on Wayland and will not run
   on another desktop. Run this menu, choose "Check runtime and build

@@ -651,15 +651,18 @@ punchi_dependency_report() {
 
     local manager=""
     local label=""
-    local validated=0
+    # Fedora is exercised by CI on every change. Debian and Arch matched one
+    # real installation each, which is a dated observation rather than a
+    # standing guarantee, so the report names the date it was checked.
+    local validated_on=""
     case "$family" in
-        fedora) manager=rpm; label=Fedora; validated=1 ;;
-        debian) manager=dpkg-query; label=Debian/Ubuntu; validated=0 ;;
-        arch) manager=pacman; label=Arch; validated=0 ;;
+        fedora) manager=rpm; label=Fedora ;;
+        debian) manager=dpkg-query; label=Debian/Ubuntu; validated_on=2026-10-30 ;;
+        arch) manager=pacman; label=Arch; validated_on=2026-10-31 ;;
     esac
     if [[ -n "$manager" ]] && command -v "$manager" >/dev/null 2>&1; then
-        if (( validated == 0 )); then
-            punchi_warning "Package names for $label are best-effort and have not been validated by this project."
+        if [[ -n "$validated_on" ]]; then
+            punchi_warning "Package names for $label were validated on one installation on $validated_on; other configurations may differ."
         fi
         local group=""
         local package=""
@@ -723,9 +726,10 @@ punchi_dependency_report() {
 }
 
 punchi_information_about_packages() {
-    punchi_info "Package-name checks are validated only on Fedora 44."
-    punchi_info "Debian/Ubuntu and Arch mappings are best-effort; verify names"
-    punchi_info "with your distribution before installing them."
+    punchi_info "Package-name checks are validated on Fedora 44."
+    punchi_info "The Debian/Ubuntu and Arch mappings matched one installation"
+    punchi_info "each (2026-10-30 and 2026-10-31); verify names when your"
+    punchi_info "release differs from those."
     punchi_info "On other distributions, install the Quickshell, Qt 6, KF6 and"
     punchi_info "Wayland development equivalents, then run this check again."
 }

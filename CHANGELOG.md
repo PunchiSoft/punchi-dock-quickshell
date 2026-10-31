@@ -6,6 +6,13 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The settings user header loads with Kirigami Addons 1.16. The avatar stopped
+  assigning `initialsColor`, which that release removed: the property never
+  reached the icon the header renders, because `InitialsMode.UseIcon` shows the
+  user icon and the icon takes its black-or-white colour from `color`. Arch is
+  the first system to ship 1.16, so the dock failed to start there with
+  `Cannot assign to non-existent property "initialsColor"` while Fedora 44
+  (1.13.1) and Debian 13 (1.7.0) kept working.
 - The dependency check asks one thing at a time. It lists the missing commands
   and packages together, summarises what is already present in one line, and
   keeps the Debian backports question separate from the install question, so

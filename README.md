@@ -185,7 +185,16 @@ an application-launcher surface and additional controls remain future work.
 
 ## Install, run and return to KDE
 
-Clone the repository and enter the checkout:
+`git` is required to clone, and the setup assistant never installs it. Install
+it first if it is missing:
+
+```bash
+sudo dnf install git        # Fedora
+sudo apt-get install git    # Debian / Ubuntu
+sudo pacman -S git          # Arch
+```
+
+Then clone the repository and enter the checkout:
 
 ```bash
 git clone https://github.com/PunchiSoft/punchi-dock-quickshell.git
