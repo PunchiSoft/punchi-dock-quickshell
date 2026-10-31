@@ -284,27 +284,40 @@ installed copy.
 
 ### Compatibility at a glance
 
-| Status | KDE distributions / editions | Plasma | KWin | Qt | KF6 | Kirigami Addons | Quickshell | Notes |
+| Status | KDE distributions / editions | Plasma | KWin | Qt | KF6 | Kirigami Addons | Quickshell | Checked |
 |:---:|---|---|---|---|---|---|---|---|
-| ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | Versions checked 2026-10-20 |
-| 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | Versions checked 2026-10-31; install, trial, menu, containers and uninstall exercised on one machine; prolonged-use and full visual validation pending; Mesa/Zink warnings; not a compatibility claim for every Arch installation |
-| 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 1.7.0 | 0.3.0 | Versions checked 2026-10-30; the setup assistant installed every dependency and the dock then built and started on one machine; prolonged use and full visual validation pending; Quickshell comes from `trixie-backports` |
-| ⚪ | Nobara KDE, Fedora Kinoite (immutable KDE Plasma), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | Untested |
-| ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | Untested |
-| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | — | Untested |
-| ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | Untested |
-| ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | Untested |
-| ❌ | — | — | — | — | — | — | — | X11 is out of scope; non-KDE compositors are unsupported |
+| ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | 2026-10-20 |
+| 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | 2026-10-31 · partial |
+| 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 1.7.0 | 0.3.0 | 2026-10-30 · partial |
+| ⚪ | Nobara KDE, Fedora Kinoite (immutable KDE Plasma), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | — |
+| ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | — |
+| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | — | — |
+| ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | — |
+| ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | — |
+| ❌ | — | — | — | — | — | — | — | — |
 
-✅ validated · 🟡 builds/starts, validation pending · ⚪ untested, same family · ❌ unsupported · ⏳ pending · — not applicable.
+✅ validated · 🟡 builds/starts, validation pending · ⚪ untested, same family · ❌ unsupported · ⏳ pending · — not applicable. X11 is out of scope and non-KDE compositors are unsupported.
+
+<details>
+<summary>What each checked row was exercised against</summary>
+
+- **Fedora 44 KDE** — the primary validated environment. It runs the complete
+  automated validation graph on every change.
+- **Arch Linux (rolling)** — install, trial, menu, folder containers and
+  uninstall exercised on one machine on 2026-10-31. Prolonged use and full
+  visual inspection remain pending, and Mesa/Zink warnings appear. Not a
+  compatibility claim for every Arch installation.
+- **Debian 13.7 KDE (trixie)** — the setup assistant installed every dependency
+  and the dock then built and started on one machine on 2026-10-30. Prolonged
+  use and full visual inspection remain pending. Quickshell comes from
+  `trixie-backports`, not from the release suite, so the assistant offers to add
+  that suite.
+
+</details>
 
 Only Fedora 44 has the complete automated validation graph. List based on the
 [KDE Community wiki — Distributions](https://community.kde.org/Distributions).
-Plasma 6.8.0 was released on 2026-10-14. Arch and Debian 13 were confirmed to
-build and start, but prolonged use and visual behavior still need validation;
-this is not a compatibility claim for every Arch or Debian installation. On
-Debian 13, Quickshell is published in `trixie-backports`, not in the release
-suite, so the setup assistant offers to add that suite.
+Plasma 6.8.0 was released on 2026-10-14.
 
 Kirigami Addons is listed on its own because its API moves within a KF6 major
 series: 1.16.0 removed the avatar's `initialsColor` and the settings window
