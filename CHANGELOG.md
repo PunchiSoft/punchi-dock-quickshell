@@ -6,6 +6,13 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The assistant restarts itself after updating the checkout. Its libraries are
+  sourced once at startup, so pulling from the update check and then choosing
+  "Rebuild and install now" ran the dependency map and build steps that existed
+  before the pull; a real Arch update printed the old dependency wording after
+  the commit that replaced it. The post-pull action now runs in a fresh process
+  that reads the updated checkout, and when the entry point is not present the
+  assistant refuses that stale build and asks for a restart instead.
 - The settings user header loads with Kirigami Addons 1.16. The avatar stopped
   assigning `initialsColor`, which that release removed: the property never
   reached the icon the header renders, because `InitialsMode.UseIcon` shows the

@@ -559,6 +559,25 @@ interactive_menu() {
     done
 }
 
+# A pull replaces the libraries this process sourced at startup, so the next
+# action runs in a fresh process instead of the code loaded before the update.
+punchi_reload_after_update() {
+    local next_action="${1:-menu}"
+    local script="$punchi_setup_script_dir/setup.sh"
+    if [[ ! -f "$script" ]]; then
+        punchi_warning "Restart the assistant before building the updated checkout."
+        return 1
+    fi
+    local -a args=()
+    (( PUNCHI_ASSUME_YES == 1 )) && args+=(-y)
+    (( ${NO_COLOR:-0} == 1 )) && args+=(--no-color)
+    [[ -n "${PUNCHI_INSTALL_PREFIX:-}" ]] && args+=(--prefix "$PUNCHI_INSTALL_PREFIX")
+    [[ "$next_action" != "menu" ]] && args+=("--$next_action")
+    punchi_info "Restarting the assistant so the updated checkout is the code that runs."
+    punchi_setup_cleanup
+    exec "$script" "${args[@]}"
+}
+
 set_action() {
     local action="${1:?action is required}"
     if [[ -n "$PUNCHI_ACTION" && "$PUNCHI_ACTION" != "$action" ]]; then

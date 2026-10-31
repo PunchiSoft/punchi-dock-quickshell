@@ -744,13 +744,16 @@ def check_update_check(root: Path) -> None:
         assert pulled.returncode == 0, pulled_output
         assert 'Checkout updated' in pulled_output, pulled_output
         assert 'Rebuild and install now?' not in pulled_output, pulled_output
+        # The command-line modes end after the pull; only the interactive menu
+        # continues, so no reload request may appear here.
+        assert 'Restarting the assistant' not in pulled_output, pulled_output
         assert git_run('rev-parse', 'HEAD', cwd=source).stdout.strip() \
             == git_run('rev-parse', 'HEAD', cwd=clone).stdout.strip()
         assert '0.1.21' in (source / 'CMakeLists.txt').read_text()
 
-        # Interactive prompt mode offers to rebuild and install after a
-        # successful pull. PUNCHI_ASSUME_YES drives both confirmations without
-        # a TTY; the install callback is stubbed so the test never builds.
+        # Interactive prompt mode hands the rebuild to a fresh process. The
+        # pull replaced the libraries this one sourced at startup, so building
+        # here would run the code that was loaded before the update.
         write_version(clone, '0.1.22')
         git_run('add', 'CMakeLists.txt', cwd=clone)
         git_run('commit', '-m', 'upstream install prompt', cwd=clone)
@@ -762,6 +765,7 @@ def check_update_check(root: Path) -> None:
              f'punchi_project_root="{source}"; '
              f'source "{root}/scripts-user/lib/setup-common.sh"; '
              f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_reload_after_update() { printf "RELOAD:%s\\n" "${1:-}"; }; '
              'punchi_action_install() { printf "INSTALL_CALLED\\n"; }; '
              'punchi_check_updates prompt'],
             cwd=root, env=prompted_environment, capture_output=True, text=True,
@@ -769,10 +773,70 @@ def check_update_check(root: Path) -> None:
         prompted_output = prompted.stdout + prompted.stderr
         assert prompted.returncode == 0, prompted_output
         assert 'Checkout updated' in prompted_output, prompted_output
-        assert 'INSTALL_CALLED' in prompted_output, prompted_output
+        assert 'RELOAD:install' in prompted_output, prompted_output
+        assert 'INSTALL_CALLED' not in prompted_output, \
+            'The post-pull build ran in the process that loaded the old libraries:\n' + prompted_output
         assert git_run('rev-parse', 'HEAD', cwd=source).stdout.strip() \
             == git_run('rev-parse', 'HEAD', cwd=clone).stdout.strip()
         assert '0.1.22' in (source / 'CMakeLists.txt').read_text()
+
+        # Sourced without an entry point there is no process to replace, so the
+        # assistant has to refuse the stale build instead of running it.
+        write_version(clone, '0.1.23')
+        git_run('add', 'CMakeLists.txt', cwd=clone)
+        git_run('commit', '-m', 'upstream stale guard', cwd=clone)
+        git_run('push', 'origin', 'main', cwd=clone)
+        stale = subprocess.run(
+            ['bash', '-c',
+             f'punchi_project_root="{source}"; '
+             f'source "{root}/scripts-user/lib/setup-common.sh"; '
+             f'source "{root}/scripts-user/lib/setup-updates.sh"; '
+             'punchi_action_install() { printf "INSTALL_CALLED\\n"; }; '
+             'punchi_check_updates prompt'],
+            cwd=root, env=prompted_environment, capture_output=True, text=True,
+            check=False, timeout=60)
+        stale_output = stale.stdout + stale.stderr
+        assert stale.returncode != 0, stale_output
+        assert 'restart the assistant' in stale_output, stale_output
+        assert 'INSTALL_CALLED' not in stale_output, stale_output
+
+
+def check_reload_after_update(root: Path) -> None:
+    """A pull restarts the assistant instead of building with stale libraries."""
+    with tempfile.TemporaryDirectory(prefix='punchi-reload-test-') as temporary:
+        stub_dir = Path(temporary)
+        stub = stub_dir / 'setup.sh'
+        stub.write_text('#!/usr/bin/env bash\nprintf "ARGS:%s\\n" "$*"\n')
+        stub.chmod(0o755)
+        environment = os.environ.copy()
+        environment.update({'TERM': 'dumb'})
+
+        def run(script: str) -> subprocess.CompletedProcess:
+            return subprocess.run(
+                ['bash', '-c',
+                 f'source "{root}/scripts-user/setup.sh"; '
+                 f'punchi_setup_script_dir="{stub_dir}"; '
+                 f'{script}'],
+                cwd=root, env=environment, capture_output=True, text=True,
+                check=False, timeout=30)
+
+        install = run('PUNCHI_ASSUME_YES=0; NO_COLOR=1; '
+                      'PUNCHI_INSTALL_PREFIX=/tmp/punchi-prefix; '
+                      'punchi_reload_after_update install')
+        assert install.returncode == 0, install.stdout + install.stderr
+        assert 'ARGS:--no-color --prefix /tmp/punchi-prefix --install' \
+            in install.stdout, install.stdout
+
+        menu = run('PUNCHI_ASSUME_YES=1; NO_COLOR=0; PUNCHI_INSTALL_PREFIX=""; '
+                   'punchi_reload_after_update menu')
+        assert menu.returncode == 0, menu.stdout + menu.stderr
+        assert 'ARGS:-y' in menu.stdout, menu.stdout
+        assert '--install' not in menu.stdout, menu.stdout
+
+        absent = run('punchi_setup_script_dir="/nonexistent-punchi"; '
+                     'punchi_reload_after_update install')
+        assert absent.returncode != 0, absent.stdout + absent.stderr
+        assert 'Restart the assistant' in absent.stdout, absent.stdout
 
 
 def check_autostart_uninstall(root: Path) -> None:
@@ -1859,6 +1923,7 @@ def main() -> int:
     check_start_environment_notice(root, start)
     check_install_environment_guard(root, setup)
     check_update_check(root)
+    check_reload_after_update(root)
     check_git_missing(root)
     check_autostart_uninstall(root)
     print('User setup scripts: syntax, help, menu, maps, build trees, Qt tools, '
