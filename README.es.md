@@ -307,10 +307,11 @@ opción necesita una copia instalada.
 |:---:|---|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | 2026-10-20 |
 | 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | 2026-10-31 · parcial |
+| 🟡 | CachyOS (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | 2026-10-31 · parcial |
 | 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 1.7.0 | 0.3.0 | 2026-10-30 · parcial |
 | ⚪ | Nobara KDE, Fedora Kinoite (KDE Plasma inmutable), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | — |
 | ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | — |
-| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | — | — |
+| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, Garuda KDE | — | — | — | — | — | — | — |
 | ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | — |
 | ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | — |
 | ❌ | — | — | — | — | — | — | — | — |
@@ -326,6 +327,13 @@ opción necesita una copia instalada.
   desinstalación ejercitados en un equipo el 2026-10-31. Falta validar uso
   prolongado y comportamiento visual completo, y aparecen avisos de Mesa/Zink.
   No es una declaración de compatibilidad para toda instalación de Arch.
+- **CachyOS (rolling)** — en una instalación de escritorio limpia el 2026-10-31,
+  el asistente instaló los cinco paquetes que faltaban en un solo paso, el
+  checkout compiló y la prueba imprimió `Configuration Loaded` antes de
+  detenerse. CachyOS sirve compilaciones optimizadas `cachyos-extra-v3`. La suite
+  de pruebas del proyecto no se ha ejecutado en CachyOS, y tampoco se han
+  revisado menú, contenedores ni uso prolongado, así que es una declaración de
+  compatibilidad para esa instalación.
 - **Debian 13.7 KDE (trixie)** — el asistente instaló todas las dependencias y
   el dock compiló y arrancó en un equipo el 2026-10-30. Falta validar uso
   prolongado y comportamiento visual completo. Quickshell viene de

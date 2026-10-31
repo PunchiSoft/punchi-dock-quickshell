@@ -467,8 +467,16 @@ punchi_python_ready_summary() {
 
 # The install offer restates only the decision: what is missing, and one
 # readiness summary line for everything the detailed report already listed.
+# $1 names the required array and $2 the optional one; the optional packages are
+# the validation group, which the dock builds and runs without, yet the offer
+# installs them too so no check stays red after an install finishes.
 punchi_report_missing_dependencies() {
-    (($#)) || return 0
+    local -n report_required=${1:?required package array is required}
+    local -a report_optional=()
+    if [[ -n "${2:-}" ]]; then
+        local -n optional_source=$2
+        report_optional=("${optional_source[@]}")
+    fi
     local -a commands=()
     local -a present=()
     local group=""
@@ -491,11 +499,14 @@ punchi_report_missing_dependencies() {
     fi
 
     punchi_rule
-    printf 'Missing dependencies (%d)\n' "$#"
+    printf 'Missing dependencies (%d)\n' "$(( ${#report_required[@]} + ${#report_optional[@]} ))"
     if ((${#commands[@]})); then
         punchi_report_list_line "Commands" "${commands[@]}"
     fi
-    punchi_report_list_line "Packages" "$@"
+    punchi_report_list_line "Packages" "${report_required[@]}"
+    if ((${#report_optional[@]})); then
+        punchi_report_list_line "Optional" "${report_optional[@]}"
+    fi
     if ((${#present[@]})); then
         punchi_report_list_line "Present" "${present[@]}"
     fi
@@ -875,6 +886,8 @@ punchi_quote_words() {
 punchi_offer_dependency_install() {
     local family="${1:?distribution family is required}"
     local status="${2:-1}"
+    local -a required=()
+    local -a optional=()
     local -a missing=()
     local -a installable=()
     local -a install_command=()
@@ -892,7 +905,7 @@ punchi_offer_dependency_install() {
 
     while IFS= read -r package; do
         if [[ -n "$package" ]]; then
-            missing+=("$package")
+            required+=("$package")
         fi
     done < <(
         {
@@ -900,9 +913,20 @@ punchi_offer_dependency_install() {
             punchi_missing_packages build "$family"
         } | sort -u
     )
+
+    # The validation group is optional for running the dock but still part of
+    # what this offer installs: leaving it out left a fresh Arch system with a
+    # red dependency check that the assistant itself refused to fix.
+    while IFS= read -r package; do
+        if [[ -n "$package" ]]; then
+            optional+=("$package")
+        fi
+    done < <(punchi_missing_packages validation "$family")
+
+    missing=("${required[@]}" "${optional[@]}")
     (( ${#missing[@]} > 0 )) || return 0
 
-    punchi_report_missing_dependencies "${missing[@]}"
+    punchi_report_missing_dependencies required optional
 
     # Quickshell has no candidate in the configured suites on some Debian
     # releases, and asking for it in the batched call would abort every package.
