@@ -22,8 +22,9 @@ RowLayout {
         cache: false
         // The native icon chooses black/white from this color; use the surface
         // background so its contrast also holds for partially defined schemes.
+        // Do not set a separate initials color: Kirigami Addons 1.16 removed
+        // that property, and it never reached the icon this mode renders.
         color: Kirigami.Theme.backgroundColor
-        initialsColor: Kirigami.Theme.textColor
         initialsMode: Components.Avatar.InitialsMode.UseIcon
         // The native component does not mask photos in the software renderer.
         // Keep its circular user-icon fallback instead of an unmasked photo.

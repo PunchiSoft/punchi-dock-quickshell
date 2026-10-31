@@ -202,7 +202,16 @@ aplicaciones y controles adicionales quedan para el futuro.
 
 ## Instalación, inicio y regreso a KDE
 
-Clona el repositorio y entra en el checkout:
+`git` es necesario para clonar, y el asistente nunca lo instala. Instálalo antes
+si falta:
+
+```bash
+sudo dnf install git        # Fedora
+sudo apt-get install git    # Debian / Ubuntu
+sudo pacman -S git          # Arch
+```
+
+Después clona el repositorio y entra en el checkout:
 
 ```bash
 git clone https://github.com/PunchiSoft/punchi-dock-quickshell.git
