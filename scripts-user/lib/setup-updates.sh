@@ -163,12 +163,23 @@ punchi_check_updates() {
             updated_commit="$(git -C "$root" log -1 --format='%h %s' HEAD \
                 2>/dev/null || true)"
             punchi_success "Checkout updated to ${updated_commit:-the latest commit}."
-            local install_status=0
-            if [[ "$mode" == "prompt" ]] \
-                && declare -F punchi_action_install >/dev/null 2>&1; then
+            # A pull replaces the files this process sourced at startup, so
+            # everything after it would run the code loaded before the update.
+            # Only the interactive menu continues after a pull; the command-line
+            # modes end here. The entry point reloads into a fresh process; when
+            # this library is sourced on its own there is no process to reload.
+            if [[ "$mode" == "prompt" ]]; then
+                local next_action="menu"
                 if punchi_confirm "Rebuild and install now? [y/N]: " n; then
-                    punchi_action_install || install_status=$?
-                    return "$install_status"
+                    next_action="install"
+                fi
+                if declare -F punchi_reload_after_update >/dev/null 2>&1; then
+                    punchi_reload_after_update "$next_action" || return 1
+                    return 0
+                fi
+                if [[ "$next_action" == "install" ]]; then
+                    punchi_warning "This process loaded its libraries before the update; restart the assistant to build the updated checkout."
+                    return 1
                 fi
             fi
             punchi_info "Run Install or update to rebuild and refresh the installed copy."
