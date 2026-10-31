@@ -303,28 +303,40 @@ opción necesita una copia instalada.
 
 ### Compatibilidad de un vistazo
 
-| Estado | Distribuciones / ediciones KDE | Plasma | KWin | Qt | KF6 | Kirigami Addons | Quickshell | Notas |
+| Estado | Distribuciones / ediciones KDE | Plasma | KWin | Qt | KF6 | Kirigami Addons | Quickshell | Comprobado |
 |:---:|---|---|---|---|---|---|---|---|
-| ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | Versiones comprobadas el 2026-10-20 |
-| 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | Versiones comprobadas el 2026-10-31; instalación, prueba, menú, contenedores y desinstalación ejercitados en un equipo; falta validar uso prolongado y comportamiento visual completo; avisos de Mesa/Zink; no es una declaración de compatibilidad para toda instalación de Arch |
-| 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 1.7.0 | 0.3.0 | Versiones comprobadas el 2026-10-30; el asistente instaló todas las dependencias y el dock compiló y arrancó en un equipo; falta validar uso prolongado y comportamiento visual completo; Quickshell viene de `trixie-backports` |
-| ⚪ | Nobara KDE, Fedora Kinoite (KDE Plasma inmutable), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | No probadas |
-| ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | No probadas |
-| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | — | No probadas |
-| ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | No probadas |
-| ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | No probadas |
-| ❌ | — | — | — | — | — | — | — | X11 está fuera del alcance; otros compositores no KDE no están soportados |
+| ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | 2026-10-20 |
+| 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | 2026-10-31 · parcial |
+| 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 1.7.0 | 0.3.0 | 2026-10-30 · parcial |
+| ⚪ | Nobara KDE, Fedora Kinoite (KDE Plasma inmutable), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | — |
+| ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | — |
+| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | — | — |
+| ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | — |
+| ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | — |
+| ❌ | — | — | — | — | — | — | — | — |
 
-✅ validado · 🟡 compila/arranca, validación pendiente · ⚪ no probado, misma familia · ❌ no soportado · ⏳ pendiente · — no aplica.
+✅ validado · 🟡 compila/arranca, validación pendiente · ⚪ no probado, misma familia · ❌ no soportado · ⏳ pendiente · — no aplica. X11 está fuera del alcance y otros compositores no KDE no están soportados.
+
+<details>
+<summary>Qué se ejercitó en cada fila comprobada</summary>
+
+- **Fedora 44 KDE** — el entorno principal validado. Ejecuta el grafo de
+  validación automatizada completo en cada cambio.
+- **Arch Linux (rolling)** — instalación, prueba, menú, contenedores y
+  desinstalación ejercitados en un equipo el 2026-10-31. Falta validar uso
+  prolongado y comportamiento visual completo, y aparecen avisos de Mesa/Zink.
+  No es una declaración de compatibilidad para toda instalación de Arch.
+- **Debian 13.7 KDE (trixie)** — el asistente instaló todas las dependencias y
+  el dock compiló y arrancó en un equipo el 2026-10-30. Falta validar uso
+  prolongado y comportamiento visual completo. Quickshell viene de
+  `trixie-backports` y no de la suite de la versión, por lo que el asistente
+  ofrece añadir esa suite.
+
+</details>
 
 Solo Fedora 44 tiene el grafo de validación automatizada completo. Lista basada
 en la [wiki de distribuciones de KDE Community](https://community.kde.org/Distributions).
-Plasma 6.8.0 se publicó el 2026-10-14. Arch y Debian 13 confirmaron compilación
-e inicio, pero el uso prolongado y el comportamiento visual aún necesitan
-validación; esto no es una declaración de compatibilidad para todas las
-instalaciones de Arch o Debian. En Debian 13, Quickshell se publica en
-`trixie-backports` y no en la suite de la versión, por lo que el asistente
-ofrece añadir esa suite.
+Plasma 6.8.0 se publicó el 2026-10-14.
 
 Kirigami Addons aparece en su propia columna porque su API cambia dentro de una
 misma serie mayor de KF6: la 1.16.0 eliminó `initialsColor` del avatar y la
