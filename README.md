@@ -288,10 +288,11 @@ installed copy.
 |:---:|---|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | 2026-10-20 |
 | 🟡 | Arch Linux (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | 2026-10-31 · partial |
+| 🟡 | CachyOS (rolling, KDE Plasma) | 6.8.2 | 6.8.2 | 6.12.0 | 6.31.0 | 1.16.0 | 0.3.2 | 2026-10-31 · partial |
 | 🟡 | Debian 13.7 KDE (trixie) | 6.3.6 | 6.3.6 | 6.8.2 | 6.13.0 | 1.7.0 | 0.3.0 | 2026-10-30 · partial |
 | ⚪ | Nobara KDE, Fedora Kinoite (immutable KDE Plasma), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | — |
 | ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | — |
-| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, CachyOS KDE, Garuda KDE | — | — | — | — | — | — | — |
+| ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, Garuda KDE | — | — | — | — | — | — | — |
 | ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | — |
 | ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | — |
 | ❌ | — | — | — | — | — | — | — | — |
@@ -307,6 +308,12 @@ installed copy.
   uninstall exercised on one machine on 2026-10-31. Prolonged use and full
   visual inspection remain pending, and Mesa/Zink warnings appear. Not a
   compatibility claim for every Arch installation.
+- **CachyOS (rolling)** — on a fresh desktop install on 2026-10-31, the setup
+  assistant installed the five missing packages in one step, the checkout built,
+  and the trial printed `Configuration Loaded` before it was stopped. CachyOS
+  serves optimized `cachyos-extra-v3` builds. The project test suite has not been
+  run on CachyOS, and neither menu, container nor prolonged-use review has, so
+  this is a compatibility claim for that install only.
 - **Debian 13.7 KDE (trixie)** — the setup assistant installed every dependency
   and the dock then built and started on one machine on 2026-10-30. Prolonged
   use and full visual inspection remain pending. Quickshell comes from

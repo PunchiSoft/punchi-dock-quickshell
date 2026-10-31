@@ -228,6 +228,11 @@ punchi_missing_packages() {
                 printf '%s\n' cmake
             fi
             ;;
+        validation)
+            if [[ "${PUNCHI_TEST_OPTIONAL_PACKAGE:-}" == 1 ]]; then
+                printf '%s\n' python-dbus
+            fi
+            ;;
     esac
 }
 punchi_apt_config_dir() { printf '%s\n' "${PUNCHI_TEST_APT_DIR:?}"; }
@@ -325,6 +330,22 @@ punchi_offer_dependency_install debian 1
             'Install the 1 missing package now? [y/N]: ',
         ], prompts
         prompt_log.write_text('')
+
+        # The validation group is optional for running the dock, yet it is
+        # part of the batch: a fresh Arch system kept a red check because the
+        # assistant listed python-dbus as missing and never offered it.
+        apt_log.write_text('')
+        prompt_log.write_text('')
+        sources.unlink(missing_ok=True)
+        optional = run({
+            'PUNCHI_TEST_CANDIDATE': '6.13.0-1',
+            'PUNCHI_TEST_OPTIONAL_PACKAGE': '1',
+        })
+        assert optional.returncode == 0, optional.stdout + optional.stderr
+        assert 'Optional' in optional.stdout, optional.stdout
+        assert 'python-dbus' in optional.stdout, optional.stdout
+        assert 'install -y quickshell python-dbus' in apt_log.read_text(), \
+            apt_log.read_text()
 
         apt_log.write_text('')
         available = run({'PUNCHI_TEST_CANDIDATE': '6.13.0-1'})

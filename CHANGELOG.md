@@ -6,6 +6,12 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The dependency offer installs the validation group too. A fresh Arch desktop
+  showed the assistant listing `python-dbus` as missing under "Validation
+  tools", warning that some were absent, and then offering only runtime and
+  build packages, so its own check stayed red with no way to clear it from the
+  menu. The offer now batches those packages as well and lists them on an
+  `Optional` row, because the dock still builds and runs without them.
 - The assistant restarts itself after updating the checkout. Its libraries are
   sourced once at startup, so pulling from the update check and then choosing
   "Rebuild and install now" ran the dependency map and build steps that existed
