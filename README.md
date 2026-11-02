@@ -168,7 +168,10 @@ an application-launcher surface and additional controls remain future work.
   it; it does not change behavior, and the full startup log keeps it for
   diagnosis.
 - Requires KDE Plasma/KWin on Wayland. Other desktops and compositors are not
-  supported. X11 is out of scope and no support work is planned.
+  supported. X11 is out of scope and no support work is planned. Within KDE
+  Plasma the runtime limit is Quickshell: where it is available the dock is a
+  candidate, and openSUSE is the case that needs an extra repository because its
+  own repositories do not carry the package.
 - Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked
   2026-10-20, is the primary validated environment. Arch Linux and Debian 13.7
   KDE have passed a build and initial-start test; prolonged-use and full visual
@@ -284,6 +287,22 @@ installed copy.
 
 ### Compatibility at a glance
 
+Punchi Dock Quickshell runs on Quickshell, so every KDE Plasma distribution for
+which Quickshell itself is available is a candidate to run it. Quickshell's
+[installation guide](https://quickshell.org/docs/v0.3.2/guide/install-setup/)
+lists where it can be obtained: package repositories on Arch, Debian, Fedora
+Rawhide, Nix, Gentoo (GURU) and Guix, a PPA on Ubuntu, a COPR on Fedora, and the
+`home:AvengeMedia:danklinux` Open Build Service project on openSUSE, because the
+Tumbleweed and Leap repositories carry no `quickshell` package at all. That list
+decides whether the runtime exists on a system; this project neither packages
+nor ships Quickshell.
+
+Availability is not validation. A distribution where Quickshell installs is only
+a candidate: the rows below record what this project has actually built and
+started, and everything outside them is untested. Quickshell is also coupled to
+the Qt it was compiled against, so a distribution that updates Qt without
+rebuilding Quickshell can break the dock.
+
 | Status | KDE distributions / editions | Plasma | KWin | Qt | KF6 | Kirigami Addons | Quickshell | Checked |
 |:---:|---|---|---|---|---|---|---|---|
 | ✅ | Fedora 44 KDE | 6.7.5 | 6.7.5 | 6.11.2 | 6.31.0 | 1.13.1 | 0.2.1 | 2026-10-20 |
@@ -293,7 +312,7 @@ installed copy.
 | ⚪ | Nobara KDE, Fedora Kinoite (immutable KDE Plasma), CentOS Stream 10 KDE (EPEL), Rocky Linux KDE, AlmaLinux Kitten KDE | — | — | — | — | — | — | — |
 | ⚪ | KDE neon, Kubuntu KDE Plasma | — | — | — | — | — | — | — |
 | ⚪ | Manjaro KDE, EndeavourOS KDE Plasma, Garuda KDE | — | — | — | — | — | — | — |
-| ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE | — | — | — | — | — | — | — |
+| ⚪ | openSUSE Tumbleweed KDE, openSUSE Leap KDE — distribution repositories carry no `quickshell` package | — | — | — | — | — | — | — |
 | ⚪ | KaOS KDE Plasma, Solus KDE | — | — | — | — | — | — | — |
 | ❌ | — | — | — | — | — | — | — | — |
 
