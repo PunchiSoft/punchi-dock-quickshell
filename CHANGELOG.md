@@ -6,6 +6,15 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The README states where the dock can run before it lists the environments it
+  was checked on. The panel runs on Quickshell, and the compatibility table gave
+  no way to tell an untested distribution from an unavailable one: openSUSE
+  appeared as "untested, same family" while its Tumbleweed and Leap repositories
+  carry no `quickshell` package, and upstream Quickshell installs it there from
+  the `home:AvengeMedia:danklinux` Open Build Service project. Both READMEs now
+  link Quickshell's installation guide, name where it is packaged, and separate
+  availability from validation, because a distribution where Quickshell installs
+  is a candidate rather than a tested environment.
 - The dependency offer installs the validation group too. A fresh Arch desktop
   showed the assistant listing `python-dbus` as missing under "Validation
   tools", warning that some were absent, and then offering only runtime and
