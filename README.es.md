@@ -45,10 +45,10 @@ escritorio: el asistente de instalación se niega a instalar fuera de KDE Plasma
 en Wayland, y si se arranca una copia instalada en otro entorno, indica la
 sesión detectada y muestra un diálogo del sistema en lugar de ejecutarse.
 
-**Versión actual:** **0.1.47** (instantánea de desarrollo, sin publicar — el
-repositorio no tiene tag ni release). El [changelog](CHANGELOG.md) registra los
-cambios entregados y su validación. Los límites de compatibilidad y validación
-se describen más abajo.
+**Sin publicar.** El árbol declara la versión **0.1.47** para una entrega futura;
+no existe tag ni release. El [changelog](CHANGELOG.md) mantiene el trabajo
+pendiente bajo `Unreleased` y cada cambio entregado con su validación. Los
+límites de compatibilidad y validación se describen más abajo.
 
 [Atribución](NOTICE.md) · [Licencia](LICENSE) · [Changelog](CHANGELOG.md) ·
 [Seguridad](SECURITY.md) · [Contribución](CONTRIBUTING.md) · [Soporte](SUPPORT.md)

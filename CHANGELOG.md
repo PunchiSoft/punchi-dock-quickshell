@@ -6,6 +6,13 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The README heads the declared version as "Unreleased" instead of "Current
+  version". `docs/versioning.md` records that `0.1.47` is the version the tree
+  declares rather than a download, and the old heading read like a published
+  release. Both READMEs now say the tree declares `0.1.47` for a future delivery
+  and that no tag or release exists; `scripts-dev/check-version.py` matches the
+  new heading and still fails when the number disagrees with the newest dated
+  `CHANGELOG.md` heading.
 - The dependency report tells a distribution without a package map who installs
   the packages. openSUSE reached that branch with runtime packages missing: the
   report named what was absent, skipped the install offer because the family is
