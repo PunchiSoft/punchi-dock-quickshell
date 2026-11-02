@@ -727,7 +727,7 @@ punchi_dependency_report() {
             fi
         fi
     else
-        punchi_information_about_packages
+        punchi_information_about_packages "$family"
     fi
 
     if (( validation_status != 0 )); then
@@ -737,12 +737,22 @@ punchi_dependency_report() {
 }
 
 punchi_information_about_packages() {
+    local family="${1:-}"
     punchi_info "Package-name checks are validated on Fedora 44."
     punchi_info "The Debian/Ubuntu and Arch mappings matched one installation"
     punchi_info "each (2026-10-30 and 2026-10-31); verify names when your"
     punchi_info "release differs from those."
     punchi_info "On other distributions, install the Quickshell, Qt 6, KF6 and"
     punchi_info "Wayland development equivalents, then run this check again."
+    # A distribution without a package map gets no install offer at all, so the
+    # report has to say who installs what instead of leaving the user at a dead
+    # end. openSUSE is the case that reached this branch with a real report.
+    if [[ "$family" == "unsupported" ]]; then
+        punchi_info "This assistant installs packages on Fedora, Debian/Ubuntu and Arch"
+        punchi_info "only. On another distribution, install the equivalents above by"
+        punchi_info "hand. Where Quickshell is not packaged, quickshell.org lists how to"
+        punchi_info "obtain it; this project does not validate that path."
+    fi
 }
 
 # Runs inside the progress runner: the report stays batched in the log while the

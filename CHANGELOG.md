@@ -6,6 +6,12 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The dependency report tells a distribution without a package map who installs
+  the packages. openSUSE reached that branch with runtime packages missing: the
+  report named what was absent, skipped the install offer because the family is
+  unknown, and left the user with no next step. It now states that the assistant
+  installs packages on Fedora, Debian/Ubuntu and Arch only, and that where
+  Quickshell is not packaged `quickshell.org` lists how to obtain it.
 - The README states where the dock can run before it lists the environments it
   was checked on. The panel runs on Quickshell, and the compatibility table gave
   no way to tell an untested distribution from an unavailable one: openSUSE

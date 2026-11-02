@@ -509,6 +509,73 @@ printf 'STATUS=%s\n' "$?"
         'The width measured by the progress runner must win over COLUMNS'
 
 
+def check_unsupported_distribution_notice(root: Path) -> None:
+    """A distribution without a package map is told who installs the packages.
+
+    The offer is skipped for such a family, so the report is the only place that
+    can name the next step. openSUSE reached this branch with missing runtime
+    packages and no install option at all.
+    """
+    probe = r'''
+source scripts-user/lib/setup-common.sh
+source scripts-user/lib/setup-progress.sh
+source scripts-user/lib/setup-deps.sh
+PUNCHI_NO_PROGRESS=1
+trap punchi_setup_cleanup EXIT
+punchi_distro_family() { printf '%s\n' "$PROBE_FAMILY"; }
+punchi_distro_id() { printf '%s\n' opensuse-tumbleweed; }
+punchi_distro_like() { :; }
+punchi_system_name() { printf '%s\n' 'Test Linux'; }
+punchi_git_install_hint() { printf '%s\n' 'zypper install git'; }
+punchi_command_group() {
+    case "$1" in
+        runtime) printf '%s\n' bash sh ;;
+        build) printf '%s\n' cmake grep ;;
+        validation) printf '%s\n' head ;;
+    esac
+}
+punchi_kde_session_detected() { return 0; }
+punchi_dependency_check 0 "$1"
+printf 'STATUS=%s\n' "$?"
+'''
+
+    def run(family: str) -> subprocess.CompletedProcess:
+        environment = os.environ.copy()
+        environment.update({
+            'TERM': 'dumb',
+            'NO_COLOR': '1',
+            'COLUMNS': '100',
+            'PROBE_FAMILY': family,
+        })
+        with tempfile.TemporaryDirectory(prefix='punchi-deps-notice-') as temporary:
+            environment['TMPDIR'] = temporary
+            result = subprocess.run(
+                [shutil.which('bash') or 'bash', '-c', probe, 'notice', '0'],
+                cwd=root, env=environment, capture_output=True, text=True,
+                check=False, timeout=30)
+            leftovers = sorted(path.name for path in Path(temporary).iterdir())
+            assert not leftovers, \
+                'the dependency report left temporary files: ' + ', '.join(leftovers)
+            return result
+
+    unsupported = run('unsupported')
+    assert unsupported.returncode == 0, unsupported.stdout + unsupported.stderr
+    for line in (
+        'This assistant installs packages on Fedora, Debian/Ubuntu and Arch',
+        'only. On another distribution, install the equivalents above by',
+        'hand. Where Quickshell is not packaged, quickshell.org lists how to',
+        'obtain it; this project does not validate that path.',
+    ):
+        assert line in unsupported.stdout, \
+            f'Missing notice line {line!r}:\n' + unsupported.stdout
+
+    mapped = run('fedora')
+    assert mapped.returncode == 0, mapped.stdout + mapped.stderr
+    assert 'quickshell.org' not in mapped.stdout, \
+        'A mapped distribution has an install offer and needs no notice:\n' \
+        + mapped.stdout
+
+
 def check_failure_log(root: Path) -> None:
     with tempfile.TemporaryDirectory(prefix='punchi-log-test-') as temporary:
         home = Path(temporary)
@@ -1929,6 +1996,7 @@ def main() -> int:
     check_debian_backports_offer(root)
     check_install_failure_clock_hint(root)
     check_dependency_report_layout(root)
+    check_unsupported_distribution_notice(root)
     check_qt_tool_resolution(root)
     check_try_requires_checkout(root)
     check_try_flow(root)
