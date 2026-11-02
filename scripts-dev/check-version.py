@@ -28,9 +28,11 @@ DECLARATIONS = (
     ('CMakeLists.txt',
      capture(re.compile(rf'project\(punchi-dock-quickshell VERSION ({VERSION})')), True),
     ('README.md',
-     capture(re.compile(rf'\*\*Current version:\*\* \*\*({VERSION})\*\*')), True),
+     capture(re.compile(rf'\*\*Unreleased\.\*\* The tree declares version '
+                       rf'\*\*({VERSION})\*\*')), True),
     ('README.es.md',
-     capture(re.compile(rf'\*\*Versión actual:\*\* \*\*({VERSION})\*\*')), True),
+     capture(re.compile(rf'\*\*Sin publicar\.\*\* El árbol declara la versión '
+                       rf'\*\*({VERSION})\*\*')), True),
     ('AGENTS.md',
      capture(re.compile(rf'The declared version is `({VERSION})`')), True),
     ('modules/settings/PunchiSettingsAbout.qml',
