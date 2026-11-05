@@ -62,6 +62,34 @@ FocusScope {
         }
     }
 
+    // The page view snaps straight back to the page it already shows, so its own
+    // wheel handling never changes the visible page. The step is explicit: one
+    // notch per page, and a touchpad gesture that reports smaller deltas
+    // accumulates until it reaches a notch.
+    WheelHandler {
+        objectName: "menuPageWheel"
+        acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+        property real accumulated: 0
+        readonly property real notch: 120
+        onWheel: function(event) {
+            if (!root.menuState || root.pageCount <= 1) return
+            const angle = event.angleDelta.y !== 0 ? event.angleDelta.y : event.angleDelta.x
+            const delta = angle !== 0 ? angle
+                : (event.pixelDelta.y !== 0 ? event.pixelDelta.y : event.pixelDelta.x)
+            if (delta === 0) return
+            if (Math.sign(delta) !== Math.sign(accumulated)) accumulated = 0
+            accumulated += delta
+            if (accumulated <= -notch) {
+                accumulated = 0
+                root.menuState.selectPage(1)
+            } else if (accumulated >= notch) {
+                accumulated = 0
+                root.menuState.selectPage(-1)
+            }
+            event.accepted = true
+        }
+    }
+
     function takeKeyboardEmphasis(): void {
         root.pointerEmphasis = false
     }
@@ -171,6 +199,7 @@ FocusScope {
         }
 
         RowLayout {
+            objectName: "menuPageFooter"
             Layout.alignment: Qt.AlignHCenter
             visible: root.showPageArrows && root.pageCount > 1
             spacing: Kirigami.Units.smallSpacing

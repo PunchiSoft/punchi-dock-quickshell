@@ -66,6 +66,7 @@ QtObject {
     property bool menuShowDistributionName: defaultProfile.menuShowDistributionName
     property bool menuShowPageArrows: defaultProfile.menuShowPageArrows
     property bool menuShowLabels: defaultProfile.menuShowLabels
+    property bool menuShowDock: defaultProfile.menuShowDock
     property real menuIconScale: defaultProfile.menuIconScale
     property string menuCloseButtonPosition: defaultProfile.menuCloseButtonPosition
     property string menuHoverAnimation: defaultProfile.menuHoverAnimation
@@ -278,14 +279,14 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 14, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
+        return {version: 15, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
             desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
             avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount, recentApplicationsPresentation, recentApplicationsContainerLayout,
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
-            menuShowDistributionName, menuShowPageArrows, menuShowLabels, menuIconScale,
+            menuShowDistributionName, menuShowPageArrows, menuShowLabels, menuShowDock, menuIconScale,
             menuCloseButtonPosition, menuHoverAnimation}
     }
     function validPopupIconSize(value, maximum): bool {
@@ -299,7 +300,7 @@ QtObject {
         bulkChange = true
         let applied = false
         try {
-            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14].indexOf(data.version) < 0) return false
+            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].indexOf(data.version) < 0) return false
             const hasLegacyDownloadsView = PunchiDockItemIds.validLayout(data.downloadsView)
             const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
             if (PunchiDockItemIds.validContainers(data.containers)) {
@@ -358,7 +359,7 @@ QtObject {
             for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled",
                     "recentApplicationsEnabled", "updateBadgeEnabled",
                     "menuBackgroundBlurEnabled", "menuShowDistributionName",
-                    "menuShowPageArrows", "menuShowLabels"])
+                    "menuShowPageArrows", "menuShowLabels", "menuShowDock"])
                 if (typeof data[key] === "boolean") this[key] = data[key]
             if (inRange(data.recentApplicationsCount,
                     PunchiDefaultProfile.limits.recentApplicationsCount, true))
