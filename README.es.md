@@ -509,16 +509,18 @@ abre el navegador que KDE tiene como gestor preferido de enlaces web, así que
 sigue el predeterminado elegido en Configuración del sistema y nunca supone que
 Firefox esté instalado. Cambiar ajustes con Apply o Accept guarda los valores del
 usuario; los inicios posteriores los cargan. Un modo de inicio explícito puede
-sustituir el modo de visibilidad guardado. El formato actual es la versión 13 y
-acepta las versiones 1 a 12 mediante migración. La versión 7 añade el interruptor
+sustituir el modo de visibilidad guardado. El formato actual es la versión 15 y
+acepta las versiones 1 a 14 mediante migración. La versión 7 añade el interruptor
 de aplicaciones recientes y su cantidad visible, la 8 guarda el icono elegido
 para una aplicación fijada, la 9 las entradas de carpeta que un contenedor deja
 fuera de su popup, la 10 el tamaño, la altura y el tamaño de icono del popup, la
 11 tamaños de glifo independientes para cuadrícula, lista/detalle y abanico, la
 12 la selección de pantallas, escritorios virtuales y actividades más los dos
-interruptores de colocación, y la 13 la presentación de aplicaciones recientes y
-su vista del contenedor; los perfiles anteriores sin esos campos usan cinco
-aplicaciones, la presentación de contenedor con la vista List, el icono de la
+interruptores de colocación, la 13 la presentación de aplicaciones recientes y
+su vista del contenedor, la 14 los ajustes de presentación del menú a pantalla
+completa y la 15 el interruptor del dock sobre el menú; los perfiles anteriores
+sin esos campos usan cinco aplicaciones, la presentación de contenedor con la
+vista List, el icono de la
 aplicación, la carpeta completa, las proporciones de referencia del popup, los
 tamaños de glifo del tema, todas las pantallas y todos los escritorios y
 actividades.

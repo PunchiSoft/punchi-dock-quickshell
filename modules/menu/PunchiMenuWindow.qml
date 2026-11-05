@@ -9,9 +9,11 @@ import "../../config/PunchiDefaultProfile.js" as PunchiDefaultProfile
 import "../../services"
 import "../../adapters/kde"
 
-// Fullscreen application menu on one screen. It is an overlay layer surface
-// that takes the keyboard only while it is open, so the dock keeps its own
-// input and the desktop is never stolen while the menu is closed.
+// Fullscreen application menu on one screen. It is a layer surface that takes
+// the keyboard only while it is open, so the dock keeps its own input and the
+// desktop is never stolen while the menu is closed. When the dock stays over the
+// menu, the menu uses the top layer so the dock can take the overlay layer above
+// it; otherwise the menu keeps the overlay layer.
 PanelWindow {
     id: root
 
@@ -41,6 +43,19 @@ PanelWindow {
         ? String(root.distribution.name || "") : ""
     readonly property string distributionLogo: root.distribution
         ? String(root.distribution.logo || "") : ""
+    // The dock keeps its position over the full-screen menu, as in the
+    // reference: layer-shell stacks the overlay layer above the top layer, so
+    // the menu yields the overlay to the dock while it is open and takes it back
+    // after the menu closes.
+    readonly property bool dockOverMenu: root.settings
+        ? root.settings.menuShowDock : root.profileDefaults.menuShowDock
+
+    // The surface outlives `open` for the closing fade, and the dock has to stay
+    // above it for that whole time.
+    onVisibleChanged: if (root.menuController)
+        root.menuController.setMapped(root.screenKey, root.visible)
+    Component.onDestruction: if (root.menuController)
+        root.menuController.setMapped(root.screenKey, false)
 
     signal applicationLaunched(string appId)
 
@@ -55,7 +70,7 @@ PanelWindow {
     color: "transparent"
     // Stay mapped while the closing fade runs, then leave the compositor alone.
     visible: root.open || backdrop.opacity > 0.001
-    WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.layer: root.dockOverMenu ? WlrLayer.Top : WlrLayer.Overlay
     WlrLayershell.namespace: "punchi-menu"
     WlrLayershell.keyboardFocus: root.open
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None

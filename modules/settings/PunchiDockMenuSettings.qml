@@ -132,6 +132,17 @@ ColumnLayout {
 
             PunchiSettingsRow {
                 Layout.fillWidth: true
+                text: qsTr("Dock over the menu")
+                showSeparator: true
+                Switch {
+                    objectName: "menuShowDock"
+                    Accessible.name: qsTr("Dock over the menu")
+                    checked: root.settings.menuShowDock
+                    onToggled: root.settings.menuShowDock = checked
+                }
+            }
+            PunchiSettingsRow {
+                Layout.fillWidth: true
                 text: qsTr("Hover animation")
                 showSeparator: true
                 ComboBox {

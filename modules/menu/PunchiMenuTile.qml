@@ -10,6 +10,7 @@ import org.kde.kirigami as Kirigami
 Item {
     id: root
 
+    objectName: "menuTile"
     required property string title
     required property string iconName
     property bool selected: false

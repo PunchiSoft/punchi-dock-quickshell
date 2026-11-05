@@ -6,6 +6,20 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The fullscreen menu pages with the wheel. `PunchiMenuGrid` steps one page per
+  notch and accumulates the smaller deltas of a touchpad gesture, because the
+  snapping page view only ever returned to the page it already showed. The page
+  arrows and the page count start hidden (`menuShowPageArrows`) now that the
+  wheel and the keyboard page the grid; the stored preference still turns them
+  back on.
+- The dock stays in front of the fullscreen menu. With `menuShowDock` enabled,
+  opening the menu reveals the dock in the hide modes and the two surfaces swap
+  their layer: the menu yields the overlay layer to the dock while its surface is
+  mapped, so layer-shell paints the dock above the full-screen backdrop exactly
+  as in the Launchpad reference, including the closing fade, and both return
+  afterwards. A dock action during the menu closes it first, and a launcher click
+  launches and closes the menu. The switch lives in the menu category, and the
+  profile format advances to version 15.
 - The README heads the declared version as "Unreleased" instead of "Current
   version". `docs/versioning.md` records that `0.1.47` is the version the tree
   declares rather than a download, and the old heading read like a published

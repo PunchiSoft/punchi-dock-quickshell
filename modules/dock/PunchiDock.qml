@@ -24,6 +24,11 @@ PanelWindow {
     property var screenPolicy: null
     property var desktopPolicy: null
     property bool requestedVisible: true
+    // The fullscreen menu names the screen it owns; the shell binds the
+    // visibility hold (`menuOpen`) and whether the menu surface is still mapped
+    // (`menuMapped`, which includes the closing fade).
+    property bool menuOpen: false
+    property bool menuMapped: false
     readonly property bool screenAllowed: screenPolicy && root.screen
         ? screenPolicy.allows(root.screen) : true
     readonly property bool desktopAllowed: desktopPolicy ? desktopPolicy.desktopAllowed : true
@@ -36,6 +41,8 @@ PanelWindow {
     signal settingsRequested()
     // The dock owns the click; the shell decides which surface answers it.
     signal menuRequested(string screenKey)
+    // A dock action ran while the fullscreen menu was open; the shell closes it.
+    signal menuDismissRequested()
     signal applicationLaunchFinished(string desktopId, bool success, string error)
 
     // The user-close action unmaps the window. Placement policy keeps the
@@ -112,7 +119,10 @@ PanelWindow {
         recentPopup.dismiss()
         trash.cancel()
     }
-    WlrLayershell.layer: WlrLayer.Top
+    // The fullscreen menu yields the overlay layer while its surface is mapped,
+    // so the dock keeps its place in front of the menu instead of disappearing
+    // behind it, including while the menu's closing fade runs.
+    WlrLayershell.layer: root.menuMapped ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "dock"
     WlrLayershell.keyboardFocus: dockFocusPolicy.acceptsKeyboard
         ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
@@ -140,7 +150,8 @@ PanelWindow {
         showingDesktop: overlap.showingDesktop
         configuring: root.configuring
         pointerInside: inputArea.hovered || nativeEdge.pointerInside
-        menuOpen: view.contextMenuOpen || folderPopup.visible || folderPopup.preparingToShow
+        menuOpen: root.menuOpen || view.contextMenuOpen
+            || folderPopup.visible || folderPopup.preparingToShow
             || recentPopup.visible || recentPopup.preparingToShow || trashConfirmation.visible || trash.confirming || root.services.trashState.busy
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: root.settings.effectiveReducedMotion
@@ -246,6 +257,13 @@ PanelWindow {
     function focus(): bool {
         if (!root.reveal()) return false
         return view.focusItem(Math.max(0, view.currentIndex))
+    }
+    // The fullscreen menu is a separate surface that owns the screen while it is
+    // open. A dock action returns to the desktop first, so the launch or popup
+    // never fights the menu for the pointer; the menu item itself toggles through
+    // `menuRequested`.
+    function dismissMenu(): void {
+        if (root.menuOpen) root.menuDismissRequested()
     }
     PunchiTrashService {
         id: trash
@@ -480,6 +498,7 @@ PanelWindow {
             || folderPopup.visible || folderPopup.preparingToShow
             || recentPopup.visible || recentPopup.preparingToShow
         onContextMenuRequested: function(sourceItem, appId, title, position) {
+            root.dismissMenu()
             folderPopup.dismiss()
             recentPopup.dismiss()
             contextMenu.appId = appId
@@ -519,7 +538,10 @@ PanelWindow {
         waveEnterDuration: root.settings.waveEnterDuration
         waveLeaveDuration: root.settings.waveLeaveDuration
         clickDuration: root.settings.clickDuration
-        onSettingsRequested: root.settingsRequested()
+        onSettingsRequested: {
+            root.dismissMenu()
+            root.settingsRequested()
+        }
         onItemActivated: function(appId) {
             contextMenu.dismiss()
             // The menu leader opens the fullscreen menu instead of launching an
@@ -530,6 +552,7 @@ PanelWindow {
                 root.menuRequested(root.screen ? root.screen.name : "")
                 return
             }
+            root.dismissMenu()
             const container = root.settings.container(appId)
             const tile = view.itemForId(appId)
             // Enter on a focused launcher keeps its band; a pointer click does not
@@ -545,6 +568,7 @@ PanelWindow {
             }
         }
         onItemNewWindowRequested: function(appId) {
+            root.dismissMenu()
             folderPopup.dismiss()
             recentPopup.dismiss()
             if (!appId.startsWith("item:")) activation.newWindow(appId)

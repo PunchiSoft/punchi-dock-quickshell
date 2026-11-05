@@ -8,11 +8,23 @@ QtObject {
     id: root
 
     property string openScreenKey: ""
+    // A menu surface stays mapped while its closing fade runs. The dock has to
+    // stay above it until the compositor unmaps it, or the dock would drop behind
+    // a backdrop that is still fading out.
+    property string mappedScreenKey: ""
     signal opened(string screenKey)
     signal closed()
 
     function isOpen(screenKey: string): bool {
         return root.openScreenKey.length > 0 && root.openScreenKey === screenKey
+    }
+    function isMapped(screenKey: string): bool {
+        return root.mappedScreenKey.length > 0 && root.mappedScreenKey === screenKey
+    }
+    function setMapped(screenKey: string, mapped: bool): void {
+        if (screenKey.length === 0) return
+        if (mapped) root.mappedScreenKey = screenKey
+        else if (root.mappedScreenKey === screenKey) root.mappedScreenKey = ""
     }
     function open(screenKey: string): bool {
         if (screenKey.length === 0) return false

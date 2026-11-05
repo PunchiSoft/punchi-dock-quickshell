@@ -483,17 +483,19 @@ the browser KDE has as the preferred handler for web links, so it follows the
 default chosen in System Settings and never assumes Firefox is present. Changing
 settings through Apply or Accept persists the user's values;
 later starts load them. An explicit startup mode can override the saved visibility
-mode. The current file format is version 13 and accepts versions 1 to 12 through
+mode. The current file format is version 15 and accepts versions 1 to 14 through
 migration. Version 7 adds the recent-applications switch and visible count,
 version 8 stores the icon chosen for a pinned application, version 9 the
 folder entries a container keeps out of its popup, version 10 the popup size,
 height and icon size, version 11 separate grid, list/detail and fan glyph
 sizes, version 12 screen, virtual-desktop and activity selection plus the
-two placement switches, and version 13 the recent-applications presentation
-and its container view; missing fields in older profiles default to enabled,
-five applications, the container presentation with the List view, the
-application icon, an unfiltered folder listing, the reference popup
-proportions, the theme's glyph sizes, every screen and every desktop/activity.
+two placement switches, version 13 the recent-applications presentation
+and its container view, version 14 the fullscreen-menu presentation settings,
+and version 15 the dock-over-menu switch; missing fields in older profiles
+default to enabled, five applications, the container presentation with the
+List view, the application icon, an unfiltered folder listing, the reference
+popup proportions, the theme's glyph sizes, every screen and every
+desktop/activity.
 
 The **Profile** category exports the pending values as a portable JSON document
 with schema `punchi-dock-quickshell/profile` and format version 1. Import also

@@ -65,7 +65,12 @@ ShellRoot {
             desktopPolicy: desktopPolicy
             screen: modelData
             configuring: settingsWindow.visible
+            menuOpen: shellSettings.menuShowDock
+                && menuController.isOpen(modelData.name)
+            menuMapped: shellSettings.menuShowDock
+                && menuController.isMapped(modelData.name)
             onSettingsRequested: settingsWindow.open()
+            onMenuDismissRequested: menuController.close()
             onMenuRequested: function(screenKey) { menuController.toggle(screenKey) }
         }
     }

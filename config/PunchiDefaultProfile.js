@@ -40,7 +40,7 @@ const launchers = [
 ]
 
 const profile = {
-    version: 14,
+    version: 15,
     downloadsView: "grid",
     dockEdge: "bottom",
     panelMode: "overlay",
@@ -79,13 +79,16 @@ const profile = {
     popupFanIconSize: 0,
     popupHeightPercent: 80,
     // Fullscreen menu presentation. The backdrop keeps the original floor of
-    // 0.50 opacity, the distribution title and the page arrows are optional,
-    // and the close button keeps the original corner choice.
+    // 0.50 opacity, the distribution title is optional, the page arrows start
+    // hidden because the wheel and the keyboard already page the grid, the dock
+    // keeps its place over the menu, and the close button keeps the original
+    // corner choice.
     menuBackgroundOpacity: 0.6,
     menuBackgroundBlurEnabled: true,
     menuShowDistributionName: true,
-    menuShowPageArrows: true,
+    menuShowPageArrows: false,
     menuShowLabels: true,
+    menuShowDock: true,
     menuIconScale: 1.0,
     menuCloseButtonPosition: "right",
     // The original menu offered four hover behaviours; the pointer

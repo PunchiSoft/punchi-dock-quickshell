@@ -18,7 +18,7 @@ const maximumBytes = 262144
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
     "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
     "avoidInnerEdgeAutoHide", "menuBackgroundBlurEnabled", "menuShowDistributionName",
-    "menuShowPageArrows", "menuShowLabels"]
+    "menuShowPageArrows", "menuShowLabels", "menuShowDock"]
 
 function objectValue(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value)
