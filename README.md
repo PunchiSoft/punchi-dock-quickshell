@@ -29,6 +29,11 @@
 > the dock works on your system before installing a copy while the project is
 > still under construction.
 
+<p align="center"><img src="assets/demo/dock-magnification.webp" width="880" alt="The Punchi Dock Quickshell dock enlarging the icons around the pointer as it moves along the bar"></p>
+
+<p align="center"><em>The dock magnifying the icons around the pointer, with the default
+launchers, on KDE Plasma 6.8.2 with KWin 6.8.2 on Wayland.</em></p>
+
 Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, a fullscreen application menu, KDE context actions and media
 transport, a settings window and persistent preferences. It runs alongside

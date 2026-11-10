@@ -6,6 +6,13 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- Both READMEs open with a recording of the dock magnifying its icons. The
+  capture is stored as `assets/demo/dock-magnification.webp`: cropped to the dock
+  strip so the screen recorder's notification stays out of frame, trimmed to the
+  span where the dock is fully visible so the loop opens and closes on it,
+  downscaled and re-encoded to 960x233, 285 frames, 8.1 s and 2.5 MB instead of
+  the 5 MB source. `assets/demo/README.md` records the environment and the
+  exact ImageMagick command that rebuilds the file.
 - A fullscreen-menu page change is animated again. `PunchiMenuGrid.syncPage()`
   assigned `pagesView.currentIndex` and then called `positionViewAtIndex()` while
   the content was still on the previous page; under `StrictlyEnforceRange` that
