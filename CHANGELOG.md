@@ -6,6 +6,48 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- Both READMEs open with a recording of the dock magnifying its icons. The
+  capture is stored as `assets/demo/dock-magnification.webp`: cropped to the dock
+  strip so the screen recorder's notification stays out of frame, trimmed to the
+  span where the dock is fully visible so the loop opens and closes on it,
+  downscaled and re-encoded to 960x233, 285 frames, 8.1 s and 2.5 MB instead of
+  the 5 MB source. `assets/demo/README.md` records the environment and the
+  exact ImageMagick command that rebuilds the file.
+- A fullscreen-menu page change is animated again. `PunchiMenuGrid.syncPage()`
+  assigned `pagesView.currentIndex` and then called `positionViewAtIndex()` while
+  the content was still on the previous page; under `StrictlyEnforceRange` that
+  call cancels the range animation, so every wheel notch, arrow button and
+  keyboard page change jumped. The assignment is now the transition: Qt animates
+  the content over `highlightMoveDuration` (`Kirigami.Units.longDuration`, and `0`
+  under reduced motion), a notch that arrives mid-flight retargets the move from
+  where the view already is, and `positionViewAtIndex()` runs only to correct a
+  stale content position when the index already matches.
+- The fullscreen menu paints its keyboard selection again. `PunchiMenuGrid` owned
+  the single emphasis band but never published it to `PunchiMenuTile`, so every
+  cell kept its pointer default: hover worked, and the selection a key press
+  produced was silently suppressed, including `Accessible.focused`. The grid now
+  binds the band, the tile paints the selection when the keyboard owns it, and a
+  pointer that enters a cell retargets `PunchiMenuState.currentIndex` instead of
+  writing to the surface's `state` string, so keyboard navigation continues from
+  the cell under the pointer.
+- The fullscreen menu searches the whole desktop entry. The query matched only
+  `name`, so a launcher whose title in the dock or whose comment is what the user
+  remembers stayed hidden. `PunchiMenuState` now matches name, title and
+  description, and prepares the lowercased text once per catalogue revision
+  instead of once per keystroke.
+- The README groups its features the way the parent project's README does
+  (applications and windows, folders and application collections, PunchiMenu,
+  media and desktop utilities, appearance and interaction, not implemented yet).
+  The fullscreen application menu is documented for the first time in both
+  languages, with its search, paging, dock-over-menu behaviour and its own
+  settings category; the old paragraph that still called an application-launcher
+  surface future work is replaced by an explicit list of what this tree does not
+  implement yet.
+- Both README headers recommend verifying the environment before installing.
+  Directly under the under-construction warning they point to the guided setup's
+  "Check runtime and build dependencies" and then "Try it without installing
+  (build, then run from this checkout)", so a reader can confirm the dock runs
+  here without installing a copy.
 - The fullscreen menu pages with the wheel. `PunchiMenuGrid` steps one page per
   notch and accumulates the smaller deltas of a touchpad gesture, because the
   snapping page view only ever returned to the page it already showed. The page

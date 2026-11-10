@@ -47,6 +47,22 @@ TestCase {
         }
     }
 
+    // The same grid with motion, so the page transition is observable.
+    Component {
+        id: motionFixture
+        PunchiMenuGrid {
+            width: 900
+            height: 600
+            active: true
+            motionEnabled: true
+            menuState: PunchiMenuState {
+                applications: test.catalogue
+                columns: 3
+                rows: 2
+            }
+        }
+    }
+
     function init() {
         failOnWarning(/.*/)
     }
@@ -120,6 +136,57 @@ TestCase {
         compare(state.currentIndex, 0)
     }
 
+    function test_wheelTransitionIsAnimated() {
+        const grid = createTemporaryObject(motionFixture, test)
+        verify(grid !== null)
+        const pages = findChild(grid, "menuPagesView")
+        verify(pages !== null)
+        compare(grid.menuState.currentPage, 0)
+        compare(pages.contentX, 0)
+        wheel(grid, -120)
+        // The page changes at once; the view takes `highlightMoveDuration` to
+        // reach it instead of teleporting and cancelling the transition.
+        compare(grid.menuState.currentPage, 1)
+        // An intermediate position proves the content moved instead of jumping.
+        // Waiting for the observation keeps the assertion independent of how
+        // quickly the first frame arrives.
+        tryVerify(function() {
+            return pages.contentX > 0.5 && pages.contentX < pages.width
+        }, 1000)
+        tryCompare(pages, "contentX", pages.width, 2000)
+    }
+
+    function test_secondNotchRetargetsTheTransition() {
+        const grid = createTemporaryObject(motionFixture, test)
+        verify(grid !== null)
+        const pages = findChild(grid, "menuPagesView")
+        verify(pages !== null)
+        wheel(grid, -120)
+        tryVerify(function() {
+            return pages.contentX > 0.5 && pages.contentX < pages.width
+        }, 1000)
+        const before = pages.contentX
+        // A second notch while the first transition runs continues from the
+        // position the view reached instead of restarting at the old page.
+        wheel(grid, -120)
+        compare(grid.menuState.currentPage, 2)
+        verify(pages.contentX >= before - 1)
+        tryCompare(pages, "contentX", pages.width * 2, 2000)
+    }
+
+    function test_reducedMotionPagesWithoutAMove() {
+        const grid = createTemporaryObject(fixture, test)
+        verify(grid !== null)
+        const pages = findChild(grid, "menuPagesView")
+        verify(pages !== null)
+        compare(pages.highlightMoveDuration, 0)
+        wheel(grid, -120)
+        compare(grid.menuState.currentPage, 1)
+        // Reduced motion still settles on the target; only the move is skipped,
+        // so the position is observed instead of assumed to be synchronous.
+        tryCompare(pages, "contentX", pages.width, 1000)
+    }
+
     function test_pageFooterFollowsTheStoredPreference() {
         const grid = createTemporaryObject(fixture, test)
         verify(grid !== null)
@@ -141,5 +208,37 @@ TestCase {
         compare(tile.Accessible.role, Accessible.Button)
         compare(tile.Accessible.name, "Aardvark")
         compare(tile.Accessible.description, "Open Aardvark")
+    }
+
+    function test_keyboardEmphasisReachesTheTiles() {
+        const grid = createTemporaryObject(fixture, test)
+        verify(grid !== null)
+        const tile = findChild(grid, "menuTile")
+        verify(tile !== null)
+        // The surface publishes the modality, so the tile never keeps its
+        // pointer default and the keyboard band can paint.
+        compare(tile.pointerEmphasis, true)
+        grid.takeKeyboardEmphasis()
+        compare(tile.pointerEmphasis, false)
+        compare(tile.selected, true)
+        const highlight = tile.children[0]
+        compare(highlight.selected, true)
+        compare(highlight.hovered, false)
+    }
+
+    function test_hoverRetargetsTheKeyboardCursor() {
+        const grid = createTemporaryObject(fixture, test)
+        verify(grid !== null)
+        const state = grid.menuState
+        const tile = findChild(grid, "menuTile")
+        verify(tile !== null)
+        // The first cell is not the current row, so returning to it proves the
+        // pointer retargeted the keyboard cursor instead of only painting hover.
+        state.currentIndex = 2
+        compare(tile.selected, false)
+        // The cell emits the intent; a selection that lands on it proves the
+        // surface retargeted the keyboard cursor instead of only painting hover.
+        tile.pointerEntered()
+        tryCompare(tile, "selected", true)
     }
 }
