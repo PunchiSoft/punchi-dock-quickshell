@@ -22,10 +22,19 @@
 > estable, paquete oficial, compromiso de soporte ni garantía de
 > compatibilidad.
 
+> [!NOTE]
+> **Verifica tu entorno antes de instalar.** Abre el asistente guiado
+> (`./scripts-user/setup.sh`), ejecuta **Check runtime and build dependencies**
+> y después elige **Try it without installing (build, then run from this
+> checkout)**. La prueba compila desde este checkout y no instala nada, así que
+> puedes confirmar que el dock funciona en tu sistema antes de instalar una
+> copia mientras el proyecto sigue en construcción.
+
 Punchi Dock Quickshell combina magnificación animada, lanzadores de aplicaciones
-configurables, acciones contextuales y transporte multimedia de KDE, una ventana
-de ajustes y preferencias persistentes. Se ejecuta junto a Plasma mediante
-scripts reversibles de inicio y detención.
+configurables, un menú de aplicaciones a pantalla completa, acciones contextuales
+y transporte multimedia de KDE, una ventana de ajustes y preferencias
+persistentes. Se ejecuta junto a Plasma mediante scripts reversibles de inicio y
+detención.
 
 Nació de los límites de
 [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
@@ -61,19 +70,14 @@ propia validación.
 
 ## Funciones actuales
 
-- Magnificación continua al pasar el puntero, tooltips temáticos, fondo
-  expansible y respuesta de lanzamiento en dos fases, con soporte para movimiento
-  reducido.
-- Colocación inferior, izquierda o derecha. La onda de magnificación, los
-  tooltips, los menús contextuales, la navegación con flechas, los indicadores de
-  ejecución y el borde nativo de ocultamiento automático siguen el borde elegido;
-  los popups laterales se abren hacia dentro y los iconos permanecen derechos.
-- Un dock en cada pantalla conectada, con un perfil compartido. **Screens and
-  desktops** limita el dock a pantallas, escritorios virtuales y actividades de
-  KDE concretos, recuerda una pantalla elegida al desconectarse y reconectarse,
-  usa la pantalla principal mientras ninguna seleccionada está conectada y deja
-  visible un dock con auto-ocultar cuando su borde limita con otro monitor. Los
-  indicadores de ejecución pueden seguir el escritorio y la actividad actuales.
+Las secciones siguientes siguen los grupos de funciones del README del proyecto
+padre, [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
+para que cada capacidad se pueda comparar una a una. Un grupo que el padre
+documenta y este árbol no implementa se nombra en **Aún no implementado** en vez
+de quedar implícito por su ausencia.
+
+### Aplicaciones y ventanas
+
 - Aplicaciones fijadas configurables: descubre y busca aplicaciones instaladas
   mediante KDE, añade o reordena lanzadores y guarda las preferencias. Ocho
   lanzadores de aplicaciones predefinidos, más los contenedores Home y Downloads
@@ -88,6 +92,80 @@ propia validación.
   recientes, desanclaje, acciones de ventana como Move to Desktop, Maximize y
   Fullscreen, y navegación por Lugares de KDE para lanzadores de gestores de
   archivos compatibles.
+- Los indicadores de aplicaciones en ejecución y la activación de ventanas
+  existentes están implementados con validación aislada; las comprobaciones
+  físicas en KDE siguen pendientes.
+
+### Carpetas y colecciones de aplicaciones
+
+- Contenedores de carpeta para cualquier carpeta local: presentaciones Grid,
+  List, Detail y Fan, orden por contenedor, navegación por subcarpetas y lista
+  de entradas ocultas. El contenedor integrado **Home** abre en Fan y muestra
+  solo las carpetas estándar de KDE/XDG con sus nombres localizados; su perfil
+  inicial deja desactivada la navegación por subcarpetas, así que una carpeta
+  seleccionada se abre en el gestor de archivos. Un dock lateral presenta como
+  Grid un abanico guardado, porque el arco necesita un borde superior o
+  inferior.
+- Downloads con vistas Grid, List, Detail y Fan, navegación dentro de un globo
+  temático y apertura nativa de archivos de KDE. Cada presentación termina con
+  una fila **Open** y marca con un chevron las carpetas por las que se puede
+  entrar; el clic derecho sobre una entrada ofrece **Open in File Manager** y
+  **Copy Path**. Las columnas salen del espacio real del popup,
+  así que el desplazamiento aparece solo cuando las entradas no caben, con un
+  indicador fino que se desvanece mientras el listado está en reposo.
+- **Aplicaciones recientes** opcionales del historial de actividad de KDE con
+  una cantidad configurable. **Presentación** elige entre los lanzadores
+  adicionales del dock o un único elemento contenedor con un glifo fijo, cuya
+  **Vista del contenedor** ofrece Grid, List, Detail y Fan; el contenedor es la
+  presentación inicial con la vista List. Se excluyen las aplicaciones fijadas y
+  las que tienen ventanas abiertas en ambas presentaciones. Los ajustes del dock
+  incluyen un interruptor que escribe la preferencia de KDE de recordar
+  aplicaciones y un acceso a las opciones de Archivos recientes de KDE; si KDE
+  no guarda historial, una nota breve explica cómo activarlo.
+- Editores de elementos que eligen un icono del tema para cualquier aplicación
+  fijada o contenedor de carpeta y lo guardan por nombre, con el icono propio del
+  elemento como respaldo.
+
+### PunchiMenu
+
+El menú de aplicaciones a pantalla completa es una superficie de capa propia por
+pantalla. Lo abre la primera ranura del dock, con la etiqueta **Menu**, y el menú
+toma el teclado solo mientras está abierto, así que el escritorio nunca queda
+interceptado mientras está cerrado.
+
+- **Búsqueda:** la consulta coincide con el nombre de la entrada de escritorio,
+  el título propio del elemento y su comentario, sin distinguir mayúsculas. El
+  catálogo se prepara una vez por revisión en lugar de una vez por pulsación.
+- **Cuadrícula paginada:** de cuatro a siete columnas y de tres a cinco filas
+  según el tamaño de la pantalla, como en la referencia. Una muesca de ratón o un
+  gesto completo de touchpad pasa una página, y `Left`/`Right`, `Up`/`Down`,
+  `PageUp`/`PageDown`, `Home`, `End` y `Return` mueven la selección. Cada cambio
+  de página anima la cuadrícula, y una muesca que llega a mitad de la transición
+  la reorienta en vez de reiniciarla; con movimiento reducido la página cambia
+  sin desplazamiento. Un puntero que entra en una celda la hace actual, y la
+  siguiente pulsación de tecla devuelve la única banda de énfasis al teclado.
+- **Presentación:** un fondo con el lavado del tema y el desenfoque de KWin
+  detrás, el nombre de la distribución y un control de cierre dibujado con los
+  botones de la decoración de ventanas del usuario. Las flechas de página y el
+  contador de páginas son un pie opcional, oculto por defecto porque la rueda y
+  el teclado ya paginan la cuadrícula.
+- **El dock queda sobre el menú:** con **Dock over the menu** activado, el menú
+  cede la capa overlay al dock mientras su superficie está mapeada, así que el
+  dock sigue visible, magnificado y clicable sobre el fondo desenfocado, incluido
+  el desvanecido de cierre, y un dock oculto en el borde se asoma mientras el
+  menú está abierto. Cualquier acción del dock cierra primero el menú; un clic en
+  un lanzador lanza y vuelve al escritorio.
+- **Ajustes:** la categoría **Menu** reúne el desenfoque y la opacidad del fondo,
+  el tamaño de icono, las etiquetas de aplicaciones, el nombre de la
+  distribución, las flechas de página, la posición del botón de cierre, la
+  animación al pasar el puntero y el interruptor del dock sobre el menú. Los
+  cambios se aplican sin reiniciar.
+- **Comparado con PunchiMenu del proyecto padre:** las categorías, los favoritos,
+  las carpetas con nombre, ocultar aplicaciones, arrastrar y soltar dentro del
+  menú y un atajo global configurable no están implementados.
+
+### Multimedia y utilidades de escritorio
+
 - Transporte multimedia del reproductor MPRIS de KDE que corresponda al
   lanzador: Previous Track, Play/Pause, Next Track y Stop aparecen solo mientras
   existe un reproductor, siguen sus capacidades en vivo y cierran el menú tras
@@ -98,25 +176,6 @@ propia validación.
   confirmación temática, la acción destructiva queda deshabilitada mientras está
   vacía, no disponible u ocupada, y KDE entrega un listado nuevo tras la
   operación en vez de suponer un resultado vacío.
-- Ajustes del dock para tamaño de iconos, magnificación, rebote, movimiento
-  reducido, posición y visibilidad: Always visible, Hide automatically, Dodge
-  windows o Windows go below.
-- Ajustes de los popups para tamaño, altura y tamaño de icono en su propia
-  categoría **Popups**, aplicados a los contenedores de carpeta. La cuadrícula,
-  las filas de lista/detalle y el abanico conservan tamaños de glifo
-  independientes.
-- Ajustes organizados en **Items**, **General**, **Popups**, **Profile** y
-  **About**, con **Reset defaults** y edición pendiente mediante Apply, Accept y
-  Close. **Profile** importa y exporta un perfil JSON con los elementos del dock,
-  los contenedores de carpetas y las preferencias, con vista previa y
-  confirmación antes de que los valores importados reemplacen el perfil
-  pendiente. **About** muestra la versión de la aplicación, enlaces al sitio y a
-  los issues, licencia, autores y la dedicatoria **Made with love**.
-- Un efecto de minimización de KWin opcional elegido desde el menú contextual
-  del dock. Solo se escriben claves de KWin con `exclusiveGroup=minimize`, se
-  registran su presencia y valores originales antes de la primera escritura, y
-  se restauran al cerrar limpiamente o con `scripts-user/restore-kde.sh`; una
-  clave modificada fuera del dock se deja intacta.
 - Un emblema de actualizaciones sobre el lanzador de Discover cuando el equipo
   tiene actualizaciones pendientes. El conteo se lee sólo desde PackageKit,
   fwupd y Flatpak mediante sus interfaces nativas, así que el dock nunca consulta
@@ -139,40 +198,54 @@ propia validación.
   siguiente inicio de sesión de Plasma. Una entrada de otra herramienta nunca se
   sobrescribe ni se elimina. El interruptor no está disponible durante una
   prueba, cuyo perfil Plasma nunca carga.
-- **Aplicaciones recientes** opcionales del historial de actividad de KDE con
-  una cantidad configurable. **Presentación** elige entre los lanzadores
-  adicionales del dock o un único elemento contenedor con un glifo fijo, cuya
-  **Vista del contenedor** ofrece Grid, List, Detail y Fan; el contenedor es la
-  presentación inicial con la vista List. Se excluyen las aplicaciones fijadas y
-  las que tienen ventanas abiertas en ambas presentaciones. Los ajustes del dock
-  incluyen un interruptor que escribe la preferencia de KDE de recordar
-  aplicaciones y un acceso a las opciones de Archivos recientes de KDE; si KDE
-  no guarda historial, una nota breve explica cómo activarlo.
-- Navegación por teclado para el dock, sus menús contextuales y la ventana de
-  ajustes.
-- Editores de elementos que eligen un icono del tema para cualquier aplicación
-  fijada o contenedor de carpeta y lo guardan por nombre, con el icono propio del
-  elemento como respaldo.
-- Contenedores de carpeta para cualquier carpeta local: presentaciones Grid,
-  List, Detail y Fan, orden por contenedor, navegación por subcarpetas y lista
-  de entradas ocultas. El contenedor integrado **Home** abre en Fan y muestra
-  solo las carpetas estándar de KDE/XDG con sus nombres localizados; su perfil
-  inicial deja desactivada la navegación por subcarpetas, así que una carpeta
-  seleccionada se abre en el gestor de archivos. Un dock lateral presenta como
-  Grid un abanico guardado, porque el arco necesita un borde superior o
-  inferior.
-- Downloads con vistas Grid, List, Detail y Fan, navegación dentro de un globo
-  temático y apertura nativa de archivos de KDE. Cada presentación termina con
-  una fila **Open** y marca con un chevron las carpetas por las que se puede
-  entrar; el clic derecho sobre una entrada ofrece **Open in File Manager** y
-  **Copy Path**. Las columnas salen del espacio real del popup,
-  así que el desplazamiento aparece solo cuando las entradas no caben, con un
-  indicador fino que se desvanece mientras el listado está en reposo.
+- Un efecto de minimización de KWin opcional elegido desde el menú contextual
+  del dock. Solo se escriben claves de KWin con `exclusiveGroup=minimize`, se
+  registran su presencia y valores originales antes de la primera escritura, y
+  se restauran al cerrar limpiamente o con `scripts-user/restore-kde.sh`; una
+  clave modificada fuera del dock se deja intacta.
 
-Los indicadores de aplicaciones en ejecución y la activación de ventanas
-existentes están implementados con validación aislada; las comprobaciones físicas
-en KDE siguen pendientes. Un panel separado, una superficie de lanzador de
-aplicaciones y controles adicionales quedan para el futuro.
+### Apariencia e interacción
+
+- Magnificación continua al pasar el puntero, tooltips temáticos, fondo
+  expansible y respuesta de lanzamiento en dos fases, con soporte para movimiento
+  reducido.
+- Colocación inferior, izquierda o derecha. La onda de magnificación, los
+  tooltips, los menús contextuales, la navegación con flechas, los indicadores de
+  ejecución y el borde nativo de ocultamiento automático siguen el borde elegido;
+  los popups laterales se abren hacia dentro y los iconos permanecen derechos.
+- Un dock en cada pantalla conectada, con un perfil compartido. **Screens and
+  desktops** limita el dock a pantallas, escritorios virtuales y actividades de
+  KDE concretos, recuerda una pantalla elegida al desconectarse y reconectarse,
+  usa la pantalla principal mientras ninguna seleccionada está conectada y deja
+  visible un dock con auto-ocultar cuando su borde limita con otro monitor. Los
+  indicadores de ejecución pueden seguir el escritorio y la actividad actuales.
+- Ajustes del dock para tamaño de iconos, magnificación, rebote, movimiento
+  reducido, posición y visibilidad: Always visible, Hide automatically, Dodge
+  windows o Windows go below.
+- Ajustes de los popups para tamaño, altura y tamaño de icono en su propia
+  categoría **Popups**, aplicados a los contenedores de carpeta. La cuadrícula,
+  las filas de lista/detalle y el abanico conservan tamaños de glifo
+  independientes.
+- Ajustes organizados en **Items**, **General**, **Popups**, **Menu**, **Profile**
+  y **About**, con **Reset defaults** y edición pendiente mediante Apply, Accept y
+  Close. **Profile** importa y exporta un perfil JSON con los elementos del dock,
+  los contenedores de carpetas y las preferencias, con vista previa y
+  confirmación antes de que los valores importados reemplacen el perfil
+  pendiente. **About** muestra la versión de la aplicación, enlaces al sitio y a
+  los issues, licencia, autores y la dedicatoria **Made with love**.
+- Navegación por teclado para el dock, sus menús contextuales, la ventana de
+  ajustes y el menú a pantalla completa.
+
+### Aún no implementado
+
+- Un segundo panel separado, o controles del dock más allá del conjunto
+  documentado.
+- Arrastrar y soltar: reordenar arrastrando, fijar desde el escritorio o un menú,
+  y soltar archivos sobre un lanzador o la Papelera.
+- Las funciones de PunchiMenu del padre enumeradas arriba, y las tarjetas
+  multimedia del padre con carátula e información de pista, el visualizador de
+  audio, el calendario y el reloj, las notas rápidas, los separadores y las
+  superficies del Centro de control.
 
 ## Limitaciones conocidas
 
@@ -502,6 +575,7 @@ catálogo de lanzadores del primer inicio y los valores que restaura **Reset def
 | Visibilidad | Windows go below (`overlay`), sin reservar espacio de pantalla |
 | Movimiento reducido | Ajuste local desactivado; las preferencias de animación de KDE siguen aplicándose |
 | Iconos | El tema de iconos del usuario, incluidas las notificaciones de cambio de tema de KDE |
+| Menú a pantalla completa | Desenfoque activado, 60% de opacidad del fondo, etiquetas de aplicaciones activadas, nombre de la distribución activado, flechas de página y contador de páginas ocultos, dock sobre el menú, botón de cierre a la derecha |
 
 Son valores prototipo, no una garantía de que todas las aplicaciones predefinidas
 estén instaladas. **Browser** nombra la función y no una aplicación: el elemento
@@ -524,6 +598,13 @@ vista List, el icono de la
 aplicación, la carpeta completa, las proporciones de referencia del popup, los
 tamaños de glifo del tema, todas las pantallas y todos los escritorios y
 actividades.
+
+La primera ranura del dock abre el menú a pantalla completa. Su propia categoría
+**Menu** reúne el desenfoque y la opacidad del fondo, el tamaño de icono, las
+etiquetas de aplicaciones, el nombre de la distribución, las flechas de página y
+el contador de páginas opcionales, la esquina del botón de cierre, la animación
+al pasar el puntero y el interruptor del dock sobre el menú. Cada uno se aplica
+al menú abierto sin reiniciar.
 
 La categoría **Profile** exporta los valores pendientes como un documento JSON
 portátil con esquema `punchi-dock-quickshell/profile` y versión de formato 1.
@@ -714,6 +795,8 @@ ctest --test-dir build --output-on-failure
 |---|---|
 | `shell.qml` | Compone los módulos del shell |
 | `modules/dock/` | Ventana, vista, menús contextuales y confirmación de la Papelera |
+| `modules/menu/` | Superficie del menú de aplicaciones a pantalla completa, cabecera, cuadrícula paginada y fondo |
+| `modules/recent/` | Popup del contenedor de aplicaciones recientes |
 | `modules/folders/` | Popups, diseños y navegación de contenedores de carpeta |
 | `modules/settings/` | Ventana de ajustes, categorías, editores de elementos e intercambio de perfiles |
 | `components/` | Primitivas visuales de interacción compartidas |

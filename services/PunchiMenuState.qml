@@ -45,18 +45,36 @@ QtObject {
         return source && typeof source.revision === "number" ? source.revision : 0
     }
 
-    readonly property var filtered: {
-        const result = []
-        const query = root.safeSearch.toLocaleLowerCase()
+    // The catalogue is prepared once per revision instead of once per keystroke:
+    // typing lowercases the query and compares against text that already is
+    // lowercased. A row exposes the desktop entry's name, the item's own title
+    // and the entry's comment, and the query matches any of them, so an
+    // application the user recognizes by its description is found too.
+    readonly property var searchIndex: {
         root.catalogueRevision
+        const rows = []
         const count = Math.min(root.applicationCount(), root.maximumEntries)
         for (let index = 0; index < count; index++) {
             const application = root.applicationAt(index)
             if (!application) continue
-            if (query.length > 0
-                    && String(application.name || "").toLocaleLowerCase().indexOf(query) < 0)
-                continue
-            result.push(application)
+            const fields = []
+            for (const field of [application.name, application.title,
+                    application.description]) {
+                if (typeof field === "string" && field.length > 0) fields.push(field)
+            }
+            rows.push({
+                application: application,
+                haystack: fields.join(" ").toLocaleLowerCase()
+            })
+        }
+        return rows
+    }
+    readonly property var filtered: {
+        const result = []
+        const query = root.safeSearch.toLocaleLowerCase()
+        for (const row of root.searchIndex) {
+            if (query.length > 0 && row.haystack.indexOf(query) < 0) continue
+            result.push(row.application)
         }
         return result
     }

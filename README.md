@@ -21,10 +21,18 @@
 > unvalidated. There is no stable release, package, support commitment or
 > compatibility guarantee yet.
 
+> [!NOTE]
+> **Verify your environment before installing.** Start the guided setup
+> (`./scripts-user/setup.sh`), run **Check runtime and build dependencies** and
+> then choose **Try it without installing (build, then run from this
+> checkout)**. The trial builds here and installs nothing, so you can confirm
+> the dock works on your system before installing a copy while the project is
+> still under construction.
+
 Punchi Dock Quickshell combines animated magnification, configurable application
-launchers, KDE context actions and media transport, a settings window and
-persistent preferences. It runs alongside Plasma through reversible start and
-stop scripts.
+launchers, a fullscreen application menu, KDE context actions and media
+transport, a settings window and persistent preferences. It runs alongside
+Plasma through reversible start and stop scripts.
 
 It was born from the limits of
 [Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
@@ -58,17 +66,14 @@ validation.
 
 ## Current features
 
-- Continuous hover magnification, themed tooltips, an expanding background and
-  two-hop launch feedback, with reduced motion support.
-- Bottom, left or right placement. The magnification wave, tooltips, context
-  menus, arrow-key navigation, running indicators and the native auto-hide edge
-  follow the selected edge, side popups open inward and icons stay upright.
-- One dock on every connected screen, sharing one profile. **Screens and
-  desktops** limits the dock to selected screens or virtual desktops and KDE
-  activities, remembers a selected screen across hot-plug, falls back to the
-  system primary screen while none is connected, and leaves an auto-hiding dock
-  visible when its edge borders another monitor. Running markers can follow the
-  current desktop and activity.
+The sections below follow the feature groups of the parent project's README,
+[Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered),
+so a capability can be compared one to one. A group the parent documents and
+this tree does not implement is named under **Not implemented yet** instead of
+being implied by its absence.
+
+### Applications and windows
+
 - Configurable pinned applications: discover and search installed applications
   through KDE, add or reorder launchers, and save preferences. Eight preset
   application launchers plus the Home and Downloads containers and Trash form the
@@ -82,6 +87,71 @@ validation.
 - Launcher context menus with KDE desktop actions, recent documents, unpinning,
   window actions such as Move to Desktop, Maximize and Fullscreen, and KDE
   Places navigation for eligible file-manager launchers.
+- Running-application indicators and existing-window activation are implemented
+  with isolated validation; physical KDE checks remain pending.
+
+### Folders and application collections
+
+- Folder containers for any local folder: Grid, List, Detail and Fan
+  presentations, per-container sorting, subfolder browsing and a hidden-entry
+  list. The built-in **Home** container opens as Fan and lists only the standard
+  KDE/XDG user folders through their localized names; its first-run profile
+  leaves subfolder browsing off, so a selected folder opens in the file manager.
+  A side dock presents a stored fan as Grid because the arc needs a top or
+  bottom edge.
+- Downloads with Grid, List, Detail and Fan folder views, navigation inside a themed
+  balloon, and native KDE file opening. Every presentation ends with an **Open**
+  row and marks browsable folders with a chevron; a right-click on an entry
+  offers **Open in File Manager** and **Copy Path**. Columns come from the space
+  the popup really has, so scrolling appears only when the entries do not fit,
+  with a slim indicator that fades while the listing rests.
+- Optional **recent applications** from KDE activity history with a configurable
+  count. **Presentation** chooses the extra dock launchers or one container item
+  with a fixed glyph, whose **Container view** offers Grid, List, Detail and Fan;
+  the container is the first-run presentation with the List view. Pinned
+  applications and applications with open windows are excluded in both
+  presentations. Dock settings include a switch that writes KDE's
+  remember-applications preference and a shortcut to KDE's Recent Files options;
+  when KDE saves no application history a short note explains how to enable it.
+- Item editors that choose a theme icon for any pinned application or folder
+  container and store it by name, falling back to the item's own icon.
+
+### PunchiMenu
+
+The fullscreen application menu is its own layer surface per screen. The first
+dock slot, labelled **Menu**, opens it, and the menu takes the keyboard only
+while it is open, so the desktop is never intercepted while it is closed.
+
+- **Search:** the query matches the desktop entry's name, the item's own title
+  and its comment, ignoring case. The catalogue is prepared once per revision
+  instead of once per keystroke.
+- **Paged grid:** four to seven columns and three to five rows follow the screen
+  size, as in the reference. A mouse notch or a complete touchpad gesture pages
+  once, and `Left`/`Right`, `Up`/`Down`, `PageUp`/`PageDown`, `Home`, `End` and
+  `Return` drive the selection. Every page change animates the grid, and a notch
+  that arrives mid-transition retargets it instead of restarting it; reduced
+  motion changes the page without a move. A pointer that enters a cell makes it
+  current, and the next key press hands the single emphasis band back to the
+  keyboard.
+- **Presentation:** a theme-washed backdrop with KWin blur behind it, the
+  distribution name, and a close control drawn with the buttons of the user's
+  window decoration. The page arrows and the page count are one optional footer,
+  hidden by default because the wheel and the keyboard already page the grid.
+- **The dock stays over the menu:** with **Dock over the menu** enabled, the menu
+  yields the overlay layer to the dock while its surface is mapped, so the dock
+  stays visible, magnified and clickable over the blurred backdrop, including the
+  closing fade, and an edge-hidden dock slides in for as long as the menu is
+  open. A dock action closes the menu first; a launcher click launches and
+  returns to the desktop.
+- **Settings:** the **Menu** category holds the background blur and opacity, icon
+  size, application labels, distribution name, page arrows, close-button corner,
+  hover animation and the dock-over-menu switch. Changes apply without a restart.
+- **Compared with PunchiMenu in the parent project:** categories, favourites,
+  named folders, hiding applications, drag and drop inside the menu and a
+  configurable global shortcut are not implemented.
+
+### Media and desktop utilities
+
 - Media transport for the matching KDE MPRIS player: Previous Track, Play/Pause,
   Next Track and Stop appear only while a player exists, follow its live
   capabilities and close the menu after dispatch. The private Plasma MPRIS
@@ -91,24 +161,6 @@ validation.
   confirmation, the destructive action stays disabled while the Trash is empty,
   unavailable or busy, and KDE supplies a fresh listing after the job instead of
   an assumed empty result.
-- Dock settings for icon size, magnification, bounce, reduced motion, position
-  and visibility: Always visible, Hide automatically, Dodge windows or Windows
-  go below.
-- Popup settings for size, height and icon size in their own **Popups**
-  category, applied to the folder containers. The grid, the list/detail rows and
-  the fan keep independent glyph sizes.
-- Settings organized as **Items**, **General**, **Popups**, **Profile** and
-  **About**, with **Reset defaults** and pending edits through Apply, Accept and
-  Close. **Profile** imports and exports a JSON profile of the dock items,
-  folder containers and preferences, with a preview and confirmation before the
-  imported values replace the pending profile. **About** shows the application
-  version, website and issue links, license, authors and the **Made with love**
-  dedication.
-- An optional KWin minimize effect selected from the dock context menu. Only
-  KWin's `exclusiveGroup=minimize` keys are written, their original presence and
-  values are recorded before the first write, and they are restored on clean
-  exit or by `scripts-user/restore-kde.sh`; a key changed outside the dock is
-  left untouched.
 - An update badge on the Discover launcher while the machine has pending updates.
   The count is read only from PackageKit, fwupd and Flatpak through their native
   interfaces, so the dock never asks Discover, never installs anything, never
@@ -129,34 +181,49 @@ validation.
   Punchi-owned XDG autostart entry. The entry takes effect at the next Plasma
   sign-in; an entry owned by another tool is never overwritten or deleted. The
   switch is unavailable during a trial run, whose profile Plasma never loads.
-- Optional **recent applications** from KDE activity history with a configurable
-  count. **Presentation** chooses the extra dock launchers or one container item
-  with a fixed glyph, whose **Container view** offers Grid, List, Detail and Fan;
-  the container is the first-run presentation with the List view. Pinned
-  applications and applications with open windows are excluded in both
-  presentations. Dock settings include a switch that writes KDE's
-  remember-applications preference and a shortcut to KDE's Recent Files options;
-  when KDE saves no application history a short note explains how to enable it.
-- Keyboard navigation for the dock, its context menus and the settings window.
-- Item editors that choose a theme icon for any pinned application or folder
-  container and store it by name, falling back to the item's own icon.
-- Folder containers for any local folder: Grid, List, Detail and Fan
-  presentations, per-container sorting, subfolder browsing and a hidden-entry
-  list. The built-in **Home** container opens as Fan and lists only the standard
-  KDE/XDG user folders through their localized names; its first-run profile
-  leaves subfolder browsing off, so a selected folder opens in the file manager.
-  A side dock presents a stored fan as Grid because the arc needs a top or
-  bottom edge.
-- Downloads with Grid, List, Detail and Fan folder views, navigation inside a themed
-  balloon, and native KDE file opening. Every presentation ends with an **Open**
-  row and marks browsable folders with a chevron; a right-click on an entry
-  offers **Open in File Manager** and **Copy Path**. Columns come from the space
-  the popup really has, so scrolling appears only when the entries do not fit,
-  with a slim indicator that fades while the listing rests.
+- An optional KWin minimize effect selected from the dock context menu. Only
+  KWin's `exclusiveGroup=minimize` keys are written, their original presence and
+  values are recorded before the first write, and they are restored on clean
+  exit or by `scripts-user/restore-kde.sh`; a key changed outside the dock is
+  left untouched.
 
-Running-application indicators and existing-window activation are implemented
-with isolated validation; physical KDE checks remain pending. A separate panel,
-an application-launcher surface and additional controls remain future work.
+### Appearance and interaction
+
+- Continuous hover magnification, themed tooltips, an expanding background and
+  two-hop launch feedback, with reduced motion support.
+- Bottom, left or right placement. The magnification wave, tooltips, context
+  menus, arrow-key navigation, running indicators and the native auto-hide edge
+  follow the selected edge, side popups open inward and icons stay upright.
+- One dock on every connected screen, sharing one profile. **Screens and
+  desktops** limits the dock to selected screens or virtual desktops and KDE
+  activities, remembers a selected screen across hot-plug, falls back to the
+  system primary screen while none is connected, and leaves an auto-hiding dock
+  visible when its edge borders another monitor. Running markers can follow the
+  current desktop and activity.
+- Dock settings for icon size, magnification, bounce, reduced motion, position
+  and visibility: Always visible, Hide automatically, Dodge windows or Windows
+  go below.
+- Popup settings for size, height and icon size in their own **Popups**
+  category, applied to the folder containers. The grid, the list/detail rows and
+  the fan keep independent glyph sizes.
+- Settings organized as **Items**, **General**, **Popups**, **Menu**, **Profile**
+  and **About**, with **Reset defaults** and pending edits through Apply, Accept
+  and Close. **Profile** imports and exports a JSON profile of the dock items,
+  folder containers and preferences, with a preview and confirmation before the
+  imported values replace the pending profile. **About** shows the application
+  version, website and issue links, license, authors and the **Made with love**
+  dedication.
+- Keyboard navigation for the dock, its context menus, the settings window and
+  the fullscreen menu.
+
+### Not implemented yet
+
+- A separate second panel, or dock controls beyond the documented set.
+- Drag and drop: reordering by dragging, pinning from the desktop or a menu, and
+  dropping files onto a launcher or the Trash.
+- The parent's PunchiMenu features listed above, and the parent's media cards
+  with artwork and track information, audio visualizer, calendar and clock,
+  quick notes, separators and Control Center surfaces.
 
 ## Known limitations
 
@@ -476,6 +543,7 @@ first-run launcher catalogue and the values restored by **Reset defaults**:
 | Visibility | Windows go below (`overlay`), without reserving screen space |
 | Reduced motion | Local override off; KDE animation preferences still apply |
 | Icons | The user's icon theme, including live KDE theme-change notifications |
+| Fullscreen menu | Blur on, 60% background opacity, application labels on, distribution name on, page arrows and page count hidden, dock over the menu, close button on the right |
 
 These are prototype defaults, not a guarantee that every preset application is
 installed. **Browser** names the role instead of an application: the item opens
@@ -496,6 +564,12 @@ default to enabled, five applications, the container presentation with the
 List view, the application icon, an unfiltered folder listing, the reference
 popup proportions, the theme's glyph sizes, every screen and every
 desktop/activity.
+
+The first dock slot opens the fullscreen menu. Its own **Menu** category holds
+the background blur and opacity, icon size, application labels, distribution
+name, the optional page arrows and page count, the close-button corner, the
+hover animation and the dock-over-menu switch. Every one applies to the open
+menu without a restart.
 
 The **Profile** category exports the pending values as a portable JSON document
 with schema `punchi-dock-quickshell/profile` and format version 1. Import also
@@ -672,6 +746,8 @@ ctest --test-dir build --output-on-failure
 |---|---|
 | `shell.qml` | Compose shell modules |
 | `modules/dock/` | Dock window, view, context menus and Trash confirmation |
+| `modules/menu/` | Fullscreen application menu surface, header, paged grid and backdrop |
+| `modules/recent/` | Recent-applications container popup |
 | `modules/folders/` | Folder container popups, layouts and navigation |
 | `modules/settings/` | Settings window, categories, item editors and profile exchange |
 | `components/` | Shared visual interaction primitives |

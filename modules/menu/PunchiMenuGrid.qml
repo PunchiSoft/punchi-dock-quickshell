@@ -97,15 +97,21 @@ FocusScope {
     function syncPage(): void {
         if (!root.menuState) return
         const target = Math.max(0, Math.min(root.pageCount - 1, root.menuState.currentPage))
-        if (pagesView.currentIndex !== target) pagesView.currentIndex = target
-        const offset = target * root.pageWidth
-        if (Math.abs(pagesView.contentX - offset) > 0.5) {
-            if (root.motionEnabled) pagesView.positionViewAtIndex(target, ListView.Beginning)
-            else {
-                pagesView.highlightMoveDuration = 0
-                pagesView.positionViewAtIndex(target, ListView.Beginning)
-            }
+        // The page view enforces its current item at the left edge, so assigning
+        // `currentIndex` is the transition: Qt animates the content over
+        // `highlightMoveDuration`, and a second step mid-flight continues from the
+        // position the view already reached. Placing the view with
+        // `positionViewAtIndex` after the assignment cancels that animation, which
+        // is why the grid used to jump between pages.
+        if (pagesView.currentIndex !== target) {
+            pagesView.currentIndex = target
+            return
         }
+        // The page did not change but the view is not on it (a new model or a
+        // first layout): place it without animating from anywhere.
+        const offset = target * root.pageWidth
+        if (Math.abs(pagesView.contentX - offset) > 0.5)
+            pagesView.positionViewAtIndex(target, ListView.Beginning)
     }
 
     ColumnLayout {
@@ -122,6 +128,7 @@ FocusScope {
 
         ListView {
             id: pagesView
+            objectName: "menuPagesView"
             Layout.fillWidth: true
             Layout.fillHeight: true
             orientation: ListView.Horizontal
@@ -188,9 +195,16 @@ FocusScope {
                             showLabel: root.showLabels
                             motionEnabled: root.motionEnabled
                             hoverAnimation: root.hoverAnimation
-                            onPointerEntered: if (root.state) root.state.currentIndex = absoluteIndex
+                            onPointerEntered: {
+                                if (root.menuState)
+                                    root.menuState.currentIndex = absoluteIndex
+                            }
                             iconSize: root.iconSize
                             selected: root.menuState && root.menuState.currentIndex === absoluteIndex
+                            // The surface owns the single band: without this the
+                            // tile keeps its pointer default and the keyboard
+                            // selection never paints.
+                            pointerEmphasis: root.pointerEmphasis
                             onActivated: root.launchRequested(absoluteIndex)
                         }
                     }

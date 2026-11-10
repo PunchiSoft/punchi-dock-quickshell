@@ -36,6 +36,56 @@ TestCase {
         PunchiMenuState { applications: modelCatalogue; columns: 2; rows: 2 }
     }
 
+    // A desktop entry carries its localized title and comment separately from
+    // the short name, so the query has to reach all three.
+    readonly property var descriptiveCatalogue: [
+        {appId: "x", name: "Dolphin", title: "Dolphin", description: "File manager"},
+        {appId: "y", name: "Kate", title: "Kate", description: "Advanced text editor"},
+        {appId: "z", title: "Terminal", description: "Run commands"}
+    ]
+    Component {
+        id: descriptiveFixture
+        PunchiMenuState { applications: test.descriptiveCatalogue; columns: 2; rows: 2 }
+    }
+
+    function test_searchMatchesTheLocalizedTitleAndDescription() {
+        const state = createTemporaryObject(descriptiveFixture, test)
+        verify(state !== null)
+        compare(state.filtered.length, 3)
+        // The name still matches, and the comparison ignores case.
+        state.searchText = "DOLPH"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "x")
+        // A localized title without a separate name is found.
+        state.searchText = "terminal"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "z")
+        // So is a comment, which is what the user often remembers.
+        state.searchText = "editor"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "y")
+        state.searchText = "commands"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "z")
+    }
+
+    function test_searchIndexFollowsTheCatalogueRevision() {
+        const state = createTemporaryObject(modelFixture, test)
+        verify(state !== null)
+        compare(state.filtered.length, 3)
+        try {
+            modelCatalogue.append({name: "Kolourpaint", iconName: "krita"})
+            tryVerify(function() { return state.filtered.length === 4 })
+            state.searchText = "kolour"
+            compare(state.filtered.length, 1)
+        } finally {
+            modelCatalogue.remove(3)
+        }
+        tryVerify(function() { return state.filtered.length === 0 })
+        state.clearSearch()
+        tryVerify(function() { return state.filtered.length === 3 })
+    }
+
     function test_listingReadsAModelWithoutIndexAccess() {
         const state = createTemporaryObject(modelFixture, test)
         compare(state.applicationCount(), 3)
