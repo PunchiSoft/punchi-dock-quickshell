@@ -767,8 +767,10 @@ validation scope and known gaps.
 
 This QML configuration runs in Quickshell. CMake builds the native KDE adapters
 and organizes validation. See [AGENTS.md](AGENTS.md) for project rules and
-[CONTRIBUTING.md](CONTRIBUTING.md) for the branch and evidence workflow. Configure
-and build with the shared preset, then run the compositor-free graph:
+[CONTRIBUTING.md](CONTRIBUTING.md) for the branch and evidence workflow. The
+published architecture, development, roadmap and versioning documents are in
+[docs-public/README.md](docs-public/README.md). Configure and build with the
+shared preset, then run the compositor-free graph:
 
 ```bash
 cmake --preset dev
