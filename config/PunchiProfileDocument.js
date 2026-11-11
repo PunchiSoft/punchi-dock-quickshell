@@ -18,7 +18,10 @@ const maximumBytes = 262144
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
     "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
     "avoidInnerEdgeAutoHide", "menuBackgroundBlurEnabled", "menuShowDistributionName",
-    "menuShowPageArrows", "menuShowLabels", "menuShowDock"]
+    "menuShowScrollBar", "menuShowLabels", "menuShowDock",
+    // Version 15 profiles stored the paging arrows under this key; it stays
+    // accepted so an older export still migrates to the scroll bar.
+    "menuShowPageArrows"]
 
 function objectValue(value) {
     return value !== null && typeof value === "object" && !Array.isArray(value)
@@ -101,6 +104,9 @@ function validate(profile) {
         return "invalid-field"
     if (own(profile, "menuHoverAnimation")
             && ["none", "individual", "pulse", "bounce"].indexOf(profile.menuHoverAnimation) < 0)
+        return "invalid-field"
+    if (own(profile, "menuApplicationOrder")
+            && ["categories", "alphabetical", "manual"].indexOf(profile.menuApplicationOrder) < 0)
         return "invalid-field"
     if (own(profile, "recentApplicationsCount")
             && !inRange(profile.recentApplicationsCount,

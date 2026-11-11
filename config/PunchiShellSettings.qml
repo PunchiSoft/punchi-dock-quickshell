@@ -64,12 +64,17 @@ QtObject {
     property real menuBackgroundOpacity: defaultProfile.menuBackgroundOpacity
     property bool menuBackgroundBlurEnabled: defaultProfile.menuBackgroundBlurEnabled
     property bool menuShowDistributionName: defaultProfile.menuShowDistributionName
-    property bool menuShowPageArrows: defaultProfile.menuShowPageArrows
+    property string menuApplicationOrder: defaultProfile.menuApplicationOrder
+    property bool menuShowScrollBar: defaultProfile.menuShowScrollBar
     property bool menuShowLabels: defaultProfile.menuShowLabels
     property bool menuShowDock: defaultProfile.menuShowDock
     property real menuIconScale: defaultProfile.menuIconScale
     property string menuCloseButtonPosition: defaultProfile.menuCloseButtonPosition
     property string menuHoverAnimation: defaultProfile.menuHoverAnimation
+    onMenuApplicationOrderChanged: {
+        if (["categories", "alphabetical", "manual"].indexOf(menuApplicationOrder) < 0)
+            menuApplicationOrder = defaultProfile.menuApplicationOrder
+    }
     onMenuHoverAnimationChanged: {
         if (["none", "individual", "pulse", "bounce"].indexOf(menuHoverAnimation) < 0)
             menuHoverAnimation = defaultProfile.menuHoverAnimation
@@ -279,15 +284,15 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 15, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
+        return {version: 16, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
             desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
             avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount, recentApplicationsPresentation, recentApplicationsContainerLayout,
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
-            menuShowDistributionName, menuShowPageArrows, menuShowLabels, menuShowDock, menuIconScale,
-            menuCloseButtonPosition, menuHoverAnimation}
+            menuShowDistributionName, menuApplicationOrder, menuShowScrollBar, menuShowLabels,
+            menuShowDock, menuIconScale, menuCloseButtonPosition, menuHoverAnimation}
     }
     function validPopupIconSize(value, maximum): bool {
         return value === 0 || (Number.isInteger(value) && value >= popupIconSizeMinimum
@@ -300,7 +305,7 @@ QtObject {
         bulkChange = true
         let applied = false
         try {
-            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].indexOf(data.version) < 0) return false
+            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].indexOf(data.version) < 0) return false
             const hasLegacyDownloadsView = PunchiDockItemIds.validLayout(data.downloadsView)
             const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
             if (PunchiDockItemIds.validContainers(data.containers)) {
@@ -356,10 +361,18 @@ QtObject {
                 menuCloseButtonPosition = data.menuCloseButtonPosition
             if (["none", "individual", "pulse", "bounce"].indexOf(data.menuHoverAnimation) >= 0)
                 menuHoverAnimation = data.menuHoverAnimation
+            if (["categories", "alphabetical", "manual"].indexOf(data.menuApplicationOrder) >= 0)
+                menuApplicationOrder = data.menuApplicationOrder
+            // Version 15 stored the paging arrows. The listing scrolls now, so
+            // the same choice carries over to the scroll bar.
+            if (typeof data.menuShowScrollBar === "boolean")
+                menuShowScrollBar = data.menuShowScrollBar
+            else if (typeof data.menuShowPageArrows === "boolean")
+                menuShowScrollBar = data.menuShowPageArrows
             for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled",
                     "recentApplicationsEnabled", "updateBadgeEnabled",
                     "menuBackgroundBlurEnabled", "menuShowDistributionName",
-                    "menuShowPageArrows", "menuShowLabels", "menuShowDock"])
+                    "menuShowLabels", "menuShowDock"])
                 if (typeof data[key] === "boolean") this[key] = data[key]
             if (inRange(data.recentApplicationsCount,
                     PunchiDefaultProfile.limits.recentApplicationsCount, true))

@@ -88,6 +88,18 @@ Scope {
         function onPopupScaleChanged() { root.save() }
         function onPopupIconSizeChanged() { root.save() }
         function onPopupHeightPercentChanged() { root.save() }
+        // The menu options live in their own settings category; without these
+        // handlers a change reached the open menu and was never written back.
+        function onMenuBackgroundOpacityChanged() { root.save() }
+        function onMenuBackgroundBlurEnabledChanged() { root.save() }
+        function onMenuShowDistributionNameChanged() { root.save() }
+        function onMenuApplicationOrderChanged() { root.save() }
+        function onMenuShowScrollBarChanged() { root.save() }
+        function onMenuShowLabelsChanged() { root.save() }
+        function onMenuShowDockChanged() { root.save() }
+        function onMenuIconScaleChanged() { root.save() }
+        function onMenuCloseButtonPositionChanged() { root.save() }
+        function onMenuHoverAnimationChanged() { root.save() }
         function onProfileApplied() { root.save() }
     }
     function readStored(path: string): var {

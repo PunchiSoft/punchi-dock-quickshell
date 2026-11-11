@@ -12,8 +12,10 @@ overwrites or deletes a file without its ownership marker. PunchiRecentApplicati
 references KDE activity history through native adapters and filters pinned or
 open applications without maintaining a second history. PunchiLicenseDocument reads
 the LICENSE document installed next to `shell.qml` so the About page can present
-the verbatim license text inside the settings window. Services never import
-visual components. PunchiUpdateNotice reads the native `UpdateState` aggregation of
+the verbatim license text inside the settings window. PunchiMenuState owns the
+fullscreen menu's query, display order, sections and selection, and
+`PunchiMenuCategories.js` turns the catalogue's desktop-entry categories into
+the ordered sections the menu paints. Services never import visual components. PunchiUpdateNotice reads the native `UpdateState` aggregation of
 PackageKit, fwupd and Flatpak and decides which launcher receives the count and
 whether the settings switch allows it; the query itself never installs, refreshes
 caches or requests authorization. The target is resolved from the catalog against

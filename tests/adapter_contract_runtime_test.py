@@ -63,6 +63,10 @@ ShellRoot {
             ["applicationCount", "activationItem", "launchFinished"])
         probe.checkMethods(catalog, "PunchiApplicationCatalogAdapter", ["get", "application"])
         probe.checkProperties(catalog, "PunchiApplicationCatalogAdapter", ["count", "revision", "presets"])
+        // The fullscreen menu groups rows by the desktop entry's categories, so
+        // the map a consumer reads must carry that member.
+        if (catalog.count > 0)
+            probe.checkProperties(catalog.get(0), "PunchiApplicationCatalogAdapter.get(0)", ["categories"])
         probe.checkProperties(search, "PunchiApplicationSearchAdapter", ["sourceModel", "query", "count"])
         probe.checkMethods(recent, "PunchiRecentDocumentsAdapter", ["forget"])
         probe.checkProperties(recent, "PunchiRecentDocumentsAdapter", ["sourceModel", "desktopId", "count"])

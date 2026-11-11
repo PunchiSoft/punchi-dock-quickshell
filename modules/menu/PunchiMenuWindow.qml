@@ -31,9 +31,11 @@ PanelWindow {
     readonly property var profileDefaults: PunchiDefaultProfile.profile
     readonly property bool motionEnabled: !(root.settings
         ? root.settings.reducedMotion : root.profileDefaults.reducedMotion)
-    // Launchpad shows seven columns by five rows on a 1440x900 screen, and that
-    // ratio holds on larger displays: the cell pitch grows, the count does not.
-    // The bounds shrink the grid on a small screen instead of clipping it.
+    // Launchpad shows seven columns on a 1440x900 screen, and that ratio holds
+    // on larger displays: the cell pitch grows, the count does not. The bounds
+    // shrink the grid on a small screen instead of clipping it. The listing
+    // scrolls continuously, so `gridRows` is only the number of whole rows a
+    // keyboard page moves at once.
     readonly property int gridColumns: Math.max(4, Math.min(7,
         Math.floor(Math.max(1, root.width) / (Kirigami.Units.gridUnit * 8))))
     readonly property int gridRows: Math.max(3, Math.min(5,
@@ -99,6 +101,9 @@ PanelWindow {
         applications: root.applications
         columns: root.gridColumns
         rows: root.gridRows
+        applicationOrder: root.settings
+            ? root.settings.menuApplicationOrder
+            : root.profileDefaults.menuApplicationOrder
     }
 
     PunchiMenuBackdrop {
@@ -166,8 +171,8 @@ PanelWindow {
                 onSearchFocusRequested: header.focusSearch()
             }
 
-            PunchiMenuGrid {
-                id: grid
+            PunchiMenuSections {
+                id: sections
                 width: parent.width
                 height: Math.max(0, layout.height - header.height
                     - layout.spacing)
@@ -176,9 +181,9 @@ PanelWindow {
                 motionEnabled: root.motionEnabled
                 showLabels: root.settings
                     ? root.settings.menuShowLabels : root.profileDefaults.menuShowLabels
-                showPageArrows: root.settings
-                    ? root.settings.menuShowPageArrows
-                    : root.profileDefaults.menuShowPageArrows
+                showScrollBar: root.settings
+                    ? root.settings.menuShowScrollBar
+                    : root.profileDefaults.menuShowScrollBar
                 iconScale: root.settings
                     ? root.settings.menuIconScale : root.profileDefaults.menuIconScale
                 hoverAnimation: root.settings
@@ -196,12 +201,12 @@ PanelWindow {
         }
 
         Keys.onEscapePressed: root.menuController.close()
-        Keys.onLeftPressed: { grid.takeKeyboardEmphasis(); menuState.moveHorizontal(-1) }
-        Keys.onRightPressed: { grid.takeKeyboardEmphasis(); menuState.moveHorizontal(1) }
-        Keys.onUpPressed: { grid.takeKeyboardEmphasis(); menuState.moveVertical(-1) }
-        Keys.onDownPressed: { grid.takeKeyboardEmphasis(); menuState.moveVertical(1) }
+        Keys.onLeftPressed: { sections.takeKeyboardEmphasis(); menuState.moveHorizontal(-1) }
+        Keys.onRightPressed: { sections.takeKeyboardEmphasis(); menuState.moveHorizontal(1) }
+        Keys.onUpPressed: { sections.takeKeyboardEmphasis(); menuState.moveVertical(-1) }
+        Keys.onDownPressed: { sections.takeKeyboardEmphasis(); menuState.moveVertical(1) }
         Keys.onPressed: function(event) {
-            grid.takeKeyboardEmphasis()
+            sections.takeKeyboardEmphasis()
             if (event.key === Qt.Key_PageDown) { menuState.selectPage(1); event.accepted = true }
             else if (event.key === Qt.Key_PageUp) { menuState.selectPage(-1); event.accepted = true }
             else if (event.key === Qt.Key_Home) { menuState.selectFirst(); event.accepted = true }

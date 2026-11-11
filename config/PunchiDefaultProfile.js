@@ -40,7 +40,7 @@ const launchers = [
 ]
 
 const profile = {
-    version: 15,
+    version: 16,
     downloadsView: "grid",
     dockEdge: "bottom",
     panelMode: "overlay",
@@ -79,14 +79,18 @@ const profile = {
     popupFanIconSize: 0,
     popupHeightPercent: 80,
     // Fullscreen menu presentation. The backdrop keeps the original floor of
-    // 0.50 opacity, the distribution title is optional, the page arrows start
-    // hidden because the wheel and the keyboard already page the grid, the dock
-    // keeps its place over the menu, and the close button keeps the original
-    // corner choice.
+    // 0.50 opacity, the distribution title is optional, the listing is
+    // alphabetical by default and scrolls continuously (the Menu settings switch
+    // it to category sections or the manual order), and the scroll bar starts
+    // off so the surface keeps the reference's clean look; the Menu settings
+    // turn it on for anyone who wants the navigation aid. The dock keeps its
+    // place over the menu and the close button keeps the original corner
+    // choice.
     menuBackgroundOpacity: 0.6,
     menuBackgroundBlurEnabled: true,
     menuShowDistributionName: true,
-    menuShowPageArrows: false,
+    menuApplicationOrder: "alphabetical",
+    menuShowScrollBar: false,
     menuShowLabels: true,
     menuShowDock: true,
     menuIconScale: 1.0,

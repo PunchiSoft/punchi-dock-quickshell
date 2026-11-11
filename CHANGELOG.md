@@ -6,6 +6,39 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The fullscreen menu is alphabetical by default and can group applications by
+  category. `ApplicationCatalog` publishes the desktop entry's own `categories`,
+  `services/PunchiMenuCategories.js` turns them into the reference's ordered
+  groups (Network, Graphics, AudioVideo, Office, Development, System, Utility,
+  Game, Education, then `Other`), and an exact group name wins over a family
+  match. Names sort with digit runs compared as numbers, so "KDE 4" precedes
+  "KDE 10"; the QML engine ignores the numeric option of `localeCompare`, so the
+  comparator counts the chunks itself. The **Application order** setting selects
+  **Alphabetical** (the default), **Manual** or **Categories**; the first two
+  paint one list without headings, and a search collapses the listing to one
+  flat section in catalogue order.
+- The menu scrolls continuously instead of paging. `PunchiMenuGrid` became
+  `PunchiMenuSections`: one vertical `ListView` of category sections whose wheel
+  belongs to `Kirigami.WheelHandler`, so the gesture follows KDE's scroll amount
+  and smooth-scroll preference instead of a local 120-unit notch. The scroll bar
+  is `AsNeeded` and starts off so the surface keeps the reference's clean look;
+  the Menu settings enable it, and while it is on its gutter is reserved before
+  it appears so the column width no longer oscillates when the listing starts or
+  stops overflowing. `Left`/`Right` continue in the neighbouring section,
+  `Up`/`Down` keep the column across sections, `PageUp`/`PageDown` move one
+  viewport of rows, and a reveal runs only for the keyboard so a pointer never
+  scrolls the list under itself. The surface measures section and cell heights
+  so a selected cell is revealed before its delegate exists.
+- Menu settings persist. `PunchiSettingsStore` had no change handlers for the
+  menu keys, so a menu option reached the open menu and was never written back;
+  every menu property now saves, including the application order and the scroll
+  bar.
+- Profile version 16 records the application order and the scroll bar. A version
+  15 profile's `menuShowPageArrows` value migrates to `menuShowScrollBar`, so the
+  choice the user stored keeps controlling the only navigation affordance, and
+  `PunchiProfileDocument` still accepts the old key while validating the new
+  order values. The native catalogue sorts with `QCollator::setNumericMode`, so
+  a manual listing reads the way a person counts.
 - Both READMEs open with a recording of the dock magnifying its icons. The
   capture is stored as `assets/demo/dock-magnification.webp`: cropped to the dock
   strip so the screen recorder's notification stays out of frame, trimmed to the
