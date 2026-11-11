@@ -1,432 +1,77 @@
 # Changelog
 
-No version has been published yet: this repository carries no tag and no release.
-The dated headings below are development snapshots, and the version the tree
-declares is `0.1.47`. Pending work accumulates under `Unreleased`.
+All notable changes to this project are documented in this file.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+No version has been published yet: the repository carries no tag and no release.
+The dated headings below are development snapshots, and the tree declares
+`0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
-- The fullscreen menu no longer creates a delegate per application. The state
-  now prepares display rows (a heading row per named section and rows of at most
-  one column's worth of applications) and the view creates one delegate per row,
-  with one row of cache instead of a section-sized cache. A worst-case probe
-  measured before/after: 82 applications went from 83 to 7 created delegates
-  (489 to 353 ms offscreen), 500 from 501 to 7 (1002 to 391 ms), and 1000 from
-  1001 to 7 (1613 to 487 ms). The timings include the probe's 300 ms wait and are
-  construction evidence, not frame evidence.
-- The menu opens at the top again. The view used to reveal the last hovered cell
-  during the opening transition and then ignore the state reset because the
-  pointer owned the emphasis band, so closing after scrolling reopened at the old
-  position. Activation now takes the band for the pointer and places the view at
-  the beginning without revealing a stale index; a regression covers the
-  mid-list selection.
-- A wheel gesture settles on the nearest row boundary, so a resting menu no
-  longer leaves a cell cut in half. The snap is a short animation, is immediate
-  under reduced motion, and is skipped while the pointer or keyboard selects.
-- The fullscreen menu is alphabetical by default and can group applications by
-  category. `ApplicationCatalog` publishes the desktop entry's own `categories`,
-  `services/PunchiMenuCategories.js` turns them into the reference's ordered
-  groups (Network, Graphics, AudioVideo, Office, Development, System, Utility,
-  Game, Education, then `Other`), and an exact group name wins over a family
-  match. Names sort with digit runs compared as numbers, so "KDE 4" precedes
-  "KDE 10"; the QML engine ignores the numeric option of `localeCompare`, so the
-  comparator counts the chunks itself. The **Application order** setting selects
-  **Alphabetical** (the default), **Manual** or **Categories**; the first two
-  paint one list without headings, and a search collapses the listing to one
-  flat section in catalogue order.
-- The menu scrolls continuously instead of paging. `PunchiMenuGrid` became
-  `PunchiMenuSections`: one vertical `ListView` of category sections whose wheel
-  belongs to `Kirigami.WheelHandler`, so the gesture follows KDE's scroll amount
-  and smooth-scroll preference instead of a local 120-unit notch. The scroll bar
-  is `AsNeeded` and starts off so the surface keeps the reference's clean look;
-  the Menu settings enable it, and while it is on its gutter is reserved before
-  it appears so the column width no longer oscillates when the listing starts or
-  stops overflowing. `Left`/`Right` continue in the neighbouring section,
-  `Up`/`Down` keep the column across sections, `PageUp`/`PageDown` move one
-  viewport of rows, and a reveal runs only for the keyboard so a pointer never
-  scrolls the list under itself. The surface measures section and cell heights
-  so a selected cell is revealed before its delegate exists.
-- Menu settings persist. `PunchiSettingsStore` had no change handlers for the
-  menu keys, so a menu option reached the open menu and was never written back;
-  every menu property now saves, including the application order and the scroll
-  bar.
-- Profile version 16 records the application order and the scroll bar. A version
-  15 profile's `menuShowPageArrows` value migrates to `menuShowScrollBar`, so the
-  choice the user stored keeps controlling the only navigation affordance, and
-  `PunchiProfileDocument` still accepts the old key while validating the new
-  order values. The native catalogue sorts with `QCollator::setNumericMode`, so
-  a manual listing reads the way a person counts.
-- Both READMEs open with a recording of the dock magnifying its icons, replaced
-  with a 2026-11-11 capture: 982x261 source, downscaled to 960x255, 177 frames,
-  4.76 s and 1.3 MB. The new recording already excludes the screen recorder's
-  notification and keeps the dock visible throughout, so it needs no crop or
-  trim. The caption no longer says the launcher set is the default, because the
-  recording uses the maintainer's. `assets/demo/README.md` records the
-  environment and the exact ImageMagick command that rebuilds the file.
-- Both READMEs gain a screenshot gallery of the current interface: the four
-  settings categories (General, Items, Popups and Menu), the recent-applications
-  container as a grid, the container view selector, the extra Fan mode and a
-  native KDE menu example. The opaque popups are cropped to their own contour
-  with a transparent background; the fan keeps the desktop behind its translucent
-  surface.
-  `assets/screenshots/README.md` lists
-  every capture with the Fedora 44 / Plasma 6.8.2 / KWin 6.8.2 / Qt 6.11.2 /
-  Quickshell 0.2.1 environment, blurs the profile header in the settings captures
-  and keeps the Downloads capture with personal file names out of the public set.
-- A fullscreen-menu page change is animated again. `PunchiMenuGrid.syncPage()`
-  assigned `pagesView.currentIndex` and then called `positionViewAtIndex()` while
-  the content was still on the previous page; under `StrictlyEnforceRange` that
-  call cancels the range animation, so every wheel notch, arrow button and
-  keyboard page change jumped. The assignment is now the transition: Qt animates
-  the content over `highlightMoveDuration` (`Kirigami.Units.longDuration`, and `0`
-  under reduced motion), a notch that arrives mid-flight retargets the move from
-  where the view already is, and `positionViewAtIndex()` runs only to correct a
-  stale content position when the index already matches.
-- The fullscreen menu paints its keyboard selection again. `PunchiMenuGrid` owned
-  the single emphasis band but never published it to `PunchiMenuTile`, so every
-  cell kept its pointer default: hover worked, and the selection a key press
-  produced was silently suppressed, including `Accessible.focused`. The grid now
-  binds the band, the tile paints the selection when the keyboard owns it, and a
-  pointer that enters a cell retargets `PunchiMenuState.currentIndex` instead of
-  writing to the surface's `state` string, so keyboard navigation continues from
-  the cell under the pointer.
-- The fullscreen menu searches the whole desktop entry. The query matched only
-  `name`, so a launcher whose title in the dock or whose comment is what the user
-  remembers stayed hidden. `PunchiMenuState` now matches name, title and
-  description, and prepares the lowercased text once per catalogue revision
-  instead of once per keystroke.
-- The README groups its features the way the parent project's README does
-  (applications and windows, folders and application collections, PunchiMenu,
-  media and desktop utilities, appearance and interaction, not implemented yet).
-  The fullscreen application menu is documented for the first time in both
-  languages, with its search, paging, dock-over-menu behaviour and its own
-  settings category; the old paragraph that still called an application-launcher
-  surface future work is replaced by an explicit list of what this tree does not
-  implement yet.
-- Both README headers recommend verifying the environment before installing.
-  Directly under the under-construction warning they point to the guided setup's
-  "Check runtime and build dependencies" and then "Try it without installing
-  (build, then run from this checkout)", so a reader can confirm the dock runs
-  here without installing a copy.
-- The fullscreen menu pages with the wheel. `PunchiMenuGrid` steps one page per
-  notch and accumulates the smaller deltas of a touchpad gesture, because the
-  snapping page view only ever returned to the page it already showed. The page
-  arrows and the page count start hidden (`menuShowPageArrows`) now that the
-  wheel and the keyboard page the grid; the stored preference still turns them
-  back on.
-- The dock stays in front of the fullscreen menu. With `menuShowDock` enabled,
-  opening the menu reveals the dock in the hide modes and the two surfaces swap
-  their layer: the menu yields the overlay layer to the dock while its surface is
-  mapped, so layer-shell paints the dock above the full-screen backdrop exactly
-  as in the Launchpad reference, including the closing fade, and both return
-  afterwards. A dock action during the menu closes it first, and a launcher click
-  launches and closes the menu. The switch lives in the menu category, and the
-  profile format advances to version 15.
-- The README heads the declared version as "Unreleased" instead of "Current
-  version". `docs/versioning.md` records that `0.1.47` is the version the tree
-  declares rather than a download, and the old heading read like a published
-  release. Both READMEs now say the tree declares `0.1.47` for a future delivery
-  and that no tag or release exists; `scripts-dev/check-version.py` matches the
-  new heading and still fails when the number disagrees with the newest dated
-  `CHANGELOG.md` heading.
-- The dependency report tells a distribution without a package map who installs
-  the packages. openSUSE reached that branch with runtime packages missing: the
-  report named what was absent, skipped the install offer because the family is
-  unknown, and left the user with no next step. It now states that the assistant
-  installs packages on Fedora, Debian/Ubuntu and Arch only, and that where
-  Quickshell is not packaged `quickshell.org` lists how to obtain it.
-- The README states where the dock can run before it lists the environments it
-  was checked on. The panel runs on Quickshell, and the compatibility table gave
-  no way to tell an untested distribution from an unavailable one: openSUSE
-  appeared as "untested, same family" while its Tumbleweed and Leap repositories
-  carry no `quickshell` package, and upstream Quickshell installs it there from
-  the `home:AvengeMedia:danklinux` Open Build Service project. Both READMEs now
-  link Quickshell's installation guide, name where it is packaged, and separate
-  availability from validation, because a distribution where Quickshell installs
-  is a candidate rather than a tested environment.
-- The dependency offer installs the validation group too. A fresh Arch desktop
-  showed the assistant listing `python-dbus` as missing under "Validation
-  tools", warning that some were absent, and then offering only runtime and
-  build packages, so its own check stayed red with no way to clear it from the
-  menu. The offer now batches those packages as well and lists them on an
-  `Optional` row, because the dock still builds and runs without them.
-- The assistant restarts itself after updating the checkout. Its libraries are
-  sourced once at startup, so pulling from the update check and then choosing
-  "Rebuild and install now" ran the dependency map and build steps that existed
-  before the pull; a real Arch update printed the old dependency wording after
-  the commit that replaced it. The post-pull action now runs in a fresh process
-  that reads the updated checkout, and when the entry point is not present the
-  assistant refuses that stale build and asks for a restart instead.
-- The settings user header loads with Kirigami Addons 1.16. The avatar stopped
-  assigning `initialsColor`, which that release removed: the property never
-  reached the icon the header renders, because `InitialsMode.UseIcon` shows the
-  user icon and the icon takes its black-or-white colour from `color`. Arch is
-  the first system to ship 1.16, so the dock failed to start there with
-  `Cannot assign to non-existent property "initialsColor"` while Fedora 44
-  (1.13.1) and Debian 13 (1.7.0) kept working.
-- The dependency check asks one thing at a time. It lists the missing commands
-  and packages together, summarises what is already present in one line, and
-  keeps the Debian backports question separate from the install question, so
-  adding a repository and installing packages are two decisions instead of one
-  bundled prompt that was repeated when the repository was declined. A failing
-  `apt` step now names its cause: when a signature is not valid yet, the report
-  compares that timestamp with the system clock and prints the `timedatectl` and
-  `systemd-timesyncd` commands that correct it, instead of leaving the user to
-  retry the same block. The Debian build list now names `pkg-config`, which no
-  other package in that list depends on: a KDE live image ships it, so the check
-  passed there, while a minimal install kept the build group incomplete.
-- Draw the menu close control with the user's window decoration. A fixed
-  symbolic icon vanished under icon themes that do not ship it, so
-  `PunchiDecorationButtonProvider` reads the selected Aurorae theme from
-  `kwinrc`, validates the `close`/`minimize`/`maximize`/`restore` resources and
-  publishes their paths and button size. `PunchiDecorationButton` renders those
-  buttons with the decoration's own states and falls back to a theme icon, so the
-  control is never invisible. The same component serves the future thumbnail
-  views.
-- Add the fullscreen application menu (`PunchiMenu`) as an overlay layer
-  surface, one per screen. `PunchiMenuController` decides which screen owns the
-  open surface, so the dock item, `qs ipc call dock menuToggle` and the surfaces
-  never disagree. The surface pre-exists per screen, so opening never constructs
-  the menu inside the click, and the neighbouring pages are cached 600 ms after
-  the first frame. `PunchiMenuState` owns the query, the page and the keyboard
-  selection; the grid pages 4-8 columns by 3-5 rows with snap, arrows and the
-  wheel, and every cell carries the four hover modes of the original menu
-  (`none`, `individual`, `pulse`, `bounce`). The listing reads the catalogue
-  through its `count`/`get` model interface, so an installed application list
-  reaches the grid instead of an empty page, and the close affordance is
-  pinned to the surface corner of `menuCloseButtonPosition`.
-- The menu keeps one emphasis band. The grid owns `pointerEmphasis`, real
-  pointer motion hands the band to the pointer and the next key press hands
-  it back to the keyboard, so hover and the keyboard cursor never paint two
-  bands at once. Hover still shows the hand cursor and the configured hover
-  animation; `emphasis_contract` now gates `PunchiMenuHighlight` as well.
-- The menu grid follows the Launchpad reference: seven columns by five rows,
-  a cell-derived icon size and one-line labels, with the search field at a
-  fifth of the width. The surface no longer assigns `exclusiveZone`, which
-  forced `ExclusionMode.Normal` and kept the menu inside the area the dock
-  reserved instead of covering the screen.
-- The first open of the grid no longer prints
-  `qt.svg.draw: The requested buffer size is too big, ignoring`. The buffer was
-  not large but degenerate: a cell reached its icon before it had a width, so
-  `PunchiMenuTile` rasterized the theme icon at one pixel and Qt mapped the
-  icon's SVG filter region onto a `1x0` rectangle. The icon now keeps its
-  requested size until the cell can bound it.
-- The menu leads the dock. `DockApplicationsModel` prepends a fixed `item:menu`
-  row before the pinned applications, and the row is excluded from the trailing
-  special-item reordering, so the first slot cannot be taken by a later pin or
-  by a running application.
-- Menu settings live in their own settings category instead of inside the menu:
-  a Plasma applet had to embed its settings view, and this shell does not. The
-  profile gains `menuBackgroundOpacity`, `menuBackgroundBlurEnabled`,
-  `menuShowDistributionName`, `menuShowPageArrows`, `menuShowLabels`,
-  `menuIconScale`, `menuCloseButtonPosition` and `menuHoverAnimation`, with the
-  schema moved to version 14 and the same range validation as the rest.
-- `PunchiDistributionInfo` (KOSRelease) supplies the header identity that
-  Quickshell does not expose.
-- Rename every QML type under `components/`, `config/`, `services/`, `modules/`
-  and `adapters/` to the `Punchi` convention, and empty the naming baseline. The
-  dock item family becomes `PunchiDockTile`, `PunchiDockBadge`, `PunchiDockTooltip`,
-  `PunchiDockHighlight` and `PunchiDockClickFeedback`, so "launcher" no longer
-  names both a dock item and an application launcher. Shared primitives keep the
-  product prefix and their form (`PunchiBalloonSurface`, `PunchiFanView`,
-  `PunchiAntialiasedSurface`, `PunchiTwoHopBounce`). The native `Punchi.Kde`
-  module keeps its own class names, so `Native.ApplicationCatalog` and
-  `Native.RunningApplications` still resolve. Records moved: `Dock.qml` is now
-  `modules/dock/PunchiDock.qml`, and `tests/qmllint-upstream.json` and the
-  `window-state` resource paths follow it. `tests/naming-baseline.json` is empty
-  and must stay empty: `component_naming` rejects a recorded name as well as a
-  stale entry and self-checks its own detection on a temporary tree, so a naming
-  failure is fixed by the rename and never by silencing the check.
-- Add the `branch-baseline` skill and require work branches to prove their base.
-  The skill reads `git status`, compares `main` with `origin/main`, updates `main`
-  by fast-forward, creates the branch from it and confirms the base with
-  `git rev-list --left-right --count main...HEAD` (`0 0`) and an empty
-  `git log origin/main..HEAD`. A sub-branch is allowed only with a stated reason,
-  because a branch stacked on unpublished work by habit carries commits that are
-  not yours into review. `modification-cycle` defers branch creation to it, and
-  `AGENTS.md` names the same checks.
-- Record and enforce the component naming convention. `AGENTS.md` defines the
-  `Punchi` prefix, the surface level that disambiguates two owners
-  (`PunchiDock*`, `PunchiMenu*`) and the reserved QtQuick.Controls names, so
-  "menu" means the application menu and a dock item is not called a launcher.
-  `tests/naming_test.py` (`component_naming`) checks the rule against
-  `tests/naming-baseline.json`, which lists the 119 types written before it and
-  may only shrink; a new non-compliant type, a shadowing name or a stale entry
-  fails the build.
+### Added
 
-- Correct the Debian runtime package mappings, recognize Quickshell installed
-  outside package management and install it from Debian backports.
-  `scripts-user/lib/setup-deps.sh` checks Debian 13's actual package names
-  (`qml6-module-org-kde-desktop`, `libkf6service-bin`, and
-  `libplasmaactivitiesstats1`) instead of unverified placeholders, treats the
-  Quickshell package as satisfied whenever `qs` is already on PATH, and, when
-  Debian has no Quickshell candidate in the configured suites, offers to enable
-  the matching `<codename>-backports` source with an explicit confirmation
-  before installing it. Declining that offer keeps the other missing packages
-  installable because a package without a candidate no longer aborts the whole
-  `apt-get` call.
-- Load the dock on the KDE stack Debian 13 ships. `CMakeLists.txt` requires
-  KF6WindowSystem 6.13 and `DesktopLauncher` falls back to
-  `KWaylandExtras::requestXdgActivationToken()` until 6.19 provides
-  `xdgActivationToken()`, `DockItemCatalog` publishes its own role names because
-  Qt 6.8's `QConcatenateTablesProxyModel` has none, and `UpdateState` skips the
-  PackageKit and fwupd queries when the system bus is unavailable. The settings
-  sliders drop `Kirigami.StyleHints`, which only exists from Kirigami 6.24;
-  its default already disables tick marks, so nothing visual changes.
-  `PunchiWindowModels.qml` follows the active desktop through
-  `filterByVirtualDesktop` and `VirtualDesktopInfo.currentDesktop`, available
-  from Plasma 6.3, instead of Plasma 6.7's `filterByCurrentVirtualDesktop`.
-- Group the build trees under `build/`. The setup, the start script, the restore
-  script, the developer scripts and the tests resolve `build/build-<ID>` (for
-  example `build/build-debian`), `cmake --preset dev` writes the generic
-  `build/dev` tree, and the flat `build-<ID>` and plain `build/` trees of the
-  earlier layouts are still read when they are the only complete ones, so testing
-  several systems never reuses another one's objects or CMake cache while the
-  checkout stays ordered. `PUNCHI_BUILD_DIR` overrides the location and is
-  validated before it is used or removed, `scripts-user/lib/build-dir.sh` owns the
-  rule, and a stale cache naming a tool this system lacks is discarded before
-  CMake reconfigures.
-- Offer the recent applications as a container. **Presentation** in General now
-  chooses between the extra launchers and one item with the fixed `folder-temp`
-  glyph that opens a container with the same entries; the container is the new
-  default and its **Container view** chooses Grid, List (the default), Detail or
-  Fan, reusing the folder container presentations. A side dock presents a stored
-  fan as Grid without rewriting it, the item appears only while KDE history has
-  an application to show, and its menu switches the view. Launches go through
-  the selection itself, so an application that is also a first-run preset row
-  still opens and records the access; the pinned and open-window exclusions keep
-  applying inside the container. The container presentation primitives move from
-  `modules/folders` to `components/` now that a second consumer confirmed them,
-  and the profile format advances to version 13 with the two new fields.
-- Open the browser this session prefers from the default **Browser** item. The
-  first-run catalogue names a role instead of a desktop entry: an empty
-  `desktopId` plus the ordered MIME types `x-scheme-handler/https`,
-  `x-scheme-handler/http` and `text/html` let `PunchiApplicationCatalog` publish the
-  `storageId` that `KApplicationTrader::preferredService` returns, so a first run
-  never assumes Firefox is installed and follows the default chosen in KDE
-  System Settings, including a replaced or removed one. The item shows the
-  resolved application's icon, launching, running markers, window actions and
-  media control keep receiving one real desktop id, and the resolved application
-  is still offered once in the application picker.
-- Start the first-run **Home** container with **Browse subfolders** off. Its
-  standard user folders are places to go, so a selected folder opens in the file
-  manager instead of replacing the listing; Downloads, containers added later
-  and every stored profile keep their own value.
-- Show one emphasis band at a time in the dock menu, the container menu and the
-  folder arc. These rows have no durable selection, so the pointer and the
-  keyboard now share a single band: the surface that receives both publishes
-  `pointerEmphasis`, real pointer motion takes the band, a Tab, Backtab or
-  Shortcut focus reason releases it, and every row binds its hover and focus fill
-  through that flag. Opening a popup with the pointer forwards the pointer's
-  focus reason instead of forcing `Qt.TabFocusReason`, which used to paint a
-  keyboard band under a pointer that had not moved. `emphasis_contract` fails the
-  build when a row drops the gate or when the initial focus hardcodes a keyboard
-  reason.
-- Restore the container context menu. The menu read a self-referencing settings
-  property, so the folder section (sort, presentation and open actions) and the
-  menu motion were missing; the popup now reads the dock settings.
-- Add per-screen and per-desktop placement. Every connected screen owns a dock
-  window backed by one shared runtime: the application catalog, window backend,
-  update tracker, Trash state and KWin minimize controller are created once
-  instead of once per screen. **Screens and desktops** in General chooses all
-  connected screens (default) or a multi-selection, keeps the configured screen
-  selected across hot-plug, and falls back to the system primary screen while no
-  selected screen is connected. The dock no longer follows the screen where it
-  happens to be launched.
-- Keep the placement controls in the established single-column card
-  distribution. The settings window uses the macOS-derived 54u × 38u Kirigami
-  reference (screen-capped, 14u minimum) and reinstalls it whenever it is
-  opened, so a compositor-remembered or dragged size cannot replace it. Pages
-  scroll inside the reference instead of resizing the window when optional
-  screen, desktop or activity rows appear. Pages use the shared thin
-  `PunchiPopupScrollBar` (no trough) kept visible at rest, anchored to the reserved
-  right gutter; scrolling and the indicator remain, but the vertical groove line
-  no longer crosses the cards. Each selection list sits directly below its
-  selector with a small caption, so the generated options are no longer one
-  unordered block. An unplugged saved screen stays visible as **Not connected**,
-  and the screen showing the dock meanwhile is marked **Fallback** instead of
-  the card looking as if the missing monitor were still selected. With one
-  connected screen, **Show dock on** and its screen list are hidden when they
-  offer no choice; the saved profile is unchanged, and the row returns when a
-  second screen is connected or a saved selection needs the **Not connected** /
-  **Fallback** explanation.
-- Add virtual-desktop and KDE activity visibility. All desktops and activities
-  are visible by default; selecting specific ones hides the dock on the others
-  without reserving screen space, without registering the edge reveal trigger,
-  and without closing the window, so returning to an allowed desktop restores
-  the configured mode. An optional switch makes running markers and transient
-  rows follow the current desktop and activity while pinned items stay visible.
-  The window backend now publishes `activities` and `currentDesktopIds` from the
-  active desktop/activity. Without that backend, filtering degrades to "all".
-- Keep the dock visible when its configured edge borders another screen and
-  `avoidInnerEdgeAutoHide` is enabled: an edge mode would have no free strip to
-  reveal from, so that dock stays visible while other screens keep their mode.
-- Move the dock command surface into one `PunchiDockIpc` coordinator. The previous
-  `dock` methods keep working on the primary screen, and `screenKeys`,
-  `snapshotFor`, `revealFor` and `focusFor` address a specific screen.
-- Bump the saved profile to version 12 with `screenMode`, `selectedScreens`,
-  `desktopMode`, `selectedDesktops`, `activityMode`, `selectedActivities`,
-  `runningMarkersFollowDesktop` and `avoidInnerEdgeAutoHide`. Version 11 profiles
-  load with the new defaults, and imported profiles validate every new field.
-- Add a **Profile** category that imports and exports a portable JSON profile of
-  dock items, folder containers and preferences. `config/PunchiDefaultProfile.js` is
-  now the single first-run source for the launcher catalogue, pinned order,
-  containers and preferences, so a fresh install and **Reset defaults** use the
-  same data. Import accepts the portable document or a raw saved profile,
-  validates every field, previews the result and keeps it pending until Apply or
-  Accept. A profile carries data only, never executable JavaScript, autostart,
-  KDE configuration or user files. The selected file must be a regular UTF-8
-  file of at most 256 KiB; exports are written atomically with owner-only
-  permissions and a symbolic link is never overwritten. The card states what a
-  profile includes and what it leaves out. Applying a profile now
-  writes the settings file once instead of once per property.
-- Add a built-in **Home** folder container to the first-run profile. It sits
-  between Konsole and Firefox, uses `user-home`, opens as Fan and sorts by name.
-  Home resolves through `QStandardPaths::HomeLocation` and lists only the
-  existing standard KDE/XDG user folders (Desktop, Documents, Downloads, Music,
-  Pictures, Public, Templates and Videos), so localized folder names and custom
-  `user-dirs.dirs` settings work on any KDE account. The filter turns off when
-  navigating into one of those folders. Downloads keeps its Grid default before
-  Trash. Existing saved profiles keep their containers and pin order.
-- Adopt release-based versioning. Pending changes accumulate here; a release
-  moves them under a dated heading and advances the version once. Documentation,
-  tests, CI and repository metadata alone do not change the version.
-- Update both READMEs to the current feature set, state that Punchi Dock
-  Remastered is the project's base, and add the **Made with love** dedication.
-- Refuse to install or launch outside KDE Plasma on Wayland at the point where
-  nothing has been written yet. Install and trial check the session before
-  building, name the detected desktop, distinguish *Plasma not installed* from
-  *Plasma installed but not the current session*, and ask once for confirmation
-  (`PUNCHI_ALLOW_NON_KDE=1` skips it). A session without a graphical display is
-  installed for later use instead of being blocked.
-- Report an unsupported session at startup with a native system dialog. The
-  guard shares one detection library with the setup assistant, names the detected
-  desktop and display server, covers a KDE session without Wayland, and exits
-  with status 3. `kdialog`, `zenity` and `xmessage` are tried in that order, the
-  same text always reaches stderr, the application-menu launcher does not repeat
-  the notice when the dialog was displayed and keeps its notification when no
-  dialog tool exists, `PUNCHI_NOTICE_DIALOG=0|1` controls the dialog, and the
-  desktop value is treated as untrusted input instead of being pathname-expanded.
-- Treat Ctrl+C and a session logout as a stop. The trial phase reports
-  `Run: Stopped` with the line `The trial stopped.`, a started dock reports
-  `The dock stopped.`, and the trial confirmation now reads as ending the trial
-  instead of removing "what the trial created". Nothing is reported as an exit
-  status failure for 130/143, the cleanup still runs, and the exit status is
-  preserved for `--test` callers.
-- Compress the dependency report. Build and trial phases print one summary row
-  per section with ready counts and expand only the missing items, without the
-  check title, the distribution line or the rules the phase line and the setup
-  header already provide, which turns a forty-eight line block into seven lines;
-  "Check runtime and build dependencies" keeps the full inventory, now laid out
-  in columns sized to the terminal and falling back to one item per line when the
-  window is narrow.
-- The dock background menu no longer opens with a stray divider. Its separator
-  before the `Dock` section was visible whenever the menu belonged to the dock
-  background, even with no row above it, so it drew a full-width line under the
-  surface border; it now depends only on the rows that really exist above it
-  (desktop entry actions, recent files, places, launch and pin actions).
-  `test_dockBackgroundMenuDoesNotOpenWithSeparator` keeps the leading case hidden
-  and still requires the divider once an action exists.
+- Add the fullscreen application menu: one overlay surface per screen, a dock row
+  that opens it, search across name, title and description, and alphabetical,
+  manual or category order.
+- Add continuous scrolling to the fullscreen menu, with a wheel gesture that
+  settles on the nearest row boundary, and keep the dock above the menu while it
+  is open.
+- Draw the menu close control with the user's window decoration and fall back to a
+  theme icon when it is unavailable.
+- Add per-screen and per-desktop placement: choose screens, virtual desktops and
+  activities, keep the selection across hot-plug, and fall back to the primary
+  screen while no selected screen is connected.
+- Add a built-in Home folder container and a recent-applications container with
+  Grid, List, Detail and Fan presentations.
+- Add a Profile category that imports and exports a portable JSON profile.
+- Resolve the first-run Browser item through KDE's preferred application instead
+  of assuming Firefox is installed.
+- Refuse to install or launch outside KDE Plasma on Wayland, and report an
+  unsupported session at startup with a native system dialog.
+- Add per-screen dock IPC commands alongside the existing primary-screen methods.
+
+### Changed
+
+- **Breaking:** Rename the public QML types to the `Punchi` prefix and empty the
+  naming baseline. The native `Punchi.Kde` module keeps its own class names.
+- Keep one emphasis band across the dock menu, container menu, folder arc and
+  fullscreen menu, shared by pointer and keyboard.
+- Persist every menu setting, including application order and the scroll bar, and
+  move menu settings into their own category.
+- Advance the profile schema to version 16. It adds per-screen, per-desktop and
+  per-activity placement, the recent-applications container presentation, the
+  application order and the menu scroll bar; version 15 profiles migrate
+  `menuShowPageArrows` to `menuShowScrollBar`.
+- Create one menu row delegate per section row instead of one per application, so
+  the fullscreen menu stays responsive with 1000 applications
+  ([#67](https://github.com/PunchiSoft/punchi-dock-quickshell/pull/67)).
+- Keep the placement controls in the single-column settings card and scroll long
+  pages inside the fixed window.
+- Compress the dependency report, ask one decision at a time, and install the
+  validation packages with the runtime and build groups.
+- Treat Ctrl+C and a session logout as a stop without reporting an exit-status
+  failure.
+- Load the dock on the KDE stack Debian 13 ships, including Qt 6.8, KF6 6.13 and
+  Plasma 6.3.
+
+### Fixed
+
+- Open the fullscreen menu at the top instead of at the last hovered cell.
+- Paint the keyboard selection in the fullscreen menu and let a pointer that
+  enters a cell continue keyboard navigation from there.
+- Restore the container context menu, and stop the dock background menu from
+  opening with a stray divider.
+- Start the first-run Home container with Browse subfolders off.
+- Correct the Debian runtime package mappings and offer the matching backports
+  source with explicit confirmation.
+- Name an invalid repository signature with the commands that correct the system
+  clock, and name the next step when no package map exists.
+- Load the settings user header with Kirigami Addons 1.16.
+- Keep the dock visible when its edge borders another screen and inner-edge
+  auto-hide leaves no strip to reveal from.
+- Restart the assistant after updating the checkout so the post-pull action reads
+  the new checkout.
 
 ## 0.1.47 — 2026-10-27
 
