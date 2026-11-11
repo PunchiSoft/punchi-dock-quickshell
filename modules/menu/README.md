@@ -2,7 +2,7 @@
 
 The fullscreen application menu (PunchiMenu). It is an overlay layer surface per
 screen: `PunchiMenuWindow` composes `PunchiMenuBackdrop`, `PunchiMenuHeader` and
-`PunchiMenuGrid`, and `PunchiMenuController` in `services/` decides which screen
+`PunchiMenuSections`, and `PunchiMenuController` in `services/` decides which screen
 owns the open surface.
 
 `PunchiMenuState` (in `services/`) owns the query, the page and the selection, so

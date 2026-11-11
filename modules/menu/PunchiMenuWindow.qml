@@ -166,7 +166,7 @@ PanelWindow {
                 onSearchFocusRequested: header.focusSearch()
             }
 
-            PunchiMenuGrid {
+            PunchiMenuSections {
                 id: grid
                 width: parent.width
                 height: Math.max(0, layout.height - header.height

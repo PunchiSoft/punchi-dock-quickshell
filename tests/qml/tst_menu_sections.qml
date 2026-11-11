@@ -7,7 +7,7 @@ import "../../services"
 
 TestCase {
     id: test
-    name: "PunchiMenuGrid"
+    name: "PunchiMenuSections"
     when: windowShown
     visible: true
     width: 900
@@ -34,7 +34,7 @@ TestCase {
 
     Component {
         id: fixture
-        PunchiMenuGrid {
+        PunchiMenuSections {
             width: 900
             height: 600
             active: true
@@ -50,7 +50,7 @@ TestCase {
     // The same grid with motion, so the page transition is observable.
     Component {
         id: motionFixture
-        PunchiMenuGrid {
+        PunchiMenuSections {
             width: 900
             height: 600
             active: true
