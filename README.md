@@ -74,18 +74,21 @@ validation.
 
 The captures show the dock and its windows on Fedora 44 with Plasma 6.8.2, KWin
 6.8.2 and Quickshell 0.2.1 on Wayland. The wallpaper, cursor and desktop theme
-are the maintainer's; the dock follows the active Plasma theme. The opaque menus
-are cropped to their own contour; the fan keeps the desktop behind its
-translucent surface. The System Settings capture is a native-menu reference: its
-KDE actions follow the menu Dolphin opens on right-click.
+are the maintainer's; the dock follows the active Plasma theme. The four settings
+captures correspond to the **General**, **Items**, **Popups** and **Menu**
+categories. Containers normally use Grid, List or Detail; Fan is an extra mode.
+The opaque popups are cropped to their own contour; the fan keeps the desktop
+behind its translucent surface. The System Settings menu is an example of
+the integrated native KDE menu, like the menu Dolphin opens on right-click; the
+Terminal example is in the capture index.
 
-| Menu settings | Dock items | Recent applications, Grid |
-|:---:|:---:|:---:|
-| <img src="assets/screenshots/settings-menu.png" width="330" alt="Menu settings with Application order set to Alphabetical and Scroll bar off"> | <img src="assets/screenshots/settings-items.png" width="330" alt="Dock item list with Add Item and the ordering controls"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Recent applications container shown as a grid of application icons"> |
+| Settings: General | Settings: Items | Settings: Popups | Settings: Menu |
+|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/settings-general.png" width="240" alt="General settings with size, magnification, position and recent applications"> | <img src="assets/screenshots/settings-items.png" width="240" alt="Dock item list with Add Item and the ordering controls"> | <img src="assets/screenshots/settings-popups.png" width="240" alt="Popup settings with size, height and icon size for Grid, List and Fan"> | <img src="assets/screenshots/settings-menu.png" width="240" alt="Menu settings with Application order set to Alphabetical and Scroll bar off"> |
 
-| View content as | Home as a fan | System Settings, native reference |
-|:---:|:---:|:---:|
-| <img src="assets/screenshots/container-view-menu.png" width="190" alt="Container context menu offering Grid, List, Detail and Fan"> | <img src="assets/screenshots/fan-view.png" width="130" alt="Home container shown as a fan of the standard user folders"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="System Settings dock menu whose KDE actions follow the native menu, like Dolphin's right-click menu"> |
+| Recent applications, Grid | View content as | Fan, extra mode | Native KDE menu |
+|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/recent-applications-grid.png" width="260" alt="Recent applications container shown as a grid of application icons"> | <img src="assets/screenshots/container-view-menu.png" width="180" alt="Popup layout selector offering Grid, List, Detail and the extra Fan mode"> | <img src="assets/screenshots/fan-view.png" width="110" alt="Home container in the extra Fan popup mode"> | <img src="assets/screenshots/context-system-settings.png" width="180" alt="Integrated native KDE menu on the System Settings dock item, like Dolphin's right-click menu"> |
 
 [More captures and capture notes](assets/screenshots/README.md).
 

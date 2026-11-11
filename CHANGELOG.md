@@ -63,11 +63,12 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
   trim. The caption no longer says the launcher set is the default, because the
   recording uses the maintainer's. `assets/demo/README.md` records the
   environment and the exact ImageMagick command that rebuilds the file.
-- Both READMEs gain a screenshot gallery of the current interface: Menu settings,
-  the dock item list, the recent-applications container as a grid, the container
-  view selector, Home as a fan and the System Settings native-menu reference. The
-  opaque popups are cropped to their own contour with a transparent background;
-  the fan keeps the desktop behind its translucent surface.
+- Both READMEs gain a screenshot gallery of the current interface: the four
+  settings categories (General, Items, Popups and Menu), the recent-applications
+  container as a grid, the container view selector, the extra Fan mode and a
+  native KDE menu example. The opaque popups are cropped to their own contour
+  with a transparent background; the fan keeps the desktop behind its translucent
+  surface.
   `assets/screenshots/README.md` lists
   every capture with the Fedora 44 / Plasma 6.8.2 / KWin 6.8.2 / Qt 6.11.2 /
   Quickshell 0.2.1 environment, blurs the profile header in the settings captures

@@ -19,16 +19,18 @@ the active Plasma theme through the configured palette.
 | `settings-menu.png` | Menu appearance and behavior, including **Application order** (Alphabetical) and the **Scroll bar** switch, off by default. The profile header is blurred. |
 | `recent-applications-list.png` | Recent applications container in its first-run **List** presentation, cropped to the popup. |
 | `recent-applications-grid.png` | The same container in **Grid** presentation, cropped to the popup. |
-| `container-view-menu.png` | **View content as** with Grid, List, Detail and Fan, cropped to the menu. |
-| `fan-view.png` | Home container as a fan of the standard XDG user folders. The fan surface is translucent, so it keeps the blurred desktop behind it. |
-| `context-system-settings.png` | System Settings dock item, cropped to the menu. Its KDE actions follow the native menu, like the menu Dolphin opens on right-click. |
-| `context-terminal.png` | Terminal dock item with new window and new tab actions, cropped to the menu. |
+| `container-view-menu.png` | **View content as**: Grid, List and Detail, plus the extra **Fan** mode. |
+| `fan-view.png` | Home container in the extra **Fan** mode; Grid, List and Detail are the standard presentations. The fan surface is translucent, so it keeps the blurred desktop behind it. |
+| `context-system-settings.png` | Integrated native KDE menu example: the dock menu for System Settings, with its KDE actions. |
+| `context-terminal.png` | Integrated native KDE menu example: the dock menu for Terminal, with new window and new tab actions. |
 
 The opaque popups are cropped to their own contour with a transparent background,
 so the desktop does not show through the menu edges. The fan view is translucent
-by design and keeps the desktop it sits on. The System Settings capture is a
-native-menu reference: it is the dock's menu for that item, and its KDE actions
-follow the menu Dolphin opens on right-click.
+by design and keeps the desktop it sits on. The System Settings and Terminal
+captures only represent the integrated native KDE menu, like the menu Dolphin
+opens on right-click; they are not separate dock features. Containers use Grid,
+List and Detail normally; Fan is an extra mode available when the popup edge can
+host the arc, and a side dock presents a stored fan as Grid.
 
 ## Privacy and capture notes
 
