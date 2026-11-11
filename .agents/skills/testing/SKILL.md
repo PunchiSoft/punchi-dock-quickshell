@@ -6,7 +6,7 @@ license: GPL-3.0-or-later
 
 # Testing
 
-Read `docs/development.md` and the affected tests. Define observable behavior
+Read `docs-public/development.md` and the affected tests. Define observable behavior
 before selecting tests: a test exists to catch a named regression.
 
 ## Procedure
@@ -55,9 +55,10 @@ reason and an expiry date, and `flaky_quarantine` fails once that date passes. T
 CI run excludes quarantined tests from the blocking selection and re-runs them
 where a failure warns instead of failing the pipeline.
 
-A documentation-only change runs no test. READMEs, `docs/`, `AGENTS.md`, the
-changelog and skill prose are observed by no test, so a green suite is not
-evidence about them and an unbuilt tree is not a failure of the change. Add only
+A documentation-only change runs no test. READMEs, `docs-public/`,
+`docs-private/`, `AGENTS.md`, the changelog and skill prose are observed by no
+test, so a green suite is not evidence about them and an unbuilt tree is not a
+failure of the change. Add only
 the check whose input you edited, such as `project_foundation` for a skill's
 frontmatter or `component_naming` for `tests/naming-baseline.json`. Documentation
 shipped with code is validated as code.

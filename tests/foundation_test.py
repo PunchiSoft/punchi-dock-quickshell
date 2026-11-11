@@ -50,7 +50,9 @@ def main():
     assert catalogued == [skill.parent.name for skill in skills], \
         'Skill catalog does not match the skill directories'
     links = 0
-    for path in [root / 'README.md', root / 'AGENTS.md', *sorted((root / 'docs').rglob('*.md')),
+    for path in [root / 'README.md', root / 'AGENTS.md', root / 'CONTRIBUTING.md',
+                 *sorted((root / 'docs-public').rglob('*.md')),
+                 *sorted((root / 'docs-private').rglob('*.md')),
                  *sorted((root / '.agents').rglob('*.md'))]:
         content = path.read_text()
         assert all(line == line.rstrip() for line in content.splitlines()), path

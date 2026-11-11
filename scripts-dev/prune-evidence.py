@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """List or delete record evidence that no record cites and that has aged out.
 
-The rule lives in `docs/records/assets/README.md`: evidence a record cites is kept
-for as long as the record exists, and temporary captures nobody cites are removed
-after a retention window. This script enforces that window without ever touching a
-cited path.
+The rule lives in `docs-private/records/assets/README.md`: evidence a record cites
+is kept for as long as the record exists, and temporary captures nobody cites are
+removed after a retention window. This script enforces that window without ever
+touching a cited path.
 
-A file counts as cited when a Markdown file under `docs/` names it, names one of the
-directories that contain it, or links it with a relative path.
+A file counts as cited when a Markdown file under `docs-private/` names it, names
+one of the directories that contain it, or links it with a relative path.
 
 The default run only reports. Deletion needs `--apply`.
 """
@@ -19,7 +19,7 @@ import sys
 import time
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCS = ROOT / 'docs'
+DOCS = ROOT / 'docs-private'
 RECORDS = DOCS / 'records'
 ASSETS = RECORDS / 'assets'
 DEFAULT_DAYS = 7

@@ -186,8 +186,8 @@ Build failures
 Documentation
   README: $readme
 EOF
-    if [[ -d "$punchi_project_root/docs" ]]; then
-        printf '  Local development notes: %s\n' "$punchi_project_root/docs"
+    if [[ -d "$punchi_project_root/docs-private" ]]; then
+        printf '  Local development notes: %s\n' "$punchi_project_root/docs-private"
     fi
     cat <<EOF
 

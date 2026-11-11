@@ -3,7 +3,8 @@
 /dist/
 /target/
 /.qmlls.ini
-/docs/
+# Public documentation lives in docs-public/ and is tracked; this is the private record.
+/docs-private/
 /backup/
 /scratch/
 /kde-sdk/
@@ -26,4 +27,4 @@ __pycache__/
 CMakeUserPresets.json
 compile_commands.json
 .DS_Store
-# Keep public docs, skills, tests, and future Cargo.lock tracked.
+# Keep docs-public, skills, tests, and future Cargo.lock tracked.

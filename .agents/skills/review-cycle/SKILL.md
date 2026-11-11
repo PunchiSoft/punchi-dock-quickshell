@@ -10,8 +10,8 @@ Preserve the user's observations and recover related evidence before changing
 code. Separate confirmed findings, hypotheses, product choices, and future work.
 
 For substantial reviews, use the ignored
-`docs/records/reviews/review-YYYY-MM-DD-descriptor.md` with
-`docs/records/reviews/template.md`. Record reproduction, affected layer, plan,
+`docs-private/records/reviews/review-YYYY-MM-DD-descriptor.md` with
+`docs-private/records/reviews/template.md`. Record reproduction, affected layer, plan,
 implementation, validation, and attempts already tried. Keep personal evidence out of
 public docs.
 

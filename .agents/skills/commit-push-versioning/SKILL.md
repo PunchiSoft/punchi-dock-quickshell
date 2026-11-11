@@ -31,7 +31,7 @@ work. Do not advance the version for an ordinary commit.
   explicitly asks to prepare a release, move the `Unreleased` entries under a new
   `## <version> — <YYYY-MM-DD>` heading, choose the next Semantic Versioning
   number, and synchronize `project(... VERSION ...)` in `CMakeLists.txt`, the
-  About page, both READMEs, `AGENTS.md`, and the local `docs/versioning.md`
+  About page, both READMEs, `AGENTS.md`, and the local `docs-public/versioning.md`
   record. Keep configuration schema and QML module API versions independent.
 - Tests, documentation, skills, repository metadata, development tools, and
   comment-, formatting-, or wording-only changes do not require a version change

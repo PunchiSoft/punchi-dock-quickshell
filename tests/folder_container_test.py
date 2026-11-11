@@ -16,7 +16,7 @@ def main():
     capture = '--capture' in sys.argv[2:]
     evidence = None
     if capture:
-        assets = root / 'docs/records/assets/changes/change-2026-10-13-downloads-container-proposal'
+        assets = root / 'docs-private/records/assets/changes/change-2026-10-13-downloads-container-proposal'
         assets.mkdir(parents=True, exist_ok=True)
         evidence = Path(tempfile.mkdtemp(prefix='downloads-preview-', dir=assets))
     with tempfile.TemporaryDirectory(prefix='punchi-folders-') as temporary:

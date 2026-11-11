@@ -25,15 +25,36 @@ may change without migration.
 - Subjects use `feat:`, `fix:`, `docs:` or `chore:` followed by the observable
   change. Do not put a version number in a normal commit subject; the version is
   assigned when a release is prepared.
-- Add behavior changes under `## Unreleased` in `CHANGELOG.md`. Documentation,
-  tests, CI, skills and repository metadata do not require a changelog entry or
-  a version change.
 - When the maintainer prepares a release, move the `Unreleased` entries under a
   dated version heading and update `CMakeLists.txt`,
   `modules/settings/PunchiSettingsAbout.qml`, `README.md`, `README.es.md`,
-  `AGENTS.md` and the local `docs/versioning.md` record. The `project_version`
+  `AGENTS.md` and the published `docs-public/versioning.md` record. The `project_version`
   test fails when those declarations disagree with the newest dated changelog
   heading.
+
+## Changelog entries
+
+`CHANGELOG.md` is the public record of behavior changes. It uses the
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/) layout and the writing
+rules of [Common Changelog](https://common-changelog.org/). The changelog keeps
+the user-facing impact; the engineering detail belongs in the pull request
+description, or in the maintainer's local `docs-private/` record.
+
+- Add one entry per behavior a user can notice, under `## Unreleased`.
+- Group entries under `### Added`, `### Changed`, `### Fixed`, `### Removed`,
+  `### Deprecated` or `### Security`. Write only the categories that have content.
+- Write in the imperative mood, on one line: `Add ...`, `Fix ...`, `Remove ...`.
+  The entry must make sense without its heading.
+- Reference the pull request or issue as a link when one exists.
+- Prefix a breaking change with `**Breaking:**`: configuration schema, QML module
+  API and environment variables.
+- Keep class names, test names, file paths, measurements and validation notes out
+  of the entry. The engineering detail belongs in the pull request description or
+  the maintainer's local `docs-private/` record; the public file does not link
+  into it because a clone does not receive it.
+- Documentation, tests, CI, skills and repository metadata need no entry.
+- Do not add a version heading for an unreleased change. Only a release moves
+  `Unreleased` under a dated heading.
 
 ## Repository tree
 
@@ -52,7 +73,8 @@ may change without migration.
 | `cmake/` | CMake modules and templates | generated files |
 | `.agents/` | [AGENTS.md](AGENTS.md), the skills and their catalog | runtime code |
 | `.github/` | workflows and issue/pull-request templates | credentials |
-| `docs/` | local engineering record, ignored by Git | anything a build reads |
+| `docs-public/` | published documentation: architecture, development, roadmap and versioning | private evidence, dated records |
+| `docs-private/` | local engineering record: reference, stages, records and evidence, ignored by Git | anything a build reads |
 
 - Every layer directory carries a README that states what belongs to it, and a new
   subdirectory is added to that README's inventory.
@@ -61,8 +83,8 @@ may change without migration.
   allowlist entry.
 - Generated output, captures, credentials and build trees never live in a tracked
   directory.
-- `docs/` and every other ignored path never appears as a link target from a tracked
-  file, because a clone does not receive it.
+- `docs-private/` and every other ignored path never appears as a link target from a
+  tracked file, because a clone does not receive it.
 
 ## Local development
 
