@@ -33,14 +33,11 @@ PanelWindow {
         ? root.settings.reducedMotion : root.profileDefaults.reducedMotion)
     // Launchpad shows seven columns on a 1440x900 screen, and that ratio holds
     // on larger displays: the cell pitch grows, the count does not. The bounds
-    // shrink the grid on a small screen instead of clipping it. The listing
-    // scrolls continuously, so `gridRows` is only the number of whole rows a
-    // keyboard page moves at once.
+    // shrink the grid on a small screen instead of clipping it. The view
+    // computes the rows from its measured height, so the visible count follows
+    // the screen and a resting menu never cuts the last row.
     readonly property int gridColumns: Math.max(4, Math.min(7,
         Math.floor(Math.max(1, root.width) / (Kirigami.Units.gridUnit * 8))))
-    readonly property int gridRows: Math.max(3, Math.min(5,
-        Math.floor(Math.max(1, content.height - header.height)
-            / (Kirigami.Units.gridUnit * 6.5))))
     readonly property string distributionName: root.distribution
         ? String(root.distribution.name || "") : ""
     readonly property string distributionLogo: root.distribution
@@ -100,7 +97,6 @@ PanelWindow {
         id: menuState
         applications: root.applications
         columns: root.gridColumns
-        rows: root.gridRows
         applicationOrder: root.settings
             ? root.settings.menuApplicationOrder
             : root.profileDefaults.menuApplicationOrder

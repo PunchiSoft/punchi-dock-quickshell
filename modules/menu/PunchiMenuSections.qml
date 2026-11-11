@@ -50,8 +50,19 @@ FocusScope {
         * root.safeIconScale)
     readonly property real labelHeight: root.showLabels
         ? Math.ceil(Kirigami.Units.gridUnit * 1.4) : 0
-    readonly property real cellHeight: Math.max(Kirigami.Units.iconSizes.medium,
+    // The cell must hold the icon, its label and the padding. The grid then
+    // shares the available height between exactly the rows that fit, so a
+    // resting menu never cuts the last row and the count follows the screen.
+    readonly property real minimumCellHeight: Math.max(Kirigami.Units.iconSizes.medium,
         root.iconSize + root.labelHeight + Kirigami.Units.smallSpacing * 4)
+    readonly property int visibleRows: Math.max(1,
+        Math.floor(root.height / root.minimumCellHeight))
+    readonly property real cellHeight: Math.max(root.minimumCellHeight,
+        root.height / root.visibleRows)
+    // The state owns the keyboard page step; keep it on the same whole rows
+    // the viewport shows instead of a separate estimate.
+    onVisibleRowsChanged: if (root.menuState) root.menuState.rows = root.visibleRows
+    Component.onCompleted: if (root.menuState) root.menuState.rows = root.visibleRows
     readonly property real sectionHeaderHeight: Kirigami.Units.gridUnit * 1.6
     // The gap above a heading separates two sections without adding every row to
     // a spacing property that would also separate rows inside one section.
@@ -102,6 +113,9 @@ FocusScope {
     // nearest row boundary so a resting menu never shows half a cell.
     function scheduleSnap(): void {
         if (!root.active) return
+        // A new gesture takes the list back from the settle animation instead
+        // of letting the old target fight the wheel.
+        snapAnimation.stop()
         snapTimer.restart()
     }
     function snapToRow(): void {
@@ -270,13 +284,18 @@ FocusScope {
 
     NumberAnimation {
         id: snapAnimation
+        objectName: "menuSnapAnimation"
         target: sectionList
         property: "contentY"
-        duration: root.motionEnabled ? 120 : 0
+        // A bounded settle with a known target; the theme duration keeps it
+        // consistent with the rest of the shell instead of a custom 120 ms.
+        duration: root.motionEnabled ? Kirigami.Units.longDuration : 0
         easing.type: Easing.OutCubic
     }
     Timer {
         id: snapTimer
+        // Long enough to absorb a trackpad gesture, short enough that the list
+        // still feels attached to the hand.
         interval: 300
         repeat: false
         onTriggered: root.snapToRow()
