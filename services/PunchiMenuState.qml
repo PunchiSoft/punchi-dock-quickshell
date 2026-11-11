@@ -118,6 +118,31 @@ QtObject {
                 result.push(application)
         return result
     }
+    // Rows the view virtualizes: one heading row per named section and one row
+    // of at most `columns` applications. The delegate count therefore follows
+    // the viewport, not the catalogue, and a section of 500 applications never
+    // becomes 500 delegates. `index` is the flat index into `filtered`.
+    readonly property var displayRows: {
+        const result = []
+        const columns = Math.max(1, root.columns)
+        for (let sectionIndex = 0; sectionIndex < root.sections.length; ++sectionIndex) {
+            const section = root.sections[sectionIndex]
+            if (String(section.categoryId || "").length > 0)
+                result.push({kind: "header", categoryId: section.categoryId,
+                    sectionIndex: sectionIndex, start: section.start})
+            for (let offset = 0; offset < section.members.length; offset += columns) {
+                const members = []
+                const end = Math.min(section.members.length, offset + columns)
+                for (let member = offset; member < end; ++member)
+                    members.push({application: section.members[member],
+                        index: section.start + member})
+                result.push({kind: "row", sectionIndex: sectionIndex,
+                    rowIndex: offset / columns, start: section.start + offset,
+                    members: members})
+            }
+        }
+        return result
+    }
     readonly property int sectionCount: root.sections.length
     readonly property int currentSectionIndex: {
         const position = root.sectionPosition(root.currentIndex)
@@ -132,6 +157,22 @@ QtObject {
     onFilteredChanged: root.resetPosition()
     onColumnsChanged: root.resetPosition()
 
+    // The display row that contains a flat application index, used by the view
+    // to reveal the keyboard selection without measuring the content.
+    function displayRowFor(index: int): int {
+        const columns = Math.max(1, root.columns)
+        let row = 0
+        for (let sectionIndex = 0; sectionIndex < root.sections.length; ++sectionIndex) {
+            const section = root.sections[sectionIndex]
+            if (String(section.categoryId || "").length > 0) ++row
+            const sectionRows = Math.ceil(section.members.length / columns)
+            const offset = index - section.start
+            if (offset >= 0 && offset < section.members.length)
+                return row + Math.min(sectionRows - 1, Math.floor(offset / columns))
+            row += sectionRows
+        }
+        return Math.max(0, row - 1)
+    }
     // Where a flat index sits in the sectioned listing.
     function sectionPosition(index: int): var {
         const list = root.sections
