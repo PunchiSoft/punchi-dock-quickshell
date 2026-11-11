@@ -212,6 +212,7 @@ FocusScope {
 
             Grid {
                 id: sectionGrid
+                objectName: "menuSectionGrid"
                 anchors.top: sectionDelegate.heading.length > 0
                     ? headerRow.bottom : parent.top
                 anchors.left: parent.left
@@ -219,7 +220,11 @@ FocusScope {
                 // same column pitch, even when the section has one row only.
                 width: root.availableWidth
                 columns: root.columnCount
-                rows: root.sectionRows(sectionDelegate.modelData)
+                // `rows` stays unset: it is only a hint for a fixed-capacity
+                // grid, and a recycled delegate can repopulate its children
+                // before a recomputed hint arrives, which Qt reports as "more
+                // visible items than rows*columns". The delegate height already
+                // owns the row count through `sectionRows()`.
                 columnSpacing: Kirigami.Units.smallSpacing
                 rowSpacing: 0
 
