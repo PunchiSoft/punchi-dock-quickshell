@@ -37,6 +37,7 @@ Should trigger:
 | 9 | "borrá el popup viejo y sus restos" | `safe-removal-review` | imperative deletion with implicit consumer checks |
 | 10 | "the popup row and the selected row look the same" | `selection-emphasis` | visual complaint, not a state-model term |
 | 11 | "voy a empezar esto, armame la rama" | `branch-baseline` | asks for a branch, never mentions `main` or the base |
+| 23 | "el menú se traba cuando tengo 500 aplicaciones" | `performance-budget` | a symptom report, not the word optimization or a delegate |
 
 Should not trigger, near misses:
 
@@ -53,6 +54,7 @@ Should not trigger, near misses:
 | 20 | "summarize what changed in 0.1.45" | `code-review` | changelog reading, no diff review |
 | 21 | "does this animation look good to you?" | `motion-review` | aesthetic opinion, no audit requested |
 | 22 | "mergeá esta rama en main" | `branch-baseline` | `main` appears, but the task is a merge request |
+| 24 | "¿por qué Qt Quick crea todos los ítems de un Repeater?" | `performance-budget` | general Qt knowledge, no change or budget to set |
 
 ## Recording
 

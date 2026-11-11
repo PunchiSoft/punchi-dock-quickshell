@@ -23,6 +23,7 @@ Quickshell-specific workflows are new.
 | [motion-design](motion-design/SKILL.md) | Interaction policy and animation resolved together | input behaviour and motion must be fixed together | `animations`, `fluid-motion` |
 | [motion-review](motion-review/SKILL.md) | Read-only motion audit with the MOTION catalog | existing motion is reviewed | `animations` |
 | [notice-copy-approval](notice-copy-approval/SKILL.md) | Wording and emphasis approval before copy ships | a notice, tooltip or help text would reach the user | - |
+| [performance-budget](performance-budget/SKILL.md) | Load budgets, virtualized delegates, worst-case measurement | a view, delegate, model or data source is added or changed, or a surface lags with many items | `qml-ui-creation`, `testing` |
 | [pr-delivery](pr-delivery/SKILL.md) | Pull request body, validation evidence, close | the user asks to open, update or check a pull request | `code-review`, `verification-before-completion` |
 | [preflight-security-review](preflight-security-review/SKILL.md) | Untrusted input, side effects, secrets, publication | a change reads external data, launches or publishes | `safe-removal-review` |
 | [publication-review](publication-review/SKILL.md) | Repository content, history and settings audit | visibility changes or a public mirror is created | `preflight-security-review` |
