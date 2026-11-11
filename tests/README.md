@@ -57,8 +57,8 @@ their rule is broken:
   them after success, failure, signal and timeout. No test instance stays running.
 - A test never reads or changes the user's real configuration, and never closes a dock
   the developer started by hand.
-- Captures are explicit: `--capture` writes into
-  `docs-private/records/assets/`, and a normal run leaves no artifact.
+- Captures are explicit: `--capture` writes into the private evidence record, and
+  a normal run leaves no artifact.
 - Existing behavioral tests are protected. Diagnose production code first; removing,
   disabling or weakening a test needs explicit authorization.
 - Keep one file per behavior area and the name of the behavior, not of the widget.

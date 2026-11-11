@@ -22,7 +22,7 @@ and QML module API versions are separate contracts.
 
 `CHANGELOG.md` is the public, curated record of behavior changes. It follows the
 Keep a Changelog layout with the Common Changelog writing rules; the private
-`docs-private/` record keeps the engineering detail. Common Changelog has no `Unreleased`
+development record keeps the engineering detail. Common Changelog has no `Unreleased`
 section and requires a tag per release, so the project takes its writing rules
 only. The two records do not duplicate each other: the changelog states the
 impact, the record states the evidence.
@@ -38,7 +38,7 @@ heading. One entry covers one user-visible behavior, and related commits merge
 into it. Each entry references the pull request or issue when one exists.
 `**Breaking:**` opens its category for configuration schema, QML module API and
 environment variable changes. Class names, test names, paths, timings and
-validation notes belong in `docs-private/records/changes/`, not in the changelog.
+validation notes belong in the private development record, not in the changelog.
 
 Documentation, tests, CI, skills and repository metadata do not get an entry. A
 version heading is added only when a release is prepared; unreleased work stays

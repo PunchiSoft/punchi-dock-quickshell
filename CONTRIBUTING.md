@@ -38,7 +38,7 @@ may change without migration.
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) layout and the writing
 rules of [Common Changelog](https://common-changelog.org/). The changelog keeps
 the user-facing impact; the engineering detail belongs in the pull request
-description, or in the maintainer's local `docs-private/` record.
+description, or in the maintainer's local engineering record.
 
 - Add one entry per behavior a user can notice, under `## Unreleased`.
 - Group entries under `### Added`, `### Changed`, `### Fixed`, `### Removed`,
@@ -50,8 +50,8 @@ description, or in the maintainer's local `docs-private/` record.
   API and environment variables.
 - Keep class names, test names, file paths, measurements and validation notes out
   of the entry. The engineering detail belongs in the pull request description or
-  the maintainer's local `docs-private/` record; the public file does not link
-  into it because a clone does not receive it.
+  the maintainer's local engineering record; the public file does not link into
+  it because a clone does not receive it.
 - Documentation, tests, CI, skills and repository metadata need no entry.
 - Do not add a version heading for an unreleased change. Only a release moves
   `Unreleased` under a dated heading.
@@ -74,7 +74,9 @@ description, or in the maintainer's local `docs-private/` record.
 | `.agents/` | [AGENTS.md](AGENTS.md), the skills and their catalog | runtime code |
 | `.github/` | workflows and issue/pull-request templates | credentials |
 | `docs-public/` | published documentation: architecture, development, roadmap and versioning | private evidence, dated records |
-| `docs-private/` | local engineering record: reference, stages, records and evidence, ignored by Git | anything a build reads |
+
+The local engineering record and its evidence are ignored by Git and are never
+read by a build.
 
 - Every layer directory carries a README that states what belongs to it, and a new
   subdirectory is added to that README's inventory.
@@ -83,8 +85,8 @@ description, or in the maintainer's local `docs-private/` record.
   allowlist entry.
 - Generated output, captures, credentials and build trees never live in a tracked
   directory.
-- `docs-private/` and every other ignored path never appears as a link target from a
-  tracked file, because a clone does not receive it.
+- The local engineering record and every other ignored path never appears as a
+  link target from a tracked file, because a clone does not receive it.
 
 ## Local development
 

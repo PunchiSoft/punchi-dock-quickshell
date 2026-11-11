@@ -410,16 +410,14 @@ KWin uses for desktop-shell classification separately from Top/Bottom layers.
 
 The physical map of the repository is the `Repository tree` section of the tracked
 `CONTRIBUTING.md`, so it exists in every clone; this document explains behavior, not
-paths. The published documentation is tracked under `docs-public/`; only the
-private record is ignored:
+paths. Published documentation is tracked under `docs-public/`; the local
+engineering record and these paths are ignored:
 
 | Ignored path | Purpose |
 | --- | --- |
-| `docs-private/` | private engineering record: `reference/`, `stages/`, `records/` and evidence assets |
 | `build/build-<ID>/` | one build tree per distribution; `build/dev` for the preset |
 | `scratch/`, `backup/` | disposable local work and safety copies |
 | `.qmlls.ini` | editor QML language-server metadata, regenerated on demand |
 
-`docs-public/README.md` indexes the published documents, `docs-private/README.md`
-the private record, `docs-private/records/README.md` the record kinds and
-`docs-private/records/assets/README.md` the evidence and its retention window.
+`docs-public/README.md` indexes the published documents. The local engineering
+record keeps its own index, record kinds and evidence retention rule.
