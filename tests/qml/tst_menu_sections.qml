@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as Controls
 import QtTest
+import org.kde.kirigami as Kirigami
 import "../../modules/menu"
 import "../../services"
 
@@ -84,6 +85,22 @@ TestCase {
         }
     }
 
+    // Taller viewport: three whole rows must tile it without a partial row.
+    Component {
+        id: tallFixture
+        PunchiMenuSections {
+            width: 900
+            height: 600
+            active: true
+            motionEnabled: false
+            menuState: PunchiMenuState {
+                applications: test.catalogue
+                columns: 3
+                applicationOrder: "alphabetical"
+            }
+        }
+    }
+
     function init(): void {
         failOnWarning(/.*/)
     }
@@ -134,6 +151,21 @@ TestCase {
         verify(tile !== null)
         // Dolphin is the alphabetically first application in the fixture.
         compare(tile.title, "Dolphin")
+    }
+
+    function test_visibleRowsFillTheViewportWithoutCuttingTheLastRow() {
+        const view = createTemporaryObject(tallFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(50)
+        // The flat listing has no headings, so the rows tile the viewport.
+        compare(view.visibleRows, 3)
+        compare(Math.round(view.visibleRows * view.cellHeight), Math.round(view.height))
+        compare(view.menuState.rows, view.visibleRows)
+        const lastRowTop = view.rowTop(view.visibleRows - 1)
+        verify(lastRowTop + view.cellHeight <= list.height + 0.5)
+        verify(lastRowTop + view.cellHeight >= list.height - 0.5)
     }
 
     function test_scrollBarFollowsTheStoredPreference() {
@@ -202,9 +234,22 @@ TestCase {
         list.contentY = start + view.cellHeight / 2
         wait(20)
         view.snapToRow()
-        wait(80)
-        verify(isRowBoundary(view, list.contentY))
+        // The settle uses the theme duration, so wait for the boundary instead
+        // of assuming a fixed 120 ms.
+        tryVerify(function() { return isRowBoundary(view, list.contentY) }, 1500)
         verify(list.contentY > 0)
+    }
+
+    function test_snapUsesTheThemeDuration() {
+        const view = createTemporaryObject(defaultFixture, test)
+        verify(view !== null)
+        const snap = findChild(view, "menuSnapAnimation")
+        verify(snap !== null)
+        // The fixture starts with motion disabled for determinism.
+        view.motionEnabled = true
+        compare(snap.duration, Kirigami.Units.longDuration)
+        view.motionEnabled = false
+        compare(snap.duration, 0)
     }
 
     function test_reopenStartsAtTheTop() {
