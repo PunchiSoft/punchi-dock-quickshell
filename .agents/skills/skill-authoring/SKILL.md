@@ -41,7 +41,7 @@ still changes behavior.
 - Body: under 500 lines, ideally under 150, procedure first.
 - References: one level inside the skill or in the shared folder.
 - Bundle a script only when the same logic is rebuilt on every run; a command
-  copied from `docs/development.md` stays a command.
+  copied from `docs-public/development.md` stays a command.
 
 ## Gotchas
 

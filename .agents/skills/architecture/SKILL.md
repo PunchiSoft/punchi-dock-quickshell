@@ -18,7 +18,7 @@ output, and an explicit consumer.
 3. Check whether Quickshell or KDE already provides it. A provider is not
    wrapped merely to reproduce the diagram.
 4. Confirm the dependency direction you are about to add is already recorded in
-   `docs/architecture.md`.
+   `docs-public/architecture.md`.
 5. Add `adapters/kde/` only for a verified capability gap, and record the gap,
    the tested version, the fallback, and the evidence.
 6. Extract by responsibility when a file passes roughly 300-400 lines, never by
@@ -43,7 +43,7 @@ Renaming a type is its own change:
 
 1. List the file, its importers and its consumers first
    (`grep -rn 'OldName' --include=*.qml`), including fixtures under `tests/` and
-   references in `docs/`.
+   references in `docs-public/` and `docs-private/`.
 2. `git mv` the file so the history follows the rename.
 3. Update the type references. Do not add a baseline entry to quiet the check;
    the baseline stays empty.
@@ -55,7 +55,7 @@ Renaming a type is its own change:
 
 Keep root composition small, views declarative, providers independent of
 visuals, and desktop integrations behind capability-aware adapters. Read
-`docs/architecture.md`. Do not create unused layers or catch-all managers.
+`docs-public/architecture.md`. Do not create unused layers or catch-all managers.
 Document dependency changes and preserve safe coexistence with Plasma.
 
 Apply the native-first boundary from `kde-integration`: use existing Quickshell
@@ -90,4 +90,4 @@ type without the `Punchi` prefix, on a reserved QtQuick.Controls name and on a
 stale `tests/naming-baseline.json` entry.
 
 - The ownership statement names exactly one consumer per output.
-- `docs/architecture.md` matches the tree; a stale record is a defect.
+- `docs-public/architecture.md` matches the tree; a stale record is a defect.

@@ -41,10 +41,11 @@ needed and which ones actually ran.
 
 ## Documentation-only changes
 
-A change that edits only prose — READMEs, `CHANGELOG.md`, `docs/`, `AGENTS.md`,
-skill text, code comments — needs no evidence level: no test reads prose, so a
-suite result is not evidence about it. Report it as reviewed prose, state that no
-test ran and why, and never present an unrelated green suite as proof.
+A change that edits only prose — READMEs, `CHANGELOG.md`, `docs-public/`,
+`docs-private/`, `AGENTS.md`, skill text, code comments — needs no evidence level:
+no test reads prose, so a suite result is not evidence about it. Report it as
+reviewed prose, state that no test ran and why, and never present an unrelated
+green suite as proof.
 
 The exception is a file a test parses. A skill's frontmatter, a fixture, a
 baseline or a configuration a test reads gets that single test, never the suite.

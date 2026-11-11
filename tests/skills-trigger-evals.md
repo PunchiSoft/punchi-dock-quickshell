@@ -58,7 +58,8 @@ Should not trigger, near misses:
 
 ## Recording
 
-Keep the run record in the local `docs/records/audits/` note for the change. Record the
-client, model, date, per-query score, and the description that changed. A
+Keep the run record in the local `docs-private/records/audits/` note for the
+change. Record the client, model, date, per-query score, and the description that
+changed. A
 trigger rate below threshold is evidence about the description, not about the
 query.

@@ -22,8 +22,8 @@ def table_row(text, expected):
     return expected if re.search(rf'^\| {re.escape(expected)} \|', text, re.M) else None
 
 
-# Every declaration mirrors the authoritative released version. The local
-# record is optional so the check also runs on a checkout without docs/.
+# Every declaration mirrors the authoritative released version. The published
+# versioning record is tracked, so the check requires it.
 DECLARATIONS = (
     ('CMakeLists.txt',
      capture(re.compile(rf'project\(punchi-dock-quickshell VERSION ({VERSION})')), True),
@@ -39,7 +39,7 @@ DECLARATIONS = (
      capture(re.compile(rf'applicationVersion: "({VERSION})"')), True),
     ('tests/runtime/application-items/tst_settings_window.qml',
      capture(re.compile(rf'Punchi Dock Quickshell ({VERSION})')), True),
-    ('docs/versioning.md', table_row, False),
+    ('docs-public/versioning.md', table_row, True),
 )
 
 

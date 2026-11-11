@@ -818,8 +818,9 @@ validación actual y las carencias conocidas.
 Esta configuración QML se ejecuta en Quickshell. CMake compila los adaptadores
 nativos de KDE y organiza la validación. Consulta [AGENTS.md](AGENTS.md) para las
 reglas del proyecto y [CONTRIBUTING.md](CONTRIBUTING.md) para el flujo de ramas y
-evidencia. Configura y compila con el preset compartido, y ejecuta el grafo sin
-compositor:
+evidencia. Los documentos publicados de arquitectura, desarrollo, hoja de ruta y
+versiones están en [docs-public/README.md](docs-public/README.md). Configura y
+compila con el preset compartido, y ejecuta el grafo sin compositor:
 
 ```bash
 cmake --preset dev

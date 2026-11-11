@@ -184,7 +184,7 @@ that observe contracts; do not raise baselines or hide new diagnostics.
 
 ## Validation and records
 
-The actual developer workflow is documented in the local `docs/development.md`.
+The actual developer workflow is documented in `docs-public/development.md`.
 After implementation, configure/build the validation graph, run complete CTest,
 then run relevant real-session checks. `cmake --preset dev` and
 `ctest --preset headless` are the compositor-free route; every CTest entry carries
@@ -194,11 +194,12 @@ real Quickshell loading, visual inspection, and desktop compatibility are separa
 levels of evidence. Never present offscreen success as visual or KWin validation.
 
 Classify the change before validating it. A change that edits only prose —
-READMEs, `CHANGELOG.md`, `docs/`, `AGENTS.md`, skill text, code comments — runs no
-build, lint or test: no test observes prose, so a result proves nothing about the
-change and running one only spends time. Run the single check whose input you
-actually touched, for example `project_foundation` after a skill's frontmatter or
-`component_naming` after `tests/naming-baseline.json`, and nothing more. A change
+READMEs, `CHANGELOG.md`, `docs-public/`, `docs-private/`, `AGENTS.md`, skill text,
+code comments — runs no build, lint or test: no test observes prose, so a result
+proves nothing about the change and running one only spends time. Run the single
+check whose input you actually touched, for example `project_foundation` after a
+skill's frontmatter or `component_naming` after `tests/naming-baseline.json`, and
+nothing more. A change
 that alters code, build registration or a file a test parses follows the normal
 route, and a documentation update shipped with code follows the code.
 
@@ -211,13 +212,18 @@ instance running. An instance the user started before the test is not a test
 instance and must be left untouched.
 
 Public `README.md`, `README.es.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
-`SUPPORT.md`, `CODE_OF_CONDUCT.md`, `NOTICE.md`, skills and tests are tracked.
-`docs/` is the local development record and is not published with the repository;
-it is also its own single record root, with dated records under `docs/records/`.
-SDK trees, build output, credentials and local diagnostics stay ignored. New record directories
-have an index and a template when they host a repeatable workflow. Record durable
-architecture changes in `CHANGELOG.md` and the local `docs/` record; no private
-evidence goes in tracked files.
+`SUPPORT.md`, `CODE_OF_CONDUCT.md`, `NOTICE.md`, skills, tests and the published
+documentation under `docs-public/` are tracked. `docs-public/` holds the
+architecture, development, roadmap and versioning documents. `docs-private/` is
+the local development record and is not published with the repository; it is also
+its own single record root, with the surface reference under
+`docs-private/reference/`, dated stage records under `docs-private/stages/`,
+dated records under `docs-private/records/` and evidence under
+`docs-private/records/assets/`. SDK trees, build output, credentials and
+local diagnostics stay ignored. New record directories have an index and a
+template when they host a repeatable workflow. Record durable architecture changes
+in `CHANGELOG.md` and the local `docs-private/` record; no private evidence goes in
+tracked files.
 
 GitHub-ready files do not authorize a remote, commit, push, tag, or release.
 Do not restart or terminate Plasma as part of testing or restoring this prototype.
@@ -231,7 +237,8 @@ when a release is prepared.
 Prepare a release when the user requests one: move the `Unreleased` entries under
 a new `## <version> — <YYYY-MM-DD>` heading, choose the next Semantic Versioning
 number (`MAJOR.MINOR.PATCH`), and update `CMakeLists.txt`, the About page, both
-READMEs, `AGENTS.md` and the local `docs/versioning.md` record consistently.
+READMEs, `AGENTS.md` and the published `docs-public/versioning.md` record
+consistently.
 Every release advances the version once, regardless of how many commits or
 features it contains. Before `1.0.0`, a MINOR release may contain breaking
 changes; a PATCH release contains compatible fixes.
