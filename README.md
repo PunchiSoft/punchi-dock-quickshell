@@ -74,17 +74,18 @@ validation.
 
 The captures show the dock and its windows on Fedora 44 with Plasma 6.8.2, KWin
 6.8.2 and Quickshell 0.2.1 on Wayland. The wallpaper, cursor and desktop theme
-are the maintainer's; the dock follows the active Plasma theme. The small context
-menus are the dock's own menus; they follow the native KDE actions used as
-references.
+are the maintainer's; the dock follows the active Plasma theme. The opaque menus
+are cropped to their own contour; the fan keeps the desktop behind its
+translucent surface. The System Settings capture is a native-menu reference: its
+KDE actions follow the menu Dolphin opens on right-click.
 
-| Menu settings | Recent applications, Grid | View content as |
+| Menu settings | Dock items | Recent applications, Grid |
 |:---:|:---:|:---:|
-| <img src="assets/screenshots/settings-menu.png" width="330" alt="Menu settings with Application order set to Alphabetical and Scroll bar off"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Recent applications container shown as a grid of application icons"> | <img src="assets/screenshots/container-view-menu.png" width="190" alt="Container context menu offering Grid, List, Detail and Fan"> |
+| <img src="assets/screenshots/settings-menu.png" width="330" alt="Menu settings with Application order set to Alphabetical and Scroll bar off"> | <img src="assets/screenshots/settings-items.png" width="330" alt="Dock item list with Add Item and the ordering controls"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Recent applications container shown as a grid of application icons"> |
 
-| Home as a fan | System Settings context menu | Terminal context menu |
+| View content as | Home as a fan | System Settings, native reference |
 |:---:|:---:|:---:|
-| <img src="assets/screenshots/fan-view.png" width="130" alt="Home container shown as a fan of the standard user folders"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="System Settings dock item with KDE actions"> | <img src="assets/screenshots/context-terminal.png" width="190" alt="Terminal dock item with new window and new tab actions"> |
+| <img src="assets/screenshots/container-view-menu.png" width="190" alt="Container context menu offering Grid, List, Detail and Fan"> | <img src="assets/screenshots/fan-view.png" width="130" alt="Home container shown as a fan of the standard user folders"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="System Settings dock menu whose KDE actions follow the native menu, like Dolphin's right-click menu"> |
 
 [More captures and capture notes](assets/screenshots/README.md).
 

@@ -14,18 +14,21 @@ the active Plasma theme through the configured palette.
 | File | Shows |
 | --- | --- |
 | `settings-general.png` | Dock size, magnification, position, visibility, updates and recent applications. The profile header is blurred. |
+| `settings-items.png` | Dock item list with **Add Item**, ordering and removal. The profile header is blurred. |
 | `settings-popups.png` | Popup appearance and behavior. The profile header is blurred. |
 | `settings-menu.png` | Menu appearance and behavior, including **Application order** (Alphabetical) and the **Scroll bar** switch, off by default. The profile header is blurred. |
-| `recent-applications-list.png` | Recent applications container in its first-run **List** presentation. |
-| `recent-applications-grid.png` | The same container in **Grid** presentation. |
-| `container-view-menu.png` | **View content as** with Grid, List, Detail and Fan. |
-| `fan-view.png` | Home container as a fan of the standard XDG user folders. |
-| `context-system-settings.png` | System Settings dock item with KDE actions. |
-| `context-terminal.png` | Terminal dock item with new window and new tab actions. |
+| `recent-applications-list.png` | Recent applications container in its first-run **List** presentation, cropped to the popup. |
+| `recent-applications-grid.png` | The same container in **Grid** presentation, cropped to the popup. |
+| `container-view-menu.png` | **View content as** with Grid, List, Detail and Fan, cropped to the menu. |
+| `fan-view.png` | Home container as a fan of the standard XDG user folders. The fan surface is translucent, so it keeps the blurred desktop behind it. |
+| `context-system-settings.png` | System Settings dock item, cropped to the menu. Its KDE actions follow the native menu, like the menu Dolphin opens on right-click. |
+| `context-terminal.png` | Terminal dock item with new window and new tab actions, cropped to the menu. |
 
-The small context menus are the dock's own menus. They are published as
-references of the native KDE menu contents the dock reproduces, not as proof
-that every KDE version renders them the same way.
+The opaque popups are cropped to their own contour with a transparent background,
+so the desktop does not show through the menu edges. The fan view is translucent
+by design and keeps the desktop it sits on. The System Settings capture is a
+native-menu reference: it is the dock's menu for that item, and its KDE actions
+follow the menu Dolphin opens on right-click.
 
 ## Privacy and capture notes
 

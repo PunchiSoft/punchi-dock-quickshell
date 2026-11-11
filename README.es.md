@@ -78,17 +78,19 @@ propia validación.
 
 Las capturas muestran el dock y sus ventanas en Fedora 44 con Plasma 6.8.2, KWin
 6.8.2 y Quickshell 0.2.1 en Wayland. El fondo, el cursor y el tema de escritorio
-son del mantenedor; el dock sigue el tema activo de Plasma. Los menús
-contextuales pequeños son menús del propio dock; siguen las acciones nativas de
-KDE usadas como referencia.
+son del mantenedor; el dock sigue el tema activo de Plasma. Los menús opacos
+están recortados a su propio contorno; el abanico conserva el escritorio detrás
+de su superficie translúcida. La captura de Configuración del sistema es una
+referencia del menú nativo: sus acciones de KDE siguen el menú que Dolphin abre
+con clic derecho.
 
-| Ajustes del menú | Aplicaciones recientes, cuadrícula | Ver contenido como |
+| Ajustes del menú | Elementos del dock | Aplicaciones recientes, cuadrícula |
 |:---:|:---:|:---:|
-| <img src="assets/screenshots/settings-menu.png" width="330" alt="Ajustes del menú con el orden de aplicaciones en Alfabético y la barra de desplazamiento desactivada"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Contenedor de aplicaciones recientes mostrado como una cuadrícula de iconos"> | <img src="assets/screenshots/container-view-menu.png" width="190" alt="Menú contextual del contenedor con Cuadrícula, Lista, Detalle y Abanico"> |
+| <img src="assets/screenshots/settings-menu.png" width="330" alt="Ajustes del menú con el orden de aplicaciones en Alfabético y la barra de desplazamiento desactivada"> | <img src="assets/screenshots/settings-items.png" width="330" alt="Lista de elementos del dock con Añadir elemento y los controles de orden"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Contenedor de aplicaciones recientes mostrado como una cuadrícula de iconos"> |
 
-| Inicio en abanico | Menú de Configuración del sistema | Menú de Terminal |
+| Ver contenido como | Inicio en abanico | Configuración del sistema, referencia nativa |
 |:---:|:---:|:---:|
-| <img src="assets/screenshots/fan-view.png" width="130" alt="Contenedor de Inicio mostrado como un abanico de las carpetas estándar del usuario"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="Elemento de Configuración del sistema con acciones de KDE"> | <img src="assets/screenshots/context-terminal.png" width="190" alt="Elemento de Terminal con acciones de ventana nueva y pestaña nueva"> |
+| <img src="assets/screenshots/container-view-menu.png" width="190" alt="Menú contextual del contenedor con Cuadrícula, Lista, Detalle y Abanico"> | <img src="assets/screenshots/fan-view.png" width="130" alt="Contenedor de Inicio mostrado como un abanico de las carpetas estándar del usuario"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="Menú del dock para Configuración del sistema cuyas acciones de KDE siguen el menú nativo, como el clic derecho de Dolphin"> |
 
 [Más capturas y notas](assets/screenshots/README.md).
 
