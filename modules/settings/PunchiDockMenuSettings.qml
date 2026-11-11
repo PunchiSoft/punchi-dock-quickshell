@@ -26,6 +26,11 @@ ColumnLayout {
         {text: qsTr("Right"), value: "right"},
         {text: qsTr("Left"), value: "left"}
     ]
+    readonly property var applicationOrderOptions: [
+        {text: qsTr("Categories"), value: "categories"},
+        {text: qsTr("Alphabetical"), value: "alphabetical"},
+        {text: qsTr("Manual"), value: "manual"}
+    ]
 
     function hoverAnimationIndex(): int {
         for (let index = 0; index < root.hoverAnimationOptions.length; ++index)
@@ -35,6 +40,12 @@ ColumnLayout {
     }
     function closeButtonIndex(): int {
         return root.settings.menuCloseButtonPosition === "left" ? 1 : 0
+    }
+    function applicationOrderIndex(): int {
+        for (let index = 0; index < root.applicationOrderOptions.length; ++index)
+            if (root.applicationOrderOptions[index].value === root.settings.menuApplicationOrder)
+                return index
+        return 0
     }
     function focusFirst(): void {
         opacityControl.focusControl()
@@ -109,13 +120,13 @@ ColumnLayout {
             }
             PunchiSettingsRow {
                 Layout.fillWidth: true
-                text: qsTr("Page arrows")
+                text: qsTr("Scroll bar")
                 showSeparator: false
                 Switch {
-                    objectName: "menuShowPageArrows"
-                    Accessible.name: qsTr("Page arrows")
-                    checked: root.settings.menuShowPageArrows
-                    onToggled: root.settings.menuShowPageArrows = checked
+                    objectName: "menuShowScrollBar"
+                    Accessible.name: qsTr("Menu scroll bar")
+                    checked: root.settings.menuShowScrollBar
+                    onToggled: root.settings.menuShowScrollBar = checked
                 }
             }
         }
@@ -139,6 +150,21 @@ ColumnLayout {
                     Accessible.name: qsTr("Dock over the menu")
                     checked: root.settings.menuShowDock
                     onToggled: root.settings.menuShowDock = checked
+                }
+            }
+            PunchiSettingsRow {
+                Layout.fillWidth: true
+                text: qsTr("Application order")
+                showSeparator: true
+                ComboBox {
+                    objectName: "menuApplicationOrder"
+                    Accessible.name: qsTr("Application order")
+                    model: root.applicationOrderOptions.map(option => option.text)
+                    currentIndex: root.applicationOrderIndex()
+                    onActivated: function(index) {
+                        root.settings.menuApplicationOrder
+                            = root.applicationOrderOptions[index].value
+                    }
                 }
             }
             PunchiSettingsRow {

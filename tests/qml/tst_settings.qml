@@ -100,6 +100,31 @@ TestCase {
         compare(settings.recentApplicationsCount, 8)
         compare(settings.updateBadgeEnabled, false)
     }
+    function test_menuOrderAndScrollBarMigrateFromPaging() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        // The listing is alphabetical and scrolls continuously by default; the
+        // visible bar starts off so the surface keeps its clean look.
+        compare(settings.menuApplicationOrder, "alphabetical")
+        compare(settings.menuShowScrollBar, false)
+        // A version 15 profile stored the paging arrows; the same choice now
+        // controls the scroll bar, including an explicitly disabled one.
+        verify(settings.restore({version: 15, menuShowPageArrows: false}))
+        compare(settings.menuShowScrollBar, false)
+        verify(settings.restore({version: 15, menuShowPageArrows: true}))
+        compare(settings.menuShowScrollBar, true)
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.version, 16)
+        compare(data.menuApplicationOrder, "alphabetical")
+        compare(data.menuShowScrollBar, true)
+        verify(settings.restore({version: 16, menuApplicationOrder: "categories",
+            menuShowScrollBar: false}))
+        compare(settings.menuApplicationOrder, "categories")
+        compare(settings.menuShowScrollBar, false)
+        // An unknown order keeps the previous value instead of splitting the
+        // listing into a group the menu cannot name.
+        verify(settings.restore({version: 16, menuApplicationOrder: "unsorted"}))
+        compare(settings.menuApplicationOrder, "categories")
+    }
     function test_popupAppearancePersistence() {
         const settings = createTemporaryObject(settingsFixture, test)
         compare(settings.popupScale, 1)
@@ -114,7 +139,7 @@ TestCase {
         settings.popupFanIconSize = 34
         settings.popupHeightPercent = 50
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 15)
+        compare(data.version, 16)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.popupScale, 1.15)
@@ -148,7 +173,7 @@ TestCase {
         settings.recentApplicationsContainerLayout = "fan"
         compare(settings.effectiveRecentApplicationsLayout, "fan")
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 15)
+        compare(data.version, 16)
         compare(data.recentApplicationsPresentation, "icons")
         compare(data.recentApplicationsContainerLayout, "fan")
         const restored = createTemporaryObject(settingsFixture, test)
@@ -211,7 +236,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 15)
+        compare(data.version, 16)
         compare(data.containers.length, 3)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -256,7 +281,7 @@ TestCase {
         // The profile round-trips the field and a schema-8 profile keeps none.
         verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 15)
+        compare(data.version, 16)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.containerHiddenEntries(id), ["skip.txt"])
@@ -278,7 +303,7 @@ TestCase {
         settings.runningMarkersFollowDesktop = true
         settings.avoidInnerEdgeAutoHide = false
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 15)
+        compare(data.version, 16)
         compare(data.selectedScreens.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))

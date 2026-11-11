@@ -33,7 +33,12 @@ TestCase {
     }
     Component {
         id: modelFixture
-        PunchiMenuState { applications: modelCatalogue; columns: 2; rows: 2 }
+        PunchiMenuState {
+            applications: modelCatalogue
+            columns: 2
+            rows: 2
+            applicationOrder: "manual"
+        }
     }
 
     // A desktop entry carries its localized title and comment separately from
@@ -46,6 +51,39 @@ TestCase {
     Component {
         id: descriptiveFixture
         PunchiMenuState { applications: test.descriptiveCatalogue; columns: 2; rows: 2 }
+    }
+
+    // The categories come from the desktop entry, which is why the fixture hands
+    // over the same role the native catalogue publishes.
+    readonly property var categorisedCatalogue: [
+        {appId: "kate", name: "Kate", categories: ["Development", "TextEditor"]},
+        {appId: "konsole", name: "Konsole", categories: ["System", "TerminalEmulator"]},
+        {appId: "kde4", name: "KDE 4 Tool", categories: ["Graphics"]},
+        {appId: "kde10", name: "KDE 10 Tool", categories: ["Graphics"]},
+        {appId: "gimp", name: "GNU Image", categories: ["Graphics", "RasterGraphics"]},
+        {appId: "firefox", name: "Firefox", categories: ["Network", "WebBrowser"]},
+        {appId: "unknown", name: "Zzz", categories: []}
+    ]
+    Component {
+        id: categorisedFixture
+        PunchiMenuState {
+            applications: test.categorisedCatalogue
+            columns: 2
+            rows: 2
+            applicationOrder: "categories"
+        }
+    }
+    Component {
+        id: defaultOrderFixture
+        PunchiMenuState { applications: test.categorisedCatalogue; columns: 2; rows: 2 }
+    }
+
+    function init(): void {
+        failOnWarning(/.*/)
+    }
+
+    function sectionIds(state): var {
+        return state.sections.map(section => section.categoryId)
     }
 
     function test_searchMatchesTheLocalizedTitleAndDescription() {
@@ -110,20 +148,66 @@ TestCase {
         compare(state.filtered.length, 7)
     }
 
-    function test_pagingFollowsTheGridCapacity() {
-        const state = createTemporaryObject(fixture, test)
-        compare(state.pageCapacity, 4)
-        compare(state.pageCount, 2)
-        state.moveBy(4)
-        compare(state.currentIndex, 4)
-        compare(state.currentPage, 1)
-        state.goToPage(0)
-        compare(state.currentPage, 0)
-        compare(state.currentIndex, 0)
+    function test_categoriesFollowTheReferenceOrder() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        verify(state !== null)
+        compare(state.grouped, true)
+        // Network, Graphics, Development, System, then the entries without a
+        // family. Empty groups are not painted.
+        compare(sectionIds(state).join(","),
+            "Network,Graphics,Development,System,Other")
+        const graphics = state.sections[1].members
+        // Members of a group are alphabetical, and digits read as numbers.
+        compare(graphics.map(entry => entry.name).join(","),
+            "GNU Image,KDE 4 Tool,KDE 10 Tool")
+        // The flat listing is the concatenation of the sections.
+        compare(state.filtered.length, test.categorisedCatalogue.length)
+        compare(state.filtered[0].appId, "firefox")
+        compare(state.sections[1].start, 1)
     }
 
-    function test_selectionStaysInsideTheFilteredList() {
+    function test_alphabeticalOrderIsOneNaturalSortedSection() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        state.applicationOrder = "alphabetical"
+        compare(state.grouped, false)
+        compare(state.sectionCount, 1)
+        compare(state.sections[0].categoryId, "")
+        compare(state.sections[0].members.map(entry => entry.name).join(","),
+            "Firefox,GNU Image,Kate,KDE 4 Tool,KDE 10 Tool,Konsole,Zzz")
+    }
+
+    function test_manualOrderKeepsTheCatalogueSequence() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        state.applicationOrder = "manual"
+        compare(state.sectionCount, 1)
+        compare(state.filtered.map(entry => entry.appId).join(","),
+            "kate,konsole,kde4,kde10,gimp,firefox,unknown")
+    }
+
+    function test_searchPaintsOneFlatSection() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        state.searchText = "kde"
+        compare(state.grouped, false)
+        compare(state.sectionCount, 1)
+        compare(state.sections[0].categoryId, "")
+        compare(state.filtered.length, 2)
+    }
+
+    function test_pageMoveAdvancesOneViewportOfRows() {
         const state = createTemporaryObject(fixture, test)
+        // Two columns and two visible rows make a page four cells long.
+        state.selectPage(1)
+        compare(state.currentIndex, 4)
+        state.selectPage(-1)
+        compare(state.currentIndex, 0)
+        state.selectPage(1)
+        state.selectPage(1)
+        compare(state.currentIndex, 6)
+    }
+
+    function test_selectionStaysInsideTheListing() {
+        const state = createTemporaryObject(fixture, test)
+        compare(state.currentIndex, 0)
         state.moveVertical(1)
         compare(state.currentIndex, 2)
         state.moveBy(100)
@@ -132,14 +216,34 @@ TestCase {
         compare(state.currentIndex, 6)
         state.selectLast()
         compare(state.currentIndex, 6)
-        compare(state.currentPage, 1)
         state.selectFirst()
         compare(state.currentIndex, 0)
-        compare(state.currentPage, 0)
         state.searchText = "nothing"
         compare(state.filtered.length, 0)
         compare(state.currentIndex, -1)
-        compare(state.pageCount, 1)
+        compare(state.sectionCount, 0)
+    }
+
+    function test_verticalNavigationCrossesSectionsKeepingTheColumn() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        // Network has one member, Graphics starts at index 1.
+        compare(state.currentIndex, 0)
+        state.moveVertical(1)
+        compare(state.currentIndex, 1)
+        // Within Graphics, a row down stays in the third cell.
+        state.moveVertical(1)
+        compare(state.currentIndex, 3)
+        // Up from the first Graphics row returns to Network.
+        state.moveHorizontal(-1)
+        compare(state.currentIndex, 2)
+        state.moveVertical(-1)
+        compare(state.currentIndex, 0)
+        // Horizontal movement continues in the neighbouring section.
+        state.moveHorizontal(1)
+        compare(state.currentIndex, 1)
+        state.selectLast()
+        state.moveHorizontal(1)
+        compare(state.currentIndex, 6)
     }
 
     function test_gridChangesRepositionTheKeyboardCursor() {
@@ -147,9 +251,24 @@ TestCase {
         state.moveBy(5)
         compare(state.currentIndex, 5)
         state.columns = 3
-        compare(state.pageCapacity, 6)
         compare(state.currentIndex, 0)
-        compare(state.currentPage, 0)
+    }
+
+    function test_defaultOrderIsAlphabetical() {
+        const state = createTemporaryObject(defaultOrderFixture, test)
+        compare(state.applicationOrder, "alphabetical")
+        compare(state.grouped, false)
+        compare(state.sectionCount, 1)
+        compare(state.filtered.map(entry => entry.name).join(","),
+            "Firefox,GNU Image,Kate,KDE 4 Tool,KDE 10 Tool,Konsole,Zzz")
+    }
+
+    function test_invalidOrderFallsBackToAlphabetical() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        state.applicationOrder = "unsorted"
+        compare(state.applicationOrder, "alphabetical")
+        compare(state.grouped, false)
+        compare(state.sectionCount, 1)
     }
 
     function test_resetClearsTheQueryAndRestoresTheFirstRow() {
@@ -159,6 +278,5 @@ TestCase {
         state.reset()
         compare(state.searchText, "")
         compare(state.currentIndex, 0)
-        compare(state.currentPage, 0)
     }
 }

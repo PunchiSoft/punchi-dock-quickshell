@@ -75,7 +75,8 @@ void ApplicationCatalog::setPresets(QAbstractItemModel *presets)
 QHash<int, QByteArray> ApplicationCatalog::roleNames() const
 {
     return {{AppId, "appId"}, {DesktopId, "desktopId"}, {Title, "title"}, {Icon, "iconName"},
-        {Name, "name"}, {Description, "description"}, {Installed, "installed"}, {ApplicationIcon, "appIconName"}};
+        {Name, "name"}, {Description, "description"}, {Installed, "installed"},
+        {ApplicationIcon, "appIconName"}, {Categories, "categories"}};
 }
 
 int ApplicationCatalog::rowCount(const QModelIndex &parent) const { return parent.isValid() ? 0 : m_rows.size(); }
@@ -128,6 +129,7 @@ void ApplicationCatalog::reload()
             {QStringLiteral("name"), service ? service->name() : field(row, "title")},
             {QStringLiteral("description"), service ? service->comment() : QString()},
             {QStringLiteral("appIconName"), applicationIcon(service)},
+            {QStringLiteral("categories"), service ? service->categories() : QStringList()},
             {QStringLiteral("installed"), installed}});
     }
     for (const auto &service : KService::allServices()) {
@@ -137,10 +139,14 @@ void ApplicationCatalog::reload()
             {QStringLiteral("desktopId"), service->storageId()}, {QStringLiteral("title"), service->name()},
             {QStringLiteral("name"), service->name()}, {QStringLiteral("iconName"), applicationIcon(service)},
             {QStringLiteral("appIconName"), applicationIcon(service)},
+            {QStringLiteral("categories"), service->categories()},
             {QStringLiteral("description"), service->comment()}, {QStringLiteral("installed"), true}});
     }
     QCollator collator;
     collator.setCaseSensitivity(Qt::CaseInsensitive);
+    // "KDE 10" follows "KDE 4": the catalogue order is what a manual listing
+    // shows, so it must read the way a person counts.
+    collator.setNumericMode(true);
     std::sort(discovered.begin(), discovered.end(), [&collator](const QVariantMap &a, const QVariantMap &b) {
         return collator.compare(a.value(QStringLiteral("name")).toString(), b.value(QStringLiteral("name")).toString()) < 0;
     });

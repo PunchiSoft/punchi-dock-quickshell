@@ -32,6 +32,10 @@ private slots:
         QCOMPARE(browser.value("title").toString(), QStringLiteral("Browser"));
         QCOMPARE(browser.value("name").toString(), QStringLiteral("Owned Catalog Browser"));
         QCOMPARE(browser.value("appIconName").toString(), QStringLiteral("punchi-catalog-browser"));
+        // The grouping the menu shows comes from the desktop entry itself.
+        const QStringList browserCategories = browser.value("categories").toStringList();
+        QVERIFY(browserCategories.contains(QStringLiteral("Network")));
+        QVERIFY(browserCategories.contains(QStringLiteral("WebBrowser")));
         // A role entry shows the application that answers it.
         QCOMPARE(browser.value("iconName").toString(), QStringLiteral("punchi-catalog-browser"));
         // An item that names a desktop entry keeps the profile's own icon.
@@ -51,6 +55,10 @@ private slots:
         const auto browser = catalog.application("browser");
         QCOMPARE(browser.value("desktopId").toString(), QStringLiteral("punchi-catalog-browser.desktop"));
         QCOMPARE(browser.value("installed").toBool(), true);
+        // A discovered entry carries the same desktop-entry categories.
+        const auto editor = catalog.application("desktop:punchi-catalog-editor.desktop");
+        QVERIFY(!editor.isEmpty());
+        QVERIFY(editor.value("categories").toStringList().contains(QStringLiteral("Network")));
     }
     void unavailableRoleKeepsThePresetIcon() {
         QStandardItemModel presets;

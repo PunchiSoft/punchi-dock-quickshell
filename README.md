@@ -130,18 +130,26 @@ while it is open, so the desktop is never intercepted while it is closed.
 - **Search:** the query matches the desktop entry's name, the item's own title
   and its comment, ignoring case. The catalogue is prepared once per revision
   instead of once per keystroke.
-- **Paged grid:** four to seven columns and three to five rows follow the screen
-  size, as in the reference. A mouse notch or a complete touchpad gesture pages
-  once, and `Left`/`Right`, `Up`/`Down`, `PageUp`/`PageDown`, `Home`, `End` and
-  `Return` drive the selection. Every page change animates the grid, and a notch
-  that arrives mid-transition retargets it instead of restarting it; reduced
-  motion changes the page without a move. A pointer that enters a cell makes it
-  current, and the next key press hands the single emphasis band back to the
-  keyboard.
+- **Application order:** the list is alphabetical by default and names read the
+  way a person counts, so "KDE 4" precedes "KDE 10". The **Application order**
+  setting switches between **Alphabetical** (the default), **Manual** and
+  **Categories**. Categories files every application under the family its desktop
+  entry declares, in the reference order: Internet, Graphics, Multimedia, Office,
+  Development, System, Utilities, Games and Education, with the entries that name
+  no family last; the other two orders paint one list without headings.
+- **Continuous scroll:** four to seven columns follow the screen width and the
+  listing scrolls as one surface instead of turning pages. The wheel and a
+  touchpad follow the KDE scroll amount and smooth-scroll preference, because the
+  gesture goes through Kirigami's own handler. `Left`/`Right` move along the row
+  and continue in the neighbouring section, `Up`/`Down` keep the column across
+  sections, `PageUp`/`PageDown` move one viewport of rows, `Home`/`End` jump to
+  the ends and `Return` launches. The scroll bar starts off, so the surface keeps
+  the reference's clean look; **Menu** settings turn it on, and it then appears
+  only while the listing overflows. A pointer that enters a cell makes it current,
+  and the next key press hands the single emphasis band back to the keyboard.
 - **Presentation:** a theme-washed backdrop with KWin blur behind it, the
   distribution name, and a close control drawn with the buttons of the user's
-  window decoration. The page arrows and the page count are one optional footer,
-  hidden by default because the wheel and the keyboard already page the grid.
+  window decoration.
 - **The dock stays over the menu:** with **Dock over the menu** enabled, the menu
   yields the overlay layer to the dock while its surface is mapped, so the dock
   stays visible, magnified and clickable over the blurred backdrop, including the
@@ -149,11 +157,13 @@ while it is open, so the desktop is never intercepted while it is closed.
   open. A dock action closes the menu first; a launcher click launches and
   returns to the desktop.
 - **Settings:** the **Menu** category holds the background blur and opacity, icon
-  size, application labels, distribution name, page arrows, close-button corner,
-  hover animation and the dock-over-menu switch. Changes apply without a restart.
-- **Compared with PunchiMenu in the parent project:** categories, favourites,
-  named folders, hiding applications, drag and drop inside the menu and a
-  configurable global shortcut are not implemented.
+  size, application labels, distribution name, application order, scroll bar,
+  close-button corner, hover animation and the dock-over-menu switch. Changes
+  apply without a restart.
+- **Compared with PunchiMenu in the parent project:** favourites, named folders,
+  hiding applications, drag and drop inside the menu and a configurable global
+  shortcut are not implemented. Search still matches the desktop entry's name,
+  title and comment; its keywords are not searched.
 
 ### Media and desktop utilities
 
@@ -548,7 +558,7 @@ first-run launcher catalogue and the values restored by **Reset defaults**:
 | Visibility | Windows go below (`overlay`), without reserving screen space |
 | Reduced motion | Local override off; KDE animation preferences still apply |
 | Icons | The user's icon theme, including live KDE theme-change notifications |
-| Fullscreen menu | Blur on, 60% background opacity, application labels on, distribution name on, page arrows and page count hidden, dock over the menu, close button on the right |
+| Fullscreen menu | Blur on, 60% background opacity, application labels on, distribution name on, alphabetical order, scroll bar off, dock over the menu, close button on the right |
 
 These are prototype defaults, not a guarantee that every preset application is
 installed. **Browser** names the role instead of an application: the item opens
@@ -564,7 +574,9 @@ height and icon size, version 11 separate grid, list/detail and fan glyph
 sizes, version 12 screen, virtual-desktop and activity selection plus the
 two placement switches, version 13 the recent-applications presentation
 and its container view, version 14 the fullscreen-menu presentation settings,
-and version 15 the dock-over-menu switch; missing fields in older profiles
+version 15 the dock-over-menu switch, and version 16 the category grouping,
+application order and the scroll bar that replaced the paging arrows; missing
+fields in older profiles
 default to enabled, five applications, the container presentation with the
 List view, the application icon, an unfiltered folder listing, the reference
 popup proportions, the theme's glyph sizes, every screen and every
@@ -572,8 +584,9 @@ desktop/activity.
 
 The first dock slot opens the fullscreen menu. Its own **Menu** category holds
 the background blur and opacity, icon size, application labels, distribution
-name, the optional page arrows and page count, the close-button corner, the
-hover animation and the dock-over-menu switch. Every one applies to the open
+name, the application order, the optional scroll bar (off by default), the
+close-button corner,
+the hover animation and the dock-over-menu switch. Every one applies to the open
 menu without a restart.
 
 The **Profile** category exports the pending values as a portable JSON document
@@ -751,7 +764,7 @@ ctest --test-dir build --output-on-failure
 |---|---|
 | `shell.qml` | Compose shell modules |
 | `modules/dock/` | Dock window, view, context menus and Trash confirmation |
-| `modules/menu/` | Fullscreen application menu surface, header, paged grid and backdrop |
+| `modules/menu/` | Fullscreen application menu surface, header, category sections and backdrop |
 | `modules/recent/` | Recent-applications container popup |
 | `modules/folders/` | Folder container popups, layouts and navigation |
 | `modules/settings/` | Settings window, categories, item editors and profile exchange |

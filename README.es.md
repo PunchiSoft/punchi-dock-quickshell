@@ -141,19 +141,28 @@ interceptado mientras está cerrado.
 - **Búsqueda:** la consulta coincide con el nombre de la entrada de escritorio,
   el título propio del elemento y su comentario, sin distinguir mayúsculas. El
   catálogo se prepara una vez por revisión en lugar de una vez por pulsación.
-- **Cuadrícula paginada:** de cuatro a siete columnas y de tres a cinco filas
-  según el tamaño de la pantalla, como en la referencia. Una muesca de ratón o un
-  gesto completo de touchpad pasa una página, y `Left`/`Right`, `Up`/`Down`,
-  `PageUp`/`PageDown`, `Home`, `End` y `Return` mueven la selección. Cada cambio
-  de página anima la cuadrícula, y una muesca que llega a mitad de la transición
-  la reorienta en vez de reiniciarla; con movimiento reducido la página cambia
-  sin desplazamiento. Un puntero que entra en una celda la hace actual, y la
-  siguiente pulsación de tecla devuelve la única banda de énfasis al teclado.
+- **Orden de aplicaciones:** la lista es alfabética por defecto y los nombres se
+  leen como cuenta una persona, así que "KDE 4" va antes que "KDE 10". El ajuste
+  **Application order** alterna entre **Alphabetical** (por defecto), **Manual**
+  y **Categories**. Categories agrupa cada aplicación bajo la familia que declara
+  su entrada de escritorio, en el orden de la referencia: Internet, Gráficos,
+  Multimedia, Oficina, Desarrollo, Sistema, Utilidades, Juegos y Educación, y al
+  final las entradas que no declaran ninguna; los otros dos órdenes pintan una
+  sola lista sin títulos.
+- **Scroll continuo:** de cuatro a siete columnas siguen el ancho de la pantalla
+  y el listado se desplaza como una sola superficie en lugar de pasar páginas. La
+  rueda y un touchpad respetan la cantidad de scroll y el desplazamiento suave de
+  KDE, porque el gesto pasa por el controlador propio de Kirigami.
+  `Left`/`Right` recorren la fila y continúan en la sección vecina, `Up`/`Down`
+  conservan la columna entre secciones, `PageUp`/`PageDown` avanzan una pantalla
+  de filas, `Home`/`End` van a los extremos y `Return` lanza. La barra de scroll
+  viene desactivada para conservar la limpieza visual de la referencia; se activa
+  en los ajustes de **Menu** y entonces aparece solo mientras el listado
+  desborda. Un puntero que entra en una celda la hace actual, y la siguiente
+  pulsación de tecla devuelve la única banda de énfasis al teclado.
 - **Presentación:** un fondo con el lavado del tema y el desenfoque de KWin
   detrás, el nombre de la distribución y un control de cierre dibujado con los
-  botones de la decoración de ventanas del usuario. Las flechas de página y el
-  contador de páginas son un pie opcional, oculto por defecto porque la rueda y
-  el teclado ya paginan la cuadrícula.
+  botones de la decoración de ventanas del usuario.
 - **El dock queda sobre el menú:** con **Dock over the menu** activado, el menú
   cede la capa overlay al dock mientras su superficie está mapeada, así que el
   dock sigue visible, magnificado y clicable sobre el fondo desenfocado, incluido
@@ -162,12 +171,14 @@ interceptado mientras está cerrado.
   un lanzador lanza y vuelve al escritorio.
 - **Ajustes:** la categoría **Menu** reúne el desenfoque y la opacidad del fondo,
   el tamaño de icono, las etiquetas de aplicaciones, el nombre de la
-  distribución, las flechas de página, la posición del botón de cierre, la
-  animación al pasar el puntero y el interruptor del dock sobre el menú. Los
-  cambios se aplican sin reiniciar.
-- **Comparado con PunchiMenu del proyecto padre:** las categorías, los favoritos,
-  las carpetas con nombre, ocultar aplicaciones, arrastrar y soltar dentro del
-  menú y un atajo global configurable no están implementados.
+  distribución, el orden de aplicaciones, la barra de scroll, la posición del
+  botón de cierre, la animación al pasar el puntero y el interruptor del dock
+  sobre el menú. Los cambios se aplican sin reiniciar.
+- **Comparado con PunchiMenu del proyecto padre:** los favoritos, las carpetas con
+  nombre, ocultar aplicaciones, arrastrar y soltar dentro del menú y un atajo
+  global configurable no están implementados. La búsqueda sigue cubriendo el
+  nombre, el título y el comentario de la entrada de escritorio; sus palabras
+  clave no se buscan.
 
 ### Multimedia y utilidades de escritorio
 
@@ -580,7 +591,7 @@ catálogo de lanzadores del primer inicio y los valores que restaura **Reset def
 | Visibilidad | Windows go below (`overlay`), sin reservar espacio de pantalla |
 | Movimiento reducido | Ajuste local desactivado; las preferencias de animación de KDE siguen aplicándose |
 | Iconos | El tema de iconos del usuario, incluidas las notificaciones de cambio de tema de KDE |
-| Menú a pantalla completa | Desenfoque activado, 60% de opacidad del fondo, etiquetas de aplicaciones activadas, nombre de la distribución activado, flechas de página y contador de páginas ocultos, dock sobre el menú, botón de cierre a la derecha |
+| Menú a pantalla completa | Desenfoque activado, 60% de opacidad del fondo, etiquetas de aplicaciones activadas, nombre de la distribución activado, orden alfabético, barra de scroll desactivada, dock sobre el menú, botón de cierre a la derecha |
 
 Son valores prototipo, no una garantía de que todas las aplicaciones predefinidas
 estén instaladas. **Browser** nombra la función y no una aplicación: el elemento
@@ -597,7 +608,9 @@ fuera de su popup, la 10 el tamaño, la altura y el tamaño de icono del popup, 
 12 la selección de pantallas, escritorios virtuales y actividades más los dos
 interruptores de colocación, la 13 la presentación de aplicaciones recientes y
 su vista del contenedor, la 14 los ajustes de presentación del menú a pantalla
-completa y la 15 el interruptor del dock sobre el menú; los perfiles anteriores
+completa, la 15 el interruptor del dock sobre el menú y la 16 la agrupación por
+categoría, el orden de aplicaciones y la barra de scroll que reemplazó a las
+flechas de página; los perfiles anteriores
 sin esos campos usan cinco aplicaciones, la presentación de contenedor con la
 vista List, el icono de la
 aplicación, la carpeta completa, las proporciones de referencia del popup, los
@@ -606,10 +619,11 @@ actividades.
 
 La primera ranura del dock abre el menú a pantalla completa. Su propia categoría
 **Menu** reúne el desenfoque y la opacidad del fondo, el tamaño de icono, las
-etiquetas de aplicaciones, el nombre de la distribución, las flechas de página y
-el contador de páginas opcionales, la esquina del botón de cierre, la animación
-al pasar el puntero y el interruptor del dock sobre el menú. Cada uno se aplica
-al menú abierto sin reiniciar.
+etiquetas de aplicaciones, el nombre de la distribución, el orden de
+aplicaciones, la barra de scroll opcional (desactivada por defecto), la esquina
+del botón de cierre, la
+animación al pasar el puntero y el interruptor del dock sobre el menú. Cada uno
+se aplica al menú abierto sin reiniciar.
 
 La categoría **Profile** exporta los valores pendientes como un documento JSON
 portátil con esquema `punchi-dock-quickshell/profile` y versión de formato 1.
@@ -800,7 +814,7 @@ ctest --test-dir build --output-on-failure
 |---|---|
 | `shell.qml` | Compone los módulos del shell |
 | `modules/dock/` | Ventana, vista, menús contextuales y confirmación de la Papelera |
-| `modules/menu/` | Superficie del menú de aplicaciones a pantalla completa, cabecera, cuadrícula paginada y fondo |
+| `modules/menu/` | Superficie del menú de aplicaciones a pantalla completa, cabecera, secciones por categoría y fondo |
 | `modules/recent/` | Popup del contenedor de aplicaciones recientes |
 | `modules/folders/` | Popups, diseños y navegación de contenedores de carpeta |
 | `modules/settings/` | Ventana de ajustes, categorías, editores de elementos e intercambio de perfiles |
