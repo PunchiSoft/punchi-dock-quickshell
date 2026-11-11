@@ -44,6 +44,31 @@ TestCase {
         }
     }
 
+    // One huge category: the delegate must not carry a fixed-capacity grid hint
+    // that disagrees with the children while a delegate is recycled.
+    function largeCatalogue(): var {
+        const result = []
+        for (let index = 0; index < 82; ++index)
+            result.push({appId: "app" + index, name: "App " + index,
+                categories: ["Graphics"]})
+        return result
+    }
+    Component {
+        id: largeFixture
+        PunchiMenuSections {
+            width: 900
+            height: 240
+            active: true
+            motionEnabled: false
+            menuState: PunchiMenuState {
+                applications: test.largeCatalogue()
+                columns: 6
+                rows: 2
+                applicationOrder: "categories"
+            }
+        }
+    }
+
     // The product default: one flat alphabetical list without headings.
     Component {
         id: defaultFixture
@@ -131,6 +156,31 @@ TestCase {
         // settles wherever the system's scroll amount leaves it.
         tryVerify(function() { return list.contentY > 0.5 }, 2000)
         compare(view.menuState.currentIndex, 0)
+    }
+
+    function test_largeSectionHasNoGridCapacityHint() {
+        const view = createTemporaryObject(largeFixture, test)
+        verify(view !== null)
+        compare(view.menuState.sections.length, 1)
+        compare(view.menuState.sections[0].members.length, 82)
+        wait(200)
+        const grid = findChild(view, "menuSectionGrid")
+        verify(grid !== null)
+        // The Grid infers its rows from the children and the column count (-1
+        // is Qt's unset default); the delegate height is what `sectionRows()`
+        // computes.
+        compare(grid.rows, -1)
+        compare(view.sectionRows(view.menuState.sections[0]), 14)
+        compare(view.sectionHeight(view.menuState.sections[0]),
+            view.sectionHeaderHeight + 14 * view.cellHeight)
+        // The inferred grid is exactly as tall as the metric the delegate uses.
+        compare(grid.height, 14 * view.cellHeight)
+        // Rebuilding the listing reuses delegates; no capacity warning may
+        // escape while the model changes shape.
+        view.menuState.applicationOrder = "alphabetical"
+        wait(150)
+        view.menuState.applicationOrder = "categories"
+        wait(150)
     }
 
     function test_wheelBelongsToTheSystemHandler() {
