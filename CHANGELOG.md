@@ -6,6 +6,23 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
+- The fullscreen menu no longer creates a delegate per application. The state
+  now prepares display rows (a heading row per named section and rows of at most
+  one column's worth of applications) and the view creates one delegate per row,
+  with one row of cache instead of a section-sized cache. A worst-case probe
+  measured before/after: 82 applications went from 83 to 7 created delegates
+  (489 to 353 ms offscreen), 500 from 501 to 7 (1002 to 391 ms), and 1000 from
+  1001 to 7 (1613 to 487 ms). The timings include the probe's 300 ms wait and are
+  construction evidence, not frame evidence.
+- The menu opens at the top again. The view used to reveal the last hovered cell
+  during the opening transition and then ignore the state reset because the
+  pointer owned the emphasis band, so closing after scrolling reopened at the old
+  position. Activation now takes the band for the pointer and places the view at
+  the beginning without revealing a stale index; a regression covers the
+  mid-list selection.
+- A wheel gesture settles on the nearest row boundary, so a resting menu no
+  longer leaves a cell cut in half. The snap is a short animation, is immediate
+  under reduced motion, and is skipped while the pointer or keyboard selects.
 - The fullscreen menu is alphabetical by default and can group applications by
   category. `ApplicationCatalog` publishes the desktop entry's own `categories`,
   `services/PunchiMenuCategories.js` turns them into the reference's ordered

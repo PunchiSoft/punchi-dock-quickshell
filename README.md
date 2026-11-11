@@ -143,10 +143,14 @@ while it is open, so the desktop is never intercepted while it is closed.
   gesture goes through Kirigami's own handler. `Left`/`Right` move along the row
   and continue in the neighbouring section, `Up`/`Down` keep the column across
   sections, `PageUp`/`PageDown` move one viewport of rows, `Home`/`End` jump to
-  the ends and `Return` launches. The scroll bar starts off, so the surface keeps
-  the reference's clean look; **Menu** settings turn it on, and it then appears
-  only while the listing overflows. A pointer that enters a cell makes it current,
-  and the next key press hands the single emphasis band back to the keyboard.
+  the ends and `Return` launches. Only the rows on screen are built, so a
+  catalogue of hundreds of applications keeps the same delegate count, and a
+  wheel gesture settles on the nearest row instead of leaving a cell cut in half.
+  The scroll bar starts off, so the surface keeps the reference's clean look;
+  **Menu** settings turn it on, and it then appears only while the listing
+  overflows. Opening always starts at the top. A pointer that enters a cell makes
+  it current, and the next key press hands the single emphasis band back to the
+  keyboard.
 - **Presentation:** a theme-washed backdrop with KWin blur behind it, the
   distribution name, and a close control drawn with the buttons of the user's
   window decoration.

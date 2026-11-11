@@ -224,6 +224,39 @@ TestCase {
         compare(state.sectionCount, 0)
     }
 
+    function test_displayRowsCarryHeadingsAndBoundedRows() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        const rows = state.displayRows
+        // Five headings and six application rows at two columns.
+        compare(rows.length, 11)
+        compare(rows[0].kind, "header")
+        compare(rows[0].categoryId, "Network")
+        compare(rows[1].kind, "row")
+        compare(rows[1].members.length, 1)
+        // Graphics has three members in two rows; the flat indices survive.
+        compare(rows[3].members.length, 2)
+        compare(rows[3].members[0].index, 1)
+        compare(rows[4].members.length, 1)
+        compare(rows[4].members[0].index, 3)
+        // Mapping a flat index to the row that contains it skips headings.
+        compare(state.displayRowFor(0), 1)
+        compare(state.displayRowFor(1), 3)
+        compare(state.displayRowFor(3), 4)
+        compare(state.displayRowFor(4), 6)
+        compare(state.displayRowFor(6), 10)
+    }
+
+    function test_flatDisplayRowsHaveNoHeadings() {
+        const state = createTemporaryObject(defaultOrderFixture, test)
+        compare(state.displayRows.length, 4)
+        for (const row of state.displayRows)
+            compare(row.kind, "row")
+        compare(state.displayRowFor(6), 3)
+        state.searchText = "kde"
+        compare(state.displayRows.length, 1)
+        compare(state.displayRows[0].members.length, 2)
+    }
+
     function test_verticalNavigationCrossesSectionsKeepingTheColumn() {
         const state = createTemporaryObject(categorisedFixture, test)
         // Network has one member, Graphics starts at index 1.

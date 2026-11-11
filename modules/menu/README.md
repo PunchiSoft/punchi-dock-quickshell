@@ -19,10 +19,15 @@ view publishes `pointerEmphasis` down to the tiles, so the band is the pointer's
 or the keyboard's and never both.
 
 The surface pre-exists per screen, so opening never constructs the menu inside
-the click. `PunchiMenuSections` is one vertical `ListView` of category
-sections: only the sections in view and the small cache around them are built,
-and the listing height is measured so a keyboard selection can be revealed
-before its delegate exists.
+the click. `PunchiMenuState.displayRows` prepares a heading row per named
+section and rows of at most `columns` applications, and `PunchiMenuSections` is
+one vertical `ListView` of those rows. The delegate count therefore follows the
+viewport plus one row of cache, not the catalogue: a section with 500
+applications is 72 row delegates in the model, and only the visible ones exist.
+`displayRowFor()` maps the flat selection to its row, so the keyboard reveal is
+one `positionViewAtIndex()` call. A wheel gesture settles on the nearest row
+boundary so the resting view never shows half a cell; opening always starts at
+the top and never reveals the previous selection.
 
 Scrolling belongs to `Kirigami.WheelHandler` with the list as its target. That
 handler applies the system's scroll lines and smooth-scroll preference, so a

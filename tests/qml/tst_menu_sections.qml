@@ -44,8 +44,7 @@ TestCase {
         }
     }
 
-    // One huge category: the delegate must not carry a fixed-capacity grid hint
-    // that disagrees with the children while a delegate is recycled.
+    // One huge category: the row model must keep the created delegates bounded.
     function largeCatalogue(): var {
         const result = []
         for (let index = 0; index < 82; ++index)
@@ -93,13 +92,22 @@ TestCase {
         return findChild(view, "menuSectionsView")
     }
 
+    function createdDelegates(list): int {
+        let count = 0
+        for (const child of list.contentItem.children)
+            if (child.objectName === "menuRowDelegate") ++count
+        return count
+    }
+
     function test_listingPaintsTheCategorySections() {
         const view = createTemporaryObject(fixture, test)
         verify(view !== null)
         const list = sectionsView(view)
         verify(list !== null)
-        compare(list.count, view.menuState.sectionCount)
         compare(view.menuState.sectionCount, 8)
+        // Eight headings and eight application rows at three columns.
+        compare(view.menuState.displayRows.length, 16)
+        compare(list.count, 16)
         // The first section is the reference's first group, and its first cell
         // is the alphabetically first member.
         compare(view.menuState.sections[0].categoryId, "Network")
@@ -118,6 +126,10 @@ TestCase {
         compare(view.menuState.applicationOrder, "alphabetical")
         compare(view.menuState.sectionCount, 1)
         compare(view.menuState.sections[0].categoryId, "")
+        // Eleven applications at three columns are four rows and no heading.
+        compare(view.menuState.displayRows.length, 4)
+        for (const row of view.menuState.displayRows)
+            compare(row.kind, "row")
         const tile = findChild(view, "menuTile")
         verify(tile !== null)
         // Dolphin is the alphabetically first application in the fixture.
@@ -153,34 +165,72 @@ TestCase {
         compare(list.contentY, 0)
         mouseWheel(view, view.width / 2, view.height / 2, 0, -120)
         // The selection does not move with the wheel; the content does, and it
-        // settles wherever the system's scroll amount leaves it.
+        // settles near the system's scroll amount.
         tryVerify(function() { return list.contentY > 0.5 }, 2000)
         compare(view.menuState.currentIndex, 0)
     }
 
-    function test_largeSectionHasNoGridCapacityHint() {
+    function test_largeSectionKeepsDelegatesBounded() {
         const view = createTemporaryObject(largeFixture, test)
         verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
         compare(view.menuState.sections.length, 1)
         compare(view.menuState.sections[0].members.length, 82)
-        wait(200)
-        const grid = findChild(view, "menuSectionGrid")
-        verify(grid !== null)
-        // The Grid infers its rows from the children and the column count (-1
-        // is Qt's unset default); the delegate height is what `sectionRows()`
-        // computes.
-        compare(grid.rows, -1)
-        compare(view.sectionRows(view.menuState.sections[0]), 14)
-        compare(view.sectionHeight(view.menuState.sections[0]),
-            view.sectionHeaderHeight + 14 * view.cellHeight)
-        // The inferred grid is exactly as tall as the metric the delegate uses.
-        compare(grid.height, 14 * view.cellHeight)
-        // Rebuilding the listing reuses delegates; no capacity warning may
-        // escape while the model changes shape.
+        // One heading plus fourteen rows of six cells.
+        compare(view.menuState.displayRows.length, 15)
+        compare(list.count, 15)
+        // Only the rows the viewport and one row of cache need exist.
+        verify(createdDelegates(list) < 10)
+        // Rebuilding the listing must not grow the delegate count either.
         view.menuState.applicationOrder = "alphabetical"
         wait(150)
+        compare(view.menuState.displayRows.length, 14)
+        verify(createdDelegates(list) < 10)
         view.menuState.applicationOrder = "categories"
         wait(150)
+        verify(createdDelegates(list) < 10)
+    }
+
+    function test_snapMovesTheRestingViewToARowBoundary() {
+        const view = createTemporaryObject(largeFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(100)
+        const start = view.rowTop(2)
+        list.contentY = start + view.cellHeight / 2
+        wait(20)
+        view.snapToRow()
+        wait(80)
+        verify(isRowBoundary(view, list.contentY))
+        verify(list.contentY > 0)
+    }
+
+    function test_reopenStartsAtTheTop() {
+        const view = createTemporaryObject(fixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(100)
+        // The pointer owns the band and the selection is mid-list; opening the
+        // surface must not reveal it.
+        view.menuState.currentIndex = 5
+        compare(view.pointerEmphasis, true)
+        view.active = false
+        wait(40)
+        view.active = true
+        wait(40)
+        view.menuState.reset()
+        wait(60)
+        compare(view.menuState.currentIndex, 0)
+        compare(list.contentY, 0)
+    }
+
+    function isRowBoundary(view, value): bool {
+        for (let row = 0; row < view.menuState.displayRows.length; ++row)
+            if (Math.abs(value - view.rowTop(row)) < 0.6) return true
+        return false
     }
 
     function test_wheelBelongsToTheSystemHandler() {
@@ -208,7 +258,9 @@ TestCase {
         verify(view !== null)
         view.menuState.applicationOrder = "manual"
         compare(view.menuState.sectionCount, 1)
-        compare(view.sectionHeading(view.menuState.sections[0]), "")
+        compare(view.menuState.sections[0].categoryId, "")
+        for (const row of view.menuState.displayRows)
+            compare(row.kind, "row")
     }
 
     function test_cellsExposeAnAccessibleButton() {

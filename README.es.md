@@ -155,11 +155,15 @@ interceptado mientras está cerrado.
   KDE, porque el gesto pasa por el controlador propio de Kirigami.
   `Left`/`Right` recorren la fila y continúan en la sección vecina, `Up`/`Down`
   conservan la columna entre secciones, `PageUp`/`PageDown` avanzan una pantalla
-  de filas, `Home`/`End` van a los extremos y `Return` lanza. La barra de scroll
+  de filas, `Home`/`End` van a los extremos y `Return` lanza. Solo se construyen
+  las filas visibles, así que un catálogo de cientos de aplicaciones mantiene el
+  mismo número de delegates, y un gesto de rueda se asienta en la fila más
+  cercana en lugar de dejar una celda cortada por la mitad. La barra de scroll
   viene desactivada para conservar la limpieza visual de la referencia; se activa
   en los ajustes de **Menu** y entonces aparece solo mientras el listado
-  desborda. Un puntero que entra en una celda la hace actual, y la siguiente
-  pulsación de tecla devuelve la única banda de énfasis al teclado.
+  desborda. Cada apertura empieza arriba. Un puntero que entra en una celda la
+  hace actual, y la siguiente pulsación de tecla devuelve la única banda de
+  énfasis al teclado.
 - **Presentación:** un fondo con el lavado del tema y el desenfoque de KWin
   detrás, el nombre de la distribución y un control de cierre dibujado con los
   botones de la decoración de ventanas del usuario.

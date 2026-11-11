@@ -4,11 +4,12 @@ import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 
-// Continuous application listing. Applications are grouped into the category
-// sections the service prepared and the whole surface scrolls as one list, so a
-// wheel, a touchpad or the keyboard lands on a row instead of a page boundary.
-// The scroll gesture belongs to Kirigami's own handler, which applies the
-// system's scroll lines and smooth-scroll preference.
+// Continuous application listing. The service prepares display rows (a heading
+// row per named section and rows of at most `columns` applications), and this
+// view creates one delegate per row. The delegate count therefore follows the
+// viewport instead of the catalogue: a category with 500 applications never
+// becomes 500 delegates. The wheel belongs to Kirigami's handler, which applies
+// the system's scroll lines and smooth-scroll preference.
 FocusScope {
     id: root
 
@@ -38,8 +39,9 @@ FocusScope {
         ? scrollBar.implicitWidth + Kirigami.Units.smallSpacing : 0
     readonly property real availableWidth: Math.max(1,
         sectionList.width - root.scrollBarReserve)
+    readonly property real columnSpacing: Kirigami.Units.smallSpacing
     readonly property real cellWidth: Math.max(1,
-        (root.availableWidth - Kirigami.Units.smallSpacing
+        (root.availableWidth - root.columnSpacing
             * (root.columnCount - 1)) / root.columnCount)
     // The reference draws the glyph at roughly 42% of the column pitch, so the
     // grid keeps its air on a large screen and still fits on a small one.
@@ -50,18 +52,10 @@ FocusScope {
         ? Math.ceil(Kirigami.Units.gridUnit * 1.4) : 0
     readonly property real cellHeight: Math.max(Kirigami.Units.iconSizes.medium,
         root.iconSize + root.labelHeight + Kirigami.Units.smallSpacing * 4)
-    readonly property real sectionSpacing: Kirigami.Units.largeSpacing
     readonly property real sectionHeaderHeight: Kirigami.Units.gridUnit * 1.6
-    // The whole listing is measured here instead of read from the view, so a
-    // keyboard selection can be revealed before its delegate exists.
-    readonly property real listingHeight: {
-        const sections = root.menuState ? root.menuState.sections : []
-        let total = 0
-        for (let index = 0; index < sections.length; ++index)
-            total += root.sectionHeight(sections[index])
-                + (index > 0 ? root.sectionSpacing : 0)
-        return total
-    }
+    // The gap above a heading separates two sections without adding every row to
+    // a spacing property that would also separate rows inside one section.
+    readonly property real sectionGap: Kirigami.Units.largeSpacing
 
     signal launchRequested(int index)
 
@@ -80,44 +74,60 @@ FocusScope {
         default: return ""
         }
     }
-    function sectionRows(section): int {
-        const members = section ? section.members.length : 0
-        return Math.max(1, Math.ceil(members / root.columnCount))
+    function rowHeight(row): real {
+        return row && row.kind === "header"
+            ? root.sectionHeaderHeight + root.sectionGap : root.cellHeight
     }
-    function sectionHeading(section): string {
-        return root.categoryTitle(String(section ? section.categoryId || "" : ""))
-    }
-    function sectionHeight(section): real {
-        const header = root.sectionHeading(section).length > 0
-            ? root.sectionHeaderHeight : 0
-        return header + root.sectionRows(section) * root.cellHeight
+    function rowTop(rowIndex: int): real {
+        const rows = root.menuState ? root.menuState.displayRows : []
+        let top = 0
+        for (let row = 0; row < rowIndex && row < rows.length; ++row)
+            top += root.rowHeight(rows[row])
+        return top
     }
     function takeKeyboardEmphasis(): void {
         root.pointerEmphasis = false
         root.revealCurrent()
     }
-    // Scroll only as far as the selected cell needs to stay visible. A pointer
-    // that moves over a cell does not scroll the list under itself.
+    // The view knows the display row of the current cell, so revealing a
+    // keyboard selection is one indexed call instead of measuring the content.
     function revealCurrent(): void {
         const state = root.menuState
         if (!root.active || !state || state.currentIndex < 0) return
-        const sections = state.sections
-        if (!sections || sections.length === 0) return
-        const position = state.sectionPosition(state.currentIndex)
+        const row = state.displayRowFor(state.currentIndex)
+        if (row >= 0) sectionList.positionViewAtIndex(row, ListView.Contain)
+    }
+    // A wheel gesture stops wherever the system delta leaves it, which can cut a
+    // row through the middle. Once the gesture settles, move the list to the
+    // nearest row boundary so a resting menu never shows half a cell.
+    function scheduleSnap(): void {
+        if (!root.active) return
+        snapTimer.restart()
+    }
+    function snapToRow(): void {
+        const state = root.menuState
+        if (!root.active || !state) return
+        const rows = state.displayRows
+        if (!rows || rows.length === 0) return
+        const current = sectionList.contentY
+        const maximum = Math.max(0, sectionList.contentHeight - sectionList.height)
         let top = 0
-        for (let index = 0; index < position.section; ++index)
-            top += root.sectionHeight(sections[index]) + root.sectionSpacing
-        if (root.sectionHeading(sections[position.section]).length > 0)
-            top += root.sectionHeaderHeight
-        top += Math.floor(position.offset / root.columnCount) * root.cellHeight
-        const bottom = top + root.cellHeight
-        const viewTop = sectionList.contentY
-        const viewBottom = viewTop + sectionList.height
-        const maximum = Math.max(0, root.listingHeight - sectionList.height)
-        if (top < viewTop)
-            sectionList.contentY = Math.max(0, Math.min(maximum, top))
-        else if (bottom > viewBottom)
-            sectionList.contentY = Math.min(maximum, bottom - sectionList.height)
+        let best = 0
+        let bestDistance = Math.abs(current)
+        for (let row = 0; row < rows.length; ++row) {
+            const distance = Math.abs(top - current)
+            if (distance < bestDistance) {
+                best = top
+                bestDistance = distance
+            }
+            top += root.rowHeight(rows[row])
+            // Rows further than one cell away cannot be the nearest boundary.
+            if (top > current + root.cellHeight) break
+        }
+        const target = Math.min(maximum, Math.max(0, best))
+        if (Math.abs(target - current) < 0.5) return
+        snapAnimation.to = target
+        snapAnimation.start()
     }
 
     HoverHandler {
@@ -150,17 +160,21 @@ FocusScope {
         id: sectionList
         objectName: "menuSectionsView"
         anchors.fill: parent
-        model: root.menuState ? root.menuState.sections : []
-        // The delegates reserve the scroll bar gutter themselves, so the column
-        // width is stable while the policy changes.
-        spacing: root.sectionSpacing
+        model: root.menuState ? root.menuState.displayRows : []
+        // One row of preload: the budget is the viewport plus one row, not a
+        // section-sized cache.
+        cacheBuffer: root.cellHeight
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+        pixelAligned: true
+        // A drag or flick leaves the same partial row a wheel gesture does.
+        onMovementEnded: root.scheduleSnap()
         // The system decides how far one notch scrolls and whether the move is
         // smooth; intercepting the wheel would bypass the user's KDE setting.
         Kirigami.WheelHandler {
             objectName: "menuScrollWheel"
             target: sectionList
+            onWheel: root.scheduleSnap()
         }
         Controls.ScrollBar.vertical: Controls.ScrollBar {
             id: scrollBar
@@ -175,73 +189,64 @@ FocusScope {
         }
 
         delegate: Item {
-            id: sectionDelegate
+            id: displayRow
+            objectName: "menuRowDelegate"
             required property var modelData
             required property int index
 
-            readonly property var members: sectionDelegate.modelData.members || []
-            readonly property string heading: root.sectionHeading(
-                sectionDelegate.modelData)
+            readonly property bool isHeader: displayRow.modelData.kind === "header"
+            readonly property string heading: displayRow.isHeader
+                ? root.categoryTitle(String(displayRow.modelData.categoryId || ""))
+                : ""
 
             width: sectionList.width - root.scrollBarReserve
-            height: root.sectionHeight(sectionDelegate.modelData)
+            height: root.rowHeight(displayRow.modelData)
 
             Item {
-                id: headerRow
+                objectName: "menuSectionHeading"
+                visible: displayRow.isHeader
                 width: parent.width
                 height: root.sectionHeaderHeight
-                visible: sectionDelegate.heading.length > 0
+                anchors.bottom: parent.bottom
                 Accessible.role: Accessible.Heading
-                Accessible.name: sectionDelegate.heading
+                Accessible.name: displayRow.heading
 
                 Controls.Label {
                     id: headerLabel
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
-                    text: sectionDelegate.heading
+                    text: displayRow.heading
                     textFormat: Text.PlainText
                     font.weight: Font.DemiBold
                 }
                 Kirigami.Separator {
                     anchors.left: headerLabel.right
                     anchors.right: parent.right
-                    anchors.leftMargin: Kirigami.Units.smallSpacing
+                    anchors.leftMargin: root.columnSpacing
                     anchors.verticalCenter: parent.verticalCenter
                 }
             }
 
-            Grid {
-                id: sectionGrid
-                objectName: "menuSectionGrid"
-                anchors.top: sectionDelegate.heading.length > 0
-                    ? headerRow.bottom : parent.top
-                anchors.left: parent.left
-                // The full grid width keeps every section's first cell on the
-                // same column pitch, even when the section has one row only.
-                width: root.availableWidth
-                columns: root.columnCount
-                // `rows` stays unset: it is only a hint for a fixed-capacity
-                // grid, and a recycled delegate can repopulate its children
-                // before a recomputed hint arrives, which Qt reports as "more
-                // visible items than rows*columns". The delegate height already
-                // owns the row count through `sectionRows()`.
-                columnSpacing: Kirigami.Units.smallSpacing
-                rowSpacing: 0
+            Row {
+                objectName: "menuDisplayRow"
+                visible: !displayRow.isHeader
+                width: parent.width
+                height: root.cellHeight
+                spacing: root.columnSpacing
 
                 Repeater {
-                    model: sectionDelegate.members
+                    model: displayRow.isHeader ? [] : displayRow.modelData.members
 
                     delegate: PunchiMenuTile {
                         required property var modelData
-                        required property int index
 
-                        readonly property int absoluteIndex:
-                            sectionDelegate.modelData.start + index
+                        readonly property int absoluteIndex: modelData.index
 
                         width: root.cellWidth
                         height: root.cellHeight
-                        title: String(modelData.name || modelData.title || "")
-                        iconName: String(modelData.iconName || "")
+                        title: String(modelData.application.name
+                            || modelData.application.title || "")
+                        iconName: String(modelData.application.iconName || "")
                         showLabel: root.showLabels
                         motionEnabled: root.motionEnabled
                         hoverAnimation: root.hoverAnimation
@@ -263,10 +268,30 @@ FocusScope {
         }
     }
 
+    NumberAnimation {
+        id: snapAnimation
+        target: sectionList
+        property: "contentY"
+        duration: root.motionEnabled ? 120 : 0
+        easing.type: Easing.OutCubic
+    }
+    Timer {
+        id: snapTimer
+        interval: 300
+        repeat: false
+        onTriggered: root.snapToRow()
+    }
+
     onActiveChanged: {
-        if (!root.active) return
+        if (!root.active) {
+            snapTimer.stop()
+            return
+        }
+        // The state reset belongs to the opening request. Taking the band for
+        // the pointer and placing the view first keeps a stale selection from
+        // revealing itself during the transition.
+        root.pointerEmphasis = true
         sectionList.positionViewAtBeginning()
-        root.revealCurrent()
     }
 
     Connections {
@@ -275,9 +300,9 @@ FocusScope {
         function onCurrentIndexChanged() {
             if (!root.pointerEmphasis) root.revealCurrent()
         }
-        // A new query or a different order replaces the listing; the surface
+        // A new query or a different order replaces the rows; the surface
         // returns to its top instead of keeping an offset from the previous one.
-        function onSectionsChanged() {
+        function onDisplayRowsChanged() {
             sectionList.positionViewAtBeginning()
             if (!root.pointerEmphasis) root.revealCurrent()
         }
