@@ -54,8 +54,8 @@ script and every declaration.
 No version has been published. The repository carries no tag and no GitHub
 Release, so `0.1.47` is the version the tree declares rather than a download, and
 `README.md`, `README.es.md`, `AGENTS.md`, `CHANGELOG.md` and the About page say so
-in those words. The dated headings kept from the earlier development counter are
-recorded as development snapshots instead of being rewritten.
+in those words. The earlier development snapshots are kept in the private
+development record; `CHANGELOG.md` retains `0.1.47` as the declared baseline.
 
 The first published release can therefore be the number that describes a stable
 base instead of the next patch of a sequence nobody installed. The intended shape
@@ -74,8 +74,9 @@ snapshot is the `0.1.00` baseline; preserve its commit history. Its historical
 tag `v0.1.0` was removed on 2026-10-14. Earlier construction work was bundled in
 that snapshot and has no separate retrospective count. `0.1.47` is the
 transition point: it is the latest release under the old numbering and the
-baseline for release-based numbering. The table below records that history; the
-counter is closed and no new heading uses the padded or per-commit form.
+baseline for release-based numbering. The table below records that mapping; the
+full snapshots are kept in the private development record. The counter is closed
+and no new heading uses the padded or per-commit form.
 
 On 2026-10-19, the local documentation paths were removed from every commit before
 publication, and the personal author/committer email was replaced with GitHub's
