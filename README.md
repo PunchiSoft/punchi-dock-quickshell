@@ -31,8 +31,9 @@
 
 <p align="center"><img src="assets/demo/dock-magnification.webp" width="880" alt="The Punchi Dock Quickshell dock enlarging the icons around the pointer as it moves along the bar"></p>
 
-<p align="center"><em>The dock magnifying the icons around the pointer, with the default
-launchers, on KDE Plasma 6.8.2 with KWin 6.8.2 on Wayland.</em></p>
+<p align="center"><em>The dock magnifying the icons around the pointer on KDE Plasma
+6.8.2 with KWin 6.8.2 on Wayland. The launcher set is the maintainer's, not the
+first-run default.</em></p>
 
 Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, a fullscreen application menu, KDE context actions and media
@@ -68,6 +69,24 @@ On 2026-10-20, the automated setup and test suite were validated on Fedora 44
 with Quickshell 0.2.1, Qt 6.11.2, KDE Frameworks 6.31.0, KDE Plasma 6.7.5 and
 KWin 6.7.5. Other distributions need package-name adjustments and their own
 validation.
+
+## Screenshots
+
+The captures show the dock and its windows on Fedora 44 with Plasma 6.8.2, KWin
+6.8.2 and Quickshell 0.2.1 on Wayland. The wallpaper, cursor and desktop theme
+are the maintainer's; the dock follows the active Plasma theme. The small context
+menus are the dock's own menus; they follow the native KDE actions used as
+references.
+
+| Menu settings | Recent applications, Grid | View content as |
+|:---:|:---:|:---:|
+| <img src="assets/screenshots/settings-menu.png" width="330" alt="Menu settings with Application order set to Alphabetical and Scroll bar off"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Recent applications container shown as a grid of application icons"> | <img src="assets/screenshots/container-view-menu.png" width="190" alt="Container context menu offering Grid, List, Detail and Fan"> |
+
+| Home as a fan | System Settings context menu | Terminal context menu |
+|:---:|:---:|:---:|
+| <img src="assets/screenshots/fan-view.png" width="130" alt="Home container shown as a fan of the standard user folders"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="System Settings dock item with KDE actions"> | <img src="assets/screenshots/context-terminal.png" width="190" alt="Terminal dock item with new window and new tab actions"> |
+
+[More captures and capture notes](assets/screenshots/README.md).
 
 ## Current features
 

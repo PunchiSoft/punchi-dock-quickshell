@@ -32,8 +32,9 @@
 
 <p align="center"><img src="assets/demo/dock-magnification.webp" width="880" alt="El dock Punchi Dock Quickshell ampliando los iconos alrededor del puntero mientras se desplaza por la barra"></p>
 
-<p align="center"><em>El dock ampliando los iconos alrededor del puntero, con los
-lanzadores por defecto, en KDE Plasma 6.8.2 con KWin 6.8.2 en Wayland.</em></p>
+<p align="center"><em>El dock ampliando los iconos alrededor del puntero en KDE
+Plasma 6.8.2 con KWin 6.8.2 en Wayland. El conjunto de lanzadores es del
+mantenedor, no el predeterminado del primer inicio.</em></p>
 
 Punchi Dock Quickshell combina magnificación animada, lanzadores de aplicaciones
 configurables, un menú de aplicaciones a pantalla completa, acciones contextuales
@@ -72,6 +73,24 @@ El 2026-10-20, el asistente y la suite de pruebas se validaron en Fedora 44 con
 Quickshell 0.2.1, Qt 6.11.2, KDE Frameworks 6.31.0, KDE Plasma 6.7.5 y KWin
 6.7.5. Otras distribuciones necesitan ajustes de nombres de paquetes y su
 propia validación.
+
+## Capturas
+
+Las capturas muestran el dock y sus ventanas en Fedora 44 con Plasma 6.8.2, KWin
+6.8.2 y Quickshell 0.2.1 en Wayland. El fondo, el cursor y el tema de escritorio
+son del mantenedor; el dock sigue el tema activo de Plasma. Los menús
+contextuales pequeños son menús del propio dock; siguen las acciones nativas de
+KDE usadas como referencia.
+
+| Ajustes del menú | Aplicaciones recientes, cuadrícula | Ver contenido como |
+|:---:|:---:|:---:|
+| <img src="assets/screenshots/settings-menu.png" width="330" alt="Ajustes del menú con el orden de aplicaciones en Alfabético y la barra de desplazamiento desactivada"> | <img src="assets/screenshots/recent-applications-grid.png" width="300" alt="Contenedor de aplicaciones recientes mostrado como una cuadrícula de iconos"> | <img src="assets/screenshots/container-view-menu.png" width="190" alt="Menú contextual del contenedor con Cuadrícula, Lista, Detalle y Abanico"> |
+
+| Inicio en abanico | Menú de Configuración del sistema | Menú de Terminal |
+|:---:|:---:|:---:|
+| <img src="assets/screenshots/fan-view.png" width="130" alt="Contenedor de Inicio mostrado como un abanico de las carpetas estándar del usuario"> | <img src="assets/screenshots/context-system-settings.png" width="190" alt="Elemento de Configuración del sistema con acciones de KDE"> | <img src="assets/screenshots/context-terminal.png" width="190" alt="Elemento de Terminal con acciones de ventana nueva y pestaña nueva"> |
+
+[Más capturas y notas](assets/screenshots/README.md).
 
 ## Funciones actuales
 
