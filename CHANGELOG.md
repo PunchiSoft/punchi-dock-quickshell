@@ -56,13 +56,23 @@ declares is `0.1.47`. Pending work accumulates under `Unreleased`.
   `PunchiProfileDocument` still accepts the old key while validating the new
   order values. The native catalogue sorts with `QCollator::setNumericMode`, so
   a manual listing reads the way a person counts.
-- Both READMEs open with a recording of the dock magnifying its icons. The
-  capture is stored as `assets/demo/dock-magnification.webp`: cropped to the dock
-  strip so the screen recorder's notification stays out of frame, trimmed to the
-  span where the dock is fully visible so the loop opens and closes on it,
-  downscaled and re-encoded to 960x233, 285 frames, 8.1 s and 2.5 MB instead of
-  the 5 MB source. `assets/demo/README.md` records the environment and the
-  exact ImageMagick command that rebuilds the file.
+- Both READMEs open with a recording of the dock magnifying its icons, replaced
+  with a 2026-11-11 capture: 982x261 source, downscaled to 960x255, 177 frames,
+  4.76 s and 1.3 MB. The new recording already excludes the screen recorder's
+  notification and keeps the dock visible throughout, so it needs no crop or
+  trim. The caption no longer says the launcher set is the default, because the
+  recording uses the maintainer's. `assets/demo/README.md` records the
+  environment and the exact ImageMagick command that rebuilds the file.
+- Both READMEs gain a screenshot gallery of the current interface: the four
+  settings categories (General, Items, Popups and Menu), the recent-applications
+  container as a grid, the container view selector, the extra Fan mode and a
+  native KDE menu example. The opaque popups are cropped to their own contour
+  with a transparent background; the fan keeps the desktop behind its translucent
+  surface.
+  `assets/screenshots/README.md` lists
+  every capture with the Fedora 44 / Plasma 6.8.2 / KWin 6.8.2 / Qt 6.11.2 /
+  Quickshell 0.2.1 environment, blurs the profile header in the settings captures
+  and keeps the Downloads capture with personal file names out of the public set.
 - A fullscreen-menu page change is animated again. `PunchiMenuGrid.syncPage()`
   assigned `pagesView.currentIndex` and then called `positionViewAtIndex()` while
   the content was still on the previous page; under `StrictlyEnforceRange` that

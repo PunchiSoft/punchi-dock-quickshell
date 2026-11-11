@@ -32,8 +32,9 @@
 
 <p align="center"><img src="assets/demo/dock-magnification.webp" width="880" alt="El dock Punchi Dock Quickshell ampliando los iconos alrededor del puntero mientras se desplaza por la barra"></p>
 
-<p align="center"><em>El dock ampliando los iconos alrededor del puntero, con los
-lanzadores por defecto, en KDE Plasma 6.8.2 con KWin 6.8.2 en Wayland.</em></p>
+<p align="center"><em>El dock ampliando los iconos alrededor del puntero en KDE
+Plasma 6.8.2 con KWin 6.8.2 en Wayland. El conjunto de lanzadores es del
+mantenedor, no el predeterminado del primer inicio.</em></p>
 
 Punchi Dock Quickshell combina magnificación animada, lanzadores de aplicaciones
 configurables, un menú de aplicaciones a pantalla completa, acciones contextuales
@@ -72,6 +73,29 @@ El 2026-10-20, el asistente y la suite de pruebas se validaron en Fedora 44 con
 Quickshell 0.2.1, Qt 6.11.2, KDE Frameworks 6.31.0, KDE Plasma 6.7.5 y KWin
 6.7.5. Otras distribuciones necesitan ajustes de nombres de paquetes y su
 propia validación.
+
+## Capturas
+
+Las capturas muestran el dock y sus ventanas en Fedora 44 con Plasma 6.8.2, KWin
+6.8.2 y Quickshell 0.2.1 en Wayland. El fondo, el cursor y el tema de escritorio
+son del mantenedor; el dock sigue el tema activo de Plasma. Las cuatro capturas
+de ajustes corresponden a las categorías **General**, **Items**, **Popups** y
+**Menu**. Los contenedores usan normalmente Cuadrícula, Lista o Detalle; Abanico
+es un modo extra. Los popups opacos están recortados a su propio contorno; el
+abanico conserva el escritorio detrás de su superficie translúcida. El menú de
+Configuración del sistema es un ejemplo del menú nativo integrado de KDE, como el
+que Dolphin abre con clic derecho; el ejemplo de Terminal está en el índice de
+capturas.
+
+| Ajustes: General | Ajustes: Elementos | Ajustes: Popups | Ajustes: Menú |
+|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/settings-general.png" width="240" alt="Ajustes generales con tamaño, magnificación, posición y aplicaciones recientes"> | <img src="assets/screenshots/settings-items.png" width="240" alt="Lista de elementos del dock con Añadir elemento y los controles de orden"> | <img src="assets/screenshots/settings-popups.png" width="240" alt="Ajustes de popups con tamaño, altura y tamaño de icono para Cuadrícula, Lista y Abanico"> | <img src="assets/screenshots/settings-menu.png" width="240" alt="Ajustes del menú con el orden de aplicaciones en Alfabético y la barra de desplazamiento desactivada"> |
+
+| Aplicaciones recientes, cuadrícula | Ver contenido como | Abanico, modo extra | Menú nativo de KDE |
+|:---:|:---:|:---:|:---:|
+| <img src="assets/screenshots/recent-applications-grid.png" width="260" alt="Contenedor de aplicaciones recientes mostrado como una cuadrícula de iconos"> | <img src="assets/screenshots/container-view-menu.png" width="180" alt="Selector de variante del popup con Cuadrícula, Lista, Detalle y el modo extra Abanico"> | <img src="assets/screenshots/fan-view.png" width="110" alt="Contenedor de Inicio en el modo extra Abanico del popup"> | <img src="assets/screenshots/context-system-settings.png" width="180" alt="Menú nativo integrado de KDE en el elemento Configuración del sistema, como el clic derecho de Dolphin"> |
+
+[Más capturas y notas](assets/screenshots/README.md).
 
 ## Funciones actuales
 
