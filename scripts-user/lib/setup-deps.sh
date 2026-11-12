@@ -20,6 +20,7 @@ punchi_fedora_runtime_packages() {
         kf6-qqc2-desktop-style \
         kf6-ksvg \
         kf6-kservice \
+        kf6-kglobalaccel \
         plasma-workspace \
         plasma-activities \
         plasma-activities-stats
@@ -38,6 +39,7 @@ punchi_fedora_build_packages() {
         kf6-kservice-devel \
         kf6-kcoreaddons-devel \
         kf6-kconfig-devel \
+        kf6-kglobalaccel-devel \
         kf6-kwindowsystem-devel \
         plasma-activities-devel \
         plasma-activities-stats-devel \
@@ -61,6 +63,7 @@ punchi_debian_runtime_packages() {
         qml6-module-org-kde-ksvg \
         qml6-module-org-kde-kirigamiaddons-components \
         libkf6service-bin \
+        libkf6globalaccel6 \
         plasma-workspace \
         libplasmaactivities6 \
         libplasmaactivitiesstats1
@@ -81,6 +84,7 @@ punchi_debian_build_packages() {
         libkf6service-dev \
         libkf6coreaddons-dev \
         libkf6config-dev \
+        libkf6globalaccel-dev \
         libkf6windowsystem-dev \
         libplasmaactivities-dev \
         libplasmaactivitiesstats-dev \
@@ -106,6 +110,7 @@ punchi_arch_runtime_packages() {
         qqc2-desktop-style \
         ksvg \
         kservice \
+        kglobalaccel \
         plasma-workspace \
         plasma-activities \
         plasma-activities-stats
@@ -124,6 +129,7 @@ punchi_arch_build_packages() {
         kservice \
         kcoreaddons \
         kconfig \
+        kglobalaccel \
         kwindowsystem \
         plasma-activities \
         plasma-activities-stats \

@@ -368,6 +368,7 @@ Pane {
                         PunchiDockMenuSettings {
                             id: menuPage
                             settings: root.settings
+                            pageActive: root.currentPage === 5
                             width: menuViewport.width
                         }
                     }

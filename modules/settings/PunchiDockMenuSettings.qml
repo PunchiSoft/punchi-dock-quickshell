@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.kquickcontrols as KQuickControls
 import "../../config"
 
 // Fullscreen menu settings. They live here, in their own settings category,
@@ -15,6 +16,10 @@ ColumnLayout {
     objectName: "settingsDockMenu"
 
     required property PunchiShellSettings settings
+    // The settings view owns the page index; the inline key recorder waits
+    // until this page is the one being shown.
+    property bool pageActive: false
+    property bool updatingShortcut: false
 
     readonly property var hoverAnimationOptions: [
         {text: qsTr("None"), value: "none"},
@@ -49,6 +54,19 @@ ColumnLayout {
     }
     function focusFirst(): void {
         opacityControl.focusControl()
+    }
+    function syncShortcutEditor(): void {
+        if (!shortcutEditorLoader.item) return
+        updatingShortcut = true
+        // qmllint disable missing-property unresolved-type
+        shortcutEditorLoader.item.keySequence = root.settings.menuShortcut
+        // qmllint enable missing-property unresolved-type
+        updatingShortcut = false
+    }
+
+    Connections {
+        target: root.settings
+        function onMenuShortcutChanged() { root.syncShortcutEditor() }
     }
 
     spacing: Kirigami.Units.largeSpacing
@@ -141,6 +159,50 @@ ColumnLayout {
             Layout.margins: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.largeSpacing
 
+            PunchiSettingsRow {
+                Layout.fillWidth: true
+                text: qsTr("Menu shortcut")
+                showSeparator: true
+                Loader {
+                    id: shortcutEditorLoader
+                    // StackLayout maps only the current page. Loading the
+                    // editor when this page is active keeps the KDE key
+                    // recorder out of the other pages and their runtime test.
+                    active: root.pageActive
+                    sourceComponent: Component {
+                        KQuickControls.KeySequenceItem {
+                            id: shortcutEditor
+                            objectName: "menuShortcutEditor"
+                            showCancelButton: true
+                            // Keep the Plasma 6.0-compatible properties.
+                            // ShortcutPattern arrived in a later KF6 release.
+                            // qmllint disable deprecated
+                            modifierOnlyAllowed: true
+                            modifierlessAllowed: false
+                            // qmllint enable deprecated
+                            Accessible.name: qsTr("Menu shortcut")
+                            onKeySequenceModified: {
+                                if (root.updatingShortcut) return
+                                // qmllint disable missing-property unresolved-type
+                                root.settings.menuShortcut = shortcutEditor.keySequence.toString()
+                                // qmllint enable missing-property unresolved-type
+                            }
+                        }
+                    }
+                    onItemChanged: if (item) root.syncShortcutEditor()
+                }
+            }
+            Label {
+                objectName: "menuShortcutHelp"
+                Layout.fillWidth: true
+                Layout.leftMargin: Kirigami.Units.largeSpacing
+                Layout.rightMargin: Kirigami.Units.largeSpacing
+                Layout.topMargin: -Kirigami.Units.smallSpacing
+                text: qsTr("Meta is the Super or Windows key on most keyboards.")
+                font: Kirigami.Theme.smallFont
+                color: Kirigami.Theme.disabledTextColor
+                wrapMode: Text.WordWrap
+            }
             PunchiSettingsRow {
                 Layout.fillWidth: true
                 text: qsTr("Dock over the menu")

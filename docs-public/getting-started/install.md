@@ -240,6 +240,7 @@ software each group needs.
 - QQC2 Desktop Style
 - KSvg
 - KService
+- KGlobalAccel
 - Plasma Workspace
 - Plasma Activities
 - Plasma Activities Stats
@@ -251,7 +252,7 @@ software each group needs.
 - A C++17 compiler
 - Extra CMake Modules
 - Qt 6 Base, Declarative and Tools development files
-- KF6 KIO, Service, CoreAddons, Config and WindowSystem development files
+- KF6 KIO, Service, CoreAddons, Config, GlobalAccel and WindowSystem development files
 - Plasma Activities and Plasma Activities Stats development files
 - Wayland client development files, scanner and protocols
 

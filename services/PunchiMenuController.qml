@@ -8,6 +8,9 @@ QtObject {
     id: root
 
     property string openScreenKey: ""
+    // The screen most recently asked to own the menu. A global shortcut has no
+    // dock anchor, so it prefers this screen before the primary fallback.
+    property string lastScreenKey: ""
     // A menu surface stays mapped while its closing fade runs. The dock has to
     // stay above it until the compositor unmaps it, or the dock would drop behind
     // a backdrop that is still fading out.
@@ -28,6 +31,7 @@ QtObject {
     }
     function open(screenKey: string): bool {
         if (screenKey.length === 0) return false
+        root.lastScreenKey = screenKey
         if (root.openScreenKey === screenKey) return true
         root.openScreenKey = screenKey
         root.opened(screenKey)

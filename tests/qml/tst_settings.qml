@@ -125,6 +125,23 @@ TestCase {
         verify(settings.restore({version: 16, menuApplicationOrder: "unsorted"}))
         compare(settings.menuApplicationOrder, "categories")
     }
+    function test_menuShortcutPersistenceAndValidation() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        compare(settings.menuShortcut, "")
+        settings.menuShortcut = "Ctrl+Alt+M"
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.menuShortcut, "Ctrl+Alt+M")
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore(data))
+        compare(restored.menuShortcut, "Ctrl+Alt+M")
+        // Invalid imported shortcuts leave the current value intact instead of
+        // registering a control sequence.
+        verify(restored.restore({version: 16, menuShortcut: "Ctrl+\nM"}))
+        compare(restored.menuShortcut, "Ctrl+Alt+M")
+        // An overlong value is rejected by the property guard.
+        restored.menuShortcut = "x".repeat(257)
+        compare(restored.menuShortcut, "")
+    }
     function test_popupAppearancePersistence() {
         const settings = createTemporaryObject(settingsFixture, test)
         compare(settings.popupScale, 1)

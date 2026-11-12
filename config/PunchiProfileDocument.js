@@ -44,6 +44,15 @@ function validOptionalIconSize(value, range) {
     return value === 0 || inRange(value, range, true)
 }
 
+function validShortcut(value) {
+    if (typeof value !== "string" || value.length > 256) return false
+    for (let index = 0; index < value.length; ++index) {
+        const code = value.charCodeAt(index)
+        if (code < 0x20 || code === 0x7f) return false
+    }
+    return true
+}
+
 function validate(profile) {
     if (!objectValue(profile)) return "not-profile"
     for (const key of Object.keys(profile))
@@ -101,6 +110,8 @@ function validate(profile) {
         return "invalid-field"
     if (own(profile, "menuCloseButtonPosition")
             && ["left", "right"].indexOf(profile.menuCloseButtonPosition) < 0)
+        return "invalid-field"
+    if (own(profile, "menuShortcut") && !validShortcut(profile.menuShortcut))
         return "invalid-field"
     if (own(profile, "menuHoverAnimation")
             && ["none", "individual", "pulse", "bounce"].indexOf(profile.menuHoverAnimation) < 0)

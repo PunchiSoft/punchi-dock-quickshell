@@ -12,6 +12,7 @@ find_package(KF6KIO REQUIRED)
 find_package(KF6Service REQUIRED)
 find_package(KF6CoreAddons REQUIRED)
 find_package(KF6Config REQUIRED)
+find_package(KF6GlobalAccel REQUIRED)
 find_package(KF6WindowSystem 6.13 REQUIRED)
 find_package(PlasmaActivitiesStats REQUIRED)
 find_package(PlasmaActivities REQUIRED)
@@ -68,10 +69,11 @@ qt_add_qml_module(punchikde
         adapters/kde/native/windows/windowactivation.h adapters/kde/native/windows/windowactivation.cpp
         adapters/kde/native/windows/autohideedge.h adapters/kde/native/windows/autohideedge.cpp
         adapters/kde/native/windows/screeninfo.h adapters/kde/native/windows/screeninfo.cpp
+        adapters/kde/native/shortcuts/menushortcutcontroller.h adapters/kde/native/shortcuts/menushortcutcontroller.cpp
         adapters/kde/native/windows/kwinminimizeeffect.h adapters/kde/native/windows/kwinminimizeeffect.cpp
         adapters/kde/native/profile/profilefile.h adapters/kde/native/profile/profilefile.cpp
         adapters/kde/native/profile/distributioninfo.h adapters/kde/native/profile/distributioninfo.cpp)
-target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore Plasma::ActivitiesStats Plasma::Activities)
+target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore KF6::GlobalAccel Plasma::ActivitiesStats Plasma::Activities)
 # The QML plugin loads the implementation library from a relative path so that
 # the user-local copy and the packaging layout never resolve it through the
 # source build directory, which is replaced on every rebuild.
@@ -86,6 +88,7 @@ set(PUNCHI_NATIVE_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/applications
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/files
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/profile
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/shortcuts
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/updates
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/windows)
 include_directories(${PUNCHI_NATIVE_INCLUDE_DIRS})
@@ -181,6 +184,15 @@ if(BUILD_TESTING)
     target_link_libraries(kwin_minimize_effect_test PRIVATE Qt6::Test Qt6::DBus KF6::ConfigCore)
     target_compile_definitions(kwin_minimize_effect_test PRIVATE
         PUNCHI_RESTORE_SCRIPT="${CMAKE_SOURCE_DIR}/scripts-user/restore-kde.sh")
+    add_executable(menu_shortcut_controller_test tests/menu_shortcut_controller_test.cpp
+        adapters/kde/native/shortcuts/menushortcutcontroller.cpp)
+    target_include_directories(menu_shortcut_controller_test PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(menu_shortcut_controller_test PRIVATE
+        Qt6::Test Qt6::Gui Qt6::Qml KF6::GlobalAccel)
+    add_test(NAME menu_shortcut_controller COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        $<TARGET_FILE:menu_shortcut_controller_test>)
+    set_tests_properties(menu_shortcut_controller PROPERTIES TIMEOUT 45)
     add_test(NAME task_identity COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
@@ -415,6 +427,7 @@ if(BUILD_TESTING)
         application_media
         window_activation
         kwin_minimize_effect
+        menu_shortcut_controller
         window_models
         running_state
         recent_documents
