@@ -17,8 +17,9 @@ Issues are the only support channel; Discussions and the wiki are disabled.
 
 ## Before you report
 
-1. Read the [README](README.md), especially Known limitations and Compatibility
-   at a glance.
+1. Read the [README](README.md), the
+   [known limitations](docs-public/troubleshooting.md#known-limitations) and the
+   [compatibility table](docs-public/getting-started/compatibility.md).
 2. Run `./scripts-user/setup.sh --check-deps` and keep its output.
 3. Reproduce once with a fresh start: `./scripts-user/start.sh`, then
    `./scripts-user/restore-kde.sh` when you stop.

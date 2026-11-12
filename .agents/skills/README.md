@@ -15,7 +15,7 @@ Quickshell-specific workflows are new.
 | [code-review](code-review/SKILL.md) | Diff review with blocking and non-blocking findings | a change is about to be committed or opened | `control-connection-review`, `testing` |
 | [commit-push-versioning](commit-push-versioning/SKILL.md) | Delivery version, staged content, hand-off | the user asks to commit or push | `code-review`, `pr-delivery` |
 | [control-connection-review](control-connection-review/SKILL.md) | Intent-to-effect tracing through services and adapters | a control looks wired but has no effect | `kde-integration` |
-| [documentation](documentation/SKILL.md) | Public README, changelog, local record, attribution | public documentation or a support claim changes | - |
+| [documentation](documentation/SKILL.md) | README landing, published docs tree, changelog, local record, attribution | public documentation or a support claim changes | - |
 | [fluid-motion](fluid-motion/SKILL.md) | Qt Quick mechanism, continuity, reversibility | one concrete animation is written or corrected | `accessibility` |
 | [kde-integration](kde-integration/SKILL.md) | Native-first KDE and KWin behavior | a change touches KWin, Plasma or KDE Frameworks | `qt-kde-reference` |
 | [localization](localization/SKILL.md) | `qsTr` source strings and catalog verification | a runtime string or a language claim changes | `notice-copy-approval` |

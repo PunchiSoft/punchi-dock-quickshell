@@ -7,9 +7,10 @@ may change without migration.
 
 ## Before you start
 
-- Read the [README](README.md) and its Known limitations.
-- Check the [compatibility table](README.md#compatibility-at-a-glance); X11 and
-  non-KDE compositors are out of scope.
+- Read the [README](README.md), the [feature reference](docs-public/features/README.md)
+  and the [known limitations](docs-public/troubleshooting.md#known-limitations).
+- Check the [compatibility table](docs-public/getting-started/compatibility.md);
+  X11 and non-KDE compositors are out of scope.
 - Report security problems through [SECURITY.md](SECURITY.md), never in a public
   issue or pull request.
 - Open a [bug report](.github/ISSUE_TEMPLATE/bug_report.yml) or a
@@ -73,7 +74,7 @@ pull request description.
 | `cmake/` | CMake modules and templates | generated files |
 | `.agents/` | [AGENTS.md](AGENTS.md), the skills and their catalog | runtime code |
 | `.github/` | workflows and issue/pull-request templates | credentials |
-| `docs-public/` | published documentation: architecture, development, roadmap and versioning | build output, credentials |
+| `docs-public/` | published documentation: getting started, features, configuration, architecture, development, roadmap and versioning | build output, credentials |
 
 - Every layer directory carries a README that states what belongs to it, and a new
   subdirectory is added to that README's inventory.
@@ -84,6 +85,27 @@ pull request description.
   directory.
 - An ignored path never appears as a link target from a tracked file, because a
   clone does not receive it.
+
+## Documentation
+
+`README.md` is the landing page: what the project does, a short feature summary,
+the quick-start commands and links. Detailed behavior lives in `docs-public/`:
+
+| Audience need | Section |
+| --- | --- |
+| Getting it running | `getting-started/` |
+| What a capability does | `features/` (one page per feature group) |
+| Changing settings or profiles | `configuration/` |
+| Why the code is built this way | `architecture/` |
+| Building and testing | `development.md` |
+| A failed start or a warning | `troubleshooting.md` |
+
+- A behavior change updates the page that owns it, not only the README summary.
+- Every `docs-public/` section is a directory with an index `README.md`, and every
+  page is linked from that index. `project_foundation` fails on an orphan page.
+- A published page never links into the ignored `docs-private/` record.
+- `README.md` and `README.es.md` have no generator: a change to one is incomplete
+  until the other matches.
 
 ## Local development
 

@@ -1,0 +1,78 @@
+# Appearance and motion
+
+The dock's visual behavior: magnification, launch feedback, placement and the
+input that follows them. Theme colors, fonts and icon sizes come from the active
+Plasma/Kirigami theme.
+
+## Magnification
+
+- Continuous hover magnification with a themed expanding background and tooltips.
+- The magnification wave, tooltips, context menus, arrow-key navigation, running
+  indicators and the native auto-hide edge follow the selected screen edge.
+  Side popups open inward and icons stay upright.
+- The wave is a bounded continuous function of pointer distance: three neighbours
+  on each side receive graded magnification, and the full amplitude follows the
+  selected zoom without a separately capped shoulder.
+- Pointer coordinates and cell centers stay stable during the wave, so the icon
+  under the pointer does not drift.
+- The 100–300% zoom preference selects the interval from the theme-derived base
+  size (100%, no enlargement) to three times that base. Larger base sizes are never
+  shrunk.
+- Tooltips remain unscaled and follow the rendered icon top or the inward-facing
+  side. Running markers stay below the icon in every orientation.
+
+The geometry and cosine formulas are described in
+[Dock runtime](../architecture/dock-runtime.md#magnification).
+
+## Launch feedback
+
+- A two-hop bounce preserves the original peaks and easing.
+- Repeated clicks coalesce their feedback without suppressing activation intents.
+- The bounce offset adds to the wave lift, while the frame, hit target and balloon
+  remain tied to the control transform.
+- The window reserves room for the maximum bounce amplitude.
+- Disabled motion, hidden surfaces or disabled controls reset feedback immediately.
+
+## Reduced motion
+
+- The dock reads Kirigami durations and detects disabled system animations.
+- Settings expose a separate explicit reduced-motion override.
+- Reduced motion removes displacement and animated entry, retaining at most an
+  instant 8% active-item emphasis.
+
+Closing surfaces finish their fade before hiding; a test may use a bounded
+observation timer, but no timer drives an animation.
+
+## Placement and screens
+
+- Bottom, left or right placement.
+- One dock on every connected screen, sharing one profile.
+- **Screens and desktops** limits the dock to selected screens, virtual desktops or
+  KDE activities.
+- A selected screen is remembered across hot-plug, and the system primary screen
+  is used while none is connected.
+- An auto-hiding dock stays visible when its edge borders another monitor.
+- Running markers can follow the current desktop and activity.
+
+## Appearance settings
+
+- Dock settings for icon size, magnification, bounce, reduced motion, position and
+  visibility.
+- Popup settings for size, height and icon size in their own **Popups** category,
+  applied to the folder containers.
+
+The categories, defaults and Apply/Accept/Close behavior are documented in
+[Settings](../configuration/settings.md). Visibility modes and their effect on
+screen reservation are in [Dock modes](../configuration/dock-modes.md).
+
+## Keyboard and focus
+
+- Keyboard navigation for the dock, its context menus, the settings window and the
+  fullscreen menu.
+- Hover never takes keyboard focus; the dock accepts on-demand focus and restores
+  it when a popup closes.
+- The fullscreen menu takes the keyboard only while it is open.
+
+Automated checks do not establish screen-reader support, fractional scaling,
+physical hot-plug or full visual quality. Those remain explicit validation gaps;
+see [Troubleshooting](../troubleshooting.md).

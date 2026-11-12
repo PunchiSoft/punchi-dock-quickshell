@@ -4,7 +4,7 @@ contact_links:
     url: https://github.com/PunchiSoft/punchi-dock-quickshell/security/advisories/new
     about: Report privately through GitHub security advisories. Do not open a public issue.
   - name: Compatibility and known limitations
-    url: https://github.com/PunchiSoft/punchi-dock-quickshell#compatibility-at-a-glance
+    url: https://github.com/PunchiSoft/punchi-dock-quickshell/blob/main/docs-public/getting-started/compatibility.md
     about: Check the validated versions and unsupported environments before filing.
   - name: Support and diagnostics
     url: https://github.com/PunchiSoft/punchi-dock-quickshell/blob/main/SUPPORT.md

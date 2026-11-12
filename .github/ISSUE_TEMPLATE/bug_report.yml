@@ -7,7 +7,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        This project is alpha software. Read the README and its Known limitations
+        This project is alpha software. Read the README and the
+        [known limitations](https://github.com/PunchiSoft/punchi-dock-quickshell/blob/main/docs-public/troubleshooting.md)
         first. Do not paste personal file paths, usernames, tokens, or private
         file contents. Report security problems through SECURITY.md instead.
   - type: textarea
@@ -71,7 +72,7 @@ body:
     attributes:
       label: Checks
       options:
-        - label: I read the README and its Known limitations.
+        - label: I read the README and the known limitations.
           required: true
         - label: I searched existing issues.
           required: true

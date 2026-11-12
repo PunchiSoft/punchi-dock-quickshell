@@ -44,7 +44,9 @@ check that a skill description activates on the right requests, and
 Four entries gate repository rules rather than behavior. They must keep failing when
 their rule is broken:
 
-- `project_foundation`: skill license fields, the skill catalog and the reuse notice.
+- `project_foundation`: skill license fields, the skill catalog, the reuse notice,
+  the `docs-public/` section indexes and the rule that a published page never
+  links into `docs-private/`.
 - `architecture_contract`: layer direction, module cycles and root-level state in
   `shell.qml`, using `architecture-allowlist.json`.
 - `project_version`: the tracked version declarations against the newest changelog
