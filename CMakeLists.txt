@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.22)
-project(punchi-dock-quickshell VERSION 0.1.47 LANGUAGES C CXX)
+# CMake accepts only a numeric project version. Keep the release display version
+# here and let scripts-dev/check-version.py verify the base and the suffix.
+set(PUNCHI_VERSION_BASE 0.2.0)
+set(PUNCHI_DISPLAY_VERSION "0.2.0-beta.1")
+project(punchi-dock-quickshell VERSION ${PUNCHI_VERSION_BASE} LANGUAGES C CXX)
 include(GNUInstallDirs)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -452,7 +456,7 @@ endif()
 
 set(CPACK_PACKAGE_NAME "punchi-dock-quickshell")
 set(CPACK_PACKAGE_VENDOR "PunchiSoft")
-set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_VERSION "${PUNCHI_DISPLAY_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Animated dock for KDE Plasma built with Quickshell")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}")

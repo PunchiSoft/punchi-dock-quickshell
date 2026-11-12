@@ -4,10 +4,12 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 No version has been published yet: the repository carries no tag and no release.
-The tree declares `0.1.47` as its legacy development baseline, not a published
-release. Pending work accumulates under `Unreleased`.
+The tree prepares `0.2.0-beta.1` as its first pre-release; `0.1.47` remains
+the legacy development baseline. New pending work accumulates under `Unreleased`.
 
 ## Unreleased
+
+## 0.2.0-beta.1 — 2026-11-11
 
 ### Added
 

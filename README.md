@@ -56,9 +56,10 @@ assistant refuses to install outside KDE Plasma on Wayland, and starting an
 installed copy elsewhere names the session it found and shows a system dialog
 instead of running.
 
-**Unreleased.** The tree declares version **0.1.47** for a future delivery; no
-tag or release exists. The [changelog](CHANGELOG.md) keeps pending work under
-`Unreleased` and each delivered change with its validation.
+**First beta, not published.** The tree declares version
+**0.2.0-beta.1** for the first public release; no tag or GitHub Release exists
+yet. The [changelog](CHANGELOG.md) records the prepared release and keeps new
+pending work under `Unreleased`.
 
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) ·
 [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Support](SUPPORT.md)

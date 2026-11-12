@@ -12,7 +12,8 @@ CHANGELOG = ROOT / 'CHANGELOG.md'
 CATEGORIES = ('Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security')
 LEGACY_BASELINE = (0, 1, 47)
 VERSION_HEADING = re.compile(
-    r'^## ((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)) — (\d{4}-\d{2}-\d{2})$')
+    r'^## ((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?)'
+    r' — (\d{4}-\d{2}-\d{2})$')
 PRIVATE_PATH = re.compile(r'(?:docs-private/|docs/records/|backup/|/home/[^\s)]+)')
 
 
@@ -22,6 +23,16 @@ def sections(lines):
     return [(heading, lines[index + 1:(headings[n + 1][0]
                                         if n + 1 < len(headings) else len(lines))])
             for n, (index, heading) in enumerate(headings)]
+
+
+def version_key(version):
+    base, _, prerelease = version.partition('-')
+    numeric = tuple(int(part) for part in base.split('.'))
+    if not prerelease:
+        return (numeric, 1, ())
+    identifiers = tuple((0, int(part)) if part.isdigit() else (1, part)
+                        for part in prerelease.split('.'))
+    return (numeric, 0, identifiers)
 
 
 def check_categories(body, section_name):
@@ -64,26 +75,27 @@ def main():
     assert sum(heading == '## Unreleased' for heading, _ in parsed) == 1, \
         'CHANGELOG.md must contain exactly one Unreleased section'
 
-    versions = []
+    keys = []
     for heading, body in parsed:
         if heading == '## Unreleased':
-            check_categories(body, 'Unreleased')
+            if any(line.strip() for line in body):
+                check_categories(body, 'Unreleased')
             continue
         match = VERSION_HEADING.fullmatch(heading)
         assert match, f'Invalid or unsupported release heading: {heading}'
-        version = tuple(int(part) for part in match[1].split('.'))
+        version = tuple(int(part) for part in match[1].split('-', 1)[0].split('.'))
         try:
             parsed_date = date.fromisoformat(match[2])
         except ValueError as error:
             raise AssertionError(f'Invalid release date in {heading}') from error
         assert parsed_date.isoformat() == match[2], f'Release date is not ISO format: {heading}'
-        versions.append(version)
+        keys.append(version_key(match[1]))
         # This untagged snapshot predates the release-oriented category layout.
         if version != LEGACY_BASELINE:
             check_categories(body, heading)
         assert any(line.startswith('- ') for line in body), \
             f'Release section has no change entries: {heading}'
-    assert versions == sorted(set(versions), reverse=True), \
+    assert keys == sorted(set(keys), reverse=True), \
         'Dated release headings must be unique and newest-first by SemVer'
 
     assert not PRIVATE_PATH.search(text), 'CHANGELOG.md links to or names a local/private path'

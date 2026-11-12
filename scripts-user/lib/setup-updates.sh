@@ -12,13 +12,23 @@ punchi_git_checkout_root() {
 
 punchi_cmake_version_from_stdin() {
     awk '
+        /^[[:space:]]*set\(PUNCHI_DISPLAY_VERSION[[:space:]]*"/ {
+            line = $0
+            sub(/^[^"]*"/, "", line)
+            sub(/".*$/, "", line)
+            display = line
+        }
         /^[[:space:]]*project\(/ {
             for (i = 1; i <= NF; i++) {
                 if ($i == "VERSION") {
-                    print $(i + 1)
-                    exit
+                    project = $(i + 1)
+                    break
                 }
             }
+        }
+        END {
+            if (display != "") print display
+            else if (project != "") print project
         }
     '
 }

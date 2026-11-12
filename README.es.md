@@ -59,10 +59,10 @@ se niega a instalar fuera de KDE Plasma en Wayland, y arrancar una copia instala
 en otro entorno nombra la sesión encontrada y muestra un diálogo del sistema en
 lugar de ejecutarse.
 
-**Sin publicar.** El árbol declara la versión **0.1.47** para una entrega futura;
-no existe ninguna etiqueta ni release. El [registro de cambios](CHANGELOG.md)
-mantiene el trabajo pendiente bajo `Unreleased` y cada cambio entregado con su
-validación.
+**Primera beta, sin publicar.** El árbol declara la versión
+**0.2.0-beta.1** para el primer release público; todavía no hay tag ni GitHub
+Release. El [registro de cambios](CHANGELOG.md) recoge el release preparado y
+mantiene el trabajo nuevo pendiente bajo `Unreleased`.
 
 [Atribución](NOTICE.md) · [Licencia](LICENSE) · [Registro de cambios](CHANGELOG.md) ·
 [Seguridad](SECURITY.md) · [Contribuir](CONTRIBUTING.md) · [Soporte](SUPPORT.md)
