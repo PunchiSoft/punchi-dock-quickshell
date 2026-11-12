@@ -34,8 +34,11 @@ Item {
     readonly property real contentWidth: Math.max(1, root.availableWidth)
     readonly property real iconPixels: {
         const requested = Number(root.iconSize)
-        const bounded = Number.isFinite(requested) && requested > 0
-            ? requested : Kirigami.Units.iconSizes.medium
+        // A parent that has not laid out its row yet may pass 1 as a sentinel.
+        // Never turn that into a raster request: Qt reports a 1x1 SVG draw as an
+        // oversized buffer.
+        const bounded = Number.isFinite(requested) && requested > 1
+            ? requested : Kirigami.Units.iconSizes.huge
         return root.availableWidth > 0 ? Math.min(bounded, root.availableWidth) : bounded
     }
 

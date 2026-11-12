@@ -65,8 +65,10 @@ FocusScope {
     readonly property bool showCellLabels: root.showLabels
         && root.cellHeight >= root.minimumCellHeight
     readonly property real effectiveLabelHeight: root.showCellLabels ? root.labelHeight : 0
-    readonly property int iconSize: Math.max(1, Math.min(root.desiredIconSize,
-        root.cellHeight - root.effectiveLabelHeight - Kirigami.Units.smallSpacing * 4))
+    readonly property int iconSize: root.cellHeight > 0
+        ? Math.max(1, Math.min(root.desiredIconSize,
+            root.cellHeight - root.effectiveLabelHeight - Kirigami.Units.smallSpacing * 4))
+        : Math.max(1, Math.round(root.desiredIconSize))
     // The state owns the keyboard page step; keep it on the same whole rows
     // the viewport shows instead of a separate estimate.
     onVisibleRowsChanged: if (root.menuState) root.menuState.rows = root.visibleRows
