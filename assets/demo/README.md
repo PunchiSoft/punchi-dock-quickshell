@@ -4,67 +4,52 @@ Recorded dock behavior used by the public README. The recording shows this
 repository running in a real KDE Plasma Wayland session; it is a record of the
 recorded environment, not a compatibility claim for another one.
 
-## `dock-magnification.webp`
+## Shared recording
 
-Animated dock magnification with the pointer moving along the icons, recorded on
-2026-11-11 (`plasmashell 6.8.2`, `kwin 6.8.2`, Qt 6.11.2, KDE Frameworks 6.31.0,
-Wayland, Quickshell 0.2.1 from Fedora 44). The dock uses the maintainer's
-launcher set, so the icons are not the first-run defaults.
+Both clips come from one 1920x1080, 60 fps VP9 recording of 92 s and 7.1 MB,
+captured on 2026-11-11 with Spectacle 6.8.2 (`plasmashell 6.8.2`, `kwin 6.8.2`,
+Qt 6.11.2, KDE Frameworks 6.31.0, Quickshell 0.2.1 on Wayland from Fedora 44).
+The recording walks through the dock wave, a launcher context menu, a folder
+container, the settings window and the fullscreen menu. Each published clip keeps
+one of those states; the idle desktop between them is not published.
 
-The desktop capture is 982x261 and already excludes the screen recorder's
-notification; the dock is visible from the first frame to the last, so the clip
-needs no trim. `dock-magnification.webp` is downscaled and re-encoded to 960x255,
-177 frames, 4.76 s and 1.3 MB. To rebuild it from the source recording, with the
-same tools (ImageMagick):
+Both were encoded straight from the WebM with ffmpeg's `libwebp_anim`, one pass
+without holding the animation in memory:
 
 ```bash
-magick recording.webp -coalesce \
-  -resize 960x \
-  -layers Optimize -quality 75 \
+# Dock wave: pointer sweep along the icons, cropped to the dock and its tooltips.
+ffmpeg -ss 0.5 -to 6.8 -i recording.webm \
+  -vf "fps=20,crop=900:240:510:840,scale=960:256:flags=lanczos" \
+  -c:v libwebp_anim -lossless 0 -q:v 76 -compression_level 5 -loop 0 -an \
   assets/demo/dock-magnification.webp
+
+# Fullscreen menu: opening and scrolling the application rows.
+ffmpeg -ss 82.5 -to 90.5 -i recording.webm \
+  -vf "fps=12,scale=960:540:flags=lanczos" \
+  -c:v libwebp_anim -lossless 0 -q:v 74 -compression_level 5 -loop 0 -an \
+  assets/demo/menu-overview.webp
 ```
 
-If a future recording includes the recorder's notification, a hidden dock at
-either end or a wider desktop area, measure the crop and frame range first and
-add `-crop`/`-delete` as the previous recording did. The crop is what removes the
-notification, so a wider crop publishes it. Keep the file well under 10 MB,
-because GitHub does not render a larger image, and prefer animated WebP: the same
-clip as a GIF is several times heavier. `-coalesce` preserves the recorded frame
-delays, so the motion plays at the captured speed.
+Keep the source recording outside the repository: a 7 MB WebM or a 24 MB capture
+would be downloaded by every clone forever. Publish only the encoded WebP, keep
+each clip between roughly 0.3 and 2 MB, and prefer animated WebP over GIF, which
+is several times heavier for the same motion. GitHub does not render an image
+above 10 MB.
+
+Do not scale a full 1080p frame to 854x480: it saves almost nothing and makes the
+application labels unreadable. Use 960 px wide, which is what the README
+displays, and crop to the surface the clip is about.
+
+## `dock-magnification.webp`
+
+The pointer moving along the dock, with the neighbouring icons enlarging and the
+tooltips following it. 960x256, 100 frames, 6.3 s at 20 fps, 0.41 MB. The crop is
+the dock strip plus the space its tooltips and enlargement need, so the recorder's
+tray indicator is outside the frame. The dock uses the maintainer's launcher set,
+so the icons are not the first-run defaults.
 
 ## `menu-overview.webp`
 
-The fullscreen menu opening over the desktop and scrolling through application
-rows, recorded on 2026-11-11 (`plasmashell 6.8.2`, `kwin 6.8.2`, Qt 6.11.2,
-Quickshell 0.2.1 on Wayland from Fedora 44). The dock keeps its maintainer's
-launcher set, so the icons are not the first-run defaults.
-
-The source recording is a 1920x1080 capture of 40 s and 24 MB. Only the opening
-and the first scroll are published: `menu-overview.webp` is 960x540, 63 frames and
-6.6 s at 10 fps, 1.7 MB. The desktop-idle seconds at the start and the empty
-desktop after the menu closes are not part of the clip. Scaling the whole 1080p
-frame to 854x480 makes the application labels unreadable, and 960 px is the width
-the README displays, so the asset keeps that width instead of a full-height scale.
-It was rebuilt from the source animation with Pillow, which reads one frame at a
-time and never holds the whole recording in memory:
-
-```bash
-python3 - <<'EOF'
-from PIL import Image
-source = Image.open('recording.webp')
-fps = source.n_frames / 40.0
-frames = []
-for index in range(int(4.4 * fps), int(10.4 * fps)):
-    source.seek(index)
-    frames.append(source.convert('RGB').resize((960, 540), Image.BILINEAR)
-                  .convert('P', palette=Image.ADAPTIVE, colors=255))
-frames[0].save('assets/demo/menu-overview.webp', save_all=True,
-               append_images=frames[1:], duration=100, loop=0,
-               quality=76, method=6)
-EOF
-```
-
-Pillow merges identical consecutive frames and keeps their delay, so the frame
-count differs from the sampled range while the 6.6 s duration is preserved. Keep
-this asset well under 10 MB; a 24 MB clip belongs outside the repository, because
-a public clone downloads every version of it forever.
+The fullscreen menu opening from the dock and scrolling through the application
+rows. 960x540, 94 frames, 8 s at 12 fps, 1.9 MB. The application set is the
+maintainer's.

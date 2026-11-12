@@ -101,7 +101,7 @@ mantiene el trabajo nuevo pendiente bajo `Unreleased`.
 <p align="center"><img src="assets/demo/menu-overview.webp" width="880" alt="El menú de aplicaciones a pantalla completa abriéndose sobre el escritorio y desplazándose por filas de iconos"></p>
 
 <p align="center"><em>El menú a pantalla completa abriéndose desde el dock y
-desplazándose por las aplicaciones instaladas. Seis segundos de una grabación más
+desplazándose por las aplicaciones instaladas. Ocho segundos de una grabación más
 larga; el conjunto de aplicaciones es del mantenedor.</em></p>
 
 <p align="center"><img src="assets/screenshots/settings-general.png" width="240" alt="Ajustes generales con tamaño, ampliación, posición y aplicaciones recientes"> <img src="assets/screenshots/recent-applications-grid.png" width="260" alt="Contenedor de aplicaciones recientes mostrado como una cuadrícula de iconos"> <img src="assets/screenshots/fan-view.png" width="110" alt="Contenedor Home en el modo extra Fan"> <img src="assets/screenshots/context-system-settings.png" width="180" alt="Menú nativo de KDE en el elemento System Settings, como el menú de clic derecho de Dolphin"></p>
