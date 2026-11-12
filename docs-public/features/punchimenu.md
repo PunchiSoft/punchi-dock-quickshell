@@ -65,6 +65,14 @@ The pointer screen never wins when it has no dock. A disconnected or forbidden
 screen is skipped, and an unavailable compositor query falls back to the same
 order. The dock's **Menu** button keeps opening on its own screen.
 
+## Context menu
+
+A secondary click on an application opens a compact native menu with **Open** and
+**Pin to Dock** or **Unpin from Dock**, depending on the current dock state. The
+pin action uses the same profile list as the dock, so the dock updates without a
+restart. The menu does not copy Launchpad's folder-stack list; only the action
+menu is reused.
+
 ## Presentation
 
 - A theme-washed backdrop with KWin blur behind it.
