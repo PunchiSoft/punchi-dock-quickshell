@@ -372,6 +372,8 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/naming_test.py)
     add_test(NAME project_version COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-version.py)
+    add_test(NAME changelog_contract COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/changelog_test.py)
     add_test(NAME emphasis_contract COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-emphasis.py)
     add_test(NAME test_timing_contract COMMAND ${Python3_EXECUTABLE}
@@ -418,6 +420,7 @@ if(BUILD_TESTING)
         architecture_contract
         component_naming
         project_version
+        changelog_contract
         emphasis_contract
         profile_exchange
         settings_store_legacy
