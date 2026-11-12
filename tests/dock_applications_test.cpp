@@ -6,14 +6,17 @@
 
 class DockApplicationsTest : public QObject {
     Q_OBJECT
-    enum Role { App = Qt::UserRole+1, Desktop, Title, Icon, Installed };
+    enum Role { App = Qt::UserRole+1, Desktop, Title, Icon, Installed, WMClass };
     static void initialize(QStandardItemModel &model) {
-        model.setItemRoleNames({{App,"appId"},{Desktop,"desktopId"},{Title,"title"},{Icon,"iconName"},{Installed,"installed"}});
+        model.setItemRoleNames({{App,"appId"},{Desktop,"desktopId"},{Title,"title"},
+            {Icon,"iconName"},{Installed,"installed"},{WMClass,"startupWMClass"}});
     }
-    static void append(QStandardItemModel &model, QString id, QString desktop, bool installed=true) {
+    static void append(QStandardItemModel &model, QString id, QString desktop, bool installed=true,
+        QString wmClass={}) {
         auto *item=new QStandardItem;
         item->setData(id,App); item->setData(desktop,Desktop); item->setData(id,Title);
-        item->setData("application-x-executable",Icon); item->setData(installed,Installed); model.appendRow(item);
+        item->setData("application-x-executable",Icon); item->setData(installed,Installed);
+        item->setData(wmClass,WMClass); model.appendRow(item);
     }
     static void appendRecent(QStandardItemModel &model, const QString &storageId, const QString &name,
         const QString &icon) {
@@ -84,6 +87,19 @@ private slots:
         QCOMPARE(dock.get(2).value("iconName").toString(), "kate");
         recent.removeRows(1, 2);
         QTRY_COMPARE(dock.rowCount(), 2);
+    }
+    void runningWindowMatchesTheCatalogStartupWMClass() {
+        QStandardItemModel pins, catalog; initialize(pins); initialize(catalog);
+        append(catalog, "example", "org.example.Desktop.desktop", true, "example-window");
+        DockApplicationsModel dock;
+        QAbstractItemModelTester tester(&dock, QAbstractItemModelTester::FailureReportingMode::QtTest);
+        dock.setPinned(&pins);
+        dock.setCatalog(&catalog);
+        dock.setRunningDesktopIds({"example-window"});
+        QTRY_COMPARE(dock.rowCount(), 1);
+        QCOMPARE(dock.get(0).value("appId").toString(), "example");
+        // The real desktop id is kept for launching, not the window class.
+        QCOMPARE(dock.get(0).value("desktopId").toString(), "org.example.Desktop.desktop");
     }
     void recentContainerReplacesTheResolvedRows() {
         QStandardItemModel pins, catalog, recent;

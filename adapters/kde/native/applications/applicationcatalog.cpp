@@ -76,7 +76,8 @@ QHash<int, QByteArray> ApplicationCatalog::roleNames() const
 {
     return {{AppId, "appId"}, {DesktopId, "desktopId"}, {Title, "title"}, {Icon, "iconName"},
         {Name, "name"}, {Description, "description"}, {Installed, "installed"},
-        {ApplicationIcon, "appIconName"}, {Categories, "categories"}};
+        {ApplicationIcon, "appIconName"}, {Categories, "categories"},
+        {StartupWMClass, "startupWMClass"}};
 }
 
 int ApplicationCatalog::rowCount(const QModelIndex &parent) const { return parent.isValid() ? 0 : m_rows.size(); }
@@ -119,6 +120,8 @@ void ApplicationCatalog::reload()
         const auto service = presetMimeTypes.isEmpty() ? resolveDesktopApplication(desktopId)
             : preferredApplication(presetMimeTypes);
         const bool installed = service && !service->noDisplay();
+        const auto startupWMClass = service
+            ? service->property<QString>(QStringLiteral("StartupWMClass")) : QString();
         if (service) presetStorageIds.insert(service->storageId());
         const auto presetIcon = field(row, "iconName");
         rows.append({{QStringLiteral("appId"), field(row, "appId")},
@@ -130,6 +133,7 @@ void ApplicationCatalog::reload()
             {QStringLiteral("description"), service ? service->comment() : QString()},
             {QStringLiteral("appIconName"), applicationIcon(service)},
             {QStringLiteral("categories"), service ? service->categories() : QStringList()},
+            {QStringLiteral("startupWMClass"), startupWMClass},
             {QStringLiteral("installed"), installed}});
     }
     for (const auto &service : KService::allServices()) {
@@ -140,6 +144,8 @@ void ApplicationCatalog::reload()
             {QStringLiteral("name"), service->name()}, {QStringLiteral("iconName"), applicationIcon(service)},
             {QStringLiteral("appIconName"), applicationIcon(service)},
             {QStringLiteral("categories"), service->categories()},
+            {QStringLiteral("startupWMClass"),
+                service->property<QString>(QStringLiteral("StartupWMClass"))},
             {QStringLiteral("description"), service->comment()}, {QStringLiteral("installed"), true}});
     }
     QCollator collator;

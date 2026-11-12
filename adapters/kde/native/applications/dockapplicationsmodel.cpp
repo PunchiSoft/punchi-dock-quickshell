@@ -169,9 +169,24 @@ void DockApplicationsModel::rebuild()
         const auto source = m_catalog->index(row, 0);
         const auto appId = field(source, "appId").toString();
         const auto desktopId = normalizedApplicationId(field(source, "desktopId").toString());
-        if (appId.isEmpty() || desktopId.isEmpty() || !field(source, "installed").toBool()
-            || !m_running.contains(desktopId) || identities.contains(desktopId) || appIds.contains(appId)) continue;
-        runningCandidates.append({appId, source, {}}); identities.insert(desktopId); appIds.insert(appId);
+        const auto startupWMClass = normalizedApplicationId(
+            field(source, "startupWMClass").toString());
+        if (appId.isEmpty() || desktopId.isEmpty() || !field(source, "installed").toBool())
+            continue;
+        if (identities.contains(desktopId) || appIds.contains(appId)) {
+            // A pinned or earlier row already represents this application.
+            // Remember its window class so the running fallback below does not
+            // add a second row with a pseudo desktop id.
+            if (!startupWMClass.isEmpty()) identities.insert(startupWMClass);
+            continue;
+        }
+        if (!startupWMClass.isEmpty() && identities.contains(startupWMClass)) continue;
+        if (!m_running.contains(desktopId)
+            && (startupWMClass.isEmpty() || !m_running.contains(startupWMClass))) continue;
+        runningCandidates.append({appId, source, {}});
+        identities.insert(desktopId);
+        if (!startupWMClass.isEmpty()) identities.insert(startupWMClass);
+        appIds.insert(appId);
     }
     // Some real window tasks (notably Plasma applet settings) have no visible
     // desktop service. Keep them as transient entries using KDE task metadata.

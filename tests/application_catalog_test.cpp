@@ -59,6 +59,8 @@ private slots:
         const auto editor = catalog.application("desktop:punchi-catalog-editor.desktop");
         QVERIFY(!editor.isEmpty());
         QVERIFY(editor.value("categories").toStringList().contains(QStringLiteral("Network")));
+        QCOMPARE(editor.value("startupWMClass").toString(),
+            QStringLiteral("punchi-catalog-editor"));
     }
     void unavailableRoleKeepsThePresetIcon() {
         QStandardItemModel presets;

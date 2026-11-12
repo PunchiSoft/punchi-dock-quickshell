@@ -11,7 +11,10 @@
 namespace {
 QString normalized(QString id)
 {
-    if (id.endsWith(QLatin1String(".desktop"))) id.chop(8);
+    // Keep the published running ids in step with normalizedApplicationId:
+    // packages that install "<id>.desktop.desktop" still match their catalogue
+    // row through the window class.
+    while (id.endsWith(QLatin1String(".desktop"))) id.chop(8);
     return isValidDesktopId(id) ? id : QString();
 }
 }

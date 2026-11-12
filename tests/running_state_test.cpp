@@ -120,6 +120,8 @@ private slots:
         model.removeRow(0);
         QVERIFY(runningDesktopIds(model).isEmpty());
         QCOMPARE(normalizedApplicationId(QStringLiteral("org.kde.konsole.desktop")), QStringLiteral("org.kde.konsole"));
+        QCOMPARE(normalizedApplicationId(QStringLiteral("ai.opencode.desktop.desktop")),
+            QStringLiteral("ai.opencode"));
         QVERIFY(normalizedApplicationId(QStringLiteral("../unsafe.desktop")).isEmpty());
     }
     void applicationMetadataIsParsedAndClearedWithWindowState() {

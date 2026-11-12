@@ -6,7 +6,9 @@
 
 inline QString normalizedApplicationId(QString id)
 {
-    if (id.endsWith(QLatin1String(".desktop"))) id.chop(8);
+    // Some packages install "<id>.desktop.desktop"; strip every trailing
+    // suffix so a window's StartupWMClass still matches its catalogue row.
+    while (id.endsWith(QLatin1String(".desktop"))) id.chop(8);
     return isValidDesktopId(id) ? id : QString();
 }
 
