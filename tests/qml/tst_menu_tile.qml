@@ -22,6 +22,15 @@ TestCase {
             motionEnabled: false
         }
     }
+    Component {
+        id: longFixture
+        PunchiMenuTile {
+            x: 20; y: 20; width: 120; height: 120
+            title: "A deliberately long application name that overflows"
+            iconName: "system-file-manager"
+            motionEnabled: true
+        }
+    }
 
     function init() {
         failOnWarning(/.*/)
@@ -75,6 +84,25 @@ TestCase {
         mouseMove(tile, 10, 10)
         tryCompare(highlight, "hovered", true)
         compare(highlight.scale, 1.0)
+    }
+
+    function test_longLabelRevealsTheFullNameOnKeyboardFocus() {
+        const tile = createTemporaryObject(longFixture, test)
+        verify(tile !== null)
+        const marquee = findChild(tile, "folderMarqueeLabel")
+        verify(marquee !== null)
+        verify(marquee.overflowing)
+        compare(marquee.revealFullText, false)
+        const resting = findChild(tile, "folderMarqueeRestingText")
+        verify(resting !== null)
+        // The menu disables the per-cell text shadow.
+        compare(resting.layer.enabled, false)
+        tile.pointerEmphasis = false
+        tile.selected = true
+        tryCompare(marquee, "revealFullText", true)
+        const moving = findChild(tile, "folderMarqueeMovingText")
+        verify(moving !== null)
+        tryCompare(moving, "opacity", 1)
     }
 
     function test_parentClampBeforeLayoutDoesNotRequestADegenerateRaster() {
