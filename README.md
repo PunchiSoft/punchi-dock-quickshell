@@ -96,7 +96,7 @@ pending work under `Unreleased`.
 <p align="center"><img src="assets/demo/menu-overview.webp" width="880" alt="The fullscreen application menu opening over the desktop and scrolling through rows of application icons"></p>
 
 <p align="center"><em>The fullscreen menu opening from the dock and scrolling
-through the installed applications. Six seconds from a longer recording; the
+through the installed applications. Eight seconds from a longer recording; the
 application set is the maintainer's.</em></p>
 
 <p align="center"><img src="assets/screenshots/settings-general.png" width="240" alt="General settings with size, magnification, position and recent applications"> <img src="assets/screenshots/recent-applications-grid.png" width="260" alt="Recent applications container shown as a grid of application icons"> <img src="assets/screenshots/fan-view.png" width="110" alt="Home container in the extra Fan popup mode"> <img src="assets/screenshots/context-system-settings.png" width="180" alt="Integrated native KDE menu on the System Settings dock item, like Dolphin's right-click menu"></p>
