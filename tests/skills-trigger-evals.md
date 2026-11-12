@@ -38,6 +38,8 @@ Should trigger:
 | 10 | "the popup row and the selected row look the same" | `selection-emphasis` | visual complaint, not a state-model term |
 | 11 | "voy a empezar esto, armame la rama" | `branch-baseline` | asks for a branch, never mentions `main` or the base |
 | 23 | "el menú se traba cuando tengo 500 aplicaciones" | `performance-budget` | a symptom report, not the word optimization or a delegate |
+| 25 | "el menú recorta la última fila en 1440x900" | `screen-geometry` | names a symptom, not a geometry method |
+| 26 | "¿cuántas columnas entran y qué espaciado de Kirigami uso?" | `screen-geometry` | asks for a count and units, not a named skill |
 
 Should not trigger, near misses:
 
@@ -55,6 +57,7 @@ Should not trigger, near misses:
 | 21 | "does this animation look good to you?" | `motion-review` | aesthetic opinion, no audit requested |
 | 22 | "mergeá esta rama en main" | `branch-baseline` | `main` appears, but the task is a merge request |
 | 24 | "¿por qué Qt Quick crea todos los ítems de un Repeater?" | `performance-budget` | general Qt knowledge, no change or budget to set |
+| 27 | "renombrá `gridUnit` a `spacing` en todo el repo" | `screen-geometry` | mechanical refactor, no layout calculation |
 
 ## Recording
 
