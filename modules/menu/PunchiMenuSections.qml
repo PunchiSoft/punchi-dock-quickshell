@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import "../../config"
 
 // Continuous application listing. The service prepares display rows (a heading
 // row per named section and rows of at most `columns` applications), and this
@@ -29,38 +30,49 @@ FocusScope {
     // starts at the top and a closed one does not keep a stale position.
     property bool active: false
 
+    readonly property PunchiMenuMetrics metrics: PunchiMenuMetrics {}
     readonly property bool measured: root.width > 1 && root.height > 1
-        && root.cellWidth > 1 && root.cellHeight > 1
+        && root.gridWidth > 1 && root.gridHeight > 1
     readonly property int columnCount: root.menuState
-        ? Math.max(1, root.menuState.columns) : 4
+        ? Math.max(1, root.menuState.columns) : root.metrics.referenceColumns
     readonly property real safeIconScale: {
         const requested = Number(root.iconScale)
         return Number.isFinite(requested) ? Math.max(0.75, Math.min(1.5, requested)) : 1.0
     }
     readonly property real scrollBarReserve: root.showScrollBar
         ? scrollBar.implicitWidth + Kirigami.Units.smallSpacing : 0
+    // The content rectangle; the grid is centred inside it, not stretched.
     readonly property real availableWidth: Math.max(1,
-        sectionList.width - root.scrollBarReserve)
+        root.width - root.scrollBarReserve)
     readonly property real columnSpacing: Kirigami.Units.smallSpacing
+    readonly property real referenceGridWidth: root.columnCount
+        * root.metrics.referenceCellWidth
+    readonly property real referenceGridHeight: root.metrics.referenceRows
+        * root.metrics.referenceCellHeight
+    // S = min(W / W0, H / H0): preserve the reference proportions on both axes.
+    readonly property real gridScale: root.width > 1 && root.height > 1
+        ? Math.min(root.availableWidth / Math.max(1, root.referenceGridWidth),
+            root.height / Math.max(1, root.referenceGridHeight))
+        : 1
     readonly property real cellWidth: Math.max(1,
-        (root.availableWidth - root.columnSpacing
-            * (root.columnCount - 1)) / root.columnCount)
-    // The reference draws the glyph at roughly 42% of the column pitch, so the
-    // grid keeps its air on a large screen and still fits on a small one.
-    readonly property real desiredIconSize: Math.round(Math.max(Kirigami.Units.iconSizes.medium,
-        Math.min(Kirigami.Units.iconSizes.enormous, root.cellWidth * 0.42))
-        * root.safeIconScale)
+        root.metrics.referenceCellWidth * root.gridScale)
+    readonly property real cellHeight: Math.max(1,
+        root.metrics.referenceCellHeight * root.gridScale)
+    // The selection surface is the square inside the rectangular cell.
+    readonly property real cardSize: Math.max(1, Math.min(root.cellWidth,
+        root.cellHeight) - root.metrics.cardInset)
+    readonly property int visibleRows: root.metrics.referenceRows
+    readonly property real gridWidth: root.columnCount * root.cellWidth
+    readonly property real gridHeight: root.height > 0
+        ? Math.min(root.height, root.visibleRows * root.cellHeight) : 0
     readonly property real labelHeight: root.showLabels
-        ? Math.ceil(14 * 1.6) : 0
-    // The card is square: its height follows the cell width, and only whole
-    // squares fit in the viewport.
-    readonly property real cellHeight: root.cellWidth
-    readonly property int visibleRows: Math.max(1,
-        Math.floor(root.height / Math.max(1, root.cellHeight)))
+        ? Math.ceil(root.metrics.referenceLabelSize * 1.6) : 0
+    readonly property real desiredIconSize: Math.max(1,
+        Math.round(root.metrics.referenceIconSize * root.gridScale
+            * root.safeIconScale))
     readonly property real minimumCellHeight: Math.max(Kirigami.Units.iconSizes.medium,
         root.desiredIconSize + root.labelHeight + Kirigami.Units.smallSpacing * 4)
-    // Short displays retain a whole square by reducing its contents. Labels are
-    // the first thing withheld; the icon never extends beyond its cell.
+    // Short displays withhold the label before capping the glyph.
     readonly property bool showCellLabels: root.showLabels
         && root.cellHeight >= root.minimumCellHeight
     readonly property real effectiveLabelHeight: root.showCellLabels ? root.labelHeight : 0
@@ -68,13 +80,10 @@ FocusScope {
         ? Math.max(1, Math.min(root.desiredIconSize,
             root.cellHeight - root.effectiveLabelHeight - Kirigami.Units.smallSpacing * 4))
         : Math.max(1, Math.round(root.desiredIconSize))
-    // The state owns the keyboard page step; keep it on the same whole rows
-    // the viewport shows instead of a separate estimate.
+    // The state owns the keyboard page step; use the same five rows the
+    // reference grid shows.
     onVisibleRowsChanged: if (root.menuState) root.menuState.rows = root.visibleRows
     Component.onCompleted: if (root.menuState) root.menuState.rows = root.visibleRows
-    readonly property real sectionHeaderHeight: Math.min(root.cellHeight,
-        Kirigami.Units.gridUnit * 1.6)
-    readonly property real sectionGap: Kirigami.Units.largeSpacing
 
     signal launchRequested(int index)
 
@@ -94,8 +103,9 @@ FocusScope {
         }
     }
     function rowHeight(row): real {
-        return row && row.kind === "header"
-            ? root.sectionHeaderHeight + root.sectionGap : root.cellHeight
+        // Headings and application rows share the reference row pitch so the
+        // viewport always ends on a row boundary, with or without categories.
+        return root.cellHeight
     }
     function rowTop(rowIndex: int): real {
         const rows = root.menuState ? root.menuState.displayRows : []
@@ -143,7 +153,7 @@ FocusScope {
                 bestDistance = distance
             }
             top += root.rowHeight(rows[row])
-            // Rows further than one cell away cannot be the nearest boundary.
+            // Rows further than one pitch away cannot be the nearest boundary.
             if (top > current + root.cellHeight) break
         }
         const target = Math.min(maximum, Math.max(0, best))
@@ -186,7 +196,12 @@ FocusScope {
     ListView {
         id: sectionList
         objectName: "menuSectionsView"
-        anchors.fill: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        // The viewport is exactly the scaled reference grid: whole rows and
+        // whole columns, centred. A partial row is never mapped.
+        width: root.gridWidth
+        height: root.gridHeight
         // Do not create delegates against a zero-sized viewport: a Label born
         // with zero width can keep its empty text texture after the cell grows.
         model: root.measured && root.menuState ? root.menuState.displayRows : []
@@ -230,15 +245,15 @@ FocusScope {
                 ? root.categoryTitle(String(displayRow.modelData.categoryId || ""))
                 : ""
 
-            width: sectionList.width - root.scrollBarReserve
+            width: sectionList.width
             height: root.rowHeight(displayRow.modelData)
 
             Item {
                 objectName: "menuSectionHeading"
                 visible: displayRow.isHeader
                 width: parent.width
-                height: root.sectionHeaderHeight
-                anchors.bottom: parent.bottom
+                height: root.cellHeight
+                anchors.top: parent.top
                 Accessible.role: Accessible.Heading
                 Accessible.name: displayRow.heading
 
@@ -263,7 +278,9 @@ FocusScope {
                 visible: !displayRow.isHeader
                 width: parent.width
                 height: root.cellHeight
-                spacing: root.columnSpacing
+                // The reference cell pitch already contains the horizontal air;
+                // the square card is centred inside the cell.
+                spacing: 0
 
                 Repeater {
                     model: displayRow.isHeader ? [] : displayRow.modelData.members
@@ -275,6 +292,8 @@ FocusScope {
 
                         width: root.cellWidth
                         height: root.cellHeight
+                        cardSize: root.cardSize
+                        labelPixelSize: root.metrics.referenceLabelSize
                         title: String(modelData.application.name
                             || modelData.application.title || "")
                         iconName: String(modelData.application.iconName || "")
