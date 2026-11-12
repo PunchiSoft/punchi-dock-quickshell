@@ -207,6 +207,14 @@ curl -s https://hub.docker.com/v2/repositories/library/fedora/tags/44 \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["digest"])'
 ```
 
+A pull request that only touches Markdown, `assets/` or the issue templates does
+not start that graph: `ci.yml` ignores those paths and `.github/workflows/docs.yml`
+runs three contracts in plain Python instead — `foundation_test.py` for the links
+and section indexes, `changelog_contract` for the changelog structure, and
+`check-version.py` for the version declarations. Prose alone changes no build
+result, but those three read the files a documentation change edits, so they still
+run. A pull request that mixes documentation with code runs both workflows.
+
 A failing run publishes `build/ctest-junit.xml` as an artifact, and
 `scripts-dev/report-junit-failures.py` turns it into one annotation per failing
 test, because the job status alone says only that something failed. The

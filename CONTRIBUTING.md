@@ -153,6 +153,10 @@ dependency; the CI job installs it and runs the same command.
   not reformatted to satisfy them.
 - CI runs `scripts-dev/ci-headless.sh` on Fedora 44: `ruff check`, then the
   `unit` and `qml` labels. A green CI run is not desktop validation.
+- A pull request that only edits Markdown, `assets/` or the issue templates
+  skips that graph and runs `.github/workflows/docs.yml` instead, which checks
+  the documentation links, the changelog structure and the version
+  declarations.
 - Lint, component behavior, real Quickshell loading, visual inspection and KDE
   compatibility are separate evidence levels. State which ones you ran.
 - Do not remove, disable or weaken a behavioral test. Diagnose the production

@@ -1,0 +1,38 @@
+name: Documentation
+
+# Pull requests that only touch prose, published pages, captures or the issue
+# templates skip the full graph in ci.yml, because it builds the native targets
+# and no test in it observes prose. Three repository contracts do observe these
+# files, so they run here without Docker: links and section indexes, the changelog
+# structure, and the version declarations against the changelog.
+on:
+  pull_request:
+    paths:
+      - '*.md'
+      - '**/*.md'
+      - 'assets/**'
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: docs contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check links, changelog and version declarations
+        run: |
+          python3 tests/foundation_test.py
+          python3 tests/changelog_test.py
+          python3 scripts-dev/check-version.py
