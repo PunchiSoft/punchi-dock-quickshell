@@ -112,16 +112,27 @@ punchi_project_version() {
     local version=""
     if [[ -r "$punchi_project_root/CMakeLists.txt" ]]; then
         version="$(awk '
-            /^project\(/ {
+            /^[[:space:]]*set\(PUNCHI_DISPLAY_VERSION[[:space:]]*"/ {
+                line = $0
+                sub(/^[^"]*"/, "", line)
+                sub(/".*$/, "", line)
+                display = line
+            }
+            /^[[:space:]]*project\(/ {
                 for (i = 1; i <= NF; i++) {
                     if ($i == "VERSION") {
-                        print $(i + 1)
-                        exit
+                        project = $(i + 1)
+                        break
                     }
                 }
             }
+            END {
+                if (display != "") print display
+                else if (project != "") print project
+            }
         ' "$punchi_project_root/CMakeLists.txt")"
-    elif [[ -r "$punchi_project_root/$(punchi_install_version_name)" ]]; then
+    fi
+    if [[ -z "$version" && -r "$punchi_project_root/$(punchi_install_version_name)" ]]; then
         version="$(head -n 1 "$punchi_project_root/$(punchi_install_version_name)")"
     fi
     printf '%s\n' "${version:-unknown}"

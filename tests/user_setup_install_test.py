@@ -16,6 +16,9 @@ from build_dir import resolve_build_dir  # noqa: E402
 
 def project_version(root: Path) -> str:
     content = (root / 'CMakeLists.txt').read_text()
+    match = re.search(r'^set\(PUNCHI_DISPLAY_VERSION\s+"([^"]+)"\)', content, re.M)
+    if match:
+        return match.group(1)
     match = re.search(r'^project\([^)]*\bVERSION\s+([0-9.]+)', content, re.M)
     assert match, 'Project version not found'
     return match.group(1)

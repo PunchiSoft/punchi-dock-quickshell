@@ -484,7 +484,7 @@ TestCase {
         const dedication = findChild(aboutPage, "aboutDedication")
         const origin = findChild(aboutPage, "aboutOriginLink")
         const motto = findChild(aboutPage, "aboutDedicationMotto")
-        compare(name.text, "Punchi Dock Quickshell 0.1.47")
+        compare(name.text, "Punchi Dock Quickshell 0.2.0-beta.1")
         compare(stage.text, "Development snapshot, not published")
         compare(logo.status, Image.Ready)
         compare(repository.url, "https://github.com/PunchiSoft/punchi-dock-quickshell")

@@ -242,9 +242,10 @@ when a release is prepared.
 
 Prepare a release when the user requests one: move the `Unreleased` entries under
 a new `## <version> — <YYYY-MM-DD>` heading, choose the next Semantic Versioning
-number (`MAJOR.MINOR.PATCH`), and update `CMakeLists.txt`, the About page, both
-READMEs, `AGENTS.md` and the published `docs-public/versioning.md` record
-consistently.
+number, and update `PUNCHI_VERSION_BASE` (numeric) and `PUNCHI_DISPLAY_VERSION`
+(including any pre-release suffix) in `CMakeLists.txt`, the About page, both
+READMEs, `AGENTS.md`, the runtime settings test and the published
+`docs-public/versioning.md` record consistently.
 Every release advances the version once, regardless of how many commits or
 features it contains. Before `1.0.0`, a MINOR release may contain breaking
 changes; a PATCH release contains compatible fixes.
@@ -254,7 +255,10 @@ release or a version change. Keep those commits marked as `chore:` or `docs:`
 and leave the version unchanged. The `project_version` test fails when the
 tracked declarations disagree with the newest dated changelog heading.
 
-The declared version is `0.1.47`, and it has no tag or release: no version has
-been published yet. Do not create tags or releases unless
-the user explicitly requests them. Keep configuration schema and QML module API
-versions separate from the application version.
+The declared version is `0.2.0-beta.1`, prepared for the first public release;
+it has no tag or release, and no version has been published yet. `CMakeLists.txt`
+keeps the numeric base in `PUNCHI_VERSION_BASE` and the display string in
+`PUNCHI_DISPLAY_VERSION`, and `scripts-dev/check-version.py` verifies both against
+the newest dated changelog heading. Do not create tags or releases unless the user
+explicitly requests them. Keep configuration schema and QML module API versions
+separate from the application version.

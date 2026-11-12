@@ -48,19 +48,23 @@ version declarations together.
 
 ## Publication state
 
-No version has been published: the repository has no tag or GitHub Release.
-`0.1.47` is the legacy development baseline declared by the tree, not a published
-release. The public changelog retains it as the baseline checked by
-`scripts-dev/check-version.py`.
+No version has been published: the repository has no tag or GitHub Release. The
+tree prepares `0.2.0-beta.1` as its first pre-release; `0.1.47` remains the
+legacy development baseline. The public changelog retains both.
 
-The intended first publication is a pre-release (`0.2.0-beta.1`), followed by
-`0.2.0` when the menu base settles. `1.0.0` waits until the configuration schema,
-QML module API and supported KDE, Quickshell and Qt versions are committed
-contracts. This is a plan, not an authorization to publish. The current version
-checker accepts only numeric `MAJOR.MINOR.PATCH`, and CMake's `project(VERSION)`
-also requires a numeric version; supporting a pre-release identifier therefore
-needs an explicit version/display strategy and matching checks before release
-preparation starts.
+The first release is a pre-release (`0.2.0-beta.1`), followed by `0.2.0` when the
+menu base settles. `1.0.0` waits until the configuration schema, QML module API
+and supported KDE, Quickshell and Qt versions are committed contracts. This is a
+preparation, not an authorization to publish: creating the tag or the GitHub
+Release needs a separate explicit request.
+
+The dated heading carries the display version, including a pre-release suffix.
+CMake keeps the numeric base in `PUNCHI_VERSION_BASE` for `project(VERSION)` and
+the display string in `PUNCHI_DISPLAY_VERSION`; `scripts-dev/check-version.py`
+verifies both. The base must match the part before the first `-`, and every
+declaration must name the display version. Tags use the `v<display>` form, and the
+GitHub Release links the changelog and the compare URL without binary assets; a
+pre-release is marked as such on GitHub.
 
 ## Earlier development counter
 
@@ -72,18 +76,19 @@ release history; future dated entries will correspond to actual releases.
 
 | Declared baseline | Status |
 | --- | --- |
+| 0.2.0-beta.1 | Prepared first pre-release; not published |
 | 0.1.47 | Final development snapshot; not published |
 
 The next release must be explicitly requested. Move the pending `Unreleased`
 entries under a dated heading, choose the Semantic Versioning number that matches
-the included changes, and update the application's `project(... VERSION ...)`
-in [CMakeLists.txt](../CMakeLists.txt), the version in both
-[READMEs](../README.md) and [README.es.md](../README.es.md), the version
-instruction in [AGENTS.md](../AGENTS.md), the dated entry in
-[CHANGELOG.md](../CHANGELOG.md), and this document. Reconfigure and rebuild after
-changing build metadata; run the applicable checks and record unavailable
-validation. Do not create a tag or publish a release without separate
-authorization.
+the included changes, and update `PUNCHI_VERSION_BASE` and
+`PUNCHI_DISPLAY_VERSION` in [CMakeLists.txt](../CMakeLists.txt), the About page,
+the version in both [READMEs](../README.md) and [README.es.md](../README.es.md),
+the version instruction in [AGENTS.md](../AGENTS.md), the runtime settings test,
+the dated entry in [CHANGELOG.md](../CHANGELOG.md), and this document.
+Reconfigure and rebuild after changing build metadata; run the applicable checks
+and record unavailable validation. Do not create a tag or publish a release
+without separate authorization.
 
 Configuration schema version `16` and QML module API version `1.0` are separate
 contracts; do not increment either merely because the application version changes.
