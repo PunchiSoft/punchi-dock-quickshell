@@ -338,6 +338,23 @@ PanelWindow {
             console.warn("Punchi Dock Quickshell: window activation rejected:", appId)
         }
     }
+    // The menu leader lists applications from the catalogue, not the dock row,
+    // so it needs its own launch service over the same native adapter.
+    PunchiDesktopApplicationAdapter {
+        id: menuAppsAdapter
+        activationItem: view
+    }
+    PunchiApplicationLaunchService {
+        id: menuAppsLauncher
+        entries: root.services.catalog
+        adapter: menuAppsAdapter
+        onLaunchRejected: function(appId) {
+            console.warn("Punchi Dock Quickshell: menu application rejected:", appId)
+        }
+        onLaunchCompleted: function(desktopId, success, error) {
+            if (!success) console.warn("Punchi Dock Quickshell: menu application failed:", desktopId, error)
+        }
+    }
     PunchiDockContextPopup {
         id: contextMenu
         settings: root.settings
@@ -345,6 +362,7 @@ PanelWindow {
         dockEdge: root.settings.dockEdge
         hostWindow: root
         hostBaseHeight: root.vertical ? root.height : root.dockAllocationHeight
+        applications: root.services.catalog
         actions: contextService.actions
         recentDocuments: contextService.recentDocuments
         places: contextService.places
@@ -366,7 +384,7 @@ PanelWindow {
         onRecentRequested: function(resource) { contextService.openRecent(resource) }
         onForgetRecentRequested: contextService.forgetRecent()
         onNewWindowRequested: contextService.openNewWindow()
-        onOpenMenuRequested: root.menuRequested(root.screen ? root.screen.name : "")
+        onApplicationRequested: function(appId) { menuAppsLauncher.launch(appId) }
         onRemoveMenuRequested: root.settings.menuShowDockButton = false
         onPinRequested: contextService.pin()
         onUnpinRequested: contextService.unpin()
@@ -437,6 +455,10 @@ PanelWindow {
     Connections {
         target: activation
         function onActivationDispatched(appId) { root.recentApplications.recordAccess(appId) }
+    }
+    Connections {
+        target: menuAppsLauncher
+        function onLaunchDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
     PunchiDesktopApplicationAdapter { id: recentApplicationAdapter; activationItem: view }
     // The container lists entries the dock row no longer carries, so the popup

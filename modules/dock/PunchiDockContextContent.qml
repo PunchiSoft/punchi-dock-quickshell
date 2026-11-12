@@ -63,8 +63,24 @@ Item {
     property bool trashItem: false
     property bool dockBackground: false
     // The leading dock item opens the fullscreen menu instead of an
-    // application. It gets a compact Open/Remove menu, not the generic app rows.
+    // application. It gets the application list and two menu actions, not the
+    // generic app rows.
     property bool menuLeader: false
+    property var applications: null
+    readonly property var installedApplications: {
+        const result = []
+        if (!root.applications) return result
+        // Observe the catalog revision so a newly installed app appears.
+        const revision = root.applications.revision
+        for (let index = 0; index < root.applications.count; ++index) {
+            const application = root.applications.get(index)
+            if (application && application.installed)
+                result.push(application)
+        }
+        result.sort((first, second) => String(first.name || first.title || "")
+            .localeCompare(String(second.name || second.title || "")))
+        return result
+    }
     property bool folderItem: false
     property var folderContainer: null
     // The recent-applications container shares the view section of a folder
@@ -105,7 +121,7 @@ Item {
     signal windowActionRequested(string action, var virtualDesktop)
     signal settingsRequested()
     signal closeRequested()
-    signal openMenuRequested()
+    signal applicationRequested(string appId)
     signal removeMenuRequested()
     signal openTrashRequested()
     signal openFolderRequested()
@@ -126,8 +142,8 @@ Item {
     }, Math.max(labelMetrics.advanceWidth(configureAction.text), dockBackground
         ? Math.max(labelMetrics.advanceWidth(qsTr("Position on Screen")),
             labelMetrics.advanceWidth(qsTr("Minimize Windows Using")), labelMetrics.advanceWidth(qsTr("Automatically Hide Dock")))
-        : menuLeader ? Math.max(labelMetrics.advanceWidth(openMenuAction.text),
-            labelMetrics.advanceWidth(removeMenuAction.text)) : 0))
+        : menuLeader ? Math.max(labelMetrics.advanceWidth(removeMenuAction.text),
+            labelMetrics.advanceWidth(configureMenuAction.text)) : 0))
     implicitWidth: (verticalTail ? pointerHeight : 0) + Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
@@ -138,8 +154,9 @@ Item {
         canLaunchNewWindow ? newWindowAction.implicitWidth + contentPadding * 2 : 0,
         canPin ? pinAction.implicitWidth + contentPadding * 2 : 0,
         pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
-        menuLeader ? Math.max(openMenuAction.implicitWidth,
-            removeMenuAction.implicitWidth) + contentPadding * 2 : 0,
+        menuLeader ? Math.max(Kirigami.Units.gridUnit * 20,
+            Math.max(removeMenuAction.implicitWidth,
+                configureMenuAction.implicitWidth)) + contentPadding * 2 : 0,
         trashItem ? emptyTrashAction.implicitWidth + contentPadding * 2 : 0)
     FontMetrics { id: labelMetrics; font: configureAction.font }
     implicitHeight: rows.implicitHeight + contentPadding * 2 + (verticalTail ? 0 : pointerHeight)
@@ -149,7 +166,10 @@ Item {
     function focusFirst(reason) {
         if (reason === undefined) reason = Qt.MouseFocusReason
         // Opening with the pointer does not paint a band; the keyboard does.
-        if (root.menuLeader) openMenuAction.forceActiveFocus(reason)
+        if (root.menuLeader && menuApplications.count > 0) {
+            menuApplications.currentIndex = 0
+            menuApplications.forceActiveFocus(reason)
+        } else if (root.menuLeader) removeMenuAction.forceActiveFocus(reason)
         else if (root.trashItem) openTrashAction.forceActiveFocus(reason)
         else if (root.recentContainer && root.recentLayoutFirstAction)
             root.recentLayoutFirstAction.forceActiveFocus(reason)
@@ -178,16 +198,35 @@ Item {
         anchors.topMargin: root.contentPadding
         anchors.bottomMargin: root.contentPadding + (root.verticalTail ? 0 : root.pointerHeight)
         spacing: Kirigami.Units.smallSpacing
-        PunchiDockContextAction {
-            pointerEmphasis: root.pointerEmphasis
-            id: openMenuAction
-            motionEnabled: root.motionEnabled
-            objectName: "openMenuAction"
+        ListView {
+            id: menuApplications
+            objectName: "menuLeaderApplications"
             Layout.fillWidth: true
+            Layout.preferredHeight: root.installedApplications.length > 0
+                ? Math.min(Kirigami.Units.gridUnit * 18,
+                    Math.max(Kirigami.Units.gridUnit * 3, contentHeight)) : 0
+            visible: root.menuLeader && root.installedApplications.length > 0
+            model: root.installedApplications
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            rightMargin: appScroll.gutterWidth
+            ScrollBar.vertical: PunchiPopupScrollBar {
+                id: appScroll
+                motionEnabled: root.motionEnabled
+            }
+            delegate: PunchiPopupActionRow {
+                required property var modelData
+                objectName: "menuApplication-" + String(modelData.appId || "")
+                width: menuApplications.width - menuApplications.rightMargin
+                text: String(modelData.name || modelData.title || "")
+                icon.name: String(modelData.iconName || "application-x-executable")
+                motionEnabled: root.motionEnabled
+                onClicked: root.applicationRequested(String(modelData.appId || ""))
+            }
+        }
+        PunchiDockContextSeparator {
             visible: root.menuLeader
-            text: qsTr("Open PunchiMenu")
-            icon.name: "start-here-kde"
-            onClicked: root.openMenuRequested()
+            Layout.fillWidth: true
         }
         PunchiDockContextAction {
             pointerEmphasis: root.pointerEmphasis
@@ -199,6 +238,17 @@ Item {
             text: qsTr("Remove from Dock")
             icon.name: "window-unpin"
             onClicked: root.removeMenuRequested()
+        }
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: configureMenuAction
+            motionEnabled: root.motionEnabled
+            objectName: "configureMenuAction"
+            Layout.fillWidth: true
+            visible: root.menuLeader
+            text: qsTr("Configure PunchiDock")
+            icon.name: "preferences-system"
+            onClicked: root.settingsRequested()
         }
         PunchiDockContextSectionHeader {
             visible: root.folderItem

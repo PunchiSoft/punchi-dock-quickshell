@@ -26,6 +26,7 @@ Popup {
     readonly property bool recentContainer: appId === "item:recent"
     readonly property string recentContainerLayout: settings
         ? settings.effectiveRecentApplicationsLayout : ""
+    property var applications: null
     property var actions: []
     property var recentDocuments: null
     property var places: null
@@ -67,7 +68,7 @@ Popup {
     signal newWindowRequested()
     signal unpinRequested()
     signal pinRequested()
-    signal openMenuRequested()
+    signal applicationRequested(string appId)
     signal removeMenuRequested()
     signal windowActionRequested(string action, var virtualDesktop)
     parent: hostWindow ? hostWindow.contentItem : null
@@ -132,6 +133,7 @@ Popup {
     }
     contentItem: PunchiDockContextContent {
         id: content
+        applications: root.applications
         actions: root.actions
         recentDocuments: root.recentDocuments
         places: root.places
@@ -175,7 +177,7 @@ Popup {
         onRecentRequested: function(resource) { root.recentRequested(resource); root.dismiss() }
         onForgetRecentRequested: { root.forgetRecentRequested(); root.dismiss() }
         onNewWindowRequested: { root.newWindowRequested(); root.dismiss() }
-        onOpenMenuRequested: { root.dismiss(); root.openMenuRequested() }
+        onApplicationRequested: function(appId) { root.dismiss(); root.applicationRequested(appId) }
         onRemoveMenuRequested: { root.dismiss(); root.removeMenuRequested() }
         onPinRequested: { root.dismiss(); root.pinRequested() }
         onWindowActionRequested: function(action, virtualDesktop) {

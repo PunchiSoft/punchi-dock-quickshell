@@ -9,34 +9,63 @@ TestCase {
     when: windowShown
     visible: true
     width: 500
-    height: 300
+    height: 400
 
     Component {
         id: fixture
         PunchiDockContextContent {
             menuLeader: true
+            applications: ListModel {
+                id: applications
+                ListElement {
+                    appId: "alpha"
+                    name: "Alpha"
+                    title: "Alpha"
+                    iconName: "application-x-executable"
+                    installed: true
+                }
+                ListElement {
+                    appId: "beta"
+                    name: "Beta"
+                    title: "Beta"
+                    iconName: "application-x-executable"
+                    installed: false
+                }
+            }
         }
     }
 
-    function test_menuLeaderShowsOnlyOpenAndRemove() {
+    function test_menuLeaderListsInstalledAppsAndActions() {
         const content = createTemporaryObject(fixture, test)
         verify(content !== null)
-        const openAction = findChild(content, "openMenuAction")
+        wait(50)
+        const list = findChild(content, "menuLeaderApplications")
+        const app = findChild(content, "menuApplication-alpha")
+        const hiddenApp = findChild(content, "menuApplication-beta")
         const removeAction = findChild(content, "removeMenuAction")
-        const configureAction = findChild(content, "configureDockAction")
-        verify(openAction !== null)
+        const configureAction = findChild(content, "configureMenuAction")
+        const configureDock = findChild(content, "configureDockAction")
+        verify(list !== null)
+        verify(app !== null)
+        verify(hiddenApp === null)
         verify(removeAction !== null)
         verify(configureAction !== null)
-        compare(openAction.visible, true)
+        verify(configureDock !== null)
         compare(removeAction.visible, true)
-        compare(configureAction.visible, false)
-        let opened = 0
+        compare(configureAction.visible, true)
+        compare(configureDock.visible, false)
+        compare(findChild(content, "openMenuAction"), null)
+        let launched = ""
         let removed = 0
-        content.openMenuRequested.connect(function() { opened++ })
+        let configured = 0
+        content.applicationRequested.connect(function(appId) { launched = appId })
         content.removeMenuRequested.connect(function() { removed++ })
-        openAction.clicked()
+        content.settingsRequested.connect(function() { configured++ })
+        app.clicked()
         removeAction.clicked()
-        compare(opened, 1)
+        configureAction.clicked()
+        compare(launched, "alpha")
         compare(removed, 1)
+        compare(configured, 1)
     }
 }
