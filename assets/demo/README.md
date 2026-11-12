@@ -31,3 +31,40 @@ notification, so a wider crop publishes it. Keep the file well under 10 MB,
 because GitHub does not render a larger image, and prefer animated WebP: the same
 clip as a GIF is several times heavier. `-coalesce` preserves the recorded frame
 delays, so the motion plays at the captured speed.
+
+## `menu-overview.webp`
+
+The fullscreen menu opening over the desktop and scrolling through application
+rows, recorded on 2026-11-11 (`plasmashell 6.8.2`, `kwin 6.8.2`, Qt 6.11.2,
+Quickshell 0.2.1 on Wayland from Fedora 44). The dock keeps its maintainer's
+launcher set, so the icons are not the first-run defaults.
+
+The source recording is a 1920x1080 capture of 40 s and 24 MB. Only the opening
+and the first scroll are published: `menu-overview.webp` is 960x540, 63 frames and
+6.6 s at 10 fps, 1.7 MB. The desktop-idle seconds at the start and the empty
+desktop after the menu closes are not part of the clip. Scaling the whole 1080p
+frame to 854x480 makes the application labels unreadable, and 960 px is the width
+the README displays, so the asset keeps that width instead of a full-height scale.
+It was rebuilt from the source animation with Pillow, which reads one frame at a
+time and never holds the whole recording in memory:
+
+```bash
+python3 - <<'EOF'
+from PIL import Image
+source = Image.open('recording.webp')
+fps = source.n_frames / 40.0
+frames = []
+for index in range(int(4.4 * fps), int(10.4 * fps)):
+    source.seek(index)
+    frames.append(source.convert('RGB').resize((960, 540), Image.BILINEAR)
+                  .convert('P', palette=Image.ADAPTIVE, colors=255))
+frames[0].save('assets/demo/menu-overview.webp', save_all=True,
+               append_images=frames[1:], duration=100, loop=0,
+               quality=76, method=6)
+EOF
+```
+
+Pillow merges identical consecutive frames and keeps their delay, so the frame
+count differs from the sampled range while the 6.6 s duration is preserved. Keep
+this asset well under 10 MB; a 24 MB clip belongs outside the repository, because
+a public clone downloads every version of it forever.
