@@ -14,6 +14,8 @@ TestCase {
             entries: ListModel {
                 ListElement { appId: "files"; desktopId: "org.kde.dolphin.desktop" }
                 ListElement { appId: "browser"; desktopId: "org.mozilla.firefox" }
+                ListElement { appId: "desktop:ai.opencode.desktop.desktop";
+                    desktopId: "ai.opencode.desktop.desktop" }
             }
             launcher: QtObject {
                 property var calls: []
@@ -72,6 +74,18 @@ TestCase {
         control.finished(4, "org.mozilla.firefox", "activated")
         compare(dispatched.count, 3)
         compare(service.launcher.calls.length, 1)
+    }
+    function test_doubleDesktopResultStillDispatches() {
+        const service = createService()
+        const control = service.windowState.windowActivation
+        compare(service.startup.key("ai.opencode.desktop.desktop"), "ai.opencode")
+        verify(service.activate("desktop:ai.opencode.desktop.desktop"))
+        compare(control.calls.length, 1)
+        compare(control.calls[0], "ai.opencode.desktop.desktop")
+        control.finished(1, "ai.opencode", "minimized")
+        compare(dispatched.count, 1)
+        compare(dispatched.signalArguments[0][0], "desktop:ai.opencode.desktop.desktop")
+        compare(rejected.count, 0)
     }
     function test_failuresUnavailableAndUnknownIdsNeverLaunch() {
         const service = createService()

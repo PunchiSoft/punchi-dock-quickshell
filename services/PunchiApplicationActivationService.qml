@@ -19,6 +19,13 @@ QtObject {
         }
         return ""
     }
+    // The native backend returns the identity with every trailing ".desktop"
+    // stripped, including packages installed as "<id>.desktop.desktop".
+    function normalizedId(desktopId: string): string {
+        let id = String(desktopId || "")
+        while (id.endsWith(".desktop")) id = id.slice(0, -8)
+        return id
+    }
     function activate(appId: string): bool {
         const desktopId = desktopIdFor(appId)
         if (!desktopId) { activationRejected(appId); return false }
@@ -55,9 +62,10 @@ QtObject {
             const intent = root.pending[requestId]
             if (!intent) return
             delete root.pending[requestId]
-            const expected = intent.desktopId.endsWith(".desktop")
-                ? intent.desktopId.slice(0, -8) : intent.desktopId
-            if (desktopId !== expected) { root.activationRejected(intent.appId); return }
+            if (root.normalizedId(desktopId) !== root.normalizedId(intent.desktopId)) {
+                root.activationRejected(intent.appId)
+                return
+            }
             if (status === "activated" || status === "minimized" || status === "starting" || status === "new-instance")
                 root.activationDispatched(intent.appId)
             else if (status === "not-found" && root.desktopIdFor(intent.appId) === intent.desktopId) {

@@ -8,7 +8,9 @@ QtObject {
     property int timeout: 30000
     property var deadlines: Object.create(null)
     function key(desktopId: string): string {
-        return desktopId.endsWith(".desktop") ? desktopId.slice(0, -8) : desktopId
+        let id = String(desktopId || "")
+        while (id.endsWith(".desktop")) id = id.slice(0, -8)
+        return id
     }
     function holds(desktopId: string): bool {
         const id = key(desktopId)
