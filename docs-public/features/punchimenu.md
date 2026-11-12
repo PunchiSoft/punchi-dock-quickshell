@@ -68,7 +68,8 @@ order. The dock's **Menu** button keeps opening on its own screen.
 ## Presentation
 
 - A theme-washed backdrop with KWin blur behind it.
-- The distribution name.
+- The distribution name, with the same 0.25 theme-aware text shadow as the
+  application labels.
 - A close control drawn with the buttons of the user's window decoration.
 
 ## Dock over the menu

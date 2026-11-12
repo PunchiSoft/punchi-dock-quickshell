@@ -21,6 +21,8 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Apply the 0.25 theme-aware text shadow to the fullscreen-menu distribution
+  name, matching the application labels.
 - Fit the fullscreen menu to the seven-column, five-row reference with a
   proportional scale: rectangular cells, a square hover and selection card
   inside each cell, whole rows and centred margins so no tile is clipped.
