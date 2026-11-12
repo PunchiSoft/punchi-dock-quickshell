@@ -4,7 +4,17 @@ on:
   push:
     branches:
       - main
+  # A documentation-only pull request runs .github/workflows/docs.yml instead:
+  # the full graph builds the native targets and takes minutes, and no test in it
+  # observes prose. `project_foundation`, `changelog_contract` and
+  # `project_version` do observe README, docs-public, CHANGELOG and the version
+  # declarations, so they stay in the documentation workflow.
   pull_request:
+    paths-ignore:
+      - '*.md'
+      - '**/*.md'
+      - 'assets/**'
+      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
 
 permissions:
