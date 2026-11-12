@@ -33,6 +33,7 @@ Quickshell-specific workflows are new.
 | [requirements-capture](requirements-capture/SKILL.md) | Scope, acceptance criteria, out-of-scope, risks | a request is ambiguous or a change starts | - |
 | [review-cycle](review-cycle/SKILL.md) | Regression diagnosis with confirmed findings | a behavior that used to work fails | `control-connection-review`, `testing` |
 | [safe-removal-review](safe-removal-review/SKILL.md) | Deletion, overwrite, batch moves, retirement | material would be deleted, moved or rewritten | - |
+| [screen-geometry](screen-geometry/SKILL.md) | Logical space, reference scale, whole grids, KDE units | a surface clips at some resolution, a grid must adapt, or spacing/DPR/availableGeometry is in doubt | `qt-kde-reference` |
 | [selection-emphasis](selection-emphasis/SKILL.md) | One primary emphasis for selection and hover | a list, grid, tab or sidebar shows a current item | `accessibility` |
 | [skill-authoring](skill-authoring/SKILL.md) | Create, revise and validate skills | a skill is added or never activates | `documentation` |
 | [surface-effects](surface-effects/SKILL.md) | Material and finish levels, lowest cost first | a surface needs depth, glass, blur or a shader | `animation-performance` |

@@ -32,6 +32,12 @@ Item {
     signal closeRequested()
     signal searchFocusRequested()
 
+    // Escape closes the menu even while the search field or a tile owns focus.
+    Shortcut {
+        sequence: "Escape"
+        onActivated: root.closeRequested()
+    }
+
     function focusSearch(): void {
         search.forceActiveFocus()
     }

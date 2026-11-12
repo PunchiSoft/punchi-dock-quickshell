@@ -31,11 +31,10 @@ PanelWindow {
     readonly property var profileDefaults: PunchiDefaultProfile.profile
     readonly property bool motionEnabled: !(root.settings
         ? root.settings.reducedMotion : root.profileDefaults.reducedMotion)
-    // Launchpad shows seven columns on a 1440x900 screen, and that ratio holds
-    // on larger displays: the cell pitch grows, the count does not. The bounds
-    // shrink the grid on a small screen instead of clipping it. The view
-    // computes the rows from its measured height, so the visible count follows
-    // the screen and a resting menu never cuts the last row.
+    // The view fits the seven-column, five-row reference with a proportional
+    // scale, so the column count only drops on a screen too narrow for the
+    // reference pitch. The cells stay rectangular; the square selection card
+    // lives inside each cell.
     readonly property int gridColumns: Math.max(4, Math.min(7,
         Math.floor(Math.max(1, root.width) / (Kirigami.Units.gridUnit * 8))))
     readonly property string distributionName: root.distribution

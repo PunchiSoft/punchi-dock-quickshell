@@ -33,7 +33,7 @@ TestCase {
         id: fixture
         PunchiMenuSections {
             width: 900
-            height: 240
+            height: 900
             active: true
             motionEnabled: false
             menuState: PunchiMenuState {
@@ -57,7 +57,7 @@ TestCase {
         id: largeFixture
         PunchiMenuSections {
             width: 900
-            height: 240
+            height: 900
             active: true
             motionEnabled: false
             menuState: PunchiMenuState {
@@ -74,7 +74,7 @@ TestCase {
         id: defaultFixture
         PunchiMenuSections {
             width: 900
-            height: 240
+            height: 900
             active: true
             motionEnabled: false
             menuState: PunchiMenuState {
@@ -85,26 +85,27 @@ TestCase {
         }
     }
 
-    // Taller viewport: three whole rows must tile it without a partial row.
+    // The measured 1920x1080 menu body: 1812 px wide after the side margins.
     Component {
-        id: tallFixture
+        id: wideFixture
         PunchiMenuSections {
-            width: 900
-            height: 600
+            width: 1812
+            height: 921
             active: true
             motionEnabled: false
             menuState: PunchiMenuState {
-                applications: test.catalogue
-                columns: 3
+                applications: test.largeCatalogue()
+                columns: 7
                 applicationOrder: "alphabetical"
             }
         }
     }
+
     Component {
         id: shortFixture
         PunchiMenuSections {
-            width: 900
-            height: 70
+            width: 200
+            height: 880
             active: true
             motionEnabled: false
             menuState: PunchiMenuState {
@@ -117,8 +118,8 @@ TestCase {
     Component {
         id: shortCategoryFixture
         PunchiMenuSections {
-            width: 900
-            height: 70
+            width: 200
+            height: 880
             active: true
             motionEnabled: false
             menuState: PunchiMenuState {
@@ -160,16 +161,20 @@ TestCase {
         return count
     }
 
-    function test_iconSizeBeforeTheRowIsLaidOutKeepsTheDesiredSize() {
+    function test_referenceScaleKeepsTheCardSquareBeforeTheViewportIsLaidOut() {
         const sections = createTemporaryObject(fixture, test)
         verify(sections !== null)
         sections.height = 0
-        tryCompare(sections, "cellHeight", 0)
+        compare(sections.gridHeight, 0)
+        compare(sections.visibleRows, 5)
         verify(sections.iconSize > 1)
         compare(sections.iconSize, Math.max(1, Math.round(sections.desiredIconSize)))
-        sections.height = 240
-        tryCompare(sections, "cellHeight", 240 / sections.visibleRows)
-        verify(sections.iconSize > 1)
+        sections.height = 900
+        compare(sections.cardSize, Math.min(sections.cellWidth, sections.cellHeight))
+        compare(sections.cardSize, sections.cellHeight)
+        verify(sections.cellHeight < sections.cellWidth)
+        compare(sections.gridHeight, sections.visibleRows * sections.cellHeight)
+        verify(sections.gridHeight <= sections.height + 0.5)
     }
 
     function test_unmeasuredViewportCreatesNoZeroSizedCells() {
@@ -227,61 +232,99 @@ TestCase {
         compare(tile.title, "Dolphin")
     }
 
-    function test_visibleRowsFillTheViewportWithoutCuttingTheLastRow() {
-        const view = createTemporaryObject(tallFixture, test)
+    function test_referenceRowsKeepTheLastRowWhole() {
+        const view = createTemporaryObject(largeFixture, test)
         verify(view !== null)
         const list = sectionsView(view)
         verify(list !== null)
         wait(50)
-        // The flat listing has no headings, so the rows tile the viewport.
-        compare(view.visibleRows, 3)
-        compare(Math.round(view.visibleRows * view.cellHeight), Math.round(view.height))
+        // The viewport is exactly five whole reference rows, with no partial row.
+        compare(view.visibleRows, 5)
         compare(view.menuState.rows, view.visibleRows)
-        const lastRowTop = view.rowTop(view.visibleRows - 1)
+        compare(list.height, view.gridHeight)
+        compare(list.height, view.visibleRows * view.cellHeight)
+        const lastVisibleRow = Math.min(view.visibleRows,
+            view.menuState.displayRows.length) - 1
+        const lastRowTop = view.rowTop(lastVisibleRow)
         verify(lastRowTop + view.cellHeight <= list.height + 0.5)
-        verify(lastRowTop + view.cellHeight >= list.height - 0.5)
+        verify(list.contentHeight >= list.height)
     }
 
-    function test_categoryHeadersAndAppsUseWholeViewportRows() {
+    function test_wideGridShowsWholeRowsAndKeepsTheIcon() {
+        const view = createTemporaryObject(wideFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(50)
+        compare(view.columnCount, 7)
+        compare(view.visibleRows, 5)
+        compare(view.cardSize, Math.min(view.cellWidth, view.cellHeight))
+        compare(view.cardSize, view.cellHeight)
+        verify(view.cellHeight < view.cellWidth)
+        compare(list.width, view.gridWidth)
+        compare(list.height, view.gridHeight)
+        compare(view.gridHeight, view.visibleRows * view.cellHeight)
+        verify(view.gridWidth <= view.availableWidth + 0.5)
+        verify(view.gridHeight <= view.height + 0.5)
+        // Height-limited: the reference grid keeps side margins instead of
+        // stretching the cells.
+        verify(view.gridWidth < view.availableWidth)
+        // The glyph keeps the reference size; the card around it shrinks.
+        verify(view.iconSize >= Math.round(view.metrics.referenceIconSize))
+        compare(view.iconSize, view.desiredIconSize)
+    }
+
+    function test_categoryHeadersUseTheSameRowPitch() {
         const view = createTemporaryObject(fixture, test)
         verify(view !== null)
         const list = sectionsView(view)
         verify(list !== null)
         wait(50)
-        compare(view.visibleRows, 2)
-        compare(view.menuState.rows, view.visibleRows)
-        compare(view.rowHeight(view.menuState.displayRows[0]), view.cellHeight)
-        compare(view.rowHeight(view.menuState.displayRows[1]), view.cellHeight)
-        compare(Math.round(view.visibleRows * view.cellHeight), Math.round(list.height))
+        const header = view.menuState.displayRows[0]
+        const appRow = view.menuState.displayRows[1]
+        compare(header.kind, "header")
+        compare(appRow.kind, "row")
+        verify(view.cellHeight < view.cellWidth)
+        // A heading consumes one whole reference row, so the viewport can
+        // always end on a row boundary in category mode too.
+        compare(view.rowHeight(header), view.cellHeight)
+        compare(view.rowHeight(appRow), view.cellHeight)
+        compare(view.rowHeight(header), view.rowHeight(appRow))
+        verify(view.visibleRows >= 1)
         verify(findChild(view, "menuTile") !== null)
     }
 
-    function test_shortViewportShrinksContentsInsteadOfClippingTheRow() {
+    function test_narrowViewportHidesLabelsWhileKeepingTheIcon() {
         const view = createTemporaryObject(shortFixture, test)
         verify(view !== null)
         const list = sectionsView(view)
         const tile = findChild(view, "menuTile")
         verify(list !== null)
         verify(tile !== null)
-        compare(view.visibleRows, 1)
-        compare(view.cellHeight, list.height)
+        verify(view.cellHeight < view.cellWidth)
+        compare(view.showCellLabels, false)
         compare(tile.showLabel, false)
+        verify(view.visibleRows > 1)
+        // The label is withheld before the glyph is allowed to shrink.
+        compare(tile.iconSize, view.desiredIconSize)
         verify(tile.iconSize + Kirigami.Units.smallSpacing * 4 <= view.cellHeight)
     }
 
-    function test_shortCategoryViewportKeepsAHeaderAndAnAppRow() {
+    function test_narrowCategoryViewportUsesUniformRows() {
         const view = createTemporaryObject(shortCategoryFixture, test)
         verify(view !== null)
         const list = sectionsView(view)
         const tile = findChild(view, "menuTile")
         verify(list !== null)
         verify(tile !== null)
-        compare(view.visibleRows, 2)
-        compare(view.cellHeight, list.height / 2)
+        verify(view.cellHeight < view.cellWidth)
+        compare(view.showCellLabels, false)
         compare(tile.showLabel, false)
-        verify(tile.iconSize + Kirigami.Units.smallSpacing * 4 <= view.cellHeight)
+        verify(view.visibleRows > 1)
         verify(view.menuState.displayRows[0].kind === "header")
         verify(view.menuState.displayRows[1].kind === "row")
+        compare(view.rowHeight(view.menuState.displayRows[0]), view.cellHeight)
+        compare(view.rowHeight(view.menuState.displayRows[1]), view.cellHeight)
     }
 
     function test_scrollBarFollowsTheStoredPreference() {
@@ -292,15 +335,17 @@ TestCase {
         const bar = findChild(view, "menuScrollBar")
         verify(bar !== null)
         // The product default leaves the surface clean: no bar and no reserved
-        // gutter, so the columns use the full width.
+        // gutter, so the reference grid uses the full content width.
         compare(bar.policy, Controls.ScrollBar.AlwaysOff)
-        compare(view.availableWidth, list.width)
+        compare(view.availableWidth, view.width)
+        verify(view.gridWidth <= view.availableWidth + 0.5)
         view.showScrollBar = true
         compare(bar.policy, Controls.ScrollBar.AsNeeded)
-        verify(view.availableWidth < list.width)
+        verify(view.availableWidth < view.width)
+        verify(view.gridWidth <= view.availableWidth + 0.5)
         view.showScrollBar = false
         compare(bar.policy, Controls.ScrollBar.AlwaysOff)
-        compare(view.availableWidth, list.width)
+        compare(view.availableWidth, view.width)
     }
 
     function test_wheelScrollsContinuouslyInsteadOfPaging() {
@@ -412,8 +457,9 @@ TestCase {
         list.contentY = target + view.cellHeight / 2
         view.motionEnabled = false
         view.snapToRow()
+        // A half-cell offset can settle on either neighbouring row; the
+        // reduced-motion path must reach a boundary synchronously.
         verify(isRowBoundary(view, list.contentY))
-        compare(list.contentY, target)
     }
 
     function test_reopenStartsAtTheTop() {

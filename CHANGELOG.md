@@ -13,6 +13,17 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 - Scroll overflowing fullscreen-menu labels on pointer or keyboard selection,
   matching the popup entries.
+- Close the fullscreen menu with Escape from the search field or a selected
+  tile.
+
+### Changed
+
+- Fit the fullscreen menu to the seven-column, five-row reference with a
+  proportional scale: rectangular cells, a square hover and selection card
+  inside each cell, whole rows and centred margins so no tile is clipped.
+  Application icons keep the reference size and category headings use one row.
+- Set fullscreen-menu labels to 14 px with the same 0.25 theme-aware text shadow
+  as the popup entries.
 
 ### Fixed
 

@@ -20,15 +20,27 @@ Item {
     property bool showLabel: true
     property string hoverAnimation: "pulse"
     property int iconSize: Kirigami.Units.iconSizes.huge
+    // The surface passes the square selection card; zero derives it from the
+    // cell for a standalone tile.
+    property real cardSize: 0
+    property int labelPixelSize: 14
 
     readonly property bool hovered: pointer.containsMouse && root.pointerEmphasis
+    readonly property real effectiveCardSize: root.cardSize > 0
+        ? root.cardSize : Math.max(1, Math.min(root.width, root.height))
+    readonly property font labelFont: Qt.font({
+        family: Kirigami.Theme.defaultFont.family,
+        pixelSize: root.labelPixelSize,
+        weight: Kirigami.Theme.defaultFont.weight,
+        italic: Kirigami.Theme.defaultFont.italic
+    })
     readonly property real labelHeight: root.showLabel
-        ? Math.ceil(Kirigami.Theme.defaultFont.pixelSize * 1.6) : 0
+        ? Math.ceil(root.labelFont.pixelSize * 1.6) : 0
     // Zero means the cell is not laid out yet. A NaN or zero must never reach a
     // raster request, and a one-pixel request makes Qt's SVG renderer rasterise a
     // degenerate filter region that it reports as an oversized buffer.
     readonly property real availableWidth: {
-        const available = Number(highlight.width) - Kirigami.Units.gridUnit
+        const available = Number(root.effectiveCardSize) - Kirigami.Units.gridUnit
         return Number.isFinite(available) && available > 1 ? available : 0
     }
     readonly property real contentWidth: Math.max(1, root.availableWidth)
@@ -55,7 +67,10 @@ Item {
 
     PunchiMenuHighlight {
         id: highlight
-        anchors.fill: parent
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
+        width: root.effectiveCardSize
+        height: root.effectiveCardSize
         hovered: root.hovered && root.pointerEmphasis
         selected: root.selected && !root.pointerEmphasis
         pressed: pointer.pressed
@@ -80,15 +95,13 @@ Item {
                 width: root.contentWidth
                 height: root.labelHeight
                 text: root.title
-                font: Kirigami.Theme.defaultFont
+                font: root.labelFont
                 color: Kirigami.Theme.textColor
                 horizontalAlignment: Text.AlignHCenter
                 hovered: root.hovered && root.pointerEmphasis
                 focused: root.selected && !root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 maximumRestingWidth: root.contentWidth
-                // The menu paints many labels at once; skip the per-cell effect.
-                shadowEnabled: false
             }
         }
     }

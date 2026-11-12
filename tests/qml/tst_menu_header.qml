@@ -60,6 +60,24 @@ TestCase {
         verify(button.implicitWidth >= button.fallbackIconSize)
     }
 
+    function test_escapeRequestsCloseFromAnyFocus() {
+        const header = createTemporaryObject(fixture, test)
+        verify(header !== null)
+        const search = findChild(header, "menuSearchField")
+        verify(search !== null)
+        let closed = 0
+        header.closeRequested.connect(function() { closed++ })
+        header.forceActiveFocus()
+        keyClick(Qt.Key_Escape)
+        compare(closed, 1)
+        // The search field owns Escape too; the header shortcut must not emit a
+        // second close request.
+        search.forceActiveFocus()
+        tryCompare(search, "activeFocus", true)
+        keyClick(Qt.Key_Escape)
+        compare(closed, 2)
+    }
+
     function test_closeRequestIsEmittedOnce() {
         const header = createTemporaryObject(fixture, test)
         verify(header !== null)
