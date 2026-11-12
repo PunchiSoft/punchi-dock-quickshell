@@ -53,3 +53,24 @@ so the icons are not the first-run defaults.
 The fullscreen menu opening from the dock and scrolling through the application
 rows. 960x540, 94 frames, 8 s at 12 fps, 1.9 MB. The application set is the
 maintainer's.
+
+## `container-views.webp`
+
+The Home container changing presentation: **Detail** with its check mark in the
+**View content as** menu, then **Grid**, then **Fan**. A continuous 15.6 s take
+from the same recording, 960x686, 139 frames at 10 fps, 0.64 MB, cropped to the
+balloon and the dock it hangs from.
+
+`List` does not appear for a folder container in this recording; the only list
+shown is the recent-applications container. Re-record that step before claiming
+all four presentations in one clip.
+
+```bash
+ffmpeg -ss 13.0 -to 28.6 -i recording.webm \
+  -vf "fps=10,crop=980:700:540:330,scale=960:-1:flags=lanczos" \
+  -c:v libwebp_anim -lossless 0 -q:v 74 -compression_level 5 -loop 0 -an \
+  assets/demo/container-views.webp
+```
+
+The crop is the union of every state in the take, so the balloon never leaves the
+frame while it moves between its Grid, Fan and menu positions.

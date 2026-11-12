@@ -6,6 +6,13 @@ surface and the keyboard behavior.
 
 ## Folder containers
 
+<p align="center"><img src="../../assets/demo/container-views.webp" width="720" alt="The Home container changing presentation: Detail, then Grid, then Fan, chosen from the View content as menu"></p>
+
+<p align="center"><em>The same Home container in <strong>Detail</strong>,
+<strong>Grid</strong> and <strong>Fan</strong>, switching through the
+<strong>View content as</strong> menu. The clip is one continuous take from the
+maintainer's session; <strong>List</strong> is not shown for a folder container.</em></p>
+
 - Any local folder can become a container. Built-in **Home** and **Downloads**
   items are defaults, not special cases in the model.
 - **Presentation**: Grid, List, Detail and Fan. A side dock presents a stored Fan
