@@ -81,6 +81,21 @@ Item {
             .localeCompare(String(second.name || second.title || "")))
         return result
     }
+    // Keep the app list tall enough to be useful while leaving room for the
+    // two actions and the dock; the list itself scrolls when the catalogue is
+    // longer.
+    readonly property real menuApplicationsMaxHeight: Math.min(
+        Kirigami.Units.gridUnit * 40,
+        Math.max(Kirigami.Units.gridUnit * 12, Screen.height * 0.68))
+    // The menu leader width follows its content. The 24 grid-unit ceiling is
+    // the same cap the existing recent-files popup uses, not a new width.
+    readonly property real menuApplicationLabelWidth: {
+        let width = 0
+        for (const application of root.installedApplications)
+            width = Math.max(width, labelMetrics.advanceWidth(
+                String(application.name || application.title || "")))
+        return Math.min(Kirigami.Units.gridUnit * 24, width)
+    }
     property bool folderItem: false
     property var folderContainer: null
     // The recent-applications container shares the view section of a folder
@@ -122,6 +137,7 @@ Item {
     signal settingsRequested()
     signal closeRequested()
     signal applicationRequested(string appId)
+    signal openMenuRequested()
     signal removeMenuRequested()
     signal openTrashRequested()
     signal openFolderRequested()
@@ -143,7 +159,9 @@ Item {
         ? Math.max(labelMetrics.advanceWidth(qsTr("Position on Screen")),
             labelMetrics.advanceWidth(qsTr("Minimize Windows Using")), labelMetrics.advanceWidth(qsTr("Automatically Hide Dock")))
         : menuLeader ? Math.max(labelMetrics.advanceWidth(removeMenuAction.text),
-            labelMetrics.advanceWidth(configureMenuAction.text)) : 0))
+            labelMetrics.advanceWidth(showMenuAction.text),
+            labelMetrics.advanceWidth(configureMenuAction.text),
+            root.menuApplicationLabelWidth) : 0))
     implicitWidth: (verticalTail ? pointerHeight : 0) + Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
@@ -154,9 +172,6 @@ Item {
         canLaunchNewWindow ? newWindowAction.implicitWidth + contentPadding * 2 : 0,
         canPin ? pinAction.implicitWidth + contentPadding * 2 : 0,
         pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
-        menuLeader ? Math.max(Kirigami.Units.gridUnit * 20,
-            Math.max(removeMenuAction.implicitWidth,
-                configureMenuAction.implicitWidth)) + contentPadding * 2 : 0,
         trashItem ? emptyTrashAction.implicitWidth + contentPadding * 2 : 0)
     FontMetrics { id: labelMetrics; font: configureAction.font }
     implicitHeight: rows.implicitHeight + contentPadding * 2 + (verticalTail ? 0 : pointerHeight)
@@ -169,7 +184,7 @@ Item {
         if (root.menuLeader && menuApplications.count > 0) {
             menuApplications.currentIndex = 0
             menuApplications.forceActiveFocus(reason)
-        } else if (root.menuLeader) removeMenuAction.forceActiveFocus(reason)
+        } else if (root.menuLeader) showMenuAction.forceActiveFocus(reason)
         else if (root.trashItem) openTrashAction.forceActiveFocus(reason)
         else if (root.recentContainer && root.recentLayoutFirstAction)
             root.recentLayoutFirstAction.forceActiveFocus(reason)
@@ -203,7 +218,7 @@ Item {
             objectName: "menuLeaderApplications"
             Layout.fillWidth: true
             Layout.preferredHeight: root.installedApplications.length > 0
-                ? Math.min(Kirigami.Units.gridUnit * 18,
+                ? Math.min(root.menuApplicationsMaxHeight,
                     Math.max(Kirigami.Units.gridUnit * 3, contentHeight)) : 0
             visible: root.menuLeader && root.installedApplications.length > 0
             model: root.installedApplications
@@ -238,6 +253,17 @@ Item {
             text: qsTr("Remove from Dock")
             icon.name: "window-unpin"
             onClicked: root.removeMenuRequested()
+        }
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: showMenuAction
+            motionEnabled: root.motionEnabled
+            objectName: "showMenuAction"
+            Layout.fillWidth: true
+            visible: root.menuLeader
+            text: qsTr("Show PunchiMenu")
+            icon.name: "start-here-kde"
+            onClicked: root.openMenuRequested()
         }
         PunchiDockContextAction {
             pointerEmphasis: root.pointerEmphasis

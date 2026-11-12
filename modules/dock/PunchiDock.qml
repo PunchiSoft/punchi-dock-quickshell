@@ -385,6 +385,7 @@ PanelWindow {
         onForgetRecentRequested: contextService.forgetRecent()
         onNewWindowRequested: contextService.openNewWindow()
         onApplicationRequested: function(appId) { menuAppsLauncher.launch(appId) }
+        onOpenMenuRequested: root.menuRequested(root.screen ? root.screen.name : "")
         onRemoveMenuRequested: root.settings.menuShowDockButton = false
         onPinRequested: contextService.pin()
         onUnpinRequested: contextService.unpin()

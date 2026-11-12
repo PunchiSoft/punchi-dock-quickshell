@@ -69,6 +69,7 @@ Popup {
     signal unpinRequested()
     signal pinRequested()
     signal applicationRequested(string appId)
+    signal openMenuRequested()
     signal removeMenuRequested()
     signal windowActionRequested(string action, var virtualDesktop)
     parent: hostWindow ? hostWindow.contentItem : null
@@ -178,6 +179,7 @@ Popup {
         onForgetRecentRequested: { root.forgetRecentRequested(); root.dismiss() }
         onNewWindowRequested: { root.newWindowRequested(); root.dismiss() }
         onApplicationRequested: function(appId) { root.dismiss(); root.applicationRequested(appId) }
+        onOpenMenuRequested: { root.dismiss(); root.openMenuRequested() }
         onRemoveMenuRequested: { root.dismiss(); root.removeMenuRequested() }
         onPinRequested: { root.dismiss(); root.pinRequested() }
         onWindowActionRequested: function(action, virtualDesktop) {

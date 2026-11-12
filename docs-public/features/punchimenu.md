@@ -69,10 +69,11 @@ order. The dock's **Menu** button keeps opening on its own screen.
 
 The leading **Menu** icon in the dock has a balloon context menu. It lists the
 installed applications, sorted by name; choosing one launches it. At the bottom,
-**Remove from Dock** hides the icon and **Configure PunchiDock** opens Settings.
-The global shortcut and the IPC commands still open the menu, and **Settings →
-Menu → Show menu button** restores the icon. The list reuses the dock's balloon
-surface and shared popup rows, not a separate menu style.
+**Remove from Dock** hides the icon, **Show PunchiMenu** opens the fullscreen
+menu and **Configure PunchiDock** opens Settings. The global shortcut and the IPC
+commands still open the menu, and **Settings → Menu → Show menu button** restores
+the icon. The list reuses the dock's balloon surface and shared popup rows, not a
+separate menu style.
 
 ## Presentation
 
