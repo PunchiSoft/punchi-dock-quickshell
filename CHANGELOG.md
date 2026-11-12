@@ -20,8 +20,6 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
   selected or primary screen.
 - Allow hiding the fullscreen-menu close button. Right stays the default, and
   Escape, the backdrop and the dock button still close the menu.
-- Open a compact context menu on secondary click in the fullscreen menu, with
-  Open and Pin to Dock/Unpin from Dock.
 
 ### Changed
 

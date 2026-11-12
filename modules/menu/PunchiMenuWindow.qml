@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls as Controls
 import Quickshell
 import Quickshell.Wayland
 import org.kde.kirigami as Kirigami
@@ -51,37 +50,10 @@ PanelWindow {
 
     // The surface outlives `open` for the closing fade, and the dock has to stay
     // above it for that whole time.
-    onVisibleChanged: {
-        if (!root.open && contextMenu) contextMenu.close()
-        if (root.menuController)
-            root.menuController.setMapped(root.screenKey, root.visible)
-    }
+    onVisibleChanged: if (root.menuController)
+        root.menuController.setMapped(root.screenKey, root.visible)
     Component.onDestruction: if (root.menuController)
         root.menuController.setMapped(root.screenKey, false)
-
-    function openApplication(appId: string): void {
-        if (!appId || appId.length === 0) return
-        launcher.launch(appId)
-        root.menuController.close()
-    }
-    function showContextMenu(index: int, position: point): void {
-        const application = menuState.filtered[index]
-        if (!application) return
-        const appId = String(application.appId || "")
-        if (appId.length === 0) return
-        contextMenu.applicationId = appId
-        contextMenu.pinned = pinService.isPinned(appId)
-        const local = content.mapFromItem(null, position.x, position.y)
-        contextMenu.popup(local.x, local.y)
-    }
-    function togglePin(): void {
-        if (contextMenu.applicationId.length === 0) return
-        if (contextMenu.pinned)
-            pinService.unpinApp(contextMenu.applicationId)
-        else
-            pinService.pinApp(contextMenu.applicationId)
-        contextMenu.pinned = pinService.isPinned(contextMenu.applicationId)
-    }
 
     signal applicationLaunched(string appId)
 
@@ -127,11 +99,6 @@ PanelWindow {
         applicationOrder: root.settings
             ? root.settings.menuApplicationOrder
             : root.profileDefaults.menuApplicationOrder
-    }
-    PunchiApplicationPinService {
-        id: pinService
-        settings: root.settings
-        catalog: root.applications
     }
 
     PunchiMenuBackdrop {
@@ -220,32 +187,11 @@ PanelWindow {
                 onLaunchRequested: function(index) {
                     const application = menuState.filtered[index]
                     if (!application) return
-                    root.openApplication(String(application.appId || ""))
+                    const appId = String(application.appId || "")
+                    if (appId.length === 0) return
+                    launcher.launch(appId)
+                    root.menuController.close()
                 }
-                onContextMenuRequested: function(index, position) {
-                    root.showContextMenu(index, position)
-                }
-            }
-        }
-
-        Controls.Menu {
-            id: contextMenu
-            objectName: "menuContextMenu"
-            property string applicationId: ""
-            property bool pinned: false
-            Controls.MenuItem {
-                text: qsTr("Open")
-                icon.name: "document-open"
-                onTriggered: root.openApplication(contextMenu.applicationId)
-            }
-            Controls.MenuSeparator {
-                visible: contextMenu.pinned || pinService.canPinApp(contextMenu.applicationId)
-            }
-            Controls.MenuItem {
-                text: contextMenu.pinned ? qsTr("Unpin from Dock") : qsTr("Pin to Dock")
-                icon.name: contextMenu.pinned ? "window-unpin" : "window-pin"
-                visible: contextMenu.pinned || pinService.canPinApp(contextMenu.applicationId)
-                onTriggered: root.togglePin()
             }
         }
 
@@ -264,7 +210,10 @@ PanelWindow {
                 const application = menuState.currentApplication
                 if (application) {
                     const appId = String(application.appId || "")
-                    if (appId.length > 0) root.openApplication(appId)
+                    if (appId.length > 0) {
+                        launcher.launch(appId)
+                        root.menuController.close()
+                    }
                 }
                 event.accepted = true
             } else if (event.text.length > 0
