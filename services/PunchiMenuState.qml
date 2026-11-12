@@ -255,9 +255,31 @@ QtObject {
     function selectLast(): void {
         root.currentIndex = root.filtered.length > 0 ? root.filtered.length - 1 : -1
     }
-    // A page is one viewport of rows; the view keeps the selection visible.
+    // A page advances by the number of display rows in the viewport. Category
+    // headings consume a row slot, so page movement must not count them as apps.
     function selectPage(step: int): void {
-        root.moveBy(step * Math.max(1, root.columns) * Math.max(1, root.rows))
+        if (root.filtered.length === 0 || step === 0) return
+        const rows = root.displayRows
+        if (rows.length === 0) return
+        const direction = step < 0 ? -1 : 1
+        const currentRow = root.displayRowFor(root.currentIndex)
+        const pageRows = Math.max(1, Math.abs(step) * Math.max(1, root.rows))
+        const targetRow = Math.max(0, Math.min(rows.length - 1,
+            currentRow + direction * pageRows))
+        let row = targetRow
+        while (row >= 0 && row < rows.length && rows[row].kind !== "row")
+            row += direction
+        if (row < 0 || row >= rows.length) {
+            row = targetRow - direction
+            while (row >= 0 && row < rows.length && rows[row].kind !== "row")
+                row -= direction
+        }
+        if (row < 0 || row >= rows.length) return
+        const members = rows[row].members
+        if (!members || members.length === 0) return
+        const position = root.sectionPosition(root.currentIndex)
+        const column = position.offset % Math.max(1, root.columns)
+        root.currentIndex = members[Math.min(column, members.length - 1)].index
     }
     function reset(): void {
         root.searchText = ""

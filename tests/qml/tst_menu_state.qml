@@ -205,6 +205,15 @@ TestCase {
         compare(state.currentIndex, 6)
     }
 
+    function test_categoryPageMoveCountsHeadingRows() {
+        const state = createTemporaryObject(categorisedFixture, test)
+        compare(state.displayRowFor(state.currentIndex), 1)
+        state.selectPage(1)
+        compare(state.displayRowFor(state.currentIndex), 3)
+        state.selectPage(-1)
+        compare(state.displayRowFor(state.currentIndex), 1)
+    }
+
     function test_selectionStaysInsideTheListing() {
         const state = createTemporaryObject(fixture, test)
         compare(state.currentIndex, 0)

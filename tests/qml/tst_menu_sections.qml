@@ -100,6 +100,34 @@ TestCase {
             }
         }
     }
+    Component {
+        id: shortFixture
+        PunchiMenuSections {
+            width: 900
+            height: 70
+            active: true
+            motionEnabled: false
+            menuState: PunchiMenuState {
+                applications: test.catalogue
+                columns: 3
+                applicationOrder: "alphabetical"
+            }
+        }
+    }
+    Component {
+        id: shortCategoryFixture
+        PunchiMenuSections {
+            width: 900
+            height: 70
+            active: true
+            motionEnabled: false
+            menuState: PunchiMenuState {
+                applications: test.catalogue
+                columns: 3
+                applicationOrder: "categories"
+            }
+        }
+    }
 
     function init(): void {
         failOnWarning(/.*/)
@@ -166,6 +194,48 @@ TestCase {
         const lastRowTop = view.rowTop(view.visibleRows - 1)
         verify(lastRowTop + view.cellHeight <= list.height + 0.5)
         verify(lastRowTop + view.cellHeight >= list.height - 0.5)
+    }
+
+    function test_categoryHeadersAndAppsUseWholeViewportRows() {
+        const view = createTemporaryObject(fixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(50)
+        compare(view.visibleRows, 2)
+        compare(view.menuState.rows, view.visibleRows)
+        compare(view.rowHeight(view.menuState.displayRows[0]), view.cellHeight)
+        compare(view.rowHeight(view.menuState.displayRows[1]), view.cellHeight)
+        compare(Math.round(view.visibleRows * view.cellHeight), Math.round(list.height))
+        verify(findChild(view, "menuTile") !== null)
+    }
+
+    function test_shortViewportShrinksContentsInsteadOfClippingTheRow() {
+        const view = createTemporaryObject(shortFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        const tile = findChild(view, "menuTile")
+        verify(list !== null)
+        verify(tile !== null)
+        compare(view.visibleRows, 1)
+        compare(view.cellHeight, list.height)
+        compare(tile.showLabel, false)
+        verify(tile.iconSize + Kirigami.Units.smallSpacing * 4 <= view.cellHeight)
+    }
+
+    function test_shortCategoryViewportKeepsAHeaderAndAnAppRow() {
+        const view = createTemporaryObject(shortCategoryFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        const tile = findChild(view, "menuTile")
+        verify(list !== null)
+        verify(tile !== null)
+        compare(view.visibleRows, 2)
+        compare(view.cellHeight, list.height / 2)
+        compare(tile.showLabel, false)
+        verify(tile.iconSize + Kirigami.Units.smallSpacing * 4 <= view.cellHeight)
+        verify(view.menuState.displayRows[0].kind === "header")
+        verify(view.menuState.displayRows[1].kind === "row")
     }
 
     function test_scrollBarFollowsTheStoredPreference() {
@@ -240,6 +310,40 @@ TestCase {
         verify(list.contentY > 0)
     }
 
+    function test_newGestureTakesControlFromAnActiveSnap() {
+        const view = createTemporaryObject(largeFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        const snap = findChild(view, "menuSnapAnimation")
+        verify(list !== null)
+        verify(snap !== null)
+        wait(50)
+        list.contentY = view.rowTop(2) + view.cellHeight / 3
+        // The fixture starts with motion disabled for deterministic layout.
+        view.motionEnabled = true
+        view.snapToRow()
+        tryVerify(function() { return snap.running }, 300)
+        view.scheduleSnap()
+        compare(snap.running, false)
+        const gesturePosition = list.contentY + 12
+        list.contentY = gesturePosition
+        wait(40)
+        compare(list.contentY, gesturePosition)
+        view.active = false
+    }
+
+    function test_snapAtTheEndKeepsWholeRowsVisible() {
+        const view = createTemporaryObject(fixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(50)
+        list.contentY = list.contentHeight - list.height
+        view.snapToRow()
+        tryVerify(function() { return isRowBoundary(view, list.contentY) }, 1500)
+        verify(list.contentY + list.height <= list.contentHeight + 0.5)
+    }
+
     function test_snapUsesTheThemeDuration() {
         const view = createTemporaryObject(defaultFixture, test)
         verify(view !== null)
@@ -250,6 +354,20 @@ TestCase {
         compare(snap.duration, Kirigami.Units.longDuration)
         view.motionEnabled = false
         compare(snap.duration, 0)
+    }
+
+    function test_reducedMotionAppliesTheSnapTargetImmediately() {
+        const view = createTemporaryObject(largeFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(50)
+        const target = view.rowTop(2)
+        list.contentY = target + view.cellHeight / 2
+        view.motionEnabled = false
+        view.snapToRow()
+        verify(isRowBoundary(view, list.contentY))
+        compare(list.contentY, target)
     }
 
     function test_reopenStartsAtTheTop() {
