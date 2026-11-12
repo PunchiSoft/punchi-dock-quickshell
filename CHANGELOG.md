@@ -9,6 +9,16 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ## Unreleased
 
+### Added
+
+- Scroll overflowing fullscreen-menu labels on pointer or keyboard selection,
+  matching the popup entries.
+
+### Fixed
+
+- Show application labels when the fullscreen menu opens before its surface is
+  measured.
+
 ## 0.2.0-beta.1 — 2026-11-11
 
 ### Added

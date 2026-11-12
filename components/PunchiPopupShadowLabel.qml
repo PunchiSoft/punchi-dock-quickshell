@@ -8,11 +8,13 @@ import org.kde.kirigami as Kirigami
 // Shared 25% theme-aware text shadow for popup captions and titles.
 Label {
     id: root
+    property bool shadowEnabled: true
     readonly property real shadowAmount: 0.25
     readonly property real shadowBlur: Math.max(0.15, shadowAmount)
     readonly property real shadowOpacity: 0.45 + 0.45 * shadowAmount
     readonly property real shadowOffset: 0.5 * shadowAmount
-    readonly property bool shadowAvailable: GraphicsInfo.api !== GraphicsInfo.Software
+    readonly property bool shadowAvailable: root.shadowEnabled
+        && GraphicsInfo.api !== GraphicsInfo.Software
 
     color: Kirigami.Theme.textColor
     layer.enabled: root.shadowAvailable && root.visible && root.opacity > 0.001

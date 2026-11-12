@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import "../../components"
 
 // One application cell. The surface decides which modality owns the single
 // emphasis band, so this cell never paints hover and keyboard selection at the
@@ -75,18 +75,20 @@ Item {
                     ? root.iconName : "application-x-executable"
                 Accessible.ignored: true
             }
-            Controls.Label {
+            PunchiEntryMarqueeLabel {
                 visible: root.showLabel
                 width: root.contentWidth
                 height: root.labelHeight
                 text: root.title
-                horizontalAlignment: Text.AlignHCenter
-                elide: Text.ElideMiddle
-                maximumLineCount: 1
-                wrapMode: Text.NoWrap
                 font: Kirigami.Theme.defaultFont
                 color: Kirigami.Theme.textColor
-                Accessible.ignored: true
+                horizontalAlignment: Text.AlignHCenter
+                hovered: root.hovered && root.pointerEmphasis
+                focused: root.selected && !root.pointerEmphasis
+                motionEnabled: root.motionEnabled
+                maximumRestingWidth: root.contentWidth
+                // The menu paints many labels at once; skip the per-cell effect.
+                shadowEnabled: false
             }
         }
     }

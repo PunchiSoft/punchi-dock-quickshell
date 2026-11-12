@@ -15,11 +15,12 @@ Item {
     property bool hovered: false
     property bool focused: false
     property bool motionEnabled: true
+    // The surface may own a wider viewport than the popup's resting probe; the
+    // menu passes its full cell width.
+    property real maximumRestingWidth: Math.ceil(restingMetrics.advanceWidth)
+    // A menu paints tens of entries, so it disables the per-label MultiEffect.
+    property bool shadowEnabled: true
     readonly property real naturalTextWidth: Math.ceil(textMetrics.advanceWidth)
-    // Resting cap of a name. The popup sizes its surface from the same probe
-    // (PunchiPopupMetrics.maximumRestingNameWidth), so the row never leaves room it
-    // cannot paint.
-    readonly property real maximumRestingWidth: Math.ceil(restingMetrics.advanceWidth)
     readonly property real viewportWidth: Math.max(0, Math.min(width, maximumRestingWidth))
     readonly property bool overflowing: naturalTextWidth > viewportWidth + 0.5
     readonly property bool revealFullText: overflowing && (hovered || focused)
@@ -59,6 +60,7 @@ Item {
             text: root.text
             font: root.font
             color: root.color
+            shadowEnabled: root.shadowEnabled
             textFormat: Text.PlainText
             horizontalAlignment: root.horizontalAlignment
             verticalAlignment: Text.AlignVCenter
@@ -84,6 +86,7 @@ Item {
             text: root.text
             font: root.font
             color: root.color
+            shadowEnabled: root.shadowEnabled
             textFormat: Text.PlainText
             horizontalAlignment: Text.AlignLeft
             verticalAlignment: Text.AlignVCenter
