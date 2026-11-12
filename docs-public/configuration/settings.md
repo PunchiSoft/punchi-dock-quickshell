@@ -11,7 +11,7 @@ category. **Apply** saves pending changes, **Accept** saves and closes, and
 | **Items** | The pinned item list, Add Item, ordering, item configuration and removal |
 | **General** | Icon size, magnification, bounce, reduced motion, position, visibility, screens and desktops, updates and autostart |
 | **Popups** | Popup size, height and icon size for the folder presentations |
-| **Menu** | Fullscreen-menu blur, opacity, icon size, labels, distribution name, order, scroll bar, close-button corner, hover animation, dock-over-menu and the global menu shortcut |
+| **Menu** | Fullscreen-menu blur, opacity, icon size, labels, distribution name, order, scroll bar, close-button corner or hidden, hover animation, dock-over-menu and the global menu shortcut |
 | **Profile** | Portable profile export and import with preview |
 | **About** | Application version, website and issue links, license, authors and the **Made with love** dedication |
 

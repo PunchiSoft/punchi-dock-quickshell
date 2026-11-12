@@ -89,7 +89,7 @@ QtObject {
             menuHoverAnimation = defaultProfile.menuHoverAnimation
     }
     onMenuCloseButtonPositionChanged: {
-        if (["left", "right"].indexOf(menuCloseButtonPosition) < 0)
+        if (["left", "right", "hidden"].indexOf(menuCloseButtonPosition) < 0)
             menuCloseButtonPosition = defaultProfile.menuCloseButtonPosition
     }
     // Popup presentation for the folder containers. The dock menus share the
@@ -366,7 +366,7 @@ QtObject {
                 menuBackgroundOpacity = data.menuBackgroundOpacity
             if (inRange(data.menuIconScale, PunchiDefaultProfile.limits.menuIconScale, false))
                 menuIconScale = data.menuIconScale
-            if (["left", "right"].indexOf(data.menuCloseButtonPosition) >= 0)
+            if (["left", "right", "hidden"].indexOf(data.menuCloseButtonPosition) >= 0)
                 menuCloseButtonPosition = data.menuCloseButtonPosition
             if (typeof data.menuShortcut === "string" && data.menuShortcut.length <= 256
                     && !/[\u0000-\u001f\u007f]/.test(data.menuShortcut))

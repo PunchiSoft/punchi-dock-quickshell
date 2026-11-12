@@ -29,7 +29,8 @@ ColumnLayout {
     ]
     readonly property var closeButtonOptions: [
         {text: qsTr("Right"), value: "right"},
-        {text: qsTr("Left"), value: "left"}
+        {text: qsTr("Left"), value: "left"},
+        {text: qsTr("Hidden"), value: "hidden"}
     ]
     readonly property var applicationOrderOptions: [
         {text: qsTr("Categories"), value: "categories"},
@@ -44,7 +45,10 @@ ColumnLayout {
         return 2
     }
     function closeButtonIndex(): int {
-        return root.settings.menuCloseButtonPosition === "left" ? 1 : 0
+        for (let index = 0; index < root.closeButtonOptions.length; ++index)
+            if (root.closeButtonOptions[index].value === root.settings.menuCloseButtonPosition)
+                return index
+        return 0
     }
     function applicationOrderIndex(): int {
         for (let index = 0; index < root.applicationOrderOptions.length; ++index)

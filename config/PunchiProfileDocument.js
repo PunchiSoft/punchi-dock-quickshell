@@ -109,7 +109,7 @@ function validate(profile) {
             && !inRange(profile.menuIconScale, PunchiDefaultProfile.limits.menuIconScale, false))
         return "invalid-field"
     if (own(profile, "menuCloseButtonPosition")
-            && ["left", "right"].indexOf(profile.menuCloseButtonPosition) < 0)
+            && ["left", "right", "hidden"].indexOf(profile.menuCloseButtonPosition) < 0)
         return "invalid-field"
     if (own(profile, "menuShortcut") && !validShortcut(profile.menuShortcut))
         return "invalid-field"
