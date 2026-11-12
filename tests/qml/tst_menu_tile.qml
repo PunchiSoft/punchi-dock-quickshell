@@ -77,6 +77,18 @@ TestCase {
         compare(highlight.scale, 1.0)
     }
 
+    function test_parentClampBeforeLayoutDoesNotRequestADegenerateRaster() {
+        const tile = createTemporaryObject(fixture, test)
+        verify(tile !== null)
+        // The section list passes 1 while its row height is still zero. The tile
+        // must treat that as "not laid out", not as a one-pixel icon request.
+        tile.iconSize = 1
+        tile.width = 0
+        tile.height = 0
+        tryCompare(tile, "availableWidth", 0)
+        verify(tile.iconPixels > 1)
+    }
+
     function test_iconKeepsItsRequestedSizeBeforeTheCellIsLaidOut() {
         const tile = createTemporaryObject(fixture, test)
         verify(tile !== null)

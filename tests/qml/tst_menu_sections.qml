@@ -144,6 +144,18 @@ TestCase {
         return count
     }
 
+    function test_iconSizeBeforeTheRowIsLaidOutKeepsTheDesiredSize() {
+        const sections = createTemporaryObject(fixture, test)
+        verify(sections !== null)
+        sections.height = 0
+        tryCompare(sections, "cellHeight", 0)
+        verify(sections.iconSize > 1)
+        compare(sections.iconSize, Math.max(1, Math.round(sections.desiredIconSize)))
+        sections.height = 240
+        tryCompare(sections, "cellHeight", 240 / sections.visibleRows)
+        verify(sections.iconSize > 1)
+    }
+
     function test_listingPaintsTheCategorySections() {
         const view = createTemporaryObject(fixture, test)
         verify(view !== null)
