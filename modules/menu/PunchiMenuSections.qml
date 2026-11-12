@@ -29,6 +29,8 @@ FocusScope {
     // starts at the top and a closed one does not keep a stale position.
     property bool active: false
 
+    readonly property bool measured: root.width > 1 && root.height > 1
+        && root.cellWidth > 1 && root.cellHeight > 1
     readonly property int columnCount: root.menuState
         ? Math.max(1, root.menuState.columns) : 4
     readonly property real safeIconScale: {
@@ -188,7 +190,9 @@ FocusScope {
         id: sectionList
         objectName: "menuSectionsView"
         anchors.fill: parent
-        model: root.menuState ? root.menuState.displayRows : []
+        // Do not create delegates against a zero-sized viewport: a Label born
+        // with zero width can keep its empty text texture after the cell grows.
+        model: root.measured && root.menuState ? root.menuState.displayRows : []
         // One row of preload: the budget is the viewport plus one row, not a
         // section-sized cache.
         cacheBuffer: root.cellHeight
