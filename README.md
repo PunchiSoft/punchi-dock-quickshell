@@ -7,10 +7,14 @@
 [English](README.md) · [Español](README.es.md)
 
 > [!WARNING]
-> **Under construction — actively changing.**
+> **Under construction.**
 >
-> Punchi Dock Quickshell is under constant development. Expect breaking changes
-> to behavior, configuration, native APIs and documentation without migration.
+> Punchi Dock Quickshell is still in development, and installing it is not
+> recommended yet. Run `./scripts-user/setup.sh`, confirm **Check runtime and
+> build dependencies** reports nothing missing, then choose
+> **[3] Try it without installing**: it builds this checkout and installs
+> nothing, so you can confirm the dock works on your system first.
+>
 > Fedora 44 with KDE Plasma 6.7.5 and KWin 6.7.5 on Wayland, checked 2026-10-20,
 > is the primary validated environment. Arch Linux and Debian 13.7 KDE have a
 > successful build and initial-start test; prolonged-use and full visual
@@ -20,14 +24,6 @@
 >
 > [Validated environments](docs-public/getting-started/compatibility.md) ·
 > [Known limitations](docs-public/troubleshooting.md#known-limitations)
-
-> [!NOTE]
-> **Verify your environment before installing.** Start the guided setup
-> (`./scripts-user/setup.sh`), run **Check runtime and build dependencies** and
-> then choose **Try it without installing (build, then run from this checkout)**.
-> The trial builds here and installs nothing, so you can confirm the dock works
-> on your system before installing a copy while the project is still under
-> construction.
 
 <p align="center"><img src="assets/demo/dock-magnification.webp" width="880" alt="The Punchi Dock Quickshell dock enlarging the icons around the pointer as it moves along the bar"></p>
 
@@ -63,6 +59,15 @@ pending work under `Unreleased`.
 
 [Attribution](NOTICE.md) · [License](LICENSE) · [Changelog](CHANGELOG.md) ·
 [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md) · [Support](SUPPORT.md)
+
+> [!NOTE]
+> **Made with love, for the community.** A native port of the [Punchi Dock
+> Remastered](https://github.com/PunchiSoft/punchi-dock-remastered) plasmoid,
+> built to go past what a plasmoid can do in KDE Plasma. Some say docks went out
+> of fashion, like the punchi punchi; only Windows forgot about them, and Linux
+> never will.
+>
+> **Linux for everyone!**
 
 ## What it does
 
@@ -195,16 +200,6 @@ rebuilds. It also takes architectural and visual inspiration from
 [Caelestia Shell](https://github.com/caelestia-dots/shell), while implementing
 desktop integration for KDE/KWin. See [NOTICE.md](NOTICE.md) for reused code,
 assets and attribution.
-
-## Made with love
-
-Made with love, for the community. A native port of the [Punchi Dock
-Remastered](https://github.com/PunchiSoft/punchi-dock-remastered) plasmoid,
-built to go past what a plasmoid can do in KDE Plasma. Some say docks went out
-of fashion, like the punchi punchi; only Windows forgot about them, and Linux
-never will.
-
-**Linux for everyone!**
 
 ## License
 
