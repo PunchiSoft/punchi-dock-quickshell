@@ -51,19 +51,16 @@ FocusScope {
         Math.min(Kirigami.Units.iconSizes.enormous, root.cellWidth * 0.42))
         * root.safeIconScale)
     readonly property real labelHeight: root.showLabels
-        ? Math.ceil(Kirigami.Units.gridUnit * 1.4) : 0
-    // Calculate the preferred display-row capacity from icon, label and padding.
+        ? Math.ceil(14 * 1.6) : 0
+    // The card is square: its height follows the cell width, and only whole
+    // squares fit in the viewport.
+    readonly property real cellHeight: root.cellWidth
+    readonly property int visibleRows: Math.max(1,
+        Math.floor(root.height / Math.max(1, root.cellHeight)))
     readonly property real minimumCellHeight: Math.max(Kirigami.Units.iconSizes.medium,
         root.desiredIconSize + root.labelHeight + Kirigami.Units.smallSpacing * 4)
-    readonly property bool hasCategoryHeaders: {
-        const rows = root.menuState ? root.menuState.displayRows : []
-        return rows && rows.some(row => row.kind === "header")
-    }
-    readonly property int visibleRows: Math.max(root.hasCategoryHeaders ? 2 : 1,
-        Math.floor(root.height / root.minimumCellHeight))
-    readonly property real cellHeight: Math.max(0, root.height / root.visibleRows)
-    // Short displays retain a whole row by reducing its contents. Labels are
-    // the first thing withheld; the icon never extends beyond its row.
+    // Short displays retain a whole square by reducing its contents. Labels are
+    // the first thing withheld; the icon never extends beyond its cell.
     readonly property bool showCellLabels: root.showLabels
         && root.cellHeight >= root.minimumCellHeight
     readonly property real effectiveLabelHeight: root.showCellLabels ? root.labelHeight : 0
@@ -77,6 +74,7 @@ FocusScope {
     Component.onCompleted: if (root.menuState) root.menuState.rows = root.visibleRows
     readonly property real sectionHeaderHeight: Math.min(root.cellHeight,
         Kirigami.Units.gridUnit * 1.6)
+    readonly property real sectionGap: Kirigami.Units.largeSpacing
 
     signal launchRequested(int index)
 
@@ -96,9 +94,8 @@ FocusScope {
         }
     }
     function rowHeight(row): real {
-        // Headers occupy a display-row slot too, keeping every row boundary on
-        // the same viewport grid in category and flat modes.
-        return root.cellHeight
+        return row && row.kind === "header"
+            ? root.sectionHeaderHeight + root.sectionGap : root.cellHeight
     }
     function rowTop(rowIndex: int): real {
         const rows = root.menuState ? root.menuState.displayRows : []

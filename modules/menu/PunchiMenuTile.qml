@@ -22,8 +22,14 @@ Item {
     property int iconSize: Kirigami.Units.iconSizes.huge
 
     readonly property bool hovered: pointer.containsMouse && root.pointerEmphasis
+    readonly property font labelFont: Qt.font({
+        family: Kirigami.Theme.defaultFont.family,
+        pixelSize: 14,
+        weight: Kirigami.Theme.defaultFont.weight,
+        italic: Kirigami.Theme.defaultFont.italic
+    })
     readonly property real labelHeight: root.showLabel
-        ? Math.ceil(Kirigami.Theme.defaultFont.pixelSize * 1.6) : 0
+        ? Math.ceil(root.labelFont.pixelSize * 1.6) : 0
     // Zero means the cell is not laid out yet. A NaN or zero must never reach a
     // raster request, and a one-pixel request makes Qt's SVG renderer rasterise a
     // degenerate filter region that it reports as an oversized buffer.
@@ -80,15 +86,13 @@ Item {
                 width: root.contentWidth
                 height: root.labelHeight
                 text: root.title
-                font: Kirigami.Theme.defaultFont
+                font: root.labelFont
                 color: Kirigami.Theme.textColor
                 horizontalAlignment: Text.AlignHCenter
                 hovered: root.hovered && root.pointerEmphasis
                 focused: root.selected && !root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 maximumRestingWidth: root.contentWidth
-                // The menu paints many labels at once; skip the per-cell effect.
-                shadowEnabled: false
             }
         }
     }

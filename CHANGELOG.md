@@ -13,6 +13,15 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 - Scroll overflowing fullscreen-menu labels on pointer or keyboard selection,
   matching the popup entries.
+- Close the fullscreen menu with Escape from the search field or a selected
+  tile.
+
+### Changed
+
+- Draw fullscreen-menu cards as squares: the cell height follows the cell width,
+  so the viewport holds only whole cards and category headers stay compact.
+- Set fullscreen-menu labels to 14 px with the same 0.25 theme-aware text shadow
+  as the popup entries.
 
 ### Fixed
 

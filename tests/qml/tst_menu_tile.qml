@@ -95,8 +95,8 @@ TestCase {
         compare(marquee.revealFullText, false)
         const resting = findChild(tile, "folderMarqueeRestingText")
         verify(resting !== null)
-        // The menu disables the per-cell text shadow.
-        compare(resting.layer.enabled, false)
+        // The menu uses the popup's 0.25 text shadow.
+        compare(resting.shadowEnabled, true)
         tile.pointerEmphasis = false
         tile.selected = true
         tryCompare(marquee, "revealFullText", true)
