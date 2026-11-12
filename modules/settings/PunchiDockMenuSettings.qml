@@ -209,6 +209,17 @@ ColumnLayout {
             }
             PunchiSettingsRow {
                 Layout.fillWidth: true
+                text: qsTr("Show menu button")
+                showSeparator: true
+                Switch {
+                    objectName: "menuShowDockButton"
+                    Accessible.name: qsTr("Show menu button")
+                    checked: root.settings.menuShowDockButton
+                    onToggled: root.settings.menuShowDockButton = checked
+                }
+            }
+            PunchiSettingsRow {
+                Layout.fillWidth: true
                 text: qsTr("Dock over the menu")
                 showSeparator: true
                 Switch {

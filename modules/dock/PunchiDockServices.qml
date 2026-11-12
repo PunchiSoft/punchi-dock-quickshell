@@ -52,10 +52,10 @@ Scope {
     }
     Native.DockApplicationsModel {
         id: dockItems
-        // The menu leads the dock. Its title is the only state it needs, and the
-        // dock window turns a click on it into the open intent.
-        leadingTitle: qsTr("Menu")
-        leadingIcon: "start-here-kde"
+        // The menu leads the dock by default. The leader reports no title when
+        // the user removes it from the dock; the setting restores it.
+        leadingTitle: root.settings.menuShowDockButton ? qsTr("Menu") : ""
+        leadingIcon: root.settings.menuShowDockButton ? "start-here-kde" : ""
         pinned: fixtureModel
         catalog: itemCatalog
         recent: recentApplications.selection

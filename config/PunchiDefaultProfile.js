@@ -93,6 +93,9 @@ const profile = {
     menuShowScrollBar: false,
     menuShowLabels: true,
     menuShowDock: true,
+    // The leading PunchiMenu button is part of the dock by default. The dock
+    // context menu can remove it; this setting restores it.
+    menuShowDockButton: true,
     menuIconScale: 1.0,
     menuCloseButtonPosition: "right",
     // Empty means no global shortcut is registered. The user opts in from
