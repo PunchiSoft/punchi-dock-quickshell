@@ -93,9 +93,15 @@ Item {
                         && root.distributionLogo.length > 0 && valid
                     Accessible.ignored: true
                 }
-                Kirigami.Heading {
-                    level: 2
+                PunchiPopupShadowLabel {
+                    objectName: "menuDistributionTitle"
                     text: root.showDistributionName ? root.distributionName : ""
+                    font.family: Kirigami.Theme.defaultFont.family
+                    // Kirigami.Heading level 2 is 1.20x the default point size.
+                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.2
+                    font.weight: Font.Normal
+                    color: Kirigami.Theme.textColor
+                    Accessible.role: Accessible.Heading
                     Accessible.name: root.distributionName
                 }
             }

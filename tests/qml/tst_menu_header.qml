@@ -35,6 +35,15 @@ TestCase {
         fuzzyCompare(button.y, 0, 0.5)
     }
 
+    function test_distributionTitleUsesTheSharedShadow() {
+        const header = createTemporaryObject(fixture, test)
+        verify(header !== null)
+        const title = findChild(header, "menuDistributionTitle")
+        verify(title !== null)
+        compare(title.text, "Test")
+        compare(title.shadowAmount, 0.25)
+    }
+
     function test_searchStaysCentredWhileTheCornerHoldsTheCloseButton() {
         const header = createTemporaryObject(fixture, test)
         verify(header !== null)
