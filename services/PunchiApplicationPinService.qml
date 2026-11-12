@@ -53,4 +53,30 @@ QtObject {
         cancel()
         return true
     }
+    // Generic pin/unpin used by the fullscreen menu context menu. The Add flow
+    // above keeps its own catalog-backed canAdd so an unavailable entry never
+    // reaches the profile.
+    function isPinned(appId: string): bool {
+        return !!settings && typeof appId === "string" && appId.length > 0
+            && settings.pinnedIds.indexOf(appId) >= 0
+    }
+    function canPinApp(appId: string): bool {
+        return !!settings && typeof appId === "string" && appId.length > 0
+            && appId.indexOf("item:") !== 0 && PunchiDockItemIds.valid(appId)
+            && !isPinned(appId) && settings.pinnedIds.length < PunchiDockItemIds.maximumPins
+    }
+    function pinApp(appId: string): bool {
+        if (!canPinApp(appId)) return false
+        const pins = settings.pinnedIds.slice()
+        const trashIndex = pins.indexOf("item:trash")
+        if (trashIndex === pins.length - 1) pins.splice(trashIndex, 0, appId)
+        else pins.push(appId)
+        settings.pinnedIds = pins
+        return true
+    }
+    function unpinApp(appId: string): bool {
+        if (!isPinned(appId)) return false
+        settings.pinnedIds = settings.pinnedIds.filter(id => id !== appId)
+        return true
+    }
 }
