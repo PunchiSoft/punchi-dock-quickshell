@@ -168,7 +168,8 @@ Wayland client development headers/library (`wayland-devel` on Fedora), Qt's
 public native Wayland interface and the installed KDE taskmanager QML module.
 No direct LibTaskManager C++ development target or private Qt API is introduced.
 The native launch module additionally requires a C++17 compiler, Qt 6 Quick/QML
-development packages, and KF6 KIO, Service, and WindowSystem development packages.
+development packages, and KF6 KIO, Service, WindowSystem and GlobalAccel
+development packages. GlobalAccel backs the configurable menu shortcut.
 The context menu and recent applications also require Plasma Activities Stats and
 Plasma Activities development packages (`plasma-activities-stats-devel` and
 `plasma-activities-devel` on the observed Fedora system, version 6.7.5).

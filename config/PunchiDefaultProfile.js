@@ -95,6 +95,9 @@ const profile = {
     menuShowDock: true,
     menuIconScale: 1.0,
     menuCloseButtonPosition: "right",
+    // Empty means no global shortcut is registered. The user opts in from
+    // Settings -> Menu; the dock button remains available either way.
+    menuShortcut: "",
     // The original menu offered four hover behaviours; the pointer
     // animation is the same on every cell so the surface stays calm.
     menuHoverAnimation: "pulse",

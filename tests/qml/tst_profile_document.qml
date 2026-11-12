@@ -92,6 +92,17 @@ TestCase {
             recentApplicationsPresentation: "window"})).reason, "invalid-field")
         compare(PunchiProfileDocument.parse(JSON.stringify({version: 13,
             recentApplicationsContainerLayout: "carousel"})).reason, "invalid-field")
+        compare(PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuShortcut: 5})).reason, "invalid-field")
+        compare(PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuShortcut: "Ctrl+\nM"})).reason, "invalid-field")
+    }
+
+    function test_accepts_menuShortcut() {
+        const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuShortcut: "Ctrl+Alt+M"}))
+        verify(parsed.ok)
+        compare(parsed.profile.menuShortcut, "Ctrl+Alt+M")
     }
 
     function test_accepts_recentApplicationPresentation() {

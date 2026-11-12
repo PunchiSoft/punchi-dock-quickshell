@@ -76,6 +76,26 @@ function allows(screen, connected, mode, keys, primaryName) {
         .some(candidate => screenKey(candidate) === key)
 }
 
+// Screen a global menu shortcut should open on. The pointer screen wins only
+// when the screen policy allows it; otherwise the last menu screen, the stored
+// selection, the primary and the first active screen are tried in order. An
+// empty result means there is no surface to open.
+function preferredScreenKey(connected, mode, keys, primaryName, activeName, lastKey) {
+    const allowed = resolveScreens(connected, mode, keys, primaryName)
+    if (allowed.length === 0) return ""
+    const allowedKey = key => key.length > 0
+        && allowed.some(screen => screenKey(screen) === key)
+    if (allowed.length === 1) return screenKey(allowed[0])
+    if (allowedKey(String(activeName || ""))) return String(activeName)
+    if (allowedKey(String(lastKey || ""))) return String(lastKey)
+    if (mode === "selected") {
+        for (const key of normalizeSelection(keys))
+            if (allowedKey(key)) return key
+    }
+    if (allowedKey(String(primaryName || ""))) return String(primaryName)
+    return screenKey(allowed[0])
+}
+
 function verticalOverlap(first, second) {
     return first.y < second.y + second.height && second.y < first.y + first.height
 }

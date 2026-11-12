@@ -37,6 +37,17 @@ ShellRoot {
         connectedScreens: Quickshell.screens
         primaryScreenName: screenInfo.primaryName
     }
+    // The dock button and the global shortcut share the same menu owner. The
+    // shortcut resolves the pointer screen against this policy and falls back
+    // to the last used, selected or primary screen.
+    PunchiMenuShortcutService {
+        id: menuShortcut
+        settings: shellSettings
+        settingsReady: settingsStore.ready
+        menuController: menuController
+        screenPolicy: screenPolicy
+        screenInfo: screenInfo
+    }
     PunchiVirtualDesktopPolicy {
         id: desktopPolicy
         settings: shellSettings
@@ -81,7 +92,7 @@ ShellRoot {
         primaryScreenName: screenPolicy.primaryScreenName
         onSettingsRequested: settingsWindow.open()
     }
-    PunchiSettingsStore { settings: shellSettings }
+    PunchiSettingsStore { id: settingsStore; settings: shellSettings }
     PunchiAutostartService { id: autostart }
     PunchiLicenseDocument { id: licenseDocument }
     PunchiSettingsWindow {

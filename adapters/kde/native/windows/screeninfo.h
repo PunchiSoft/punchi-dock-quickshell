@@ -15,6 +15,11 @@ class ScreenInfo : public QObject
 public:
     explicit ScreenInfo(QObject *parent = nullptr);
     QString primaryName() const { return m_primaryName; }
+
+    // KWin exposes the output under the cursor as org.kde.KWin.activeOutputName.
+    // Quickshell has no portable global cursor API, so the shortcut asks KWin
+    // once per activation and treats an empty reply as "unknown".
+    Q_INVOKABLE QString activeName() const;
 Q_SIGNALS:
     void primaryChanged();
 private:

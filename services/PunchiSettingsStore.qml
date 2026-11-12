@@ -99,6 +99,7 @@ Scope {
         function onMenuShowDockChanged() { root.save() }
         function onMenuIconScaleChanged() { root.save() }
         function onMenuCloseButtonPositionChanged() { root.save() }
+        function onMenuShortcutChanged() { root.save() }
         function onMenuHoverAnimationChanged() { root.save() }
         function onProfileApplied() { root.save() }
     }

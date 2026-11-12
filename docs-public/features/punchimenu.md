@@ -29,7 +29,8 @@ setting switches the three.
 
 ## Scrolling and keyboard
 
-- Four to seven columns follow the screen width, and the listing scrolls as one
+- Seven columns and five rows follow the macOS reference; a narrow screen drops
+  columns before the cells become unreadable, and the listing scrolls as one
   surface instead of turning pages.
 - The wheel and a touchpad follow the KDE scroll amount and smooth-scroll
   preference, because the gesture goes through Kirigami's own handler.
@@ -43,6 +44,26 @@ setting switches the three.
   while the listing overflows.
 - Opening always starts at the top. A pointer that enters a cell makes it current,
   and the next key press hands the single emphasis band back to the keyboard.
+
+## Global shortcut
+
+**Settings → Menu → Menu shortcut** assigns one global shortcut. It starts empty,
+so the shell never takes a key combination until the user chooses one. The
+assignment is registered through KGlobalAccel and also appears in the desktop's
+own shortcut settings. KDE names the key **Meta**; the helper line in Settings
+notes that most keyboards label it Super or Windows.
+
+The shortcut closes the menu when it is open. Otherwise it opens on:
+
+1. the only screen allowed by the screen policy;
+2. the screen under the pointer, when that screen is allowed;
+3. the last screen where the menu was opened;
+4. the first selected screen, then the primary screen, then the first active
+   screen.
+
+The pointer screen never wins when it has no dock. A disconnected or forbidden
+screen is skipped, and an unavailable compositor query falls back to the same
+order. The dock's **Menu** button keeps opening on its own screen.
 
 ## Presentation
 
@@ -67,6 +88,6 @@ open menu without a restart.
 
 ## Compared with the parent project
 
-Favourites, named folders, hiding applications, drag and drop inside the menu and a
-configurable global shortcut are not implemented. See
+Favourites, named folders, hiding applications and drag and drop inside the menu
+are not implemented. See
 [Features](README.md#not-implemented-yet).

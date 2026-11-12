@@ -81,8 +81,9 @@ pending work under `Unreleased`.
   browsing and an optional recent-applications container driven by KDE history.
   [Read more](docs-public/features/containers.md)
 - **PunchiMenu:** a fullscreen application menu per screen with search,
-  alphabetical/manual/category order, continuous scrolling, a theme-washed
-  backdrop and an optional dock that stays over it.
+  alphabetical/manual/category order, continuous scrolling, a configurable
+  global shortcut, a theme-washed backdrop and an optional dock that stays over
+  it.
   [Read more](docs-public/features/punchimenu.md)
 - **Media and status:** MPRIS transport for the matching player, a native Trash
   item, and a Discover badge counting PackageKit, fwupd and Flatpak updates.

@@ -85,8 +85,9 @@ mantiene el trabajo nuevo pendiente bajo `Unreleased`.
   basado en el historial de KDE.
   [Leer más](docs-public/features/containers.md)
 - **PunchiMenu:** un menú de aplicaciones a pantalla completa por pantalla con
-  búsqueda, orden alfabético/manual/por categorías, desplazamiento continuo, fondo
-  con el tema y un dock opcional que permanece encima.
+  búsqueda, orden alfabético/manual/por categorías, desplazamiento continuo, un
+  atajo global configurable, fondo con el tema y un dock opcional que permanece
+  encima.
   [Leer más](docs-public/features/punchimenu.md)
 - **Multimedia y estado:** transporte MPRIS para el reproductor correspondiente,
   un elemento Papelera nativo y una insignia en Discover que cuenta

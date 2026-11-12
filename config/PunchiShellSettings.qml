@@ -70,6 +70,15 @@ QtObject {
     property bool menuShowDock: defaultProfile.menuShowDock
     property real menuIconScale: defaultProfile.menuIconScale
     property string menuCloseButtonPosition: defaultProfile.menuCloseButtonPosition
+    // A portable QKeySequence string. Empty disables the global shortcut; the
+    // bound leaves room for every modifier combination without accepting
+    // control characters from an imported profile.
+    property string menuShortcut: defaultProfile.menuShortcut
+    onMenuShortcutChanged: {
+        if (typeof menuShortcut !== "string" || menuShortcut.length > 256
+                || /[\u0000-\u001f\u007f]/.test(menuShortcut))
+            menuShortcut = defaultProfile.menuShortcut
+    }
     property string menuHoverAnimation: defaultProfile.menuHoverAnimation
     onMenuApplicationOrderChanged: {
         if (["categories", "alphabetical", "manual"].indexOf(menuApplicationOrder) < 0)
@@ -292,7 +301,7 @@ QtObject {
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
             menuShowDistributionName, menuApplicationOrder, menuShowScrollBar, menuShowLabels,
-            menuShowDock, menuIconScale, menuCloseButtonPosition, menuHoverAnimation}
+            menuShowDock, menuIconScale, menuCloseButtonPosition, menuShortcut, menuHoverAnimation}
     }
     function validPopupIconSize(value, maximum): bool {
         return value === 0 || (Number.isInteger(value) && value >= popupIconSizeMinimum
@@ -359,6 +368,9 @@ QtObject {
                 menuIconScale = data.menuIconScale
             if (["left", "right"].indexOf(data.menuCloseButtonPosition) >= 0)
                 menuCloseButtonPosition = data.menuCloseButtonPosition
+            if (typeof data.menuShortcut === "string" && data.menuShortcut.length <= 256
+                    && !/[\u0000-\u001f\u007f]/.test(data.menuShortcut))
+                menuShortcut = data.menuShortcut
             if (["none", "individual", "pulse", "bounce"].indexOf(data.menuHoverAnimation) >= 0)
                 menuHoverAnimation = data.menuHoverAnimation
             if (["categories", "alphabetical", "manual"].indexOf(data.menuApplicationOrder) >= 0)
