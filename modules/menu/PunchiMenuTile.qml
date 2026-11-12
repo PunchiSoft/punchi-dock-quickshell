@@ -55,8 +55,6 @@ Item {
     }
 
     signal activated()
-    // Scene position of a secondary click, used to place the compact menu.
-    signal contextMenuRequested(point position)
     // The pointer entered this cell; the surface turns it into the current row so
     // exactly one band is painted.
     signal pointerEntered()
@@ -113,15 +111,8 @@ Item {
         objectName: "menuTilePointer"
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
         onEntered: root.pointerEntered()
-        onClicked: function(mouse) {
-            if (mouse.button === Qt.RightButton) {
-                root.contextMenuRequested(root.mapToItem(null, mouse.x, mouse.y))
-                return
-            }
-            root.activated()
-        }
+        onClicked: root.activated()
     }
 }

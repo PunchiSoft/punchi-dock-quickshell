@@ -37,19 +37,6 @@ TestCase {
         mouseMove(test, 390, 290)
     }
 
-    function test_secondaryClickRequestsContextMenuWithoutActivating() {
-        const tile = createTemporaryObject(fixture, test)
-        verify(tile !== null)
-        let requested = null
-        let activated = 0
-        tile.contextMenuRequested.connect(function(position) { requested = position })
-        tile.activated.connect(function() { activated++ })
-        mouseClick(tile, 40, 45, Qt.RightButton)
-        verify(requested !== null)
-        verify(requested.x > 0 || requested.y > 0)
-        compare(activated, 0)
-    }
-
     function test_oneBandOnly() {
         const tile = createTemporaryObject(fixture, test)
         verify(tile !== null)
