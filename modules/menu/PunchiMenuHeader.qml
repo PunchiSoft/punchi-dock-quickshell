@@ -26,6 +26,7 @@ Item {
         Math.min(Kirigami.Units.gridUnit * 26, width * 0.18)))
 
     readonly property bool closeOnLeft: root.closeButtonPosition === "left"
+    readonly property bool closeButtonVisible: root.closeButtonPosition !== "hidden"
     readonly property int controlSize: Kirigami.Units.gridUnit * 2
 
     signal searchEdited(string text)
@@ -49,6 +50,7 @@ Item {
     // symmetrical.
     PunchiDecorationButton {
         objectName: "menuCloseButton"
+        visible: root.closeButtonVisible
         anchors.top: parent.top
         anchors.left: root.closeOnLeft ? parent.left : undefined
         anchors.right: root.closeOnLeft ? undefined : parent.right

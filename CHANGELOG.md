@@ -18,6 +18,8 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 - Add a configurable global shortcut for the fullscreen menu. It is empty by
   default and opens on the pointer screen when allowed, then on the last used,
   selected or primary screen.
+- Allow hiding the fullscreen-menu close button. Right stays the default, and
+  Escape, the backdrop and the dock button still close the menu.
 
 ### Changed
 

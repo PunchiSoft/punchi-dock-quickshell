@@ -44,6 +44,20 @@ TestCase {
         compare(title.shadowAmount, 0.25)
     }
 
+    function test_hiddenCloseButtonKeepsEscapeWorking() {
+        const header = createTemporaryObject(fixture, test)
+        verify(header !== null)
+        header.closeButtonPosition = "hidden"
+        const button = findChild(header, "menuCloseButton")
+        verify(button !== null)
+        compare(button.visible, false)
+        let closed = 0
+        header.closeRequested.connect(function() { closed++ })
+        header.forceActiveFocus()
+        keyClick(Qt.Key_Escape)
+        compare(closed, 1)
+    }
+
     function test_searchStaysCentredWhileTheCornerHoldsTheCloseButton() {
         const header = createTemporaryObject(fixture, test)
         verify(header !== null)

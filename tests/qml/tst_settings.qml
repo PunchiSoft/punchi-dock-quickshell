@@ -142,6 +142,20 @@ TestCase {
         restored.menuShortcut = "x".repeat(257)
         compare(restored.menuShortcut, "")
     }
+    function test_closeButtonHiddenPersistence() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        compare(settings.menuCloseButtonPosition, "right")
+        verify(settings.restore({version: 16, menuCloseButtonPosition: "hidden"}))
+        compare(settings.menuCloseButtonPosition, "hidden")
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.menuCloseButtonPosition, "hidden")
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore(data))
+        compare(restored.menuCloseButtonPosition, "hidden")
+        // An unknown position keeps the previous value.
+        verify(restored.restore({version: 16, menuCloseButtonPosition: "center"}))
+        compare(restored.menuCloseButtonPosition, "hidden")
+    }
     function test_popupAppearancePersistence() {
         const settings = createTemporaryObject(settingsFixture, test)
         compare(settings.popupScale, 1)

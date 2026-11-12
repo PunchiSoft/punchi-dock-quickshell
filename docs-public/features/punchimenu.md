@@ -70,7 +70,9 @@ order. The dock's **Menu** button keeps opening on its own screen.
 - A theme-washed backdrop with KWin blur behind it.
 - The distribution name, with the same 0.25 theme-aware text shadow as the
   application labels.
-- A close control drawn with the buttons of the user's window decoration.
+- A close control drawn with the buttons of the user's window decoration, pinned
+  to the right or left corner, or hidden. With **Hidden**, Escape, a click on the
+  backdrop and the dock button still close the menu.
 
 ## Dock over the menu
 
@@ -83,8 +85,9 @@ click launches and returns to the desktop.
 ## Settings
 
 The **Menu** category holds the background blur and opacity, icon size,
-application labels, distribution name, application order, scroll bar, close-button
-corner, hover animation and the dock-over-menu switch. Every one applies to the
+application labels, distribution name, application order, scroll bar,
+close-button corner (Right, Left or Hidden), hover animation and the
+dock-over-menu switch. Every one applies to the
 open menu without a restart.
 
 ## Compared with the parent project

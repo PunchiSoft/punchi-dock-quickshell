@@ -105,6 +105,15 @@ TestCase {
         compare(parsed.profile.menuShortcut, "Ctrl+Alt+M")
     }
 
+    function test_accepts_hiddenCloseButton() {
+        const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuCloseButtonPosition: "hidden"}))
+        verify(parsed.ok)
+        compare(parsed.profile.menuCloseButtonPosition, "hidden")
+        compare(PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuCloseButtonPosition: "center"})).reason, "invalid-field")
+    }
+
     function test_accepts_recentApplicationPresentation() {
         const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 13,
             recentApplicationsPresentation: "icons", recentApplicationsContainerLayout: "fan"}))
