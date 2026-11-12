@@ -129,6 +129,22 @@ TestCase {
         }
     }
 
+    // The real menu surface is created before the compositor has measured it.
+    Component {
+        id: unmeasuredFixture
+        PunchiMenuSections {
+            width: 1920
+            height: 0
+            active: true
+            motionEnabled: false
+            showLabels: true
+            menuState: PunchiMenuState {
+                applications: test.catalogue
+                columns: 7
+            }
+        }
+    }
+
     function init(): void {
         failOnWarning(/.*/)
     }
@@ -154,6 +170,24 @@ TestCase {
         sections.height = 240
         tryCompare(sections, "cellHeight", 240 / sections.visibleRows)
         verify(sections.iconSize > 1)
+    }
+
+    function test_unmeasuredViewportCreatesNoZeroSizedCells() {
+        const view = createTemporaryObject(unmeasuredFixture, test)
+        verify(view !== null)
+        const list = sectionsView(view)
+        verify(list !== null)
+        wait(50)
+        // A zero-sized viewport must not create delegates whose labels are
+        // born with no text texture.
+        compare(list.count, 0)
+        compare(findChild(view, "menuTile"), null)
+        view.height = 880
+        tryVerify(function() { return list.count > 0 }, 1500)
+        const tile = findChild(view, "menuTile")
+        verify(tile !== null)
+        verify(tile.height > 1)
+        compare(tile.showLabel, true)
     }
 
     function test_listingPaintsTheCategorySections() {
