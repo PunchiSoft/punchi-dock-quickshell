@@ -2,6 +2,8 @@
 
 Punchi Dock Quickshell currently focuses on a configurable dock for KDE Plasma.
 Version 0.1.0 is the first development snapshot, not a completed desktop shell.
+Implemented behavior is documented in the [feature reference](features/README.md);
+this page tracks scope and status, not behavior details.
 
 | Stage | Scope | Status |
 |---|---|---|

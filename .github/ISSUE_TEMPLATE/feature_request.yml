@@ -8,7 +8,8 @@ body:
     attributes:
       value: |
         This project is alpha software for KDE Plasma/KWin on Wayland. Read the
-        README and its Known limitations before proposing a surface. Report
+        README and the [known limitations](https://github.com/PunchiSoft/punchi-dock-quickshell/blob/main/docs-public/troubleshooting.md)
+        before proposing a surface. Report
         security problems through SECURITY.md instead.
   - type: textarea
     id: problem
@@ -64,7 +65,7 @@ body:
     attributes:
       label: Checks
       options:
-        - label: I read the README and its Known limitations.
+        - label: I read the README and the known limitations.
           required: true
         - label: I searched existing issues and pull requests.
           required: true

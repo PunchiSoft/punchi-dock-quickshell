@@ -213,13 +213,19 @@ instance and must be left untouched.
 
 Public `README.md`, `README.es.md`, `CHANGELOG.md`, `CONTRIBUTING.md`,
 `SUPPORT.md`, `CODE_OF_CONDUCT.md`, `NOTICE.md`, skills, tests and the published
-documentation under `docs-public/` are tracked. `docs-public/` holds the
-architecture, development, roadmap and versioning documents. `docs-private/` is
+documentation under `docs-public/` are tracked. `docs-public/` holds the published
+documentation: `getting-started/`, `features/`, `configuration/` and
+`architecture/` as sections with an index `README.md`, plus `development.md`,
+`troubleshooting.md`, `roadmap.md` and `versioning.md`. `README.md` is the landing
+page; a behavior change updates the page that owns it, not only the summary.
+`docs-private/` is
 the local development record and is not published with the repository; it is also
 its own single record root, with the surface reference under
 `docs-private/reference/`, dated stage records under `docs-private/stages/`,
 dated records under `docs-private/records/` and evidence under
-`docs-private/records/assets/`. SDK trees, build output, credentials and
+`docs-private/records/assets/`. A published page never links into
+`docs-private/`, and `project_foundation` checks the section indexes and that rule.
+SDK trees, build output, credentials and
 local diagnostics stay ignored. New record directories have an index and a
 template when they host a repeatable workflow. Record durable architecture changes
 in `CHANGELOG.md` and the local `docs-private/` record; no private evidence goes in

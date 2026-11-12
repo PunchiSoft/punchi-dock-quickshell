@@ -10,6 +10,9 @@ DESCRIPTION_LIMIT = 300
 SKILL_LINE_LIMIT = 500
 CATALOG_ROW = re.compile(r'^\| \[([a-z0-9-]+)\]\(([a-z0-9-]+)/SKILL\.md\)', re.M)
 REFERENCE_TARGET = re.compile(r'(\.\./)?references/[\w./-]+\.md')
+PUBLISHED_FILES = ('README.md', 'README.es.md', 'AGENTS.md', 'CONTRIBUTING.md',
+                   'SUPPORT.md', 'SECURITY.md', 'NOTICE.md', 'CODE_OF_CONDUCT.md',
+                   'CHANGELOG.md')
 
 
 def check_skill(skill, catalog):
@@ -36,12 +39,38 @@ def check_skill(skill, catalog):
     assert f'({directory}/SKILL.md)' in catalog, f'Missing catalog entry: {directory}'
 
 
+def check_docs_public(root):
+    """Every published section has an index, every page is reachable, and no
+    published page links into the ignored private record."""
+    docs = root / 'docs-public'
+    index = docs / 'README.md'
+    index_text = index.read_text()
+    published = [root / name for name in PUBLISHED_FILES]
+    for document in [*published, *sorted(docs.rglob('*.md'))]:
+        for match in re.findall(r'\]\(([^)]+)\)|src="([^"]+)"', document.read_text()):
+            target = next(value for value in match if value)
+            assert 'docs-private' not in target, \
+                f'Published documentation links into the private record: {document}: {target}'
+    for section in sorted(path for path in docs.iterdir() if path.is_dir()):
+        assert (section / 'README.md').is_file(), f'Missing documentation index: {section}'
+        assert f'({section.name}/README.md)' in index_text, \
+            f'Documentation section not linked from the index: {section.name}'
+    for document in sorted(docs.rglob('*.md')):
+        if document == index or document.name == 'README.md':
+            continue
+        section_index = document.parent / 'README.md'
+        assert section_index.is_file(), f'Missing index for documentation page: {document}'
+        assert f'({document.name})' in section_index.read_text(), \
+            f'Documentation page not linked from its index: {document}'
+
+
 def main():
     root = Path(__file__).resolve().parents[1]
     skills = sorted((root / '.agents/skills').glob('*/SKILL.md'))
     catalog = (root / '.agents/skills/README.md').read_text()
     for skill in skills:
         check_skill(skill, catalog)
+    check_docs_public(root)
     # The outbound reuse statement lives in the catalog, not in every skill.
     assert re.search(r'^## Reuse and attribution$', catalog, re.M), \
         'Missing "Reuse and attribution" section in .agents/skills/README.md'
@@ -50,7 +79,7 @@ def main():
     assert catalogued == [skill.parent.name for skill in skills], \
         'Skill catalog does not match the skill directories'
     links = 0
-    for path in [root / 'README.md', root / 'AGENTS.md', root / 'CONTRIBUTING.md',
+    for path in [*(root / name for name in PUBLISHED_FILES),
                  *sorted((root / 'docs-public').rglob('*.md')),
                  *sorted((root / 'docs-private').rglob('*.md')),
                  *sorted((root / '.agents').rglob('*.md'))]:
