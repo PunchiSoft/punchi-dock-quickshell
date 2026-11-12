@@ -93,6 +93,12 @@ pending work under `Unreleased`.
 
 ## Screenshots
 
+<p align="center"><img src="assets/demo/menu-overview.webp" width="880" alt="The fullscreen application menu opening over the desktop and scrolling through rows of application icons"></p>
+
+<p align="center"><em>The fullscreen menu opening from the dock and scrolling
+through the installed applications. Six seconds from a longer recording; the
+application set is the maintainer's.</em></p>
+
 <p align="center"><img src="assets/screenshots/settings-general.png" width="240" alt="General settings with size, magnification, position and recent applications"> <img src="assets/screenshots/recent-applications-grid.png" width="260" alt="Recent applications container shown as a grid of application icons"> <img src="assets/screenshots/fan-view.png" width="110" alt="Home container in the extra Fan popup mode"> <img src="assets/screenshots/context-system-settings.png" width="180" alt="Integrated native KDE menu on the System Settings dock item, like Dolphin's right-click menu"></p>
 
 <p align="center"><em>The captures show the dock, its settings and its popups on
@@ -100,7 +106,7 @@ Fedora 44 with Plasma 6.8.2, KWin 6.8.2 and Quickshell 0.2.1 on Wayland. The
 wallpaper, cursor and desktop theme are the maintainer's; the dock follows the
 active Plasma theme.</em></p>
 
-[More captures and capture notes](assets/screenshots/README.md).
+[More captures and capture notes](assets/screenshots/README.md) · [Demo recordings](assets/demo/README.md).
 
 ## Documentation
 

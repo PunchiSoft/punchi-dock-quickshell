@@ -4,6 +4,10 @@ The fullscreen application menu is its own layer surface per screen. The first
 dock slot, labelled **Menu**, opens it. The menu takes the keyboard only while it
 is open, so the desktop is never intercepted while it is closed.
 
+A six-second recording of the menu opening from the dock and scrolling through the
+installed applications is in
+[the demo assets](../../assets/demo/README.md#menu-overviewwebp).
+
 ## Search
 
 The query matches the desktop entry's name, the item's own title and its comment,
