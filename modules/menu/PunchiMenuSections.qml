@@ -45,28 +45,34 @@ FocusScope {
             * (root.columnCount - 1)) / root.columnCount)
     // The reference draws the glyph at roughly 42% of the column pitch, so the
     // grid keeps its air on a large screen and still fits on a small one.
-    readonly property int iconSize: Math.round(Math.max(Kirigami.Units.iconSizes.medium,
+    readonly property real desiredIconSize: Math.round(Math.max(Kirigami.Units.iconSizes.medium,
         Math.min(Kirigami.Units.iconSizes.enormous, root.cellWidth * 0.42))
         * root.safeIconScale)
     readonly property real labelHeight: root.showLabels
         ? Math.ceil(Kirigami.Units.gridUnit * 1.4) : 0
-    // The cell must hold the icon, its label and the padding. The grid then
-    // shares the available height between exactly the rows that fit, so a
-    // resting menu never cuts the last row and the count follows the screen.
+    // Calculate the preferred display-row capacity from icon, label and padding.
     readonly property real minimumCellHeight: Math.max(Kirigami.Units.iconSizes.medium,
-        root.iconSize + root.labelHeight + Kirigami.Units.smallSpacing * 4)
-    readonly property int visibleRows: Math.max(1,
+        root.desiredIconSize + root.labelHeight + Kirigami.Units.smallSpacing * 4)
+    readonly property bool hasCategoryHeaders: {
+        const rows = root.menuState ? root.menuState.displayRows : []
+        return rows && rows.some(row => row.kind === "header")
+    }
+    readonly property int visibleRows: Math.max(root.hasCategoryHeaders ? 2 : 1,
         Math.floor(root.height / root.minimumCellHeight))
-    readonly property real cellHeight: Math.max(root.minimumCellHeight,
-        root.height / root.visibleRows)
+    readonly property real cellHeight: Math.max(0, root.height / root.visibleRows)
+    // Short displays retain a whole row by reducing its contents. Labels are
+    // the first thing withheld; the icon never extends beyond its row.
+    readonly property bool showCellLabels: root.showLabels
+        && root.cellHeight >= root.minimumCellHeight
+    readonly property real effectiveLabelHeight: root.showCellLabels ? root.labelHeight : 0
+    readonly property int iconSize: Math.max(1, Math.min(root.desiredIconSize,
+        root.cellHeight - root.effectiveLabelHeight - Kirigami.Units.smallSpacing * 4))
     // The state owns the keyboard page step; keep it on the same whole rows
     // the viewport shows instead of a separate estimate.
     onVisibleRowsChanged: if (root.menuState) root.menuState.rows = root.visibleRows
     Component.onCompleted: if (root.menuState) root.menuState.rows = root.visibleRows
-    readonly property real sectionHeaderHeight: Kirigami.Units.gridUnit * 1.6
-    // The gap above a heading separates two sections without adding every row to
-    // a spacing property that would also separate rows inside one section.
-    readonly property real sectionGap: Kirigami.Units.largeSpacing
+    readonly property real sectionHeaderHeight: Math.min(root.cellHeight,
+        Kirigami.Units.gridUnit * 1.6)
 
     signal launchRequested(int index)
 
@@ -86,8 +92,9 @@ FocusScope {
         }
     }
     function rowHeight(row): real {
-        return row && row.kind === "header"
-            ? root.sectionHeaderHeight + root.sectionGap : root.cellHeight
+        // Headers occupy a display-row slot too, keeping every row boundary on
+        // the same viewport grid in category and flat modes.
+        return root.cellHeight
     }
     function rowTop(rowIndex: int): real {
         const rows = root.menuState ? root.menuState.displayRows : []
@@ -140,6 +147,11 @@ FocusScope {
         }
         const target = Math.min(maximum, Math.max(0, best))
         if (Math.abs(target - current) < 0.5) return
+        if (!root.motionEnabled) {
+            snapAnimation.stop()
+            sectionList.contentY = target
+            return
+        }
         snapAnimation.to = target
         snapAnimation.start()
     }
@@ -199,7 +211,9 @@ FocusScope {
 
         footer: Item {
             width: sectionList.width
-            height: Kirigami.Units.gridUnit * 1.5
+            // Keep the final legal scroll limit closer to the preceding row
+            // boundary than the next one, so clamping cannot leave a partial row.
+            height: Math.min(Kirigami.Units.gridUnit * 1.5, root.cellHeight * 0.4)
         }
 
         delegate: Item {
@@ -261,7 +275,7 @@ FocusScope {
                         title: String(modelData.application.name
                             || modelData.application.title || "")
                         iconName: String(modelData.application.iconName || "")
-                        showLabel: root.showLabels
+                        showLabel: root.showCellLabels
                         motionEnabled: root.motionEnabled
                         hoverAnimation: root.hoverAnimation
                         iconSize: root.iconSize
@@ -311,6 +325,14 @@ FocusScope {
         // revealing itself during the transition.
         root.pointerEmphasis = true
         sectionList.positionViewAtBeginning()
+    }
+
+    onMotionEnabledChanged: {
+        if (!root.motionEnabled && snapAnimation.running) {
+            const target = snapAnimation.to
+            snapAnimation.stop()
+            sectionList.contentY = target
+        }
     }
 
     Connections {

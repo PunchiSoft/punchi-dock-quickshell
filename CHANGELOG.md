@@ -58,6 +58,8 @@ release. Pending work accumulates under `Unreleased`.
 ### Fixed
 
 - Open the fullscreen menu at the top instead of at the last hovered cell.
+- Keep full application and category rows visible across display sizes, and
+  apply row snapping immediately when reduced motion is enabled.
 - Paint the keyboard selection in the fullscreen menu and let a pointer that
   enters a cell continue keyboard navigation from there.
 - Restore the container context menu, and stop the dock background menu from
