@@ -13,15 +13,18 @@ def main():
     applications.mkdir(parents=True)
     entries = [
         ('punchi-catalog-browser', 'Owned Catalog Browser', 'punchi-catalog-browser',
-         'x-scheme-handler/https;x-scheme-handler/http;text/html;'),
-        ('punchi-catalog-editor', 'Owned Catalog Editor', 'accessories-text-editor', 'text/plain;'),
+         'x-scheme-handler/https;x-scheme-handler/http;text/html;', ''),
+        ('punchi-catalog-editor', 'Owned Catalog Editor', 'accessories-text-editor',
+         'text/plain;', 'punchi-catalog-editor'),
     ]
     created = []
     try:
-        for storage_id, name, icon, mime_types in entries:
+        for storage_id, name, icon, mime_types, wm_class in entries:
             path = applications / (storage_id + '.desktop')
+            wm_class_line = f'StartupWMClass={wm_class}\n' if wm_class else ''
             path.write_text('[Desktop Entry]\nType=Application\n'
                             f'Name={name}\nExec=/bin/true %U\nIcon={icon}\n'
+                            f'{wm_class_line}'
                             f'MimeType={mime_types}\nCategories=Network;WebBrowser;\n')
             created.append(path)
         config = Path(os.environ['XDG_CONFIG_HOME'])
