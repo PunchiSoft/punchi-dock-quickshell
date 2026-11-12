@@ -4,9 +4,8 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 No version has been published yet: the repository carries no tag and no release.
-The tree declares `0.1.47` as its baseline; the earlier development snapshots are
-kept in the private development record. Pending work accumulates under
-`Unreleased`.
+The tree declares `0.1.47` as its legacy development baseline, not a published
+release. Pending work accumulates under `Unreleased`.
 
 ## Unreleased
 
@@ -75,6 +74,8 @@ kept in the private development record. Pending work accumulates under
   the new checkout.
 
 ## 0.1.47 — 2026-10-27
+
+_Unpublished development baseline; this was not a released version._
 
 - Add a **Made with love** section to the About page. It states that this is a
   native port of the Punchi Dock Remastered plasmoid, made for the community and

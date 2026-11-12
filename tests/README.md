@@ -5,11 +5,11 @@ with a label, and CI runs only the labels a compositor-free Fedora host can sati
 
 ## Labels
 
-47 entries: 3 `qml`, 29 `unit`, 15 `session`.
+50 entries: 3 `qml`, 32 `unit`, 15 `session`.
 
 | Label | Needs | Entries | Selected by |
 | --- | --- | --- | --- |
-| `unit` | nothing beyond the built artifacts | 15 `*_test.cpp`, 12 Python tests, `project_version` and `emphasis_contract` from `scripts-dev/` | `ctest --preset headless`, CI |
+| `unit` | nothing beyond the built artifacts | 32 registered unit entries; see `PUNCHI_UNIT_TESTS` in `CMakeLists.txt` | `ctest --preset headless`, CI |
 | `qml` | `qmltestrunner`, offscreen | `qml_lint`, `dock_components` over `qml/`, `folder_container` over `folder-container/` | `ctest --preset headless`, CI |
 | `session` | a live Plasma/KWin Wayland session | 15 Python probes over `runtime/` fixtures | a developer, never CI |
 
@@ -57,8 +57,8 @@ their rule is broken:
   them after success, failure, signal and timeout. No test instance stays running.
 - A test never reads or changes the user's real configuration, and never closes a dock
   the developer started by hand.
-- Captures are explicit: `--capture` writes into the private evidence record, and
-  a normal run leaves no artifact.
+- Captures are explicit: `--capture` retains developer previews locally, and a
+  normal run leaves no artifact.
 - Existing behavioral tests are protected. Diagnose production code first; removing,
   disabling or weakening a test needs explicit authorization.
 - Keep one file per behavior area and the name of the behavior, not of the widget.

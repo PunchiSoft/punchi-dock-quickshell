@@ -37,21 +37,21 @@ may change without migration.
 `CHANGELOG.md` is the public record of behavior changes. It uses the
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) layout and the writing
 rules of [Common Changelog](https://common-changelog.org/). The changelog keeps
-the user-facing impact; the engineering detail belongs in the pull request
-description, or in the maintainer's local engineering record.
+the user-facing impact; implementation and validation detail belongs in the
+pull request description.
 
 - Add one entry per behavior a user can notice, under `## Unreleased`.
 - Group entries under `### Added`, `### Changed`, `### Fixed`, `### Removed`,
   `### Deprecated` or `### Security`. Write only the categories that have content.
-- Write in the imperative mood, on one line: `Add ...`, `Fix ...`, `Remove ...`.
-  The entry must make sense without its heading.
+- Write one concise, self-describing list item in the imperative mood: `Add ...`,
+  `Fix ...`, `Remove ...`. Markdown source lines may wrap; do not split an entry
+  into multiple paragraphs.
 - Reference the pull request or issue as a link when one exists.
 - Prefix a breaking change with `**Breaking:**`: configuration schema, QML module
   API and environment variables.
 - Keep class names, test names, file paths, measurements and validation notes out
-  of the entry. The engineering detail belongs in the pull request description or
-  the maintainer's local engineering record; the public file does not link into
-  it because a clone does not receive it.
+  of the entry. Include relevant implementation and validation detail in the pull
+  request description instead.
 - Documentation, tests, CI, skills and repository metadata need no entry.
 - Do not add a version heading for an unreleased change. Only a release moves
   `Unreleased` under a dated heading.
@@ -73,10 +73,7 @@ description, or in the maintainer's local engineering record.
 | `cmake/` | CMake modules and templates | generated files |
 | `.agents/` | [AGENTS.md](AGENTS.md), the skills and their catalog | runtime code |
 | `.github/` | workflows and issue/pull-request templates | credentials |
-| `docs-public/` | published documentation: architecture, development, roadmap and versioning | private evidence, dated records |
-
-The local engineering record and its evidence are ignored by Git and are never
-read by a build.
+| `docs-public/` | published documentation: architecture, development, roadmap and versioning | build output, credentials |
 
 - Every layer directory carries a README that states what belongs to it, and a new
   subdirectory is added to that README's inventory.
@@ -85,8 +82,8 @@ read by a build.
   allowlist entry.
 - Generated output, captures, credentials and build trees never live in a tracked
   directory.
-- The local engineering record and every other ignored path never appears as a
-  link target from a tracked file, because a clone does not receive it.
+- An ignored path never appears as a link target from a tracked file, because a
+  clone does not receive it.
 
 ## Local development
 

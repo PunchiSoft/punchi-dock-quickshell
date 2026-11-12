@@ -124,10 +124,9 @@ and KIO deletion update the model; close cancels listing. File-opening UI tests
 use a recording opener and do not launch user files. The existing KIO launching
 tests cover the shared dispatch pipeline; physical MIME-app activation remains
 a separate check. The optional `--capture` argument to folder_container_test.py
-retains explicitly requested developer previews under the record evidence directory;
+retains explicitly requested developer previews in the local test workspace;
 normal CTest leaves no captures. `scripts-dev/prune-evidence.py` reports evidence no
-record cites that is older than the retention window, and `--apply` deletes it. The
-captures are kept in the private evidence record.
+record cites that is older than the retention window, and `--apply` deletes it.
 
 The folder popup also checks its close control, the shared last Open row, the
 slim scroll indicator and its reserved gutter, the chevron of a browsable
