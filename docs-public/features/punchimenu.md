@@ -65,6 +65,14 @@ The pointer screen never wins when it has no dock. A disconnected or forbidden
 screen is skipped, and an unavailable compositor query falls back to the same
 order. The dock's **Menu** button keeps opening on its own screen.
 
+## Dock icon
+
+The leading **Menu** icon in the dock has a compact context menu. **Open
+PunchiMenu** opens the fullscreen menu on that dock's screen; **Remove from Dock**
+hides the icon. The global shortcut and the IPC commands still open the menu, and
+**Settings → Menu → Show menu button** restores the icon. The context menu uses
+the dock's balloon surface, not a separate menu style.
+
 ## Presentation
 
 - A theme-washed backdrop with KWin blur behind it.
@@ -86,8 +94,8 @@ click launches and returns to the desktop.
 
 The **Menu** category holds the background blur and opacity, icon size,
 application labels, distribution name, application order, scroll bar,
-close-button corner (Right, Left or Hidden), hover animation and the
-dock-over-menu switch. Every one applies to the
+close-button corner (Right, Left or Hidden), hover animation, the dock-over-menu
+switch and the dock menu button. Every one applies to the
 open menu without a restart.
 
 ## Compared with the parent project

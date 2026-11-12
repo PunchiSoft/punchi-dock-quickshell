@@ -366,6 +366,8 @@ PanelWindow {
         onRecentRequested: function(resource) { contextService.openRecent(resource) }
         onForgetRecentRequested: contextService.forgetRecent()
         onNewWindowRequested: contextService.openNewWindow()
+        onOpenMenuRequested: root.menuRequested(root.screen ? root.screen.name : "")
+        onRemoveMenuRequested: root.settings.menuShowDockButton = false
         onPinRequested: contextService.pin()
         onUnpinRequested: contextService.unpin()
         onWindowActionRequested: function(action, virtualDesktop) {

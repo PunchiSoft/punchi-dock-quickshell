@@ -18,6 +18,7 @@ Popup {
     property real capturedBaseY: 0
     property string appId: ""
     readonly property bool dockBackground: appId.length === 0
+    readonly property bool menuLeader: appId === "item:menu"
     property var settings: null
     readonly property var folderContainer: settings ? settings.container(appId) : null
     // The recent-applications container is not a stored folder; it only shares
@@ -66,6 +67,8 @@ Popup {
     signal newWindowRequested()
     signal unpinRequested()
     signal pinRequested()
+    signal openMenuRequested()
+    signal removeMenuRequested()
     signal windowActionRequested(string action, var virtualDesktop)
     parent: hostWindow ? hostWindow.contentItem : null
     popupType: Popup.Item
@@ -143,6 +146,7 @@ Popup {
         virtualDesktops: root.virtualDesktops
         trashItem: root.trashItem
         dockBackground: root.dockBackground
+        menuLeader: root.menuLeader
         folderItem: root.folderContainer !== null
         folderContainer: root.folderContainer
         recentContainer: root.recentContainer
@@ -171,6 +175,8 @@ Popup {
         onRecentRequested: function(resource) { root.recentRequested(resource); root.dismiss() }
         onForgetRecentRequested: { root.forgetRecentRequested(); root.dismiss() }
         onNewWindowRequested: { root.newWindowRequested(); root.dismiss() }
+        onOpenMenuRequested: { root.dismiss(); root.openMenuRequested() }
+        onRemoveMenuRequested: { root.dismiss(); root.removeMenuRequested() }
         onPinRequested: { root.dismiss(); root.pinRequested() }
         onWindowActionRequested: function(action, virtualDesktop) {
             root.dismiss()

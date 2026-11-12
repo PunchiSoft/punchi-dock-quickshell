@@ -62,6 +62,9 @@ Item {
     property var virtualDesktops: []
     property bool trashItem: false
     property bool dockBackground: false
+    // The leading dock item opens the fullscreen menu instead of an
+    // application. It gets a compact Open/Remove menu, not the generic app rows.
+    property bool menuLeader: false
     property bool folderItem: false
     property var folderContainer: null
     // The recent-applications container shares the view section of a folder
@@ -102,6 +105,8 @@ Item {
     signal windowActionRequested(string action, var virtualDesktop)
     signal settingsRequested()
     signal closeRequested()
+    signal openMenuRequested()
+    signal removeMenuRequested()
     signal openTrashRequested()
     signal openFolderRequested()
     signal folderSortRequested(string sortMode)
@@ -121,7 +126,8 @@ Item {
     }, Math.max(labelMetrics.advanceWidth(configureAction.text), dockBackground
         ? Math.max(labelMetrics.advanceWidth(qsTr("Position on Screen")),
             labelMetrics.advanceWidth(qsTr("Minimize Windows Using")), labelMetrics.advanceWidth(qsTr("Automatically Hide Dock")))
-        : 0))
+        : menuLeader ? Math.max(labelMetrics.advanceWidth(openMenuAction.text),
+            labelMetrics.advanceWidth(removeMenuAction.text)) : 0))
     implicitWidth: (verticalTail ? pointerHeight : 0) + Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
@@ -132,6 +138,8 @@ Item {
         canLaunchNewWindow ? newWindowAction.implicitWidth + contentPadding * 2 : 0,
         canPin ? pinAction.implicitWidth + contentPadding * 2 : 0,
         pinned && !trashItem ? unpinAction.implicitWidth + contentPadding * 2 : 0,
+        menuLeader ? Math.max(openMenuAction.implicitWidth,
+            removeMenuAction.implicitWidth) + contentPadding * 2 : 0,
         trashItem ? emptyTrashAction.implicitWidth + contentPadding * 2 : 0)
     FontMetrics { id: labelMetrics; font: configureAction.font }
     implicitHeight: rows.implicitHeight + contentPadding * 2 + (verticalTail ? 0 : pointerHeight)
@@ -141,7 +149,8 @@ Item {
     function focusFirst(reason) {
         if (reason === undefined) reason = Qt.MouseFocusReason
         // Opening with the pointer does not paint a band; the keyboard does.
-        if (root.trashItem) openTrashAction.forceActiveFocus(reason)
+        if (root.menuLeader) openMenuAction.forceActiveFocus(reason)
+        else if (root.trashItem) openTrashAction.forceActiveFocus(reason)
         else if (root.recentContainer && root.recentLayoutFirstAction)
             root.recentLayoutFirstAction.forceActiveFocus(reason)
         else if (root.folderItem && root.folderSortNameAction)
@@ -169,6 +178,28 @@ Item {
         anchors.topMargin: root.contentPadding
         anchors.bottomMargin: root.contentPadding + (root.verticalTail ? 0 : root.pointerHeight)
         spacing: Kirigami.Units.smallSpacing
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: openMenuAction
+            motionEnabled: root.motionEnabled
+            objectName: "openMenuAction"
+            Layout.fillWidth: true
+            visible: root.menuLeader
+            text: qsTr("Open PunchiMenu")
+            icon.name: "start-here-kde"
+            onClicked: root.openMenuRequested()
+        }
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: removeMenuAction
+            motionEnabled: root.motionEnabled
+            objectName: "removeMenuAction"
+            Layout.fillWidth: true
+            visible: root.menuLeader
+            text: qsTr("Remove from Dock")
+            icon.name: "window-unpin"
+            onClicked: root.removeMenuRequested()
+        }
         PunchiDockContextSectionHeader {
             visible: root.folderItem
             text: qsTr("Sort by")
@@ -374,8 +405,9 @@ Item {
         // sit alone under the surface border on the dock background menu.
         PunchiDockContextSeparator {
             objectName: "contextActionsSeparator"
-            visible: !root.trashItem && (root.actions.length > 0 || root.canLaunchNewWindow
-                || root.canPin || root.pinned || recentContent.visible || placesContent.visible)
+            visible: !root.trashItem && !root.menuLeader && (root.actions.length > 0
+                || root.canLaunchNewWindow || root.canPin || root.pinned
+                || recentContent.visible || placesContent.visible)
             Layout.fillWidth: true
         }
         PunchiDockContextSectionHeader {
@@ -477,7 +509,7 @@ Item {
             motionEnabled: root.motionEnabled
             objectName: "configureDockAction"
             Layout.fillWidth: true
-            visible: !root.trashItem
+            visible: !root.trashItem && !root.menuLeader
             text: qsTr("Configure Dock")
             icon.name: "preferences-system"
             onClicked: root.settingsRequested()

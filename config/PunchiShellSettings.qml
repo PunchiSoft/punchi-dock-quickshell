@@ -68,6 +68,7 @@ QtObject {
     property bool menuShowScrollBar: defaultProfile.menuShowScrollBar
     property bool menuShowLabels: defaultProfile.menuShowLabels
     property bool menuShowDock: defaultProfile.menuShowDock
+    property bool menuShowDockButton: defaultProfile.menuShowDockButton
     property real menuIconScale: defaultProfile.menuIconScale
     property string menuCloseButtonPosition: defaultProfile.menuCloseButtonPosition
     // A portable QKeySequence string. Empty disables the global shortcut; the
@@ -301,7 +302,8 @@ QtObject {
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
             menuShowDistributionName, menuApplicationOrder, menuShowScrollBar, menuShowLabels,
-            menuShowDock, menuIconScale, menuCloseButtonPosition, menuShortcut, menuHoverAnimation}
+            menuShowDock, menuShowDockButton, menuIconScale, menuCloseButtonPosition,
+            menuShortcut, menuHoverAnimation}
     }
     function validPopupIconSize(value, maximum): bool {
         return value === 0 || (Number.isInteger(value) && value >= popupIconSizeMinimum
@@ -384,7 +386,7 @@ QtObject {
             for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled",
                     "recentApplicationsEnabled", "updateBadgeEnabled",
                     "menuBackgroundBlurEnabled", "menuShowDistributionName",
-                    "menuShowLabels", "menuShowDock"])
+                    "menuShowLabels", "menuShowDock", "menuShowDockButton"])
                 if (typeof data[key] === "boolean") this[key] = data[key]
             if (inRange(data.recentApplicationsCount,
                     PunchiDefaultProfile.limits.recentApplicationsCount, true))
