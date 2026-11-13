@@ -91,7 +91,10 @@ Popup {
         geometry.anchorGeometry.y + geometry.anchorGeometry.height / 2 - height / 2))
         : capturedBaseY + (hostWindow ? hostWindow.height - hostBaseHeight : 0)
             - height - Kirigami.Units.smallSpacing
-    onOpened: content.focusFirst()
+    onOpened: {
+        content.resetSubmenus()
+        content.focusFirst()
+    }
     onClosed: {
         openSerial++
         preparingToShow = false

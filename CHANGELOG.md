@@ -29,6 +29,8 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Open the folder and recent-container view choices as submenus with a **Back to
+  menu** row, and restore the Remastered icons for the view and sort rows.
 - Apply the 0.25 theme-aware text shadow to the fullscreen-menu distribution
   name, matching the application labels.
 - Fit the fullscreen menu to the seven-column, five-row reference with a

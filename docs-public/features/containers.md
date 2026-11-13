@@ -6,11 +6,11 @@ surface and the keyboard behavior.
 
 ## Folder containers
 
-<p align="center"><img src="../../assets/demo/container-views.webp" width="720" alt="The Home container changing presentation: Detail, then Grid, then Fan, chosen from the View content as menu"></p>
+<p align="center"><img src="../../assets/demo/container-views.webp" width="720" alt="The Home container changing presentation: Detail, then Grid, then Fan, chosen from the Folder view menu"></p>
 
 <p align="center"><em>The same Home container in <strong>Detail</strong>,
 <strong>Grid</strong> and <strong>Fan</strong>, switching through the
-<strong>View content as</strong> menu. The clip is one continuous take from the
+<strong>Folder view</strong> menu. The clip is one continuous take from the
 maintainer's session; <strong>List</strong> is not shown for a folder container.</em></p>
 
 - Any local folder can become a container. Built-in **Home** and **Downloads**
@@ -18,6 +18,9 @@ maintainer's session; <strong>List</strong> is not shown for a folder container.
 - **Presentation**: Grid, List, Detail and Fan. A side dock presents a stored Fan
   as Grid because the arc needs a top or bottom edge.
 - Per-container sorting, subfolder browsing and a hidden-entry list.
+- **Folder view** and **Sort by** open submenus with a **Back to menu** row. The
+  view and sort choices carry the same icons as PunchiDock Remastered: grid, list,
+  detailed list, fan, name, size, date and type.
 - The built-in **Home** container opens as Fan and lists only the standard
   KDE/XDG user folders through their localized names. Its first-run profile leaves
   subfolder browsing off, so a selected folder opens in the file manager.
@@ -41,7 +44,8 @@ presentation components receive rows and emit intents. See
 - **Presentation** chooses either extra dock launchers or one container item with
   a fixed glyph. The container is the first-run presentation.
 - **Container view** offers Grid, List, Detail and Fan for the container
-  presentation. The first-run view is List.
+  presentation, in its own submenu with a **Back to menu** row. The first-run view
+  is List.
 - Pinned applications and applications with open windows are excluded in both
   presentations.
 - Dock settings include a switch that writes KDE's remember-applications
