@@ -17,8 +17,14 @@ ItemDelegate {
     property bool pointerEmphasis: true
     property bool marked: false
     property bool motionEnabled: true
+    // A row whose label can be longer than its width reveals the full text with
+    // PunchiEntryMarqueeLabel, the same carousel the menu labels use. Other
+    // popup rows keep the resting elide.
+    property bool marquee: false
     readonly property PunchiPopupMetrics metrics: PunchiPopupMetrics {}
     focusPolicy: Qt.StrongFocus
+    // The marquee label never exposes its glyphs, so the row carries the name.
+    Accessible.name: root.text
     font: Kirigami.Theme.defaultFont
     padding: Kirigami.Units.smallSpacing
     horizontalPadding: Kirigami.Units.smallSpacing * 2
@@ -48,7 +54,24 @@ ItemDelegate {
             Layout.preferredWidth: root.icon.width
             Layout.preferredHeight: root.icon.height
         }
+        PunchiEntryMarqueeLabel {
+            objectName: "popupRowMarqueeLabel"
+            visible: root.marquee
+            Layout.fillWidth: true
+            text: root.text
+            font: root.font
+            color: !root.enabled ? Kirigami.Theme.disabledTextColor
+                : rowHighlight.marked ? Kirigami.Theme.highlightedTextColor
+                : Kirigami.Theme.textColor
+            maximumRestingWidth: width
+            hovered: root.hovered
+            focused: root.visualFocus
+            motionEnabled: root.motionEnabled
+            shadowEnabled: false
+        }
         Label {
+            objectName: "popupRowLabel"
+            visible: !root.marquee
             text: root.text
             font: root.font
             color: !root.enabled ? Kirigami.Theme.disabledTextColor

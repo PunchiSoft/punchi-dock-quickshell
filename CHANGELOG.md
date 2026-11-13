@@ -22,8 +22,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
   Escape, the backdrop and the dock button still close the menu.
 - Right-click the PunchiMenu icon in the dock for a balloon list of installed
   applications, with Remove from Dock, Show PunchiMenu and Configure PunchiDock
-  at the bottom. **Show menu button** in Settings → Menu restores a removed
-  icon; the global shortcut and IPC commands still open the menu.
+  at the bottom. The balloon sizes to its content under the shared 24 grid-unit
+  cap, and long names use the label carousel. **Show menu button** in Settings →
+  Menu restores a removed icon; the global shortcut and IPC commands still open
+  the menu.
 
 ### Changed
 
