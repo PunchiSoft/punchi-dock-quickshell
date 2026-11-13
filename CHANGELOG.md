@@ -49,6 +49,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
   value, so a checkout path with a newline cannot inject a desktop-entry key.
 - Build the folder-container location with `QUrl::fromLocalFile`, so a configured
   path containing `#` or `?` opens instead of failing closed.
+- Read the autostart entry through a 16 KiB bounded reader that rejects FIFOs,
+  devices, oversized files and symbolic links before opening, so a foreign path
+  cannot stall startup or be adopted.
 - Remove a stale build tree only when its CMake cache names this checkout, so a
   `PUNCHI_BUILD_DIR` pointing at another project is never deleted.
 - Treat an autostart entry as owned only when it carries the exact ownership
