@@ -45,6 +45,11 @@ GitHub-ready files do not authorize push or release.
   string breaks the surface, not the model.
 - A `Process` element with a concatenated command string reintroduces the shell
   parsing the native launcher avoided.
+- A quoted removal target is not safe when the value is empty and the command
+  appends a path: `rm -rf "$dir"/*` becomes `rm -rf /*`. Require `${dir:?}`, an
+  absolute allowlisted path and `--` before any recursive removal. An environment
+  override is not proof of ownership either: require the project's marker or
+  cache before deleting the directory it names.
 - Fixtures that record real user paths or documents leak through the repository
   even when the runtime code is clean.
 

@@ -14,6 +14,10 @@ if ! declare -F punchi_run_step >/dev/null 2>&1; then
     # shellcheck source=setup-progress.sh
     source "$punchi_install_dir/setup-progress.sh"
 fi
+if ! declare -F punchi_build_cache_owned_by_project >/dev/null 2>&1; then
+    # shellcheck source=build-dir.sh
+    source "$punchi_install_dir/build-dir.sh"
+fi
 unset punchi_install_dir
 
 # Runs inside the progress runner, so it reports its own phase transitions and
@@ -25,8 +29,10 @@ punchi_build_worker() {
     local cached_tool=""
 
     # A cache written on another distribution can point at tools this system
-    # does not have, and CMake then fails before it can reconfigure.
-    if [[ -f "$build_dir/CMakeCache.txt" ]]; then
+    # does not have, and CMake then fails before it can reconfigure. Only a cache
+    # this checkout wrote may authorize the removal; an unrelated source tree at
+    # PUNCHI_BUILD_DIR is left for CMake to reject.
+    if punchi_build_cache_owned_by_project "$build_dir"; then
         for variable in CMAKE_MAKE_PROGRAM CMAKE_CXX_COMPILER CMAKE_C_COMPILER; do
             cached_tool="$(sed -n -E "s/^${variable}:FILEPATH=(.*)\$/\1/p" \
                 "$build_dir/CMakeCache.txt" 2>/dev/null | head -n 1)"
