@@ -23,6 +23,18 @@ private slots:
             QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)));
         QVERIFY(!contents.standardUserDirsOnly());
     }
+    void configuredPathsRoundTripThroughQUrlEncoded() {
+        FolderContents contents;
+        const QString path = QStringLiteral("/tmp/punchi #1?/a b");
+        const QUrl url = contents.urlForPath(path);
+        QVERIFY(url.isLocalFile());
+        QCOMPARE(url.toLocalFile(), path);
+        const QByteArray encoded = url.toEncoded();
+        QVERIFY(encoded.contains("%23"));
+        QVERIFY(encoded.contains("%3F"));
+        QVERIFY(!encoded.contains('#'));
+        QVERIFY(!encoded.contains('?'));
+    }
     void nativeRowsWatchChangesAndCancel() {
         QTemporaryDir owned;
         QVERIFY(owned.isValid());

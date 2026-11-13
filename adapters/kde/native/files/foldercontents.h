@@ -56,6 +56,9 @@ public:
     QVariant data(const QModelIndex &index, int role) const override;
     Q_INVOKABLE QVariantMap get(int row) const;
     Q_INVOKABLE int indexOfUrl(const QUrl &url) const;
+    // A configured container path can contain '#', '?' or spaces; encode it
+    // through QUrl instead of concatenating a "file://" prefix in QML.
+    Q_INVOKABLE QUrl urlForPath(const QString &path) const;
     KFileItem itemForUrl(const QUrl &url) const;
     static bool localUrl(const QUrl &url);
 Q_SIGNALS:

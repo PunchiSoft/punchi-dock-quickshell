@@ -140,6 +140,7 @@ def main() -> int:
         root = Path(temporary)
         (root / 'services').mkdir()
         shutil.copy2(project / 'services' / 'PunchiAutostartService.qml', root / 'services' / 'PunchiAutostartService.qml')
+        shutil.copy2(project / 'services' / 'PunchiAutostartEntry.js', root / 'services' / 'PunchiAutostartEntry.js')
         (root / 'scripts-user').mkdir()
         launcher = root / 'scripts-user' / 'launcher.sh'
         launcher.write_text('#!/bin/sh\nexit 0\n')
@@ -157,7 +158,7 @@ def main() -> int:
         assert entry_match, output
         entry = entry_match.group(1).replace('\\n', '\n')
         assert 'Exec="' + str(launcher) + '" start' in entry, entry
-        assert 'Icon=' + str(root / 'assets' / 'icons' / 'punchi-dock-quickshell.svg') in entry, entry
+        assert 'Icon="' + str(root / 'assets' / 'icons' / 'punchi-dock-quickshell.svg') + '"' in entry, entry
         assert re.search(r'X-Punchi-Dock-Quickshell-Owned=true', entry), entry
 
         foreign_home = root / 'foreign-config'

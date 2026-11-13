@@ -45,6 +45,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 - Open the PunchiMenu dock balloon without the Qt SVG buffer warning: popup rows
   draw icons from a 64 px source and scale the scene transform instead of
   rasterising complex icons at 16 px.
+- Quote the autostart icon path and escape control characters in its `Exec`
+  value, so a checkout path with a newline cannot inject a desktop-entry key.
+- Build the folder-container location with `QUrl::fromLocalFile`, so a configured
+  path containing `#` or `?` opens instead of failing closed.
 - Remove a stale build tree only when its CMake cache names this checkout, so a
   `PUNCHI_BUILD_DIR` pointing at another project is never deleted.
 - Treat an autostart entry as owned only when it carries the exact ownership
