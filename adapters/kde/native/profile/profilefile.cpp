@@ -53,6 +53,11 @@ QVariantMap ProfileFile::readLocalPath(const QString &path, int maximumBytes) co
     return {{QStringLiteral("ok"), true}, {QStringLiteral("text"), text}};
 }
 
+bool ProfileFile::isSymlink(const QString &path) const
+{
+    return QFileInfo(path).isSymLink();
+}
+
 QVariantMap ProfileFile::write(const QUrl &url, const QString &text, int maximumBytes) const
 {
     if (!url.isLocalFile()) return failure(QStringLiteral("not-local"));

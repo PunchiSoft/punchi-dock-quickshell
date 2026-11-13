@@ -2,6 +2,7 @@
 import QtQml
 import Quickshell
 import Quickshell.Io
+import Punchi.Kde as Native
 import "PunchiAutostartEntry.js" as PunchiAutostartEntry
 
 QtObject {
@@ -25,6 +26,11 @@ QtObject {
     readonly property string iconPath: Quickshell.shellDir
         + "/assets/icons/punchi-dock-quickshell.svg"
     readonly property string launcherExec: "Exec=" + PunchiAutostartEntry.execQuote(launcherPath) + " start"
+    // The entry is a small desktop file. The bounded reader rejects a FIFO, a
+    // directory, a device and any file above this limit before opening it, so a
+    // foreign path cannot stall the GUI thread before settings load.
+    readonly property int maximumBytes: 16 * 1024
+    readonly property var reader: Native.ProfileFile {}
 
     property bool active: false
     property bool draftEnabled: false
@@ -85,7 +91,23 @@ QtObject {
     }
 
     function refresh(): void {
-        currentText = file.text()
+        if (reader.isSymlink(path)) {
+            present = true
+            currentText = ""
+            return
+        }
+        const result = reader.readPath(path, maximumBytes)
+        if (result && result.ok) {
+            present = true
+            currentText = result.text
+            return
+        }
+        const reason = result && result.error ? result.error : "read-failed"
+        // A missing entry is the normal first start. Every other outcome leaves
+        // the existing path in place and marks it foreign, so it is never
+        // overwritten or removed.
+        present = reason !== "missing"
+        currentText = ""
     }
 
     function hasLine(text: string, expected: string): bool {
@@ -109,33 +131,23 @@ QtObject {
 
     readonly property FileView file: FileView {
         path: root.path
-        preload: true
-        blockLoading: true
+        // Reading goes through the bounded reader in refresh(); FileView only
+        // watches for external changes and writes atomically.
+        preload: false
         watchChanges: true
         atomicWrites: true
         printErrors: false
-        onLoaded: {
-            root.present = true
-            root.refresh()
-        }
         onFileChanged: {
             root.refresh()
             if (!root.available) root.draftEnabled = root.enabled
         }
-        onTextChanged: root.refresh()
-        onLoadFailed: {
-            root.present = false
-            root.currentText = ""
-        }
         onSaved: {
-            root.present = true
             root.refresh()
             root.draftEnabled = root.enabled
             root.error = ""
         }
         onSaveFailed: {
             root.refresh()
-            root.present = root.enabled
             root.draftEnabled = root.enabled
             root.error = "save"
         }
@@ -155,7 +167,6 @@ QtObject {
         onRunningChanged: {
             if (!root.removing || running) return
             root.removing = false
-            root.file.reload()
             root.refresh()
             if (!root.enabled) root.present = false
             root.draftEnabled = root.enabled

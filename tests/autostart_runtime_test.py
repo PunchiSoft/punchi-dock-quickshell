@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Optional
 import re
 import shutil
+import stat
 import subprocess
 import sys
 import tempfile
@@ -31,7 +32,9 @@ ShellRoot {
     FileView {
         id: entry
         path: autostart.path
-        preload: true
+        // The probe must not preload the path: the FIFO and oversized cases
+        // below would block or read the file before the service sees it.
+        preload: false
         blockLoading: true
         printErrors: false
     }
@@ -185,6 +188,51 @@ def main() -> int:
         output = run_fixture(runner, root, marked_home, True)
         assert 'AUTOSTART_FOREIGN_PASSED' in output, output
         assert marked.read_text() == marked_original
+
+        # An entry above the bounded-read limit is never loaded, even when it
+        # carries our marker and launcher lines.
+        large_home = root / 'large-config'
+        (large_home / 'autostart').mkdir(parents=True)
+        large = large_home / 'autostart' / 'punchi-dock-quickshell.desktop'
+        large_original = (
+            '[Desktop Entry]\n'
+            'X-Punchi-Dock-Quickshell-Owned=true\n'
+            'Exec="' + str(launcher) + '" start\n'
+            + 'X' * (16 * 1024)
+        )
+        large.write_text(large_original)
+        output = run_fixture(runner, root, large_home, True)
+        assert 'AUTOSTART_FOREIGN_PASSED' in output, output
+        assert large.read_text() == large_original
+
+        # A FIFO must be rejected as a non-regular file before it is opened; a
+        # preloading reader would block here until the probe timeout.
+        fifo_home = root / 'fifo-config'
+        (fifo_home / 'autostart').mkdir(parents=True)
+        fifo = fifo_home / 'autostart' / 'punchi-dock-quickshell.desktop'
+        os.mkfifo(fifo)
+        output = run_fixture(runner, root, fifo_home, True)
+        assert 'AUTOSTART_FOREIGN_PASSED' in output, output
+        assert stat.S_ISFIFO(fifo.stat().st_mode)
+
+        # A symlink is another tool's path even when its target carries our
+        # marker and launcher lines; it must not be adopted, rewritten or
+        # removed.
+        symlink_home = root / 'symlink-config'
+        (symlink_home / 'autostart').mkdir(parents=True)
+        target = symlink_home / 'foreign.desktop'
+        target_original = (
+            '[Desktop Entry]\n'
+            'X-Punchi-Dock-Quickshell-Owned=true\n'
+            'Exec="' + str(launcher) + '" start\n'
+        )
+        target.write_text(target_original)
+        link = symlink_home / 'autostart' / 'punchi-dock-quickshell.desktop'
+        link.symlink_to(target)
+        output = run_fixture(runner, root, symlink_home, True)
+        assert 'AUTOSTART_FOREIGN_PASSED' in output, output
+        assert link.is_symlink()
+        assert target.read_text() == target_original
 
         empty_home = root / 'empty-config'
         (empty_home / 'autostart').mkdir(parents=True)

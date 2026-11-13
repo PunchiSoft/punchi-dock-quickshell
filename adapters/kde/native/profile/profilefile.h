@@ -21,6 +21,9 @@ public:
     // profile location and does not need a URL round trip.
     Q_INVOKABLE QVariantMap readPath(const QString &path, int maximumBytes) const;
     Q_INVOKABLE QVariantMap write(const QUrl &url, const QString &text, int maximumBytes) const;
+    // A path created as a symbolic link is never owned or overwritten. This
+    // check does not follow the link.
+    Q_INVOKABLE bool isSymlink(const QString &path) const;
 
 private:
     QVariantMap readLocalPath(const QString &path, int maximumBytes) const;
