@@ -165,6 +165,10 @@ QUrl FolderContents::homeUrl() const
 {
     return QUrl::fromLocalFile(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
 }
+QUrl FolderContents::urlForPath(const QString &path) const
+{
+    return QUrl::fromLocalFile(path);
+}
 void FolderContents::setStandardUserDirsOnly(bool value)
 {
     if (m_standardUserDirsOnly == value) return;

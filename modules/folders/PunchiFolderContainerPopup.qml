@@ -25,7 +25,7 @@ Popup {
         ? String(container.title) : homeContainer ? qsTr("Home") : qsTr("Downloads")
     function locationFor(entry): url {
         const path = entry && entry.path ? String(entry.path) : ""
-        if (path.length > 0) return "file://" + path
+        if (path.length > 0) return listing.urlForPath(path)
         return entry && String(entry.id) === "home" ? listing.homeUrl : listing.downloadsUrl
     }
     Connections {

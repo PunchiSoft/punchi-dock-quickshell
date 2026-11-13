@@ -2,6 +2,7 @@
 import QtQml
 import Quickshell
 import Quickshell.Io
+import "PunchiAutostartEntry.js" as PunchiAutostartEntry
 
 QtObject {
     id: root
@@ -23,7 +24,7 @@ QtObject {
     readonly property string launcherPath: Quickshell.shellDir + "/scripts-user/launcher.sh"
     readonly property string iconPath: Quickshell.shellDir
         + "/assets/icons/punchi-dock-quickshell.svg"
-    readonly property string launcherExec: "Exec=" + execQuote(launcherPath) + " start"
+    readonly property string launcherExec: "Exec=" + PunchiAutostartEntry.execQuote(launcherPath) + " start"
 
     property bool active: false
     property bool draftEnabled: false
@@ -91,22 +92,13 @@ QtObject {
         return text.split(/\r?\n/).indexOf(expected) >= 0
     }
 
-    function execQuote(value: string): string {
-        return "\"" + String(value)
-            .replace(/\\/g, "\\\\")
-            .replace(/"/g, "\\\"")
-            .replace(/`/g, "\\`")
-            .replace(/\$/g, "\\$")
-            .replace(/%/g, "%%") + "\""
-    }
-
     function contents(): string {
         return [
             "[Desktop Entry]",
             "Type=Application",
             "Name=Punchi Dock Quickshell",
             launcherExec,
-            "Icon=" + iconPath,
+            "Icon=" + PunchiAutostartEntry.valueQuote(iconPath),
             "Terminal=false",
             "OnlyShowIn=KDE;",
             "X-KDE-autostart-phase=2",
