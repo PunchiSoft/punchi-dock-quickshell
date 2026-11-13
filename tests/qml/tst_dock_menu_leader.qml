@@ -129,4 +129,21 @@ TestCase {
         compare(marquee.overflowing, false)
         compare(marquee.scrollOffset, 0)
     }
+
+    function test_menuRowRendersAHighQualityIconSource() {
+        // A 16 px raster of an icon with a mask or group opacity makes Qt SVG
+        // request a degenerate buffer while the source changes. The row keeps a
+        // 64 px source and scales the scene transform instead.
+        const content = createTemporaryObject(fixture, test)
+        verify(content !== null)
+        wait(50)
+        const row = findChild(content, "menuApplication-alpha")
+        verify(row !== null)
+        const icon = findChild(row, "popupRowIcon")
+        verify(icon !== null)
+        verify(icon.width >= 64)
+        verify(icon.scale < 1)
+        compare(icon.roundToIconSize, false)
+        compare(icon.smooth, true)
+    }
 }
