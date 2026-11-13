@@ -131,11 +131,11 @@ ColumnLayout {
             }
             PunchiSettingsRow {
                 Layout.fillWidth: true
-                text: qsTr("Text shadow")
+                text: qsTr("Right-click menu text shadow")
                 showSeparator: true
                 Switch {
                     objectName: "menuTextShadow"
-                    Accessible.name: qsTr("Menu text shadow")
+                    Accessible.name: qsTr("Right-click menu text shadow")
                     checked: root.settings.menuTextShadow
                     onToggled: root.settings.menuTextShadow = checked
                 }

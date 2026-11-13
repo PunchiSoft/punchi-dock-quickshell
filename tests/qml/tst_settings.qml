@@ -144,17 +144,17 @@ TestCase {
     }
     function test_menuTextShadowPersistence() {
         const settings = createTemporaryObject(settingsFixture, test)
-        compare(settings.menuTextShadow, false)
-        verify(settings.restore({version: 16, menuTextShadow: true}))
         compare(settings.menuTextShadow, true)
+        verify(settings.restore({version: 16, menuTextShadow: false}))
+        compare(settings.menuTextShadow, false)
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.menuTextShadow, true)
+        compare(data.menuTextShadow, false)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
-        compare(restored.menuTextShadow, true)
+        compare(restored.menuTextShadow, false)
         // A non-boolean value keeps the current choice.
         verify(restored.restore({version: 16, menuTextShadow: "yes"}))
-        compare(restored.menuTextShadow, true)
+        compare(restored.menuTextShadow, false)
     }
     function test_menuShowDockButtonPersistence() {
         const settings = createTemporaryObject(settingsFixture, test)

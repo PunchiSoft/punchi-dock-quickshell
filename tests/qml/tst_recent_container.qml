@@ -222,6 +222,9 @@ TestCase {
         verify(fan.visible)
         tryCompare(fan, "entryCount", 3)
         compare(fan.hasLocationAction, false)
+        const fanLabel = findChild(fan, "folderFanLabel")
+        verify(fanLabel !== null)
+        compare(fanLabel.shadowEnabled, true)
         // The arc starts on the row that faces the panel, without a keyboard band
         // painted by a pointer opening.
         tryVerify(function() { return fan.focusedOrder >= 0 })

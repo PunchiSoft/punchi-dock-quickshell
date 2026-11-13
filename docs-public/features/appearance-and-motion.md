@@ -26,13 +26,12 @@ The geometry and cosine formulas are described in
 
 ## Text shadow
 
-- The 0.25 theme-aware text shadow is opt-in through **Settings → Menu → Text
-  shadow**; the default keeps menu text clean.
-- When enabled it applies to the fullscreen-menu application labels, category
-  headings, the distribution name, folder and recent-application labels, popup
-  rows and section headings.
-- The doubled edge reduces legibility for readers with astigmatism, which is why
-  the default is off.
+- The fullscreen menu, folder and recent containers, Fan rows and their labels
+  keep the 0.25 theme-aware text shadow.
+- **Settings → Menu → Right-click menu text shadow** controls only the dock's
+  right-click menu. It is on by default and can be turned off for readers who
+  find the doubled edge harder to read, including some with astigmatism.
+- The Fan rows keep their shadow independently of that switch.
 
 ## Launch feedback
 

@@ -81,7 +81,7 @@ dock's balloon surface and shared popup rows, not a separate menu style.
 
 - A theme-washed backdrop with KWin blur behind it.
 - The distribution name, with the same 0.25 theme-aware text shadow as the
-  application labels when **Text shadow** is enabled in Settings → Menu.
+  application labels.
 - A close control drawn with the buttons of the user's window decoration, pinned
   to the right or left corner, or hidden. With **Hidden**, Escape, a click on the
   backdrop and the dock button still close the menu.
