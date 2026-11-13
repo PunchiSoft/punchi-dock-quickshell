@@ -76,11 +76,12 @@ ShellRoot {
         legacy = profile / 'punchi-shell.json'
         current = profile / 'punchi-dock-quickshell.json'
         legacy.write_text(json.dumps({'version': 11, 'sizePercent': 125, 'dockEdge': 'left'}))
-        state = run_shell(lambda value: value['settings']['sizePercent'] == 125)
+        # The migration write is asynchronous. Requiring the file before the
+        # runner returns keeps qs alive until QSaveFile commits; waiting after
+        # the process is terminated can never observe that write.
+        state = run_shell(lambda value: value['settings']['sizePercent'] == 125
+                          and current.exists())
         assert state['settings']['dockEdge'] == 'left', state
-        deadline = time.monotonic() + 3
-        while not current.exists() and time.monotonic() < deadline:
-            time.sleep(0.02)
         assert current.exists(), 'Legacy migration did not write the current profile'
         assert legacy.exists(), 'Legacy migration removed the backup'
         assert json.loads(current.read_text())['sizePercent'] == 125
