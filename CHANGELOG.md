@@ -45,6 +45,8 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 - Offer only local KDE Places schemes (`file`, `trash`, `recentdocuments`,
   `activities`); a remote or custom KIO scheme is no longer passed to the
   launcher.
+- Cap a folder listing at 5,000 entries, so a huge directory or an accidental
+  mount point cannot fill the popup and its icon requests.
 - Show application labels when the fullscreen menu opens before its surface is
   measured.
 - Open the PunchiMenu dock balloon without the Qt SVG buffer warning: popup rows

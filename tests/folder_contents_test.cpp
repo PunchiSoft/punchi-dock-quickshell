@@ -236,6 +236,18 @@ private slots:
         QCOMPARE(contents.error(), QString());
         contents.setActive(false);
     }
+    void listingCeilingBoundsTheRows() {
+        QTemporaryDir owned;
+        QVERIFY(owned.isValid());
+        for (int index = 0; index <= FolderContents::MaximumEntries; ++index)
+            write(owned.filePath(QStringLiteral("entry-%1.txt").arg(index)));
+        FolderContents contents;
+        contents.setLocation(QUrl::fromLocalFile(owned.path()));
+        contents.setActive(true);
+        QTRY_VERIFY_WITH_TIMEOUT(!contents.loading(), 30000);
+        QCOMPARE(contents.count(), FolderContents::MaximumEntries);
+        contents.setActive(false);
+    }
 };
 QTEST_MAIN(FolderContentsTest)
 #include "folder_contents_test.moc"

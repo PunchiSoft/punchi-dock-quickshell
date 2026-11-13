@@ -35,6 +35,9 @@ class FolderContents : public QIdentityProxyModel
         NOTIFY hiddenEntriesChanged)
 public:
     enum Role { EntryUrl = Qt::UserRole + 400, EntryName, EntryIcon, Directory, Description };
+    // A single listing never publishes more rows than this. A huge directory or
+    // an accidental mount point must not fill every view and icon request.
+    static constexpr int MaximumEntries = 5000;
     explicit FolderContents(QObject *parent = nullptr);
     QUrl downloadsUrl() const;
     QUrl homeUrl() const;
@@ -53,6 +56,7 @@ public:
     QStringList hiddenEntries() const { return m_hiddenEntries; }
     void setHiddenEntries(const QStringList &names);
     QHash<int, QByteArray> roleNames() const override;
+    int rowCount(const QModelIndex &parent = {}) const override;
     QVariant data(const QModelIndex &index, int role) const override;
     Q_INVOKABLE QVariantMap get(int row) const;
     Q_INVOKABLE int indexOfUrl(const QUrl &url) const;
