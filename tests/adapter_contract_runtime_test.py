@@ -76,7 +76,7 @@ ShellRoot {
                             ["enabled", "available", "trackingEnabled"])
         probe.checkProperties(recentApplicationsSelection, "PunchiRecentApplicationsSelection",
             ["sourceModel", "enabled", "maximumItems", "excludedStorageIds", "count", "items"])
-        probe.checkMethods(places, "PunchiFilePlacesAdapter", ["enterGroup", "leaveGroup"])
+        probe.checkMethods(places, "PunchiFilePlacesAdapter", ["enterGroup", "leaveGroup", "acceptsUrl"])
         probe.checkProperties(places, "PunchiFilePlacesAdapter",
             ["sourceModel", "desktopId", "count", "remainingCount", "showAll", "groupName"])
         probe.checkMethods(media, "PunchiApplicationMediaAdapter", ["refresh"])

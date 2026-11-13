@@ -27,6 +27,8 @@ public:
     int remainingCount() const;
     Q_INVOKABLE bool enterGroup(const QString &group);
     Q_INVOKABLE void leaveGroup();
+    // The same allowlist the menu uses, exposed for the adapter contract test.
+    Q_INVOKABLE bool acceptsUrl(const QString &url) const;
     QHash<int, QByteArray> roleNames() const override;
     QVariant data(const QModelIndex &index, int role) const override;
     QUrl urlForResource(const QString &resource) const;
