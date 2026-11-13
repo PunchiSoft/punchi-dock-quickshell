@@ -267,7 +267,7 @@ if(BUILD_TESTING)
     add_test(NAME qml_lint COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/validate-qml.py ${QMLLINT_EXECUTABLE})
     add_test(NAME dock_components COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --deadline 60 --
         ${QMLTESTRUNNER_EXECUTABLE} -input ${CMAKE_SOURCE_DIR}/tests/qml)
     add_test(NAME folder_container COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
@@ -407,6 +407,10 @@ if(BUILD_TESTING)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
     set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract component_naming user_setup_scripts build_dir_ownership shell_removal autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
+    # The aggregate QML tree legitimately runs for about 37 seconds; the runner
+    # deadline above it stays at 60 and this CTest timeout leaves room for a
+    # slower CI host without hiding a hang.
+    set_tests_properties(dock_components PROPERTIES TIMEOUT 90)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 

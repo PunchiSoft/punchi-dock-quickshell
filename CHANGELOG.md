@@ -42,6 +42,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 - Show application labels when the fullscreen menu opens before its surface is
   measured.
+- Open the PunchiMenu dock balloon without the Qt SVG buffer warning: popup rows
+  draw icons from a 64 px source and scale the scene transform instead of
+  rasterising complex icons at 16 px.
 - Remove a stale build tree only when its CMake cache names this checkout, so a
   `PUNCHI_BUILD_DIR` pointing at another project is never deleted.
 - Treat an autostart entry as owned only when it carries the exact ownership

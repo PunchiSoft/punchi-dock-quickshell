@@ -47,12 +47,28 @@ ItemDelegate {
     contentItem: RowLayout {
         spacing: root.spacing
         scale: rowHighlight.visualScale
-        Kirigami.Icon {
-            Native.IconThemeRefresh.enabled: true
-            source: root.icon.name
-            selected: root.down
+        // Keep a high-resolution source and scale the scene transform, as the
+        // dock tile does. A 16 px raster of an icon with a mask or a group
+        // opacity asks Qt SVG for a degenerate buffer while the source changes;
+        // the 64 px source avoids that warning and stays sharp on high-DPI
+        // screens.
+        Item {
+            objectName: "popupRowIconArea"
             Layout.preferredWidth: root.icon.width
             Layout.preferredHeight: root.icon.height
+            Kirigami.Icon {
+                objectName: "popupRowIcon"
+                Native.IconThemeRefresh.enabled: true
+                source: root.icon.name
+                selected: root.down
+                anchors.centerIn: parent
+                width: Math.max(64, root.icon.width)
+                height: width
+                scale: root.icon.width / width
+                roundToIconSize: false
+                smooth: true
+                Accessible.ignored: true
+            }
         }
         PunchiEntryMarqueeLabel {
             objectName: "popupRowMarqueeLabel"

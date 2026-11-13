@@ -23,8 +23,12 @@ def main():
         signal.signal(signum, interrupted)
     parser = argparse.ArgumentParser()
     parser.add_argument('--session', action='store_true')
+    parser.add_argument('--deadline', type=int, default=35,
+                        help='Seconds before the test tree is terminated (default 35).')
     parser.add_argument('command', nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.deadline <= 0:
+        parser.error('--deadline must be positive.')
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
     if not command:
         parser.error('A command is required.')
@@ -80,9 +84,9 @@ def main():
             env['QT_QPA_PLATFORM'] = 'offscreen'
         process = subprocess.Popen(command, env=env, start_new_session=True)
         try:
-            return process.wait(timeout=35)
+            return process.wait(timeout=args.deadline)
         except subprocess.TimeoutExpired:
-            print('Test exceeded its 35-second deadline.', flush=True)
+            print(f'Test exceeded its {args.deadline}-second deadline.', flush=True)
             return 1
         finally:
             try:
