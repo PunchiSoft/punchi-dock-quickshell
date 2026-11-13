@@ -39,7 +39,7 @@ Item {
     property real pointerY: height / 2
     property bool blurAvailable: false
     property bool reducedMotion: false
-    property bool textShadow: false
+    property bool textShadow: true
     // Optional clipboard used by the entry menu. The popup owner may inject one
     // in tests; the default writes through the Quickshell clipboard.
     property var clipboardService: null
@@ -450,7 +450,6 @@ Item {
                 objectName: "folderFanView"
                 anchors.fill: parent
                 visible: root.fanMode && !root.controller.contents.loading
-                textShadow: root.textShadow
                     && root.controller.contents.error.length === 0
                 contents: root.controller.contents
                 dockEdge: root.dockEdge

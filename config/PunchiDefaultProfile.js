@@ -92,9 +92,10 @@ const profile = {
     menuApplicationOrder: "alphabetical",
     menuShowScrollBar: false,
     menuShowLabels: true,
-    // The 0.25 menu text shadow is opt-in: its doubled edge reduces legibility
-    // for readers with astigmatism, so the default keeps the text clean.
-    menuTextShadow: false,
+    // The right-click menu keeps the 0.25 shadow by default. The Menu switch
+    // turns it off only there; the fullscreen menu, containers and Fan rows keep
+    // their own shadow.
+    menuTextShadow: true,
     menuShowDock: true,
     // The leading PunchiMenu button is part of the dock by default. The dock
     // context menu can remove it; this setting restores it.

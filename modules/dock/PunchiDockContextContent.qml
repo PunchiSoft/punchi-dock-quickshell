@@ -53,6 +53,8 @@ Item {
     // motion is allowed; standalone fixtures keep the instant, final state.
     readonly property bool motionEnabled: root.settings
         ? !root.settings.effectiveReducedMotion : false
+    // The switch owns the right-click menu only. Other dock surfaces keep
+    // their own shadow.
     readonly property bool textShadow: !!root.settings && root.settings.menuTextShadow
     property var minimizeEffectController: null
     property bool usesPlaces: false

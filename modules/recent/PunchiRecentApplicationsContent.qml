@@ -34,7 +34,7 @@ Item {
     property real pointerY: height / 2
     property bool blurAvailable: false
     property bool reducedMotion: false
-    property bool textShadow: false
+    property bool textShadow: true
     // Which emphasis the pointer owns. The owner turns it off while the keyboard
     // moves, so a row never shows the pointer and the keyboard band at once.
     property bool pointerEmphasis: true
@@ -322,7 +322,6 @@ Item {
                 objectName: "recentApplicationsFan"
                 anchors.fill: parent
                 visible: root.fanMode
-                textShadow: root.textShadow
                 contents: root.selection
                 dockEdge: root.dockEdge
                 iconSize: Math.round(root.metrics.fanIconSize)

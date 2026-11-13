@@ -460,6 +460,9 @@ TestCase {
         verify(!findChild(popup.contentItem, "folderGrid").visible)
         verify(!findChild(popup.contentItem, "folderList").visible)
         compare(findChild(fanView, "folderFanList").count, popup.contents.count)
+        const fanLabel = findChild(fanView, "folderFanLabel")
+        verify(fanLabel !== null)
+        compare(fanLabel.shadowEnabled, true)
         verify(popup.height > 0)
         verify(popup.contentItem.tailExtent === 0)
         // The arc paints no surface: the rows are the popup, with no chrome.

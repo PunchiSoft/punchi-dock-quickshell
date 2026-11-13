@@ -30,7 +30,6 @@ ItemDelegate {
     property bool showLabels: true
     property bool iconsOnRight: true
     property bool motionEnabled: true
-    property bool textShadow: false
     // The fan owns which signal paints the band; see PunchiFanView.
     property bool pointerEmphasis: true
     property int contentPadding: Kirigami.Units.smallSpacing
@@ -174,7 +173,9 @@ ItemDelegate {
                 horizontalAlignment: root.iconsOnRight
                     ? Text.AlignRight : Text.AlignLeft
                 font: root.labelFont
-                shadowEnabled: root.textShadow
+                // The fan rows float without a card; they keep the 0.25
+                // shadow regardless of the Menu text-shadow switch.
+                shadowEnabled: true
             }
         }
 

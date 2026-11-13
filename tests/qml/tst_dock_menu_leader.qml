@@ -119,7 +119,7 @@ TestCase {
         tryVerify(function() { return marquee.scrollOffset < -1 }, 5000)
     }
 
-    function test_menuTextShadowFollowsTheSetting() {
+    function test_rightClickMenuTextShadowFollowsTheSwitch() {
         const content = createTemporaryObject(fixture, test)
         verify(content !== null)
         wait(50)
@@ -128,6 +128,7 @@ TestCase {
         const removeAction = findChild(content, "removeMenuAction")
         const plain = findChild(removeAction, "popupRowLabel")
         verify(marquee !== null && plain !== null)
+        compare(content.settings.menuTextShadow, false)
         compare(marquee.shadowEnabled, false)
         compare(plain.shadowEnabled, false)
         content.settings.menuTextShadow = true

@@ -11,9 +11,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
-- Add a **Menu → Text shadow** switch, off by default, for the 0.25 theme-aware
-  shadow on application labels, category headings, the distribution name,
-  folder and recent-application labels, popup rows and section headings.
+- Add a **Menu → Right-click menu text shadow** switch, on by default, for the
+  dock's right-click menu only. Turn it off for readers who find the doubled edge
+  harder to read. The fullscreen menu, folder and recent containers and Fan rows
+  keep the 0.25 shadow independently.
 - Scroll overflowing fullscreen-menu labels on pointer or keyboard selection,
   matching the popup entries.
 - Close the fullscreen menu with Escape from the search field or a selected
