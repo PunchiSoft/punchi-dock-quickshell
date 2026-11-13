@@ -398,11 +398,15 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/scripts-dev/check-flaky-quarantine.py)
     add_test(NAME user_setup_scripts COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
+    add_test(NAME build_dir_ownership COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/build_dir_ownership_test.py)
+    add_test(NAME shell_removal COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/shell_removal_test.py)
     add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
-    set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract component_naming user_setup_scripts autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
+    set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract component_naming user_setup_scripts build_dir_ownership shell_removal autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
     set_tests_properties(user_setup_install PROPERTIES TIMEOUT 240)
     set_tests_properties(cmake_install PROPERTIES TIMEOUT 180)
 
@@ -442,6 +446,8 @@ if(BUILD_TESTING)
         profile_exchange
         settings_store_legacy
         user_setup_scripts
+        build_dir_ownership
+        shell_removal
         user_setup_install
         cmake_install
     )

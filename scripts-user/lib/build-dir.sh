@@ -54,6 +54,29 @@ punchi_build_dir() {
     printf '%s/build/build\n' "$root"
 }
 
+# A build tree may only be removed when its cache was written for this checkout.
+# `PUNCHI_BUILD_DIR` can point outside `build/`, so the path alone is not proof
+# of ownership: a cache that names another source tree must survive a stale-tool
+# cleanup. The cache belongs to the project when CMake recorded exactly this
+# source directory, the cache is a regular file and the path is not a symlink.
+punchi_build_cache_owned_by_project() {
+    local dir="${1:-}"
+    local root=""
+    local recorded=""
+    local resolved_recorded=""
+    local resolved_root=""
+    [[ -n "$dir" && -d "$dir" ]] || return 1
+    [[ -f "$dir/CMakeCache.txt" && ! -L "$dir/CMakeCache.txt" ]] || return 1
+    root="$(punchi_build_root)"
+    [[ -n "$root" ]] || return 1
+    recorded="$(sed -n -E 's/^CMAKE_HOME_DIRECTORY:INTERNAL=(.*)$/\1/p' \
+        "$dir/CMakeCache.txt" 2>/dev/null | head -n 1)"
+    [[ -n "$recorded" ]] || return 1
+    resolved_recorded="$(realpath -m -- "$recorded" 2>/dev/null || true)"
+    resolved_root="$(realpath -m -- "$root" 2>/dev/null || true)"
+    [[ -n "$resolved_recorded" && "$resolved_recorded" == "$resolved_root" ]]
+}
+
 punchi_build_artifacts_ready() {
     local dir="${1:-}"
     [[ -n "$dir" ]] || dir="$(punchi_build_dir)"

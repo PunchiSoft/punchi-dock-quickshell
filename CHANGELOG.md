@@ -42,6 +42,13 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 - Show application labels when the fullscreen menu opens before its surface is
   measured.
+- Remove a stale build tree only when its CMake cache names this checkout, so a
+  `PUNCHI_BUILD_DIR` pointing at another project is never deleted.
+- Treat an autostart entry as owned only when it carries the exact ownership
+  marker and the exact launcher command, not when a foreign file merely contains
+  the marker text.
+- Check shell removal commands in the validation graph: a quoted variable followed
+  by `/*` and a recursive removal without `--` fail the run.
 
 ## 0.2.0-beta.1 — 2026-11-11
 

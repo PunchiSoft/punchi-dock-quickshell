@@ -169,6 +169,22 @@ def main() -> int:
         assert 'AUTOSTART_FOREIGN_PASSED' in output, output
         assert foreign.read_text() == original
 
+        # A foreign entry that merely mentions the marker is still not ours: the
+        # exact launcher command must be present on its own line.
+        marked_home = root / 'marked-config'
+        (marked_home / 'autostart').mkdir(parents=True)
+        marked = marked_home / 'autostart' / 'punchi-dock-quickshell.desktop'
+        marked_original = (
+            '[Desktop Entry]\n'
+            'Name=Another autostart entry\n'
+            'X-Punchi-Dock-Quickshell-Owned=true\n'
+            'Exec="/bin/true" start\n'
+        )
+        marked.write_text(marked_original)
+        output = run_fixture(runner, root, marked_home, True)
+        assert 'AUTOSTART_FOREIGN_PASSED' in output, output
+        assert marked.read_text() == marked_original
+
         empty_home = root / 'empty-config'
         (empty_home / 'autostart').mkdir(parents=True)
         empty = empty_home / 'autostart' / 'punchi-dock-quickshell.desktop'

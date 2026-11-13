@@ -196,6 +196,12 @@ that CI uses, so it is the single-distribution route.
 compositor; the full command adds the `session` label that needs the live
 Plasma/KWin Wayland session. CI runs `scripts-dev/ci-headless.sh` inside Fedora 44
 with the presets and never claims session or visual validation.
+`build_dir_ownership` proves a stale build tree is removed only when its CMake
+cache names this checkout. `shell_removal` rejects a recursive removal without
+`--` and a quoted variable followed by `/*`; when `ShellCheck` is installed it
+also checks SC2115, SC2086, SC2046 and SC2068 on the setup and development
+scripts. CI installs that package; a local run without it still applies the
+static rules.
 `project_version` compares the tracked version declarations with the newest
 changelog heading.
 

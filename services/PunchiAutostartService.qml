@@ -23,6 +23,7 @@ QtObject {
     readonly property string launcherPath: Quickshell.shellDir + "/scripts-user/launcher.sh"
     readonly property string iconPath: Quickshell.shellDir
         + "/assets/icons/punchi-dock-quickshell.svg"
+    readonly property string launcherExec: "Exec=" + execQuote(launcherPath) + " start"
 
     property bool active: false
     property bool draftEnabled: false
@@ -32,7 +33,11 @@ QtObject {
     property string error: ""
     property string currentText: ""
 
-    readonly property bool owned: currentText.indexOf(marker) >= 0
+    // Only a file that carries the exact marker line and our exact launcher
+    // command is ours. A substring match would let a foreign entry that merely
+    // mentions the marker be overwritten or removed.
+    readonly property bool owned: hasLine(currentText, marker)
+        && hasLine(currentText, launcherExec)
     readonly property bool foreign: present && !owned
     readonly property bool enabled: owned
     // A trial profile is never loaded by the session, so its switch stays off.
@@ -82,6 +87,10 @@ QtObject {
         currentText = file.text()
     }
 
+    function hasLine(text: string, expected: string): bool {
+        return text.split(/\r?\n/).indexOf(expected) >= 0
+    }
+
     function execQuote(value: string): string {
         return "\"" + String(value)
             .replace(/\\/g, "\\\\")
@@ -96,7 +105,7 @@ QtObject {
             "[Desktop Entry]",
             "Type=Application",
             "Name=Punchi Dock Quickshell",
-            "Exec=" + execQuote(launcherPath) + " start",
+            launcherExec,
             "Icon=" + iconPath,
             "Terminal=false",
             "OnlyShowIn=KDE;",

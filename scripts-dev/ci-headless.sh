@@ -38,9 +38,9 @@ if [[ "${EUID}" -eq 0 ]]; then
                 punchi_fedora_build_packages
                 punchi_fedora_validation_packages
                 # git and the KDE platform theme are not runtime dependencies of
-                # the dock; breeze and qtsvg back the theme and icon checks, and
-                # ruff checks the tooling scripts.
-                printf '%s\n' git plasma-integration breeze-icon-theme qt6-qtsvg ruff
+                # the dock; breeze and qtsvg back the theme and icon checks, ruff
+                # checks the tooling scripts and ShellCheck the removal rules.
+                printf '%s\n' git plasma-integration breeze-icon-theme qt6-qtsvg ruff ShellCheck
             } | sort -u
         )
         dnf install -y "${packages[@]}"
@@ -62,7 +62,7 @@ if [[ "${EUID}" -eq 0 ]]; then
         useradd --create-home --shell /bin/bash punchi
     fi
     workspace=/home/punchi/punchi-dock-quickshell
-    rm -rf "$workspace"
+    rm -rf -- "$workspace"
     mkdir -p "$workspace"
     tar -C "$repo_root" --exclude=./build --exclude='./build-*' --exclude=./.git \
         --exclude=./docs-private --exclude=./scratch -cf - . | tar -xf - -C "$workspace"
