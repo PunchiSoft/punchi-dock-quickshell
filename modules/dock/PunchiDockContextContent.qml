@@ -87,14 +87,20 @@ Item {
     readonly property real menuApplicationsMaxHeight: Math.min(
         Kirigami.Units.gridUnit * 40,
         Math.max(Kirigami.Units.gridUnit * 12, Screen.height * 0.68))
-    // The menu leader width follows its content. The 24 grid-unit ceiling is
-    // the same cap the existing recent-files popup uses, not a new width.
-    readonly property real menuApplicationLabelWidth: {
-        let width = 0
+    // The app list composes like the recent-files section: its rows measure
+    // themselves and the section caps its whole width at 24 grid units, so a
+    // long name can never widen the balloon past that cap. A name that still
+    // does not fit is revealed by the popup row marquee, not by eliding.
+    readonly property real menuApplicationsWidth: {
+        if (root.installedApplications.length === 0) return 0
+        let label = 0
         for (const application of root.installedApplications)
-            width = Math.max(width, labelMetrics.advanceWidth(
+            label = Math.max(label, labelMetrics.advanceWidth(
                 String(application.name || application.title || "")))
-        return Math.min(Kirigami.Units.gridUnit * 24, width)
+        return Math.min(Kirigami.Units.gridUnit * 24,
+            Math.max(Kirigami.Units.gridUnit * 12,
+                label + Kirigami.Units.iconSizes.small
+                    + Kirigami.Units.smallSpacing * 6))
     }
     property bool folderItem: false
     property var folderContainer: null
@@ -160,10 +166,10 @@ Item {
             labelMetrics.advanceWidth(qsTr("Minimize Windows Using")), labelMetrics.advanceWidth(qsTr("Automatically Hide Dock")))
         : menuLeader ? Math.max(labelMetrics.advanceWidth(removeMenuAction.text),
             labelMetrics.advanceWidth(showMenuAction.text),
-            labelMetrics.advanceWidth(configureMenuAction.text),
-            root.menuApplicationLabelWidth) : 0))
+            labelMetrics.advanceWidth(configureMenuAction.text)) : 0))
     implicitWidth: (verticalTail ? pointerHeight : 0) + Math.max(Kirigami.Units.gridUnit * (trashItem ? 8 : 12),
         labelWidth + Kirigami.Units.iconSizes.small + Kirigami.Units.smallSpacing * 6 + contentPadding * 2,
+        menuApplications.visible ? root.menuApplicationsWidth + contentPadding * 2 : 0,
         recentContent.visible ? Math.min(recentContent.implicitWidth, Kirigami.Units.gridUnit * 24) + contentPadding * 2 : 0,
         placesContent.visible ? placesContent.implicitWidth + contentPadding * 2 : 0,
         dockBackground ? dockAutoHideAction.implicitWidth + contentPadding * 2 : 0,
@@ -235,6 +241,7 @@ Item {
                 width: menuApplications.width - menuApplications.rightMargin
                 text: String(modelData.name || modelData.title || "")
                 icon.name: String(modelData.iconName || "application-x-executable")
+                marquee: true
                 motionEnabled: root.motionEnabled
                 onClicked: root.applicationRequested(String(modelData.appId || ""))
             }
