@@ -121,6 +121,9 @@ Item {
     property Item recentLayoutFirstAction: null
     property bool canEmptyTrash: false
     property string openDockSubmenu: ""
+    // Folder and container choices open as submenus in the same balloon, like
+    // the parent dock menu. Empty means the parent menu is showing.
+    property string openItemSubmenu: ""
     property string tailEdge: "bottom"
     readonly property bool verticalTail: tailEdge === "left" || tailEdge === "right"
     property real pointerY: height / 2
@@ -184,6 +187,25 @@ Item {
     width: implicitWidth
     height: implicitHeight
 
+    function showItemSubmenu(name: string): void {
+        root.openItemSubmenu = name
+        const target = name === "sort" ? root.folderSortNameAction
+            : root.recentLayoutFirstAction
+        Qt.callLater(function() {
+            if (target) target.forceActiveFocus(Qt.MouseFocusReason)
+        })
+    }
+    function hideItemSubmenu(): void {
+        const target = root.openItemSubmenu === "sort"
+            ? sortSubmenuAction : viewSubmenuAction
+        root.openItemSubmenu = ""
+        Qt.callLater(function() {
+            if (target) target.forceActiveFocus(Qt.MouseFocusReason)
+        })
+    }
+    function resetSubmenus(): void {
+        root.openItemSubmenu = ""
+    }
     function focusFirst(reason) {
         if (reason === undefined) reason = Qt.MouseFocusReason
         // Opening with the pointer does not paint a band; the keyboard does.
@@ -192,10 +214,12 @@ Item {
             menuApplications.forceActiveFocus(reason)
         } else if (root.menuLeader) showMenuAction.forceActiveFocus(reason)
         else if (root.trashItem) openTrashAction.forceActiveFocus(reason)
-        else if (root.recentContainer && root.recentLayoutFirstAction)
-            root.recentLayoutFirstAction.forceActiveFocus(reason)
-        else if (root.folderItem && root.folderSortNameAction)
+        else if (root.openItemSubmenu === "sort" && root.folderSortNameAction)
             root.folderSortNameAction.forceActiveFocus(reason)
+        else if (root.openItemSubmenu === "view" && root.recentLayoutFirstAction)
+            root.recentLayoutFirstAction.forceActiveFocus(reason)
+        else if (root.openItemSubmenu.length > 0) itemSubmenuBackAction.forceActiveFocus(reason)
+        else if (root.folderItem || root.recentContainer) viewSubmenuAction.forceActiveFocus(reason)
         else if (root.dockBackground && root.settings) dockAutoHideAction.forceActiveFocus(reason)
         else configureAction.forceActiveFocus(reason)
     }
@@ -283,18 +307,49 @@ Item {
             icon.name: "preferences-system"
             onClicked: root.settingsRequested()
         }
-        PunchiDockContextSectionHeader {
-            visible: root.folderItem
-            text: qsTr("Sort by")
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: viewSubmenuAction
+            motionEnabled: root.motionEnabled
+            objectName: root.recentContainer ? "recentViewSubmenu" : "folderViewSubmenu"
             Layout.fillWidth: true
+            visible: (root.folderItem || root.recentContainer)
+                && root.openItemSubmenu.length === 0
+            text: root.recentContainer ? qsTr("Container view") : qsTr("Folder view")
+            icon.name: "view-grid"
+            submenu: true
+            onClicked: root.showItemSubmenu("view")
+        }
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: sortSubmenuAction
+            motionEnabled: root.motionEnabled
+            objectName: "folderSortSubmenu"
+            Layout.fillWidth: true
+            visible: root.folderItem && root.openItemSubmenu.length === 0
+            text: qsTr("Sort by")
+            icon.name: "view-sort-ascending"
+            submenu: true
+            onClicked: root.showItemSubmenu("sort")
+        }
+        PunchiDockContextAction {
+            pointerEmphasis: root.pointerEmphasis
+            id: itemSubmenuBackAction
+            motionEnabled: root.motionEnabled
+            objectName: "backToItemMenuAction"
+            Layout.fillWidth: true
+            visible: root.openItemSubmenu.length > 0
+            text: qsTr("Back to menu")
+            icon.name: "go-previous"
+            onClicked: root.hideItemSubmenu()
         }
         Repeater {
             model: [
-                {mode: "name", label: qsTr("Name")},
-                {mode: "size", label: qsTr("Size")},
-                {mode: "modified", label: qsTr("Date Modified")},
-                {mode: "created", label: qsTr("Date Created")},
-                {mode: "kind", label: qsTr("Type")}
+                {mode: "name", label: qsTr("Name"), icon: "format-text-direction-ltr"},
+                {mode: "size", label: qsTr("Size"), icon: "view-sort-descending"},
+                {mode: "modified", label: qsTr("Date Modified"), icon: "document-open-recent"},
+                {mode: "created", label: qsTr("Date Created"), icon: "document-new"},
+                {mode: "kind", label: qsTr("Type"), icon: "application-x-executable"}
             ]
             delegate: PunchiDockContextAction {
                 pointerEmphasis: root.pointerEmphasis
@@ -303,24 +358,20 @@ Item {
                 required property var modelData
                 objectName: "folderSort-" + modelData.mode
                 Layout.fillWidth: true
-                visible: root.folderItem
+                visible: root.folderItem && root.openItemSubmenu === "sort"
                 text: modelData.label
+                icon.name: modelData.icon
                 marked: !!root.folderContainer && root.folderContainer.sortMode === modelData.mode
                 onClicked: root.folderSortRequested(modelData.mode)
                 Component.onCompleted: if (modelData.mode === "name") root.folderSortNameAction = folderSortOption
             }
         }
-        PunchiDockContextSectionHeader {
-            visible: root.folderItem || root.recentContainer
-            text: qsTr("View content as")
-            Layout.fillWidth: true
-        }
         Repeater {
             model: [
-                {mode: "grid", label: qsTr("Grid")},
-                {mode: "list", label: qsTr("List")},
-                {mode: "detail", label: qsTr("Detail")},
-                {mode: "fan", label: qsTr("Fan")}
+                {mode: "grid", label: qsTr("Grid"), icon: "view-grid"},
+                {mode: "list", label: qsTr("List"), icon: "view-list-icons"},
+                {mode: "detail", label: qsTr("Detail"), icon: "view-list-details"},
+                {mode: "fan", label: qsTr("Fan"), icon: "view-list-icons"}
             ]
             delegate: PunchiDockContextAction {
                 pointerEmphasis: root.pointerEmphasis
@@ -330,9 +381,11 @@ Item {
                 objectName: root.recentContainer
                     ? "recentLayout-" + modelData.mode : "folderLayout-" + modelData.mode
                 Layout.fillWidth: true
-                visible: root.folderItem || root.recentContainer
+                visible: (root.folderItem || root.recentContainer)
+                    && root.openItemSubmenu === "view"
                 enabled: modelData.mode !== "fan" || root.fanAvailable
                 text: modelData.label
+                icon.name: modelData.icon
                 marked: root.recentContainer
                     ? root.recentContainerLayout === modelData.mode
                     : !!root.folderContainer && root.folderLayout === modelData.mode
