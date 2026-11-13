@@ -105,6 +105,15 @@ TestCase {
         compare(parsed.profile.menuShortcut, "Ctrl+Alt+M")
     }
 
+    function test_accepts_hiddenMenuButton() {
+        const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuShowDockButton: false}))
+        verify(parsed.ok)
+        compare(parsed.profile.menuShowDockButton, false)
+        compare(PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuShowDockButton: "no"})).reason, "invalid-field")
+    }
+
     function test_accepts_hiddenCloseButton() {
         const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 16,
             menuCloseButtonPosition: "hidden"}))

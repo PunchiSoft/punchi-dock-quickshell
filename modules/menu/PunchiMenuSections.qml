@@ -86,7 +86,6 @@ FocusScope {
     Component.onCompleted: if (root.menuState) root.menuState.rows = root.visibleRows
 
     signal launchRequested(int index)
-    signal contextMenuRequested(int index, point position)
 
     function categoryTitle(categoryId: string): string {
         switch (String(categoryId || "")) {
@@ -313,9 +312,6 @@ FocusScope {
                                 root.menuState.currentIndex = absoluteIndex
                         }
                         onActivated: root.launchRequested(absoluteIndex)
-                        onContextMenuRequested: function(position) {
-                            root.contextMenuRequested(absoluteIndex, position)
-                        }
                     }
                 }
             }

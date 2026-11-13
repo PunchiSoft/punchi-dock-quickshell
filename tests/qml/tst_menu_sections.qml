@@ -232,19 +232,6 @@ TestCase {
         compare(tile.title, "Dolphin")
     }
 
-    function test_secondaryClickForwardsTheRowIndex() {
-        const view = createTemporaryObject(defaultFixture, test)
-        verify(view !== null)
-        const tile = findChild(view, "menuTile")
-        verify(tile !== null)
-        let index = -1
-        view.contextMenuRequested.connect(function(rowIndex, position) {
-            index = rowIndex
-        })
-        mouseClick(tile, 10, 10, Qt.RightButton)
-        verify(index >= 0)
-    }
-
     function test_referenceRowsKeepTheLastRowWhole() {
         const view = createTemporaryObject(largeFixture, test)
         verify(view !== null)

@@ -20,8 +20,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
   selected or primary screen.
 - Allow hiding the fullscreen-menu close button. Right stays the default, and
   Escape, the backdrop and the dock button still close the menu.
-- Open a compact context menu on secondary click in the fullscreen menu, with
-  Open and Pin to Dock/Unpin from Dock.
+- Right-click the PunchiMenu icon in the dock for a balloon list of installed
+  applications, with Remove from Dock, Show PunchiMenu and Configure PunchiDock
+  at the bottom. **Show menu button** in Settings → Menu restores a removed
+  icon; the global shortcut and IPC commands still open the menu.
 
 ### Changed
 

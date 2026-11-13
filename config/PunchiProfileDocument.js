@@ -18,7 +18,7 @@ const maximumBytes = 262144
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
     "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
     "avoidInnerEdgeAutoHide", "menuBackgroundBlurEnabled", "menuShowDistributionName",
-    "menuShowScrollBar", "menuShowLabels", "menuShowDock",
+    "menuShowScrollBar", "menuShowLabels", "menuShowDock", "menuShowDockButton",
     // Version 15 profiles stored the paging arrows under this key; it stays
     // accepted so an older export still migrates to the scroll bar.
     "menuShowPageArrows"]
