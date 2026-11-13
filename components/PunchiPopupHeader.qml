@@ -11,6 +11,7 @@ Item {
     id: root
     property string title: ""
     property bool canGoBack: false
+    property bool textShadow: false
     signal backRequested()
     signal closeRequested()
     implicitHeight: Math.max(back.implicitHeight, closeButton.implicitHeight)
@@ -38,6 +39,7 @@ Item {
     PunchiPopupShadowLabel {
         anchors.centerIn: parent
         objectName: "folderPopupTitle"
+        shadowEnabled: root.textShadow
         width: Math.max(0, root.width - (back.visible ? back.width : 0)
             - closeButton.width - Kirigami.Units.largeSpacing * 2)
         text: root.title

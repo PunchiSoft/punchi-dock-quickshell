@@ -17,6 +17,7 @@ Item {
     // Published by the surface: true while the pointer moved last.
     property bool pointerEmphasis: true
     property bool motionEnabled: true
+    property bool textShadow: false
     property bool showLabel: true
     property string hoverAnimation: "pulse"
     property int iconSize: Kirigami.Units.iconSizes.huge
@@ -102,6 +103,7 @@ Item {
                 focused: root.selected && !root.pointerEmphasis
                 motionEnabled: root.motionEnabled
                 maximumRestingWidth: root.contentWidth
+                shadowEnabled: root.textShadow
             }
         }
     }

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma ComponentBehavior: Bound
 import QtQuick
-import QtQuick.Controls as Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import "../../components"
@@ -17,6 +16,7 @@ Item {
     property string distributionName: ""
     property string distributionLogo: ""
     property bool showDistributionName: true
+    property bool textShadow: false
     property string closeButtonPosition: "right"
     property alias searchText: search.text
     property bool motionEnabled: true
@@ -97,6 +97,7 @@ Item {
                 }
                 PunchiPopupShadowLabel {
                     objectName: "menuDistributionTitle"
+                    shadowEnabled: root.textShadow
                     text: root.showDistributionName ? root.distributionName : ""
                     font.family: Kirigami.Theme.defaultFont.family
                     // Kirigami.Heading level 2 is 1.20x the default point size.

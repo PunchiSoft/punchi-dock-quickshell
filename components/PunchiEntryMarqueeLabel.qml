@@ -19,7 +19,9 @@ Item {
     // menu passes its full cell width.
     property real maximumRestingWidth: Math.ceil(restingMetrics.advanceWidth)
     // A menu paints tens of entries, so it disables the per-label MultiEffect.
-    property bool shadowEnabled: true
+    // Off by default; the menu setting opts in. The doubled edge reduces
+    // legibility for readers with astigmatism.
+    property bool shadowEnabled: false
     readonly property real naturalTextWidth: Math.ceil(textMetrics.advanceWidth)
     readonly property real viewportWidth: Math.max(0, Math.min(width, maximumRestingWidth))
     readonly property bool overflowing: naturalTextWidth > viewportWidth + 0.5

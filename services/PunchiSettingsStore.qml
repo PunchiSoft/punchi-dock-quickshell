@@ -96,6 +96,7 @@ Scope {
         function onMenuApplicationOrderChanged() { root.save() }
         function onMenuShowScrollBarChanged() { root.save() }
         function onMenuShowLabelsChanged() { root.save() }
+        function onMenuTextShadowChanged() { root.save() }
         function onMenuShowDockChanged() { root.save() }
         function onMenuShowDockButtonChanged() { root.save() }
         function onMenuIconScaleChanged() { root.save() }

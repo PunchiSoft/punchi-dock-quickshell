@@ -112,6 +112,7 @@ Popup {
         dockEdge: root.dockEdge
         surfaceVisible: root.visible
         reducedMotion: root.settings.effectiveReducedMotion
+        textShadow: root.settings.menuTextShadow
         maximumWidth: Math.max(1, (root.parent ? root.parent.width : Kirigami.Units.gridUnit * 36)
             - Kirigami.Units.largeSpacing * 2)
         maximumHeight: Math.max(1, Math.min(

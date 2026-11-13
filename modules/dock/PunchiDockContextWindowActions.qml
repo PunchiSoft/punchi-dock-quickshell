@@ -7,6 +7,7 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property bool motionEnabled: true
+    property bool textShadow: false
     property bool pointerEmphasis: true
     property var windowActions: ({})
     property var virtualDesktops: []
@@ -21,6 +22,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: desktopAction
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "moveToDesktopSubmenu"
         Layout.fillWidth: true
         visible: root.hasDesktopSubmenu
@@ -32,6 +34,7 @@ ColumnLayout {
     PunchiDockContextAction {
         pointerEmphasis: root.pointerEmphasis
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "moveToCurrentDesktopAction"
         Layout.fillWidth: true
         Layout.leftMargin: Kirigami.Units.gridUnit
@@ -51,6 +54,7 @@ ColumnLayout {
     PunchiDockContextAction {
         pointerEmphasis: root.pointerEmphasis
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "allDesktopsAction"
         Layout.fillWidth: true
         Layout.leftMargin: Kirigami.Units.gridUnit
@@ -64,6 +68,7 @@ ColumnLayout {
         delegate: PunchiDockContextAction {
             pointerEmphasis: root.pointerEmphasis
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             required property var modelData
             required property int index
             objectName: "virtualDesktop-" + modelData.id
@@ -79,6 +84,7 @@ ColumnLayout {
     PunchiDockContextAction {
         pointerEmphasis: root.pointerEmphasis
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "newVirtualDesktopAction"
         Layout.fillWidth: true
         Layout.leftMargin: Kirigami.Units.gridUnit
@@ -92,6 +98,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: moreAction
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "moreWindowActionsSubmenu"
         Layout.fillWidth: true
         visible: root.hasWindow
@@ -115,6 +122,7 @@ ColumnLayout {
         delegate: PunchiDockContextAction {
             pointerEmphasis: root.pointerEmphasis
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             required property var modelData
             objectName: "windowAction-" + modelData.action
             Layout.fillWidth: true
@@ -133,6 +141,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: closeAction
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "closeWindowAction"
         Layout.fillWidth: true
         visible: root.hasWindow

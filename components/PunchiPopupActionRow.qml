@@ -21,6 +21,8 @@ ItemDelegate {
     // PunchiEntryMarqueeLabel, the same carousel the menu labels use. Other
     // popup rows keep the resting elide.
     property bool marquee: false
+    // The menu setting opts into the shared 25% text shadow. Off by default.
+    property bool textShadow: false
     readonly property PunchiPopupMetrics metrics: PunchiPopupMetrics {}
     focusPolicy: Qt.StrongFocus
     // The marquee label never exposes its glyphs, so the row carries the name.
@@ -83,11 +85,12 @@ ItemDelegate {
             hovered: root.hovered
             focused: root.visualFocus
             motionEnabled: root.motionEnabled
-            shadowEnabled: false
+            shadowEnabled: root.textShadow
         }
-        Label {
+        PunchiPopupShadowLabel {
             objectName: "popupRowLabel"
             visible: !root.marquee
+            shadowEnabled: root.textShadow
             text: root.text
             font: root.font
             color: !root.enabled ? Kirigami.Theme.disabledTextColor

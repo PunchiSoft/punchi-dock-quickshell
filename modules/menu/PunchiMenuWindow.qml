@@ -156,6 +156,9 @@ PanelWindow {
                 showDistributionName: root.settings
                     ? root.settings.menuShowDistributionName
                     : root.profileDefaults.menuShowDistributionName
+                textShadow: root.settings
+                    ? root.settings.menuTextShadow
+                    : root.profileDefaults.menuTextShadow
                 closeButtonPosition: root.settings
                     ? root.settings.menuCloseButtonPosition
                     : root.profileDefaults.menuCloseButtonPosition
@@ -176,6 +179,9 @@ PanelWindow {
                 motionEnabled: root.motionEnabled
                 showLabels: root.settings
                     ? root.settings.menuShowLabels : root.profileDefaults.menuShowLabels
+                textShadow: root.settings
+                    ? root.settings.menuTextShadow
+                    : root.profileDefaults.menuTextShadow
                 showScrollBar: root.settings
                     ? root.settings.menuShowScrollBar
                     : root.profileDefaults.menuShowScrollBar

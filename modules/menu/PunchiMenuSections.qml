@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import "../../config"
+import "../../components"
 
 // Continuous application listing. The service prepares display rows (a heading
 // row per named section and rows of at most `columns` applications), and this
@@ -29,6 +30,7 @@ FocusScope {
     // The surface states whether it is on screen, so an opening menu always
     // starts at the top and a closed one does not keep a stale position.
     property bool active: false
+    property bool textShadow: false
 
     readonly property PunchiMenuMetrics metrics: PunchiMenuMetrics {}
     readonly property bool measured: root.width > 1 && root.height > 1
@@ -181,12 +183,13 @@ FocusScope {
     Accessible.role: Accessible.Grouping
     Accessible.name: qsTr("Applications grouped by category")
 
-    Controls.Label {
+    PunchiPopupShadowLabel {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         anchors.verticalCenterOffset: -Kirigami.Units.gridUnit
         width: parent.width - Kirigami.Units.gridUnit * 2
         visible: root.menuState && root.menuState.filtered.length === 0
+        shadowEnabled: root.textShadow
         horizontalAlignment: Text.AlignHCenter
         wrapMode: Text.WordWrap
         text: qsTr("No application matches your search")
@@ -257,13 +260,15 @@ FocusScope {
                 Accessible.role: Accessible.Heading
                 Accessible.name: displayRow.heading
 
-                Controls.Label {
+                PunchiPopupShadowLabel {
                     id: headerLabel
+                    objectName: "menuSectionHeadingLabel"
                     anchors.left: parent.left
                     anchors.verticalCenter: parent.verticalCenter
                     text: displayRow.heading
                     textFormat: Text.PlainText
                     font.weight: Font.DemiBold
+                    shadowEnabled: root.textShadow
                 }
                 Kirigami.Separator {
                     anchors.left: headerLabel.right
@@ -299,6 +304,7 @@ FocusScope {
                         iconName: String(modelData.application.iconName || "")
                         showLabel: root.showCellLabels
                         motionEnabled: root.motionEnabled
+                        textShadow: root.textShadow
                         hoverAnimation: root.hoverAnimation
                         iconSize: root.iconSize
                         selected: root.menuState

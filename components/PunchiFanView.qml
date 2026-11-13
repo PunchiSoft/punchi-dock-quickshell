@@ -27,6 +27,7 @@ Item {
     property string fontFamily: Kirigami.Theme.defaultFont.family
     property int fontSize: Kirigami.Theme.defaultFont.pointSize
     property bool motionEnabled: true
+    property bool textShadow: false
     // Whether the surface that hosts the fan is on screen. Opening derives from
     // it, so the arc never plays while the popup is hidden.
     property bool opened: true
@@ -297,6 +298,7 @@ Item {
         delegate: PunchiFanRow {
             id: entryRow
             pointerEmphasis: root.pointerEmphasis
+            textShadow: root.textShadow
 
             required property int index
             required property string entryName
@@ -340,6 +342,7 @@ Item {
         id: actionRow
         objectName: "folderFanOpenLocation"
         pointerEmphasis: root.pointerEmphasis
+        textShadow: root.textShadow
         visible: root.hasLocationAction
         enabled: visible
         width: root.width

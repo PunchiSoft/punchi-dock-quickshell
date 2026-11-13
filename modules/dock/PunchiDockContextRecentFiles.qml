@@ -7,6 +7,7 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property bool motionEnabled: true
+    property bool textShadow: false
     property bool pointerEmphasis: true
     property var documents: null
     readonly property int count: documents ? documents.count : 0
@@ -15,6 +16,7 @@ ColumnLayout {
     spacing: Kirigami.Units.smallSpacing
     implicitWidth: Math.max(Kirigami.Units.gridUnit * 12, files.implicitWidth, forgetAction.implicitWidth)
     PunchiDockContextSectionHeader {
+        textShadow: root.textShadow
         text: qsTr("Recent Files")
         Layout.fillWidth: true
     }
@@ -27,6 +29,7 @@ ColumnLayout {
             delegate: PunchiDockContextAction {
                 pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
+                textShadow: root.textShadow
                 required property string resource
                 required property string name
                 required property string iconName
@@ -44,6 +47,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: forgetAction
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "forgetRecentAction"
         text: qsTr("Forget Recent Files")
         icon.name: "edit-clear-history"

@@ -34,6 +34,7 @@ Item {
     property real pointerY: height / 2
     property bool blurAvailable: false
     property bool reducedMotion: false
+    property bool textShadow: false
     // Which emphasis the pointer owns. The owner turns it off while the keyboard
     // moves, so a row never shows the pointer and the keyboard band at once.
     property bool pointerEmphasis: true
@@ -215,6 +216,7 @@ Item {
             visible: !root.fanMode
             title: root.title
             canGoBack: false
+            textShadow: root.textShadow
             onCloseRequested: root.closeRequested()
         }
         Item {
@@ -270,6 +272,7 @@ Item {
                     objectName: "recentApplicationEntry-" + gridEntry.index
                     width: grid.cellWidth; height: grid.cellHeight
                     grid: true
+                    textShadow: root.textShadow
                     metrics: root.metrics
                     motionEnabled: root.motionEnabled
                     highlighted: GridView.isCurrentItem
@@ -302,6 +305,7 @@ Item {
                     width: list.width - root.scrollGutter
                     height: root.rowHeight
                     grid: false
+                    textShadow: root.textShadow
                     detailed: root.viewMode === "detail"
                     metrics: root.metrics
                     motionEnabled: root.motionEnabled
@@ -318,6 +322,7 @@ Item {
                 objectName: "recentApplicationsFan"
                 anchors.fill: parent
                 visible: root.fanMode
+                textShadow: root.textShadow
                 contents: root.selection
                 dockEdge: root.dockEdge
                 iconSize: Math.round(root.metrics.fanIconSize)

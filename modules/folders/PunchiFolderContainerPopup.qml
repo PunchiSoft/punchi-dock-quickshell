@@ -168,6 +168,7 @@ Popup {
         pointerY: anchor.anchorGeometry.y + anchor.anchorGeometry.height / 2 - root.y
         blurAvailable: blurController.available
         reducedMotion: root.settings.effectiveReducedMotion
+        textShadow: root.settings.menuTextShadow
         onCloseRequested: root.dismiss()
     }
 }

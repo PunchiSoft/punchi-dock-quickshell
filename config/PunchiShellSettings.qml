@@ -67,6 +67,7 @@ QtObject {
     property string menuApplicationOrder: defaultProfile.menuApplicationOrder
     property bool menuShowScrollBar: defaultProfile.menuShowScrollBar
     property bool menuShowLabels: defaultProfile.menuShowLabels
+    property bool menuTextShadow: defaultProfile.menuTextShadow
     property bool menuShowDock: defaultProfile.menuShowDock
     property bool menuShowDockButton: defaultProfile.menuShowDockButton
     property real menuIconScale: defaultProfile.menuIconScale
@@ -303,7 +304,7 @@ QtObject {
             popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
             menuShowDistributionName, menuApplicationOrder, menuShowScrollBar, menuShowLabels,
             menuShowDock, menuShowDockButton, menuIconScale, menuCloseButtonPosition,
-            menuShortcut, menuHoverAnimation}
+            menuShortcut, menuHoverAnimation, menuTextShadow}
     }
     function validPopupIconSize(value, maximum): bool {
         return value === 0 || (Number.isInteger(value) && value >= popupIconSizeMinimum
@@ -386,7 +387,7 @@ QtObject {
             for (const key of ["magnificationEnabled", "reducedMotion", "bounceEnabled",
                     "recentApplicationsEnabled", "updateBadgeEnabled",
                     "menuBackgroundBlurEnabled", "menuShowDistributionName",
-                    "menuShowLabels", "menuShowDock", "menuShowDockButton"])
+                    "menuShowLabels", "menuShowDock", "menuShowDockButton", "menuTextShadow"])
                 if (typeof data[key] === "boolean") this[key] = data[key]
             if (inRange(data.recentApplicationsCount,
                     PunchiDefaultProfile.limits.recentApplicationsCount, true))

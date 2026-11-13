@@ -11,7 +11,7 @@ category. **Apply** saves pending changes, **Accept** saves and closes, and
 | **Items** | The pinned item list, Add Item, ordering, item configuration and removal |
 | **General** | Icon size, magnification, bounce, reduced motion, position, visibility, screens and desktops, updates and autostart |
 | **Popups** | Popup size, height and icon size for the folder presentations |
-| **Menu** | Fullscreen-menu blur, opacity, icon size, labels, distribution name, order, scroll bar, close-button corner or hidden, hover animation, dock-over-menu, dock menu button and the global menu shortcut |
+| **Menu** | Fullscreen-menu blur, opacity, icon size, labels, text shadow, distribution name, order, scroll bar, close-button corner or hidden, hover animation, dock-over-menu, dock menu button and the global menu shortcut |
 | **Profile** | Portable profile export and import with preview |
 | **About** | Application version, website and issue links, license, authors and the **Made with love** dedication |
 
@@ -54,7 +54,7 @@ catalogue and the values restored by **Reset defaults**:
 | Visibility | Windows go below (`overlay`), without reserving screen space |
 | Reduced motion | Local override off; KDE animation preferences still apply |
 | Icons | The user's icon theme, including live KDE theme-change notifications |
-| Fullscreen menu | Blur on, 60% background opacity, application labels on, distribution name on, alphabetical order, scroll bar off, dock over the menu, dock menu button shown, close button on the right, no global shortcut |
+| Fullscreen menu | Blur on, 60% background opacity, application labels on, text shadow off, distribution name on, alphabetical order, scroll bar off, dock over the menu, dock menu button shown, close button on the right, no global shortcut |
 
 These are prototype defaults, not a guarantee that every preset application is
 installed. **Browser** names a role instead of an application: the item opens the

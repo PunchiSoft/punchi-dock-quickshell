@@ -11,6 +11,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Add a **Menu → Text shadow** switch, off by default, for the 0.25 theme-aware
+  shadow on application labels, category headings, the distribution name,
+  folder and recent-application labels, popup rows and section headings.
 - Scroll overflowing fullscreen-menu labels on pointer or keyboard selection,
   matching the popup entries.
 - Close the fullscreen menu with Escape from the search field or a selected

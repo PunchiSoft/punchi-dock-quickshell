@@ -29,12 +29,23 @@ TestCase {
             title: "A deliberately long application name that overflows"
             iconName: "system-file-manager"
             motionEnabled: true
+            textShadow: true
         }
     }
 
     function init() {
         failOnWarning(/.*/)
         mouseMove(test, 390, 290)
+    }
+
+    function test_textShadowIsOptIn() {
+        const tile = createTemporaryObject(fixture, test)
+        verify(tile !== null)
+        const label = findChild(tile, "folderMarqueeLabel")
+        verify(label !== null)
+        compare(label.shadowEnabled, false)
+        tile.textShadow = true
+        tryCompare(label, "shadowEnabled", true)
     }
 
     function test_oneBandOnly() {
