@@ -9,6 +9,7 @@ import "../../components"
 ColumnLayout {
     id: root
     property bool motionEnabled: true
+    property bool textShadow: false
     property bool pointerEmphasis: true
     property var places: null
     readonly property int count: places ? places.count : 0
@@ -30,6 +31,7 @@ ColumnLayout {
         })
     }
     PunchiDockContextSectionHeader {
+        textShadow: root.textShadow
         objectName: "placesSectionHeader"
         text: root.groupName.length > 0 ? root.groupName : qsTr("Places")
         Layout.fillWidth: true
@@ -38,6 +40,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: backAction
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "backToPlacesAction"
         Layout.fillWidth: true
         visible: root.groupName.length > 0
@@ -63,6 +66,7 @@ ColumnLayout {
                 delegate: PunchiDockContextAction {
                     pointerEmphasis: root.pointerEmphasis
                     motionEnabled: root.motionEnabled
+                    textShadow: root.textShadow
                     required property string resource
                     required property string name
                     required property string iconName
@@ -88,6 +92,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: moreAction
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "morePlacesAction"
         Layout.fillWidth: true
         visible: root.remainingCount > 0

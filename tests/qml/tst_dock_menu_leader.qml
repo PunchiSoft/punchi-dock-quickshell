@@ -20,6 +20,7 @@ TestCase {
             // actually travel instead of falling back to the tooltip.
             settings: QtObject {
                 property bool effectiveReducedMotion: false
+                property bool menuTextShadow: false
                 property bool fanSupported: true
                 property bool magnificationEnabled: false
                 property string panelMode: "always"
@@ -116,6 +117,22 @@ TestCase {
         marquee.hovered = true
         tryCompare(marquee, "revealFullText", true)
         tryVerify(function() { return marquee.scrollOffset < -1 }, 5000)
+    }
+
+    function test_menuTextShadowFollowsTheSetting() {
+        const content = createTemporaryObject(fixture, test)
+        verify(content !== null)
+        wait(50)
+        const app = findChild(content, "menuApplication-alpha")
+        const marquee = findChild(app, "popupRowMarqueeLabel")
+        const removeAction = findChild(content, "removeMenuAction")
+        const plain = findChild(removeAction, "popupRowLabel")
+        verify(marquee !== null && plain !== null)
+        compare(marquee.shadowEnabled, false)
+        compare(plain.shadowEnabled, false)
+        content.settings.menuTextShadow = true
+        tryCompare(marquee, "shadowEnabled", true)
+        tryCompare(plain, "shadowEnabled", true)
     }
 
     function test_menuLeaderShortNameStaysAtRest() {

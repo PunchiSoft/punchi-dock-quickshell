@@ -24,6 +24,16 @@ Plasma/Kirigami theme.
 The geometry and cosine formulas are described in
 [Dock runtime](../architecture/dock-runtime.md#magnification).
 
+## Text shadow
+
+- The 0.25 theme-aware text shadow is opt-in through **Settings → Menu → Text
+  shadow**; the default keeps menu text clean.
+- When enabled it applies to the fullscreen-menu application labels, category
+  headings, the distribution name, folder and recent-application labels, popup
+  rows and section headings.
+- The doubled edge reduces legibility for readers with astigmatism, which is why
+  the default is off.
+
 ## Launch feedback
 
 - A two-hop bounce preserves the original peaks and easing.

@@ -39,6 +39,7 @@ Item {
     property real pointerY: height / 2
     property bool blurAvailable: false
     property bool reducedMotion: false
+    property bool textShadow: false
     // Optional clipboard used by the entry menu. The popup owner may inject one
     // in tests; the default writes through the Quickshell clipboard.
     property var clipboardService: null
@@ -297,6 +298,7 @@ Item {
             visible: !root.fanMode
             title: root.controller.title
             canGoBack: root.controller.canGoBack
+            textShadow: root.textShadow
             onBackRequested: root.controller.back()
             onCloseRequested: root.closeRequested()
         }
@@ -362,6 +364,7 @@ Item {
                         ? "folderOpenLocation" : "folderGridEntry-" + index
                     width: gridView.cellWidth; height: gridView.cellHeight
                     grid: true
+                    textShadow: root.textShadow
                     metrics: root.metrics
                     motionEnabled: root.motionEnabled
                     highlighted: GridView.isCurrentItem
@@ -415,6 +418,7 @@ Item {
                     width: list.width - root.scrollGutter
                     height: root.rowHeight
                     grid: false
+                    textShadow: root.textShadow
                     detailed: root.viewMode === "detail"
                     metrics: root.metrics
                     motionEnabled: root.motionEnabled
@@ -446,6 +450,7 @@ Item {
                 objectName: "folderFanView"
                 anchors.fill: parent
                 visible: root.fanMode && !root.controller.contents.loading
+                textShadow: root.textShadow
                     && root.controller.contents.error.length === 0
                 contents: root.controller.contents
                 dockEdge: root.dockEdge

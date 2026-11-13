@@ -118,6 +118,17 @@ FolderContents::FolderContents(QObject *parent) : QIdentityProxyModel(parent)
     connect(lister, &KCoreDirLister::jobError, this, [this](KIO::Job *job) {
         m_error = job->errorString(); m_loading = false; emit stateChanged();
     });
+    // Stop the source once it has produced one row past the ceiling. A huge
+    // directory or an accidental mount point must not keep every item and its
+    // metadata in memory just because the view hides the excess rows.
+    connect(&m_directory, &QAbstractItemModel::rowsInserted, this, [this] {
+        if (!m_loading || m_directory.rowCount() <= MaximumEntries) return;
+        if (auto *source = m_directory.dirLister()) {
+            source->stop();
+            m_loading = false;
+            emit stateChanged();
+        }
+    });
     connect(this, &QAbstractItemModel::rowsInserted, this, &FolderContents::changed);
     connect(this, &QAbstractItemModel::rowsRemoved, this, &FolderContents::changed);
     connect(this, &QAbstractItemModel::modelReset, this, &FolderContents::changed);
@@ -217,6 +228,13 @@ QHash<int, QByteArray> FolderContents::roleNames() const
 {
     return {{EntryUrl, "entryUrl"}, {EntryName, "entryName"}, {EntryIcon, "entryIcon"},
             {Directory, "directory"}, {Description, "description"}};
+}
+int FolderContents::rowCount(const QModelIndex &parent) const
+{
+    if (parent.isValid()) return 0;
+    // The source lister still owns every row, but a view never publishes more
+    // than the ceiling and so never asks for their icons or delegates.
+    return qMin(QIdentityProxyModel::rowCount(parent), MaximumEntries);
 }
 QVariant FolderContents::data(const QModelIndex &index, int role) const
 {

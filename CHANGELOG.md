@@ -11,6 +11,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Add a **Menu → Text shadow** switch, off by default, for the 0.25 theme-aware
+  shadow on application labels, category headings, the distribution name,
+  folder and recent-application labels, popup rows and section headings.
 - Scroll overflowing fullscreen-menu labels on pointer or keyboard selection,
   matching the popup entries.
 - Close the fullscreen menu with Escape from the search field or a selected
@@ -42,6 +45,11 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Offer only local KDE Places schemes (`file`, `trash`, `recentdocuments`,
+  `activities`); a remote or custom KIO scheme is no longer passed to the
+  launcher.
+- Cap a folder listing at 5,000 entries, so a huge directory or an accidental
+  mount point cannot fill the popup and its icon requests.
 - Show application labels when the fullscreen menu opens before its surface is
   measured.
 - Open the PunchiMenu dock balloon without the Qt SVG buffer warning: popup rows

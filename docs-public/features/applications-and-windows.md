@@ -48,7 +48,8 @@ A launcher's context menu combines, where the application supports them:
   selected application's window.
 - **KDE Places navigation** for eligible file-manager launchers: the first group
   is inline, later groups open as navigation entries, and places that need device
-  setup stay disabled.
+  setup stay disabled. Only local `file`, `trash`, recent-documents and activities
+  places are offered; a remote or custom KIO scheme is not part of this contract.
 
 The menu is a nonmodal control in the dock's own window, so outside presses
 dismiss it and reach the clicked control in one interaction. Escape restores

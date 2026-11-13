@@ -29,6 +29,8 @@ maintainer's session; <strong>List</strong> is not shown for a folder container.
   **Copy Path**.
 - Columns come from the space the popup really has, so scrolling appears only when
   the entries do not fit, with a slim indicator that fades while the listing rests.
+- A listing publishes at most 5,000 entries; a larger folder or an accidental
+  mount point is truncated instead of filling the popup and its icon requests.
 - Opening inside the balloon uses native KDE file opening and the preferred MIME
   application for the selected entry.
 

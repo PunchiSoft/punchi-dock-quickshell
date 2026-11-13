@@ -20,6 +20,7 @@ ItemDelegate {
     // trailing glyph and the label keeps its room.
     property bool browsable: false
     property bool motionEnabled: true
+    property bool textShadow: false
     // The container shares one metrics object with every row, so the row only
     // carries its own states.
     property PunchiPopupMetrics metrics: PunchiPopupMetrics {}
@@ -107,6 +108,7 @@ ItemDelegate {
                 hovered: root.hovered
                 focused: root.visualFocus
                 motionEnabled: root.motionEnabled
+                shadowEnabled: root.textShadow
             }
             Label {
                 Layout.fillWidth: true

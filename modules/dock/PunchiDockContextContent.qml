@@ -53,6 +53,7 @@ Item {
     // motion is allowed; standalone fixtures keep the instant, final state.
     readonly property bool motionEnabled: root.settings
         ? !root.settings.effectiveReducedMotion : false
+    readonly property bool textShadow: !!root.settings && root.settings.menuTextShadow
     property var minimizeEffectController: null
     property bool usesPlaces: false
     property bool canLaunchNewWindow: false
@@ -267,6 +268,7 @@ Item {
                 icon.name: String(modelData.iconName || "application-x-executable")
                 marquee: true
                 motionEnabled: root.motionEnabled
+                textShadow: root.textShadow
                 onClicked: root.applicationRequested(String(modelData.appId || ""))
             }
         }
@@ -278,6 +280,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: removeMenuAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "removeMenuAction"
             Layout.fillWidth: true
             visible: root.menuLeader
@@ -289,6 +292,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: showMenuAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "showMenuAction"
             Layout.fillWidth: true
             visible: root.menuLeader
@@ -300,6 +304,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: configureMenuAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "configureMenuAction"
             Layout.fillWidth: true
             visible: root.menuLeader
@@ -311,6 +316,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: viewSubmenuAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: root.recentContainer ? "recentViewSubmenu" : "folderViewSubmenu"
             Layout.fillWidth: true
             visible: (root.folderItem || root.recentContainer)
@@ -324,6 +330,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: sortSubmenuAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "folderSortSubmenu"
             Layout.fillWidth: true
             visible: root.folderItem && root.openItemSubmenu.length === 0
@@ -336,6 +343,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: itemSubmenuBackAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "backToItemMenuAction"
             Layout.fillWidth: true
             visible: root.openItemSubmenu.length > 0
@@ -355,6 +363,7 @@ Item {
                 pointerEmphasis: root.pointerEmphasis
                 id: folderSortOption
                 motionEnabled: root.motionEnabled
+                textShadow: root.textShadow
                 required property var modelData
                 objectName: "folderSort-" + modelData.mode
                 Layout.fillWidth: true
@@ -376,6 +385,7 @@ Item {
             delegate: PunchiDockContextAction {
                 pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
+                textShadow: root.textShadow
                 id: folderLayoutOption
                 required property var modelData
                 objectName: root.recentContainer
@@ -401,6 +411,7 @@ Item {
         PunchiDockContextAction {
             pointerEmphasis: root.pointerEmphasis
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "openFolderAction"
             Layout.fillWidth: true
             visible: root.folderItem
@@ -413,6 +424,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: openTrashAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "openTrashAction"
             Layout.fillWidth: true
             visible: root.trashItem
@@ -425,6 +437,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: emptyTrashAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "emptyTrashAction"
             Layout.fillWidth: true
             visible: root.trashItem
@@ -437,6 +450,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: mediaContent
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "dockContextMedia"
             Layout.fillWidth: true
             media: root.media
@@ -447,6 +461,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: placesContent
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             Layout.fillWidth: true
             places: root.places
             visible: root.usesPlaces
@@ -459,6 +474,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: recentContent
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             Layout.fillWidth: true
             documents: root.recentDocuments
             visible: !root.usesPlaces && count > 0
@@ -466,6 +482,7 @@ Item {
             onForgetRequested: root.forgetRecentRequested()
         }
         PunchiDockContextSectionHeader {
+            textShadow: root.textShadow
             visible: recentContent.visible || placesContent.visible
             text: qsTr("Actions")
             Layout.fillWidth: true
@@ -483,6 +500,7 @@ Item {
                     pointerEmphasis: root.pointerEmphasis
                     id: desktopAction
                     motionEnabled: root.motionEnabled
+                    textShadow: root.textShadow
                     required property var modelData
                     objectName: "desktopAction-" + modelData.actionId
                     width: ListView.view.width
@@ -497,6 +515,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: windowActionsContent
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "dockWindowActions"
             Layout.fillWidth: true
             windowActions: root.windowActions
@@ -508,6 +527,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: newWindowAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "openNewWindowAction"
             Layout.fillWidth: true
             visible: root.canLaunchNewWindow
@@ -519,6 +539,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: pinAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "pinDockAction"
             Layout.fillWidth: true
             visible: root.canPin && !root.pinned && !root.trashItem && !root.dockBackground
@@ -530,6 +551,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: unpinAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "unpinDockAction"
             Layout.fillWidth: true
             visible: root.pinned && !root.trashItem
@@ -547,6 +569,7 @@ Item {
             Layout.fillWidth: true
         }
         PunchiDockContextSectionHeader {
+            textShadow: root.textShadow
             visible: !root.trashItem && root.dockBackground
             text: qsTr("Dock")
             Layout.fillWidth: true
@@ -555,6 +578,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: dockAutoHideAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "dockAutoHideAction"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.settings
@@ -566,6 +590,7 @@ Item {
         PunchiDockContextAction {
             pointerEmphasis: root.pointerEmphasis
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "dockMagnificationAction"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.settings
@@ -578,6 +603,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: dockPositionSubmenu
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "dockPositionSubmenu"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.settings
@@ -595,6 +621,7 @@ Item {
             delegate: PunchiDockContextAction {
                 pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
+                textShadow: root.textShadow
                 required property var modelData
                 objectName: "dockPosition-" + modelData.edge
                 Layout.fillWidth: true
@@ -609,6 +636,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: minimizeEffectSubmenu
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "minimizeEffectSubmenu"
             Layout.fillWidth: true
             visible: !root.trashItem && root.dockBackground && !!root.minimizeEffectController && root.minimizeEffectController.available
@@ -627,6 +655,7 @@ Item {
             delegate: PunchiDockContextAction {
                 pointerEmphasis: root.pointerEmphasis
                 motionEnabled: root.motionEnabled
+                textShadow: root.textShadow
                 required property var modelData
                 objectName: "minimizeEffect-" + modelData.effect
                 Layout.fillWidth: true
@@ -643,6 +672,7 @@ Item {
             pointerEmphasis: root.pointerEmphasis
             id: configureAction
             motionEnabled: root.motionEnabled
+            textShadow: root.textShadow
             objectName: "configureDockAction"
             Layout.fillWidth: true
             visible: !root.trashItem && !root.menuLeader

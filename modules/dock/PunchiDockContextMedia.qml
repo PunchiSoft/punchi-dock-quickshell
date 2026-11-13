@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property bool motionEnabled: true
+    property bool textShadow: false
     property bool pointerEmphasis: true
     property var media: null
     readonly property bool available: media !== null && media.available
@@ -16,6 +17,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: previous
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "mediaPreviousAction"
         Layout.fillWidth: true
         text: qsTr("Previous Track")
@@ -27,6 +29,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: playPause
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "mediaPlayPauseAction"
         Layout.fillWidth: true
         text: root.available && root.media.playing ? qsTr("Pause") : qsTr("Play")
@@ -38,6 +41,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: next
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "mediaNextAction"
         Layout.fillWidth: true
         text: qsTr("Next Track")
@@ -49,6 +53,7 @@ ColumnLayout {
         pointerEmphasis: root.pointerEmphasis
         id: stop
         motionEnabled: root.motionEnabled
+        textShadow: root.textShadow
         objectName: "mediaStopAction"
         Layout.fillWidth: true
         text: qsTr("Stop")

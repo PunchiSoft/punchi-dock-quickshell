@@ -105,6 +105,15 @@ TestCase {
         compare(parsed.profile.menuShortcut, "Ctrl+Alt+M")
     }
 
+    function test_accepts_menuTextShadowBoolean() {
+        const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuTextShadow: true}))
+        verify(parsed.ok)
+        compare(parsed.profile.menuTextShadow, true)
+        compare(PunchiProfileDocument.parse(JSON.stringify({version: 16,
+            menuTextShadow: "on"})).reason, "invalid-field")
+    }
+
     function test_accepts_hiddenMenuButton() {
         const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 16,
             menuShowDockButton: false}))

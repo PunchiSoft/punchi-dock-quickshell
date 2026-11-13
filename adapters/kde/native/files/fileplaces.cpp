@@ -5,10 +5,22 @@
 #include <QSet>
 
 namespace {
+// The Places menu reaches the dock's file-opening pipeline. Only local schemes
+// are part of that contract; a remote or custom KIO scheme must not be offered
+// by a launcher that cannot describe how it will be handled.
 bool usableUrl(const QUrl &url)
 {
-    return url.isValid() && !url.isEmpty() && !url.scheme().isEmpty()
-        && url.scheme() != QLatin1String("exec") && url.scheme() != QLatin1String("applications");
+    static const QSet<QString> allowedSchemes = {
+        QStringLiteral("file"), QStringLiteral("trash"),
+        QStringLiteral("recentdocuments"), QStringLiteral("activities")
+    };
+    if (!url.isValid() || url.isEmpty() || !allowedSchemes.contains(url.scheme()))
+        return false;
+    // A file URL with a host points at another machine; only local files belong
+    // in the dock's Places menu. Qt treats `file://remote/...` as a local file
+    // by scheme, so check the host explicitly.
+    if (url.scheme() != QLatin1String("file")) return true;
+    return url.host().isEmpty() && url.userInfo().isEmpty() && url.port() == -1;
 }
 }
 
@@ -137,6 +149,11 @@ void FilePlaces::leaveGroup()
     m_group.clear();
     refresh();
     emit navigationChanged();
+}
+
+bool FilePlaces::acceptsUrl(const QString &url) const
+{
+    return usableUrl(QUrl(url));
 }
 
 QUrl FilePlaces::urlForResource(const QString &resource) const
