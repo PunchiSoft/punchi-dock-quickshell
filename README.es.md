@@ -86,8 +86,9 @@ mantiene el trabajo nuevo pendiente bajo `Unreleased`.
   [Leer más](docs-public/features/containers.md)
 - **PunchiMenu:** un menú de aplicaciones a pantalla completa por pantalla con
   búsqueda, orden alfabético/manual/por categorías, desplazamiento continuo, un
-  atajo global configurable, fondo con el tema y un dock opcional que permanece
-  encima.
+  atajo global configurable, fondo con el tema, un dock opcional que permanece
+  encima y un balloon de clic derecho con las aplicaciones instaladas y acciones
+  del dock.
   [Leer más](docs-public/features/punchimenu.md)
 - **Multimedia y estado:** transporte MPRIS para el reproductor correspondiente,
   un elemento Papelera nativo y una insignia en Discover que cuenta
@@ -106,9 +107,15 @@ mantiene el trabajo nuevo pendiente bajo `Unreleased`.
 
 <p align="center"><img src="assets/demo/menu-overview.webp" width="880" alt="El menú de aplicaciones a pantalla completa abriéndose sobre el escritorio y desplazándose por filas de iconos"></p>
 
-<p align="center"><em>El menú a pantalla completa abriéndose desde el dock y
-desplazándose por las aplicaciones instaladas. Ocho segundos de una grabación más
-larga; el conjunto de aplicaciones es del mantenedor.</em></p>
+<p align="center"><em>El menú a pantalla completa corregido abriéndose desde el dock y
+desplazándose por las aplicaciones instaladas. Casi ocho segundos de la grabación del
+13/11/2026; el conjunto de aplicaciones es del mantenedor.</em></p>
+
+<p align="center"><img src="assets/demo/punchimenu-context.webp" width="640" alt="El balloon del icono PunchiMenu del dock con las aplicaciones instaladas, Remove from Dock, Show PunchiMenu y Configure PunchiDock"></p>
+
+<p align="center"><em>El clic derecho sobre el icono Menu abre un balloon con las
+aplicaciones instaladas y las acciones del dock. Casi ocho segundos de la misma
+grabación; el conjunto de aplicaciones es del mantenedor.</em></p>
 
 <p align="center"><img src="assets/screenshots/settings-general.png" width="240" alt="Ajustes generales con tamaño, ampliación, posición y aplicaciones recientes"> <img src="assets/screenshots/recent-applications-grid.png" width="260" alt="Contenedor de aplicaciones recientes mostrado como una cuadrícula de iconos"> <img src="assets/screenshots/fan-view.png" width="110" alt="Contenedor Home en el modo extra Fan"> <img src="assets/screenshots/context-system-settings.png" width="180" alt="Menú nativo de KDE en el elemento System Settings, como el menú de clic derecho de Dolphin"></p>
 
