@@ -165,6 +165,15 @@ base with `git rev-list --left-right --count main...HEAD` (`0 0`) and an empty
 reason; a branch stacked on unpublished work by habit attaches commits that are
 not yours. Merging, tags, releases and pull requests need their own explicit
 request.
+Keep one active work branch at a time. While a branch holds unmerged work, do not
+create a parallel branch for an unrelated change: finish it, merge it, or
+explicitly set it aside first, because parallel branches drift apart and cause
+structural conflicts. A justified sub-branch remains the only exception.
+Open the pull request only once the change is confirmed correct — an improvement,
+a bug fix, or a new implementation validated against its acceptance criteria —
+never while it is still being developed. After the merge of PR #<n> is confirmed,
+return to `main`, fast-forward it, and ask the user whether to clean the merged
+branch locally and on the remote; the remote branch may already be deleted.
 Record scope and evidence before changing code; do not start with a full suite.
 Apply domain skills as their stages begin, then validate after implementation.
 

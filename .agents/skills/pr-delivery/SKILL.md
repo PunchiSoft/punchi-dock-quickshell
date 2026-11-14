@@ -85,6 +85,9 @@ desktop check was not performed.
   review note with the final evidence.
 - Do not merge, tag, release, or delete a branch unless the user requests it, and
   never delete a branch that still has unmerged commits.
+- Once the user confirms the merge, return to `main`, fast-forward it from
+  `origin/main`, and ask whether to delete the merged branch locally and on the
+  remote. The remote branch may already be gone; never delete it unsolicited.
 
 ## Anti-patterns
 
