@@ -83,6 +83,9 @@ desktop check was not performed.
 
 - Report the URL, the state, and any check that remains; update the change or
   review note with the final evidence.
+- After opening or updating the pull request, read its `state` and `mergedAt`.
+  When it is not merged, report that and ask the user to merge it before starting
+  or continuing further work; never assume a merge happened.
 - Do not merge, tag, release, or delete a branch unless the user requests it, and
   never delete a branch that still has unmerged commits.
 - Once the user confirms the merge, return to `main`, fast-forward it from

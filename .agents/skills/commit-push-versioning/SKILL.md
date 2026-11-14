@@ -45,6 +45,10 @@ work. Do not advance the version for an ordinary commit.
 
 ## Review and publish
 
+Before staging, ask the owner to confirm that the change matches the request and
+the expected result, and wait for the answer. A commit or push request is not that
+confirmation unless the owner already reviewed the exact change.
+
 1. Inspect `git status`, branch/upstream, and staged, unstaged, and untracked
    changes. Preserve existing work; never reset, clean, or discard user changes.
    Stop if the current branch is `main` and create the delivery branch first.
