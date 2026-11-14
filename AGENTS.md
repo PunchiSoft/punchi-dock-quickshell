@@ -169,11 +169,17 @@ Keep one active work branch at a time. While a branch holds unmerged work, do no
 create a parallel branch for an unrelated change: finish it, merge it, or
 explicitly set it aside first, because parallel branches drift apart and cause
 structural conflicts. A justified sub-branch remains the only exception.
-Open the pull request only once the change is confirmed correct — an improvement,
+Ask the user to confirm that the implemented change matches the request and the
+expected result before committing or pushing, and wait for that answer; a request
+to commit does not replace that confirmation unless the user already reviewed the
+exact change. A pull request opens only after that confirmation — an improvement,
 a bug fix, or a new implementation validated against its acceptance criteria —
-never while it is still being developed. After the merge of PR #<n> is confirmed,
-return to `main`, fast-forward it, and ask the user whether to clean the merged
-branch locally and on the remote; the remote branch may already be deleted.
+never while it is still being developed. After opening it, check whether the pull
+request is merged: when it is not, tell the user and ask them to merge it before
+continuing, and do not start the next change on an unmerged pull request. After
+the merge of PR #<n> is confirmed, return to `main`, fast-forward it, and ask the
+user whether to clean the merged branch locally and on the remote; the remote
+branch may already be deleted.
 Record scope and evidence before changing code; do not start with a full suite.
 Apply domain skills as their stages begin, then validate after implementation.
 
