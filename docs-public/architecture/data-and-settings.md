@@ -201,7 +201,7 @@ not stored in the installed program files. At first start, an existing
 exist; the original file is kept as a backup. If both files exist, the new filename
 takes precedence and neither is overwritten.
 
-The current file format is version 16 and accepts versions 1 to 15 through
+The current file format is version 17 and accepts versions 1 to 16 through
 migration:
 
 | Version | Adds |
@@ -216,6 +216,7 @@ migration:
 | 14 | Fullscreen-menu presentation settings |
 | 15 | Dock-over-menu switch |
 | 16 | Category grouping, application order and the scroll bar that replaced the paging arrows |
+| 17 | Window minimize reaction: none, slow bounce or lateral ripple |
 
 Schemas 1 to 6 remain readable, with one-time Trash/Downloads migrations when
 capacity permits. Missing fields in older profiles default to enabled, five

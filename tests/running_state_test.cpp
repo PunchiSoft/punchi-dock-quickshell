@@ -130,7 +130,8 @@ private slots:
         const QString desktopId = QStringLiteral("punchi-unlisted-plasmoid-settings");
         const QJsonArray applications{QJsonObject{{QStringLiteral("desktopId"), desktopId},
             {QStringLiteral("name"), QStringLiteral("Plasma Applet Settings")},
-            {QStringLiteral("iconName"), QStringLiteral("preferences-system-windows")}}};
+            {QStringLiteral("iconName"), QStringLiteral("preferences-system-windows")},
+            {QStringLiteral("minimizedCount"), 2}}};
         write(state, windowStateSnapshot(true, {desktopId}, {}, applications));
         RunningApplications provider;
         provider.setExecutable(fixture(directory));
@@ -142,6 +143,7 @@ private slots:
         QCOMPARE(entry.value(QStringLiteral("desktopId")).toString(), desktopId);
         QCOMPARE(entry.value(QStringLiteral("name")).toString(), QStringLiteral("Plasma Applet Settings"));
         QCOMPARE(entry.value(QStringLiteral("iconName")).toString(), QStringLiteral("preferences-system-windows"));
+        QCOMPARE(entry.value(QStringLiteral("minimizedCount")).toInt(), 2);
         write(state, windowStateSnapshot(true, {desktopId}));
         QTRY_VERIFY_WITH_TIMEOUT(provider.applicationEntries().isEmpty(), 3000);
         provider.setEnabled(false);

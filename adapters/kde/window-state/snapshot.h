@@ -36,10 +36,12 @@ inline QStringList runningDesktopIds(const QAbstractItemModel &model)
 inline QJsonArray runningApplicationEntries(const QAbstractItemModel &model)
 {
     QMap<QString, QJsonObject> applications;
+    QMap<QString, int> minimizedCounts;
     const auto roles = model.roleNames();
     const int isWindow = roles.key("IsWindow", -1);
     const int skipTaskbar = roles.key("SkipTaskbar", -1);
     const int appName = roles.key("AppName", -1);
+    const int isMinimized = roles.key("IsMinimized", -1);
     const int decoration = Qt::DecorationRole;
     for (int row = 0; row < model.rowCount(); ++row) {
         const auto index = model.index(row, 0);
@@ -48,6 +50,7 @@ inline QJsonArray runningApplicationEntries(const QAbstractItemModel &model)
         name = name.left(128);
         QString iconName;
         if (decoration >= 0) iconName = model.data(index, decoration).value<QIcon>().name().left(128);
+        const bool minimized = isMinimized >= 0 && model.data(index, isMinimized).toBool();
         for (const auto &id : taskApplicationIds(model, index, roles)) {
             if (applications.size() >= 256 && !applications.contains(id)) continue;
             auto entry = applications.value(id);
@@ -57,8 +60,11 @@ inline QJsonArray runningApplicationEntries(const QAbstractItemModel &model)
             if (entry.value(QStringLiteral("iconName")).toString().isEmpty() && !iconName.isEmpty())
                 entry.insert(QStringLiteral("iconName"), iconName);
             applications.insert(id, entry);
+            if (minimized && minimizedCounts.value(id) < 4096) ++minimizedCounts[id];
         }
     }
+    for (auto it = applications.begin(); it != applications.end(); ++it)
+        it.value().insert(QStringLiteral("minimizedCount"), minimizedCounts.value(it.key()));
     QJsonArray result;
     for (auto entry : applications) {
         if (entry.value(QStringLiteral("name")).toString().isEmpty())

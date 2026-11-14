@@ -45,6 +45,11 @@ QtObject {
     property bool magnificationEnabled: defaultProfile.magnificationEnabled
     property bool reducedMotion: defaultProfile.reducedMotion
     property bool bounceEnabled: defaultProfile.bounceEnabled
+    property string windowMinimizeReaction: defaultProfile.windowMinimizeReaction
+    onWindowMinimizeReactionChanged: {
+        if (["none", "slowBounce", "lateralRipple"].indexOf(windowMinimizeReaction) < 0)
+            windowMinimizeReaction = defaultProfile.windowMinimizeReaction
+    }
     property bool recentApplicationsEnabled: defaultProfile.recentApplicationsEnabled
     property int recentApplicationsCount: defaultProfile.recentApplicationsCount
     property string recentApplicationsPresentation: defaultProfile.recentApplicationsPresentation
@@ -295,10 +300,10 @@ QtObject {
     }
 
     function snapshot(): var {
-        return {version: 16, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
+        return {version: 17, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
             desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
             avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
-            reducedMotion, bounceEnabled, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
+            reducedMotion, bounceEnabled, windowMinimizeReaction, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount, recentApplicationsPresentation, recentApplicationsContainerLayout,
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
             popupHeightPercent, menuBackgroundOpacity, menuBackgroundBlurEnabled,
@@ -317,7 +322,7 @@ QtObject {
         bulkChange = true
         let applied = false
         try {
-            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].indexOf(data.version) < 0) return false
+            if (!data || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17].indexOf(data.version) < 0) return false
             const hasLegacyDownloadsView = PunchiDockItemIds.validLayout(data.downloadsView)
             const legacyDownloadsView = hasLegacyDownloadsView ? data.downloadsView : downloadsView
             if (PunchiDockItemIds.validContainers(data.containers)) {
@@ -389,6 +394,8 @@ QtObject {
                     "menuBackgroundBlurEnabled", "menuShowDistributionName",
                     "menuShowLabels", "menuShowDock", "menuShowDockButton", "menuTextShadow"])
                 if (typeof data[key] === "boolean") this[key] = data[key]
+            if (["none", "slowBounce", "lateralRipple"].indexOf(data.windowMinimizeReaction) >= 0)
+                windowMinimizeReaction = data.windowMinimizeReaction
             if (inRange(data.recentApplicationsCount,
                     PunchiDefaultProfile.limits.recentApplicationsCount, true))
                 recentApplicationsCount = data.recentApplicationsCount

@@ -149,13 +149,17 @@ void RunningApplications::consume()
             const QString id = normalized(entry.value(QStringLiteral("desktopId")).toString());
             const QString name = entry.value(QStringLiteral("name")).toString().trimmed();
             QString iconName = entry.value(QStringLiteral("iconName")).toString();
+            const auto minimizedValue = entry.value(QStringLiteral("minimizedCount"));
+            const int minimizedCount = minimizedValue.isUndefined() ? 0 : minimizedValue.toInt(-1);
             if (id.isEmpty() || name.isEmpty() || name.size() > 128
                 || iconName.size() > 128
-                || (!iconName.isEmpty() && !iconNamePattern.match(iconName).hasMatch())) { stop(); return; }
+                || (!iconName.isEmpty() && !iconNamePattern.match(iconName).hasMatch())
+                || minimizedCount < 0 || minimizedCount > 4096) { stop(); return; }
             if (!ids.contains(id)) { stop(); return; }
             iconName = iconName.isEmpty() ? QStringLiteral("application-x-executable") : iconName;
             uniqueApplications.insert(id, {{QStringLiteral("desktopId"), id},
-                {QStringLiteral("name"), name}, {QStringLiteral("iconName"), iconName}});
+                {QStringLiteral("name"), name}, {QStringLiteral("iconName"), iconName},
+                {QStringLiteral("minimizedCount"), minimizedCount}});
         }
         for (auto it = uniqueApplications.cbegin(); it != uniqueApplications.cend(); ++it)
             applications.append(it.value());

@@ -559,6 +559,7 @@ PanelWindow {
         bottomContentPadding: root.settings.bottomContentPadding
         magnificationEnabled: root.settings.magnificationEnabled
         reducedMotion: root.settings.effectiveReducedMotion
+        windowMinimizeReaction: root.settings.windowMinimizeReaction
         maximumIconScale: root.settings.maximumIconScale
         waveEnterDuration: root.settings.waveEnterDuration
         waveLeaveDuration: root.settings.waveLeaveDuration

@@ -26,6 +26,22 @@ PunchiSettingsCard {
     }
     PunchiSettingsRow {
         Layout.fillWidth: true
+        text: qsTr("Minimize reaction")
+        showSeparator: true
+        ComboBox {
+            objectName: "windowMinimizeReaction"
+            Layout.minimumWidth: implicitWidth
+            Layout.preferredWidth: Math.max(implicitWidth, Kirigami.Units.gridUnit * 11)
+            model: [qsTr("None"), qsTr("Slow bounce"), qsTr("Lateral ripple")]
+            currentIndex: ["none", "slowBounce", "lateralRipple"]
+                .indexOf(root.settings.windowMinimizeReaction)
+            Accessible.name: qsTr("Minimize reaction")
+            onActivated: root.settings.windowMinimizeReaction
+                = ["none", "slowBounce", "lateralRipple"][currentIndex]
+        }
+    }
+    PunchiSettingsRow {
+        Layout.fillWidth: true
         text: qsTr("Reduced motion")
         showSeparator: false
         Switch {
