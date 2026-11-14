@@ -9,6 +9,19 @@ license: GPL-3.0-or-later
 Inspect the owning module and installed Quickshell type metadata before writing a
 surface. A view that cannot be loaded without the shell runtime cannot be tested.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["New surface or control"] --> B["Name the owning module and shared primitive"]
+    B --> C["Thin window wrapper plus import-clean view"]
+    C --> D["Inputs as properties, outputs as intent signals"]
+    D --> E["Native KDE presentation and theme roles"]
+    E --> F["Separate selection, hover, focus, press and disabled"]
+    F --> G["Add the view to tests/qml"]
+    G --> H["Lint, component suite and runtime load"]
+```
+
 ## Procedure
 
 1. Name the module that owns the surface and the primitive it should reuse.

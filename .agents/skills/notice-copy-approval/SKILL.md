@@ -20,6 +20,19 @@ workflow.
 5. Run the localization workflow only after the wording is approved.
 6. Record the approval in the active change or review note.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Planned notice or manual note"] --> B["Verify the behavior it describes"]
+    B --> C["Fill the proposal template with final wording"]
+    C --> D{"Owner approves wording and emphasis?"}
+    D -->|"no"| C
+    D -->|"yes"| E["Implement the approved text literally"]
+    E --> F["Localize only after approval"]
+    F --> G["Record the approval in the change note"]
+```
+
 ## Proposal template
 
 ```markdown

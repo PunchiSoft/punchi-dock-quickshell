@@ -186,8 +186,20 @@ Wayland session. Read [AGENTS.md](AGENTS.md) for project rules,
 `shell.qml` composes the enabled top-level modules; `modules/` owns each surface,
 `components/` the shared primitives, `services/` the data and coordination, and
 `adapters/kde/` the native KDE boundary. A view emits intent, a service decides,
-an adapter talks to the desktop, and reactive state flows back. The complete map
-and the dependency direction are in
+an adapter talks to the desktop, and reactive state flows back.
+
+```mermaid
+flowchart TD
+    Root["shell.qml"] --> Modules["modules/<br/>dock, menu, recent, folders, settings"]
+    Modules --> Components["components/"]
+    Modules --> Services["services/"]
+    Services --> Adapters["adapters/kde/"]
+    Adapters --> Native["Punchi.Kde and punchi-window-state"]
+    Native --> Desktop["KDE Frameworks, KWin, Wayland"]
+    Services -. "reactive state" .-> Modules
+```
+
+The complete map and the dependency direction are in
 [Architecture](docs-public/architecture/overview.md).
 
 English is the source language. Only English fallback strings are supported at

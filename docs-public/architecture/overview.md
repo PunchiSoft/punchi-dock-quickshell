@@ -15,10 +15,23 @@ neither a delegate nor a popup host reaches a service or an adapter directly.
 
 The preferred flow is:
 
-```text
-view intent → service → adapter → desktop
-                  ↑                    │
-                  └── reactive state ──┘
+```mermaid
+flowchart LR
+    View["view intent"] --> Service["service"] --> Adapter["adapter"] --> Desktop["desktop"]
+    Desktop -. "reactive state" .-> Service
+```
+
+## System map
+
+```mermaid
+flowchart TD
+    Root["shell.qml<br/>composition only"] --> Modules["modules/<br/>dock, menu, recent, folders, settings"]
+    Modules --> Components["components/<br/>shared visual primitives"]
+    Modules --> Services["services/<br/>data and coordination"]
+    Modules --> Config["config/<br/>settings, defaults and metrics"]
+    Services --> Adapters["adapters/kde/<br/>QML adapters, native/, protocols/, window-state/"]
+    Adapters --> KDE["KDE Frameworks, KWin, Wayland"]
+    Services -. "reactive state" .-> Modules
 ```
 
 Services never import visual components, and settings update existing surfaces

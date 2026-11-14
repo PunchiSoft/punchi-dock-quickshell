@@ -12,6 +12,20 @@ Turn state changes and interactions into brief, legible, cheap motion. Do not ad
 motion for its own sake: every movement must improve feedback, comprehension,
 spatial orientation, continuity, or perceived responsiveness.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["State change or interaction"] --> B["Name trigger, states and UX goal"]
+    B --> C{"Motion class"}
+    C -->|"necessary or useful"| D["Short microinteraction"]
+    C -->|"decorative"| E["Do not add unless requested"]
+    C -->|"harmful"| F["Remove or replace"]
+    D --> G["Interruptible and reversible"]
+    G --> H["Theme duration; reduced motion reaches the final state"]
+    H --> I["Validate interruption, orientation and cost"]
+```
+
 ## Coordination
 
 - `fluid-motion` chooses the Qt Quick mechanism and keeps reversal continuous.

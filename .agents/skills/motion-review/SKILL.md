@@ -11,6 +11,20 @@ metadata:
 Produce a verifiable, prioritized report about existing motion without touching
 code. This skill does not edit QML, adjust durations, or add animations.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Audit scope"] --> B["Inventory animations and effects"]
+    B --> C["Inventory durations and their origin"]
+    C --> D["Check openings, neighbours and reduced motion"]
+    D --> E["Classify with the MOTION catalog"]
+    E --> F["Assign risk, cost and priority"]
+    F --> G["Write each finding in the mandatory format"]
+    G --> H["State what needs a real KDE session"]
+    H --> I["Report only: no code changes"]
+```
+
 ## Coordination
 
 - `fluid-motion` recommends the concrete mechanism.

@@ -18,6 +18,23 @@ Record the relevant symbol, source/version, decision, and evidence limits.
 Do not copy entire SDK trees or treat a tutorial as runtime compatibility proof.
 Do not assume a Plasma-injected QML feature exists in a standalone application.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Symbol or behavior"] --> B["Search local reference notes"]
+    B --> C{"Sufficient evidence?"}
+    C -->|"no"| D["Installed headers and QML type metadata"]
+    D --> E{"Still unclear or version-sensitive?"}
+    E -->|"yes"| F["Official docs for the installed release"]
+    E -->|"no"| G["Record symbol, version and source"]
+    C -->|"yes"| G
+    F --> G
+    G --> H{"Within the declared minimum version?"}
+    H -->|"no"| I["Keep the minimum; record optional path and fallback"]
+    H -->|"yes"| J["Use the verified API"]
+```
+
 ## Plasma 6.8 capability review
 
 Plasma 6.8 was announced on 2026-10-14. Treat it as an upstream opportunity, not

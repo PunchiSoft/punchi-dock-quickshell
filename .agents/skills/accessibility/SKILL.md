@@ -9,6 +9,19 @@ license: GPL-3.0-or-later
 A surface is accessible when the whole path works without a pointer: discover,
 focus, activate, escape, and an announcement that matches what is drawn.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Interactive control"] --> B["Name role and keyboard path"]
+    B --> C{"Discover, focus, activate, Escape and return?"}
+    C -->|"no"| D["Fix focus, keys or role"]
+    D --> C
+    C -->|"yes"| E["One primary emphasis: selection, focus or pointer"]
+    E --> F["Check scaling, contrast and reduced motion"]
+    F --> G["Report static semantics and executed evidence separately"]
+```
+
 ## Procedure
 
 1. List every interactive control in the affected view and the role it exposes.

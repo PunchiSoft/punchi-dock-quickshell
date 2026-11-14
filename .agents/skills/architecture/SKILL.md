@@ -9,6 +9,22 @@ license: GPL-3.0-or-later
 Decide ownership before writing code: one behavior has one owner, one input, one
 output, and an explicit consumer.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Behavior"] --> B["Choose exactly one owning layer"]
+    B --> C{"Native Quickshell or KDE provider?"}
+    C -->|"yes"| D["Use it; do not wrap merely to redraw the diagram"]
+    C -->|"no"| E{"Verified capability gap in adapters/kde?"}
+    E -->|"no"| F["Keep it in a service or module"]
+    E -->|"yes"| G["Record gap, version, fallback and evidence"]
+    D --> H["State inputs, outputs and consumers"]
+    F --> H
+    G --> H
+    H --> I["Update docs-public/architecture in the same change"]
+```
+
 ## Procedure
 
 1. Name the behavior and the layer that must own it: shell composition, module,

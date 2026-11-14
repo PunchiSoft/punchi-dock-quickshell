@@ -12,6 +12,18 @@ tracked `docs-public/` tree, which is organized by reader need
 (tutorial, how-to, reference, explanation; see [Diátaxis](https://diataxis.fr/)).
 Dated engineering evidence stays in `docs-private/`.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Documentation change"] --> B["Classify the page by reader need"]
+    B --> C["Separate implemented, intended and tested"]
+    C --> D["Update the owning page and every stale record"]
+    D --> E["Update indexes; README.es when README.md changes"]
+    E --> F["Run every command and open every link"]
+    F --> G["Re-read as a skeptical first install"]
+```
+
 ## Where a page goes
 
 | The page answers | Location |

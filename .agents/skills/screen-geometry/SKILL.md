@@ -13,6 +13,22 @@ Turn measured logical space into rectangles that fit. This skill owns the math;
 `performance-budget` owns delegate cost. Use rectangles, proportions and
 constraints, not integral calculus.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Surface"] --> B["Name the rectangle the layout may occupy"]
+    B --> C["Measure the content rect in logical pixels"]
+    C --> D["Record reference size, cells and gaps"]
+    D --> E["S = min(W / W0, H / H0)"]
+    E --> F["Whole columns and rows with clamps"]
+    F --> G["Apply icon, label and target constraints"]
+    G --> H{"Fits with whole rows and no partial tile?"}
+    H -->|"no"| F
+    H -->|"yes"| I["Express with Kirigami.Units and theme fonts"]
+    I --> J["Validate reference size and extremes"]
+```
+
 ## Procedure
 
 1. Classify the surface: fullscreen grid, panel, popup, dock, or a control inside

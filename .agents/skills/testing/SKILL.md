@@ -9,6 +9,23 @@ license: GPL-3.0-or-later
 Read `docs-public/development.md` and the affected tests. Define observable behavior
 before selecting tests: a test exists to catch a named regression.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Behavior to protect"] --> B["Name the failure the test must catch"]
+    B --> C["Choose the cheapest evidence level"]
+    C --> D{"Native code or build registration changed?"}
+    D -->|"yes"| E["Reconfigure and rebuild"]
+    D -->|"no"| F["Run the scoped test"]
+    E --> F
+    F --> G{"Depends on the full graph?"}
+    G -->|"yes"| H["Complete CTest or preset"]
+    G -->|"no"| I["Confirm isolation and cleanup"]
+    H --> I
+    I --> J["Record the levels not executed"]
+```
+
 ## Procedure
 
 1. State the observable behavior and the failure that must be caught.

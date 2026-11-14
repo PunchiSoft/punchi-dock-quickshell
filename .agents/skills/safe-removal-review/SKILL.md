@@ -9,6 +9,22 @@ license: GPL-3.0-or-later
 Resolve the exact authorized targets and inspect their consumers before mutation.
 Git is not a backup for ignored or untracked files.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Delete, move or overwrite"] --> B["Write the exact path list and reason"]
+    B --> C["Find every consumer"]
+    C --> D{"Ignored or untracked material?"}
+    D -->|"yes"| E["Recoverable copy outside the tree"]
+    D -->|"no"| F["Build the source-to-destination map"]
+    E --> F
+    F --> G["Validate unique sources and no collisions"]
+    G --> H["Execute in small batches"]
+    H --> I["Verify references and inventory"]
+    I --> J["Remove dead settings, wiring, docs and tests"]
+```
+
 ## Procedure
 
 1. Write the exact path list and the reason for each entry.

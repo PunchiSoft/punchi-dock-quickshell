@@ -11,6 +11,22 @@ mechanism. Quickshell is not a Plasma applet: plain QML cannot assume the
 injected `i18n` functions exist, and only the English fallback is supported
 today.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Runtime string"] --> B{"User-visible copy?"}
+    B -->|"no"| C["Keep it internal"]
+    B -->|"yes"| D["qsTr or qsTranslate with a stable context"]
+    D --> E{"Placeholder or plural needed?"}
+    E -->|"yes"| F["One complete string with named placeholders"]
+    E -->|"no"| G["Check the longer-translation layout"]
+    F --> G
+    G --> H{"Catalog exists?"}
+    H -->|"no"| I["English fallback only; no language claim"]
+    H -->|"yes"| J["Rebuild, review and verify loading"]
+```
+
 ## Procedure
 
 1. Find the string in its surface and confirm it is user-visible runtime copy.

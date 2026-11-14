@@ -12,6 +12,26 @@ upstream, and the delivery pull request that `pr-delivery` opens once the work i
 approved; it does not authorize tags, releases, force pushes, unrelated remotes,
 merges, or branch deletion.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Owner asks to commit or push"] --> B{"Exact change already reviewed by the owner?"}
+    B -->|"no"| C["Ask for confirmation and wait"]
+    C --> B
+    B -->|"yes"| D["Inspect status, branch and full diff"]
+    D --> E["Run the focused checks"]
+    E --> F{"Behavior change?"}
+    F -->|"yes"| G["Add an Unreleased changelog entry"]
+    F -->|"no"| H["No version or changelog change"]
+    G --> I["Stage reviewed files only"]
+    H --> I
+    I --> J["git diff --cached --check"]
+    J --> K["Commit on the delivery branch"]
+    K --> L["Push without force"]
+    L --> M["Hand to pr-delivery"]
+```
+
 ## Branch first
 
 Commit on a delivery branch, never on `main`. When the work still sits on
