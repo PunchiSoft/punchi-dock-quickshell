@@ -70,5 +70,11 @@ QtObject {
         return appId.startsWith(prefix) ? backend.isRunning(appId.slice(prefix.length)) : false
     }
     function isRunningDesktop(desktopId: string): bool { return backend.isRunning(desktopId) }
+    // The dock publishes its resting icon rectangles so KWin can animate a
+    // minimized window to the matching icon. The helper owns the protocol.
+    function publishMinimizeGeometry(screen: string, entries): void {
+        if (!root.configured) return
+        backend.setMinimizeGeometry(screen, entries)
+    }
     function windowActions(desktopId: string): var { return backend.windowActions(desktopId) }
 }

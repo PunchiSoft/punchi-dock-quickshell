@@ -4,6 +4,7 @@
 #include "activationdecision.h"
 #include "windowtaskactions.h"
 #include "commandreader.h"
+#include "minimizegeometry.h"
 #include "../native/windows/kwinminimizeeffect.h"
 #include <QGuiApplication>
 #include <QtGui/qguiapplication_platform.h>
@@ -21,7 +22,8 @@ class WindowObserver : public QObject
 {
     Q_OBJECT
 public:
-    explicit WindowObserver(QObject *parent) : QObject(parent) {}
+    explicit WindowObserver(QObject *parent) : QObject(parent),
+        m_minimizeGeometry(new MinimizeGeometryPublisher(this)) {}
     ~WindowObserver() override {
         m_object.reset();
         if (m_sync) wl_callback_destroy(m_sync);
@@ -30,6 +32,7 @@ public:
     void start() {
         const auto native = qGuiApp->nativeInterface<QNativeInterface::QWaylandApplication>();
         if (!native) { publish(); return; }
+        m_minimizeGeometry->start(native->display());
         m_registry = wl_display_get_registry(native->display());
         static const wl_registry_listener registryListener = {
             [](void *data, wl_registry *, uint32_t name, const char *interface, uint32_t) {
@@ -105,6 +108,11 @@ public:
         wl_display_flush(native->display());
     }
     void dispatch(const QJsonObject &request) {
+        if (request.value(QStringLiteral("type")).toString() == QLatin1String("minimize-geometry")) {
+            m_minimizeGeometry->replaceScreen(request.value(QStringLiteral("screen")).toString(),
+                request.value(QStringLiteral("entries")).toArray().toVariantList());
+            return;
+        }
         const auto desktops = m_virtualDesktopInfo
             ? m_virtualDesktopInfo->property("desktopIds").toList() : QVariantList();
         const QJsonObject reply = request.value(QStringLiteral("type")).toString() == QLatin1String("window-action")
@@ -163,6 +171,7 @@ private:
     QAbstractItemModel *m_currentModel = nullptr;
     QObject *m_virtualDesktopInfo = nullptr;
     QObject *m_activityInfo = nullptr;
+    MinimizeGeometryPublisher *m_minimizeGeometry = nullptr;
 };
 
 int main(int argc, char **argv)

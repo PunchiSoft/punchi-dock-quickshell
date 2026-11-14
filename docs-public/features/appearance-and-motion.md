@@ -57,6 +57,19 @@ The geometry and cosine formulas are described in
 - The count comes from KDE's window model, so grouping and multiple windows keep
   one icon.
 
+## Minimize to the icon
+
+- The dock publishes the resting rectangle of every launcher to KWin, so the
+  compositor's minimize effect animates a window to the icon of its application.
+- The path is the window helper's `org_kde_plasma_window_management` integration.
+  A missing helper or protocol leaves the compositor's default animation and never
+  blocks the click.
+- This is independent of the **Minimize reaction** switch: the window travels to
+  the icon even when the icon itself stays still.
+- KWin chooses the closest published task geometry, so a Plasma panel or another
+  dock that publishes the same window can receive the animation instead.
+- Only the resting dock is published; a hidden dock does not claim a target.
+
 ## Reduced motion
 
 - The dock reads Kirigami durations and detects disabled system animations.

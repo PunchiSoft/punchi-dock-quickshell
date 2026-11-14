@@ -34,6 +34,16 @@ flowchart LR
     Updates --> Notice["PunchiUpdateNotice and badge"]
 ```
 
+## Minimize geometry
+
+The dock cannot pass its Wayland surface to another client, so
+`punchi-window-state` creates one transparent layer-shell marker per launcher
+with `zwlr_layer_shell_v1` and publishes the icon corner through
+`org_kde_plasma_window_management.set_minimized_geometry`. The dock sends the
+resting rectangles over the existing JSON command pipe. The registration declares
+both interfaces; when either is unavailable the shell keeps working and KWin
+falls back to its default minimize animation.
+
 ## Contract
 
 Native KDE integration is a product requirement. Quickshell hosts the surfaces;

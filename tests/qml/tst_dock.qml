@@ -86,6 +86,18 @@ TestCase {
         return view
     }
 
+    Component {
+        id: minimizeStateFixture
+        QtObject {
+            property int revision: 0
+            property var published: []
+            function isRunning(appId) { return false }
+            function publishMinimizeGeometry(screen, entries) {
+                published = published.concat([{screen: screen, entries: entries}])
+            }
+        }
+    }
+
     function test_openMenuAllowsHoverAndSingleClickOnAnotherLauncher() {
         const view = createTemporaryObject(modelessFixture, test)
         verify(view !== null)
@@ -485,6 +497,28 @@ TestCase {
         compare(closeSpy.count, 1)
     }
 
+    function test_minimizeGeometryPublishesRestingIconRectangles() {
+        const view = createTemporaryObject(fixture, test)
+        view.screenName = "DP-1"
+        view.screenOriginX = 10
+        view.screenOriginY = 20
+        const state = createTemporaryObject(minimizeStateFixture, view)
+        view.applicationState = state
+        view.publishMinimizeGeometry()
+        compare(state.published.length, 1)
+        compare(state.published[0].screen, "DP-1")
+        // The Browser row names a role instead of a desktop id, so it publishes nothing.
+        compare(state.published[0].entries.length, view.entries.count - 1)
+        const files = state.published[0].entries.find(entry => entry.desktopId === "org.kde.dolphin")
+        verify(files)
+        compare(files.width, view.iconSize)
+        compare(files.height, view.iconSize)
+        verify(files.x >= 10)
+        verify(files.y >= 20)
+        view.visible = false
+        view.publishMinimizeGeometry()
+        compare(state.published[1].entries.length, 0)
+    }
     function test_liveSettings() {
         const view = createView()
         const previousWidth = view.implicitWidth

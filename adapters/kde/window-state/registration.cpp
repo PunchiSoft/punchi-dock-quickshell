@@ -19,7 +19,8 @@ bool isPunchiRegistration(const QByteArray &content)
         if (line == "[Desktop Entry]") desktopEntry = true;
         else if (line == "Name=Punchi Dock Quickshell Window State"
             || line == "Name=Punchi Shell Window State") name = true;
-        else if (line == "X-KDE-Wayland-Interfaces=org_kde_plasma_window_management") interfaces = true;
+        else if (line == "X-KDE-Wayland-Interfaces=org_kde_plasma_window_management,zwlr_layer_shell_v1"
+            || line == "X-KDE-Wayland-Interfaces=org_kde_plasma_window_management") interfaces = true;
     }
     return desktopEntry && name && interfaces;
 }
@@ -35,7 +36,7 @@ int registerWindowBackend(bool remove)
         executable.replace('$', QStringLiteral("\\$"));
         executable.replace('%', QStringLiteral("%%"));
         return QStringLiteral("[Desktop Entry]\nType=Application\nName=%1\nNoDisplay=true\nTerminal=false\n"
-            "Exec=\"%2\"\nX-KDE-Wayland-Interfaces=org_kde_plasma_window_management\n")
+            "Exec=\"%2\"\nX-KDE-Wayland-Interfaces=org_kde_plasma_window_management,zwlr_layer_shell_v1\n")
             .arg(name, executable).toUtf8();
     };
     const QString executable = QFileInfo(QCoreApplication::applicationFilePath()).canonicalFilePath();
