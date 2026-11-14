@@ -118,7 +118,12 @@ public:
         const QJsonObject reply = request.value(QStringLiteral("type")).toString() == QLatin1String("window-action")
             ? windowActionRequest(m_model, m_available, desktops, request)
             : activateWindowRequest(m_model, m_available, request);
-        if (reply.isEmpty()) { QCoreApplication::exit(2); return; }
+        if (reply.isEmpty()) {
+            // A command from a newer shell must not kill the window backend;
+            // the provider stays available and the caller times out its request.
+            qWarning() << "punchi-window-state: ignored an invalid command";
+            return;
+        }
         send(QJsonDocument(reply).toJson(QJsonDocument::Compact) + '\n');
     }
 private:

@@ -322,7 +322,7 @@ void MinimizeGeometryPublisher::removeWindow(Window *window)
     m_windows.removeAll(window);
     if (window->handle) {
         org_kde_plasma_window_destroy(window->handle);
-        wl_proxy_destroy(reinterpret_cast<wl_proxy *>(window->handle));
+        window->handle = nullptr;
     }
     delete window;
 }
