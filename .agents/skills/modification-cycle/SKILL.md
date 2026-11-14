@@ -26,6 +26,23 @@ skill's synthetic adapter contract probe before other checks. Close only the
 completed scope and distinguish implementation from pending runtime or user
 validation. No legacy plasmoid gate is implied by this workflow.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Request"] --> B{"Scope and criteria explicit?"}
+    B -->|"no"| C["requirements-capture"]
+    B -->|"yes"| D["Record scope, risks and evidence"]
+    C --> D
+    D --> E["Reference gate before editing"]
+    E --> F["branch-baseline"]
+    F --> G["Implement in stages with domain skills"]
+    G --> H["Validate after editing"]
+    H --> I{"Owner confirms the change?"}
+    I -->|"no"| G
+    I -->|"yes"| J["commit-push-versioning, then pr-delivery"]
+```
+
 ## Reference gate
 
 Establish the API evidence before editing, not after. Apply `qt-kde-reference`

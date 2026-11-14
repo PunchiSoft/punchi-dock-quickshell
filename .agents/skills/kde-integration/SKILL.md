@@ -6,6 +6,22 @@ license: GPL-3.0-or-later
 
 # KDE integration
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Desktop capability"] --> B{"Native Qt, KDE, KWin or Quickshell provider?"}
+    B -->|"yes"| C["Use it and respect the active user configuration"]
+    B -->|"no"| D["Record the exact capability gap and version"]
+    D --> E["Bounded fallback with legible behavior"]
+    C --> F["Keep platform logic in adapters/kde"]
+    E --> F
+    F --> G["Verify the advertised capability in a real session"]
+    G --> H{"Verified?"}
+    H -->|"no"| I["Report as unvalidated; do not claim support"]
+    H -->|"yes"| J["Document version, fallback and evidence"]
+```
+
 ## Native-first rule
 
 Every implementation must first follow the native KDE environment and the user's

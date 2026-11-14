@@ -21,6 +21,34 @@ shell.qml
                  └─ components/PunchiAntialiasedSurface  Shared bounded MSAA profile
 ```
 
+## Runtime sequence
+
+```mermaid
+sequenceDiagram
+    participant P as Pointer
+    participant V as PunchiDockView
+    participant M as PunchiDockMagnification
+    participant S as PunchiApplicationActivationService
+    participant W as Window backend
+    participant L as PunchiDesktopApplicationAdapter
+    participant K as KDE / Wayland
+
+    P->>V: motion in logical coordinates
+    V->>M: distance to stable cell centers
+    M-->>V: bounded zoom and translation
+    P->>V: click
+    V-->>S: activate(itemId)
+    S->>W: find an existing window
+    alt window exists
+        W-->>S: activate, cycle or minimize
+    else no window
+        S->>L: launch(desktopId)
+        L->>K: KService, KIO and activation token
+        K-->>L: accepted, then started
+    end
+    S-->>V: reactive launch and running state
+```
+
 This split lets Qt Quick Test exercise interaction without loading Quickshell's
 statically registered runtime types. Real-session probes load the same Dock window
 through Quickshell, then check rendering and lifecycle.
@@ -58,6 +86,22 @@ window dodge. All modes use the Top layer. `PunchiPanelModes` normalizes the
 retired desktop ID to `dodge-windows`. The default reserves no space; reserve mode
 excludes the transparent top allocation. `PunchiDockIpc` changes the policy live
 for every screen.
+
+```mermaid
+flowchart TD
+    A["Pointer or IPC request"] --> B{"Visibility mode"}
+    B -->|"reserve"| C["Mapped, exclusive zone reserves space"]
+    B -->|"overlay"| D["Mapped, no reservation"]
+    B -->|"autohide"| E["Reveal on edge, hide on pointer exit"]
+    B -->|"dodge-windows"| F{"Known window intersects the dock outside Showing Desktop?"}
+    F -->|"yes"| G["Hide"]
+    F -->|"no"| H["Reveal"]
+    G --> I["Provider loss reveals the dock"]
+    C --> J["Top layer in every mode"]
+    D --> J
+    E --> J
+    H --> J
+```
 
 The dock accepts on-demand keyboard focus rather than exclusive focus. All Plasma
 panels and services remain active; restoration stops only this configuration.

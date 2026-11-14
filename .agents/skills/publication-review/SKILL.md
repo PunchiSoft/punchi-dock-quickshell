@@ -10,6 +10,25 @@ Use this before changing a repository from private to public, or before creating
 a clean public repository from a private working history. Publication is a
 one-way exposure of tracked content and reachable history.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Publication request"] --> B["Resolve source, name and visibility"]
+    B --> C{"History strategy"}
+    C -->|"publish history"| D["Remove private paths first"]
+    C -->|"clean mirror"| E["Keep the private repository as archive"]
+    C -->|"as-is"| F["Confirm every historical path is acceptable"]
+    D --> G["Audit files and every commit"]
+    E --> G
+    F --> G
+    G --> H{"Secrets or private paths found?"}
+    H -->|"yes"| I["Rewrite or exclude before publishing"]
+    H -->|"no"| J["Verify the backup bundle"]
+    I --> J
+    J --> K["Publish and configure repository settings"]
+```
+
 ## Scope and strategy
 
 Resolve the exact source repository, intended public name, target visibility and

@@ -13,6 +13,24 @@ cost, safe degradation, and without making the effect the default of every
 element. Motion coordination follows the
 [shared doctrine](../references/motion-doctrine.md).
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Requested finish"] --> B{"Theme surface, transform or shadow enough?"}
+    B -->|"yes"| C["Level 1: cheap properties and theme values"]
+    B -->|"no"| D{"MultiEffect adds something level 1 cannot?"}
+    D -->|"no"| C
+    D -->|"yes"| E["Level 2 with cost and stacking limits"]
+    E --> F{"Normal QML still insufficient?"}
+    F -->|"no"| G["Stop at level 2"]
+    F -->|"yes"| H["Report cost, instances and degradation; level 3 shader"]
+    H --> I["Define a legible state without the effect"]
+    C --> I
+    G --> I
+    I --> J["Verify light, dark, scaling and several instances"]
+```
+
 ## Coordination
 
 - `fluid-motion` for the movement of the effect.

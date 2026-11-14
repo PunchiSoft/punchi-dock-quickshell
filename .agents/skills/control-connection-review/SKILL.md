@@ -9,6 +9,21 @@ license: GPL-3.0-or-later
 A control works only when the whole chain is connected and reactive, not when the
 code reads correctly.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Control or behavior claim"] --> B["Define input, expected effect and consumer"]
+    B --> C["Trace control to service to adapter to desktop"]
+    C --> D["Name the signal or property carrying each link"]
+    D --> E["Exercise the initiating control"]
+    E --> F{"Effect observed and reactive?"}
+    F -->|"no"| G["Record the broken link at file:line"]
+    G --> D
+    F -->|"yes"| H["Change the source again; check a neighbour setting"]
+    H --> I["Classify the chain and state evidence limits"]
+```
+
 ## Procedure
 
 1. Define the input, expected effect, active consumer, timing, units, and

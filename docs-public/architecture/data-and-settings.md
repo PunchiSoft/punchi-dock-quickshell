@@ -4,6 +4,22 @@ How the dock gets its items, how a settings edit becomes pending state, and how
 that state is persisted. Window access and desktop services are described in
 [Native backend](native-backend.md).
 
+## Data flow
+
+```mermaid
+flowchart LR
+    KService["KService catalogue"] --> Catalog["PunchiApplicationCatalog"]
+    Pins["Pinned IDs and containers"] --> Model["DockApplicationsModel"]
+    Catalog --> Model
+    Running["Running windows"] --> Model
+    Recent["Activities Stats selection"] --> Model
+    Model --> Dock["Dock view and running markers"]
+    Catalog --> Items["DockItemCatalog"]
+    Trash["TrashState"] --> Items
+    Items --> Dock
+    Folder["KDirModel and folder navigation"] --> Folders["Folder popups"]
+```
+
 ## Application catalog
 
 `PunchiApplicationCatalog` is a native Qt model built from `KService` desktop
@@ -91,6 +107,22 @@ action while the Trash is empty, unavailable or busy, and KDE supplies a fresh
 listing after the job instead of an assumed empty result.
 
 ## Settings flow
+
+```mermaid
+sequenceDiagram
+    participant V as Settings view
+    participant E as PunchiSettingsEditService
+    participant S as PunchiShellSettings
+    participant P as PunchiSettingsStore
+
+    V->>E: edit field intent
+    E->>E: update draft, baseline and dirty state
+    V->>E: Apply or Accept
+    E->>S: commit explicit edits
+    E->>P: persist the changed fields
+    V->>E: Close, Escape or titlebar close
+    E-->>V: discard the pending draft
+```
 
 `PunchiSettingsEditService` owns the window-wide `PunchiShellSettings` draft,
 baseline and dirty state. The view emits Apply/Accept/Close intents;

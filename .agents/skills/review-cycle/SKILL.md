@@ -21,6 +21,23 @@ regression and relevant neighboring behavior. Never repeat a discarded solution
 without identifying new evidence. Distinguish static analysis, component runtime,
 real desktop checks, and explicit user confirmation before closing the review.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Reported regression"] --> B["Preserve the observation and prior evidence"]
+    B --> C{"Touches Qt, KDE, KWin or Quickshell API?"}
+    C -->|"yes"| D["qt-kde-reference and kde-integration"]
+    C -->|"no"| E["Locate the smallest responsible layer"]
+    D --> E
+    E --> F["Focused reproduction, not the full suite"]
+    F --> G["Correct the smallest layer"]
+    G --> H["Validate the regression and neighbours"]
+    H --> I{"Still failing?"}
+    I -->|"yes"| E
+    I -->|"no"| J["fix branch, commit and pull request"]
+```
+
 ## Reference gate
 
 A correction that touches a Qt, KDE, KWin or Quickshell API starts from evidence

@@ -7,6 +7,13 @@ outside the published documentation.
 
 ## Reading order
 
+```mermaid
+flowchart LR
+    O["Overview<br/>layers and module map"] --> R["Dock runtime<br/>windows, placement, motion"]
+    O --> N["Native backend<br/>Punchi.Kde, KWin, updates"]
+    O --> D["Data and settings<br/>catalogue, drafts, persistence"]
+```
+
 1. [Overview](overview.md): composition, layers, dependency direction and the
    module map.
 2. [Dock runtime](dock-runtime.md): dock windows, placement, visibility,

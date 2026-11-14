@@ -10,6 +10,23 @@ A skill is a context investment: name and description are always loaded, the bod
 loads on activation, references load on demand. Write for the smallest budget that
 still changes behavior.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Skill idea or revision"] --> B["Extract the workflow from a real task"]
+    B --> C{"Existing owner in the catalog?"}
+    C -->|"yes"| D["Extend or cross-reference that skill"]
+    C -->|"no"| E["Write description: what plus when"]
+    E --> F["Body: procedure and validation"]
+    F --> G["Move stable detail to references"]
+    G --> H["Add to the catalog"]
+    H --> I["Run project_foundation"]
+    I --> J{"Behavior changes on a real prompt?"}
+    J -->|"no"| K["Delete it or move the rule to AGENTS.md"]
+    J -->|"yes"| L["Keep it"]
+```
+
 ## Procedure
 
 1. Extract the workflow from a real task: the steps that worked, the corrections

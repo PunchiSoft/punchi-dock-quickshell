@@ -6,6 +6,21 @@ license: GPL-3.0-or-later
 
 # Quickshell development
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Quickshell change"] --> B["Check qs, Qt and installed type metadata"]
+    B --> C["Keep shell.qml a composition root"]
+    C --> D["Feature module, service and KDE adapter"]
+    D --> E["Relative imports; no legacy root:/ imports"]
+    E --> F{"Editor disagrees with runtime?"}
+    F -->|"yes"| G["Inspect qmlls, import roots and build directory"]
+    G --> H["Workspace settings; no global editor change"]
+    F -->|"no"| I["Load and shut down in a real instance"]
+    H --> I
+```
+
 ## Official references and version selection
 
 Check `qs --version`, `qs --help`, the Qt version, and installed QML type metadata

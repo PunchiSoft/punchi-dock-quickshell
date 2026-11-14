@@ -14,6 +14,22 @@ poorly sized.
 
 Shared doctrine: [motion doctrine](../references/motion-doctrine.md).
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Visual change"] --> B["Classify per-frame cost"]
+    B --> C{"LOW transform or opacity?"}
+    C -->|"yes"| D["Use a theme duration"]
+    C -->|"no"| E["Justify MEDIUM or HIGH"]
+    E --> D
+    D --> F["One reduced-motion criterion"]
+    F --> G["Measure full dock, several instances, moving pointer"]
+    G --> H{"Fluency observed in a real session?"}
+    H -->|"no"| I["Report as unverified"]
+    H -->|"yes"| J["Accept with measured cost"]
+```
+
 ## Coordination
 
 - `fluid-motion` chooses the mechanism.

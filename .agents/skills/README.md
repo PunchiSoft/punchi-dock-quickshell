@@ -5,6 +5,25 @@ from Punchi Dock Rust; the movement, audit, cost, and material skills come from
 the Punchi Dock Remastered motion pack, adapted to Quickshell and KDE Plasma/KWin;
 Quickshell-specific workflows are new.
 
+## Skill map
+
+```mermaid
+flowchart TD
+    Req["requirements-capture"] --> Mod["modification-cycle"]
+    Mod --> Base["branch-baseline"]
+    Mod --> QML["QML and layout<br/>qml-ui-creation, screen-geometry, selection-emphasis, accessibility"]
+    Mod --> Motion["Motion<br/>animations, fluid-motion, motion-design, animation-performance, motion-review, surface-effects"]
+    Mod --> Platform["Platform<br/>kde-integration, qt-kde-reference, quickshell-development, localization"]
+    QML --> Review["code-review"]
+    Motion --> Review
+    Platform --> Review
+    Review --> Verify["verification-before-completion"]
+    Verify --> Commit["commit-push-versioning"]
+    Commit --> PR["pr-delivery"]
+    Safety["preflight-security-review, publication-review, safe-removal-review"] -.-> Mod
+    Meta["documentation, skill-authoring"] -.-> Verify
+```
+
 | Skill | Purpose | Use when | Depends on |
 |---|---|---|---|
 | [accessibility](accessibility/SKILL.md) | Keyboard path, names, focus continuity, scaling | an interactive surface or an accessibility claim is added or reviewed | `qml-ui-creation` |

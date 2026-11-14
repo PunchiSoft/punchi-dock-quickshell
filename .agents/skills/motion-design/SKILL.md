@@ -12,6 +12,24 @@ Resolve interactive behaviour and its animated representation as one system. Do
 not let an animation hide a defective input policy, and do not let an input fix
 produce a slow, blocked, or inaccessible interface.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Interaction and motion symptom"] --> B["Identify states and every input source"]
+    B --> C["Separate input policy from the transition"]
+    C --> D{"Symptom"}
+    D -->|"bursts"| E["Throttle or coalesce"]
+    D -->|"retargeting"| F["Interrupt and retarget from the current value"]
+    D -->|"hover versus selection"| G["One emphasis owner"]
+    D -->|"render cost"| H["animation-performance"]
+    E --> I["Minimal change with all input modes"]
+    F --> I
+    G --> I
+    H --> I
+    I --> J["Validate one step per input, extremes and reduced motion"]
+```
+
 ## Coordination
 
 Activate only the specialized skills that apply: `review-cycle` to reconstruct a

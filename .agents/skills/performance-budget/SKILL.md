@@ -11,6 +11,21 @@ by how much data the user owns. `animation-performance` owns the per-frame cost
 of one effect; this skill owns how many objects exist at all and how an
 interaction scales with the data.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["View, delegate or data source"] --> B["Declare expected and worst-case load"]
+    B --> C["Measure a repeatable baseline"]
+    C --> D["Set the delegate and cost budget"]
+    D --> E["Virtualize with ListView or GridView"]
+    E --> F["Bound delegates to one viewport plus cache"]
+    F --> G["Assert the bound at worst case"]
+    G --> H{"Object count independent of catalogue size?"}
+    H -->|"no"| E
+    H -->|"yes"| I["Real-session feel and clipping"]
+```
+
 ## Procedure
 
 1. Declare the load before writing the view. Name the expected and worst-case row

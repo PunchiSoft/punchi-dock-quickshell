@@ -9,6 +9,23 @@ license: GPL-3.0-or-later
 Review the change before it exists: what it reads, what it writes, what it
 launches, and what it would publish.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Change"] --> B["State the authorized scope"]
+    B --> C["List untrusted inputs"]
+    C --> D["Bound length, count, recursion and time"]
+    D --> E["List side effects and their failure paths"]
+    E --> F{"Secrets or personal data?"}
+    F -->|"yes"| G["Remove before publishing"]
+    F -->|"no"| H{"Publishing?"}
+    G --> H
+    H -->|"yes"| I["Inspect staged diff and package contents"]
+    H -->|"no"| J["Report residual risk"]
+    I --> J
+```
+
 ## Procedure
 
 1. State the authorized scope in one sentence, including files and operations.

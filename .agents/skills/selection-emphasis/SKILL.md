@@ -9,6 +9,23 @@ license: GPL-3.0-or-later
 Use this skill for QML surfaces that show selected or current rows, categories,
 tabs, launcher entries, or delegates that also react to the pointer.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["List, grid, tab or row surface"] --> B{"Durable selection?"}
+    B -->|"yes"| C["Selection fill is the only primary emphasis"]
+    C --> D["Disable a competing hover fill"]
+    B -->|"no"| E["Hover may paint one transient band"]
+    D --> F["Keyboard focus stays a separate outline"]
+    E --> F
+    F --> G{"Transient popup row?"}
+    G -->|"yes"| H["One band owned by the last input modality"]
+    G -->|"no"| I["Delegate emphasis follows the surface contract"]
+    H --> J["Forward the opening focus reason"]
+    J --> K["Validate theme, light and dark schemes"]
+```
+
 ## Rule
 
 Each selection set has exactly one primary emphasis. A selected/current item may

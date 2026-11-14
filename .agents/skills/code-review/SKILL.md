@@ -9,6 +9,21 @@ license: GPL-3.0-or-later
 Review the change, not the intent behind it. A finding needs a `file:line` and an
 observable consequence; preferences without one are noise.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Establish the exact range"] --> B["Read the whole diff"]
+    B --> C["Walk every touched domain"]
+    C --> D{"Risky path reproducible?"}
+    D -->|"yes"| E["Scoped test"]
+    D -->|"no"| F["Classify the finding"]
+    E --> F
+    F --> G["Separate blocking from non-blocking"]
+    G --> H["Hand to commit-push-versioning"]
+    H --> I["Review only: no staging, commit or push"]
+```
+
 ## Procedure
 
 1. Establish the exact range: `git diff` for unstaged work, `git diff --cached`

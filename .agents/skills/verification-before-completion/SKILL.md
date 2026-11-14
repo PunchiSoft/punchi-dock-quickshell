@@ -9,6 +9,23 @@ license: GPL-3.0-or-later
 "Done" is a claim about evidence, not about effort. Decide which levels the change
 needed and which ones actually ran.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Task looks complete"] --> B["Restate the request and criteria"]
+    B --> C{"Prose-only change?"}
+    C -->|"yes"| D["Report reviewed prose; no suite evidence"]
+    C -->|"no"| E["Mark each evidence level executed or not"]
+    E --> F["Re-run the scoped test after the final edit"]
+    F --> G["Clean temporary state and check scope"]
+    D --> H["State the residual risk"]
+    G --> H
+    H --> I{"Required evidence complete?"}
+    I -->|"no"| J["Report what is unfinished; do not claim done"]
+    I -->|"yes"| K["Claim completion with its limits"]
+```
+
 ## Evidence levels
 
 | Level | Shows | Cannot show |

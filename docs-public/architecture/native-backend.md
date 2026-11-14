@@ -6,6 +6,34 @@ dedicated window-state executable form the boundary between the QML surfaces and
 the desktop. Everything here is an adapter: no visual component imports it
 directly.
 
+## Adapter map
+
+```mermaid
+flowchart LR
+    subgraph QML[QML adapters]
+        Launch["Launch and desktop actions"]
+        Catalog["Application catalogue"]
+        Recent["Recent documents"]
+        Places["File places"]
+        Media["Media transport"]
+    end
+    subgraph NATIVE[Native boundary]
+        KService["KService, KIO, KWaylandExtras"]
+        Stats["Activities Stats"]
+        KPlaces["KFilePlacesModel"]
+        MPRIS["Plasma MPRIS provider"]
+        Tasks["KWindowSystem TasksModel"]
+        Updates["UpdateState: PackageKit, fwupd, Flatpak"]
+    end
+    Launch --> KService
+    Catalog --> KService
+    Recent --> Stats
+    Places --> KPlaces
+    Media --> MPRIS
+    Tasks --> Markers["Running markers"]
+    Updates --> Notice["PunchiUpdateNotice and badge"]
+```
+
 ## Contract
 
 Native KDE integration is a product requirement. Quickshell hosts the surfaces;

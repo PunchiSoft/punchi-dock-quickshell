@@ -11,6 +11,21 @@ for commit and push after approving implemented and validated work. Merging, tag
 releases, branch deletion, and rewriting another branch each need their own
 request.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Reviewed branch pushed"] --> B{"Evidence, base and scope correct?"}
+    B -->|"no"| C["Stop and report the blocker"]
+    B -->|"yes"| D["Create the pull request with a body file"]
+    D --> E["Verify base, head and changed files"]
+    E --> F{"Merged?"}
+    F -->|"no"| G["Ask the owner to merge; wait"]
+    G --> F
+    F -->|"yes"| H["Return to main and fast-forward"]
+    H --> I["Ask about branch cleanup"]
+```
+
 ## Before opening
 
 - The work sits on one delivery branch created from updated `main`, never on

@@ -13,6 +13,21 @@ reversible motion with Qt Quick's animation system instead of imperative logic.
 Read [the shared doctrine](../references/motion-doctrine.md) first; it is not
 repeated here.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["State change or input"] --> B{"Continuous pointer position?"}
+    B -->|"yes"| C["Bounded continuous function of the input"]
+    B -->|"no"| D["Behavior, Transition, SmoothedAnimation or animator"]
+    C --> E["Velocity continuous; no restart from zero"]
+    D --> E
+    E --> F["Interruptible and reversible from the current value"]
+    F --> G["Theme duration or documented custom value"]
+    G --> H["Reduced motion applies the final value without animation"]
+    H --> I["Validate interruption, real size and orientation"]
+```
+
 ## Coordination
 
 - `animations` decides what moves and why.

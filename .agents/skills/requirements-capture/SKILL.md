@@ -9,6 +9,21 @@ license: GPL-3.0-or-later
 A requirement is a testable statement about observable behavior. Everything else
 is an implementation choice, a preference, or a guess.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Request"] --> B["Quote it verbatim as the source of scope"]
+    B --> C["Separate asked behavior from implied choices"]
+    C --> D["Write given, when and then criteria"]
+    D --> E["Write the out-of-scope list"]
+    E --> F{"A decision changes the implementation?"}
+    F -->|"yes"| G["Ask with the default you would choose"]
+    F -->|"no"| H["Record risks and required evidence"]
+    G --> H
+    H --> I["Hand to modification-cycle"]
+```
+
 ## Procedure
 
 1. Quote the request verbatim and keep it as the source of scope.

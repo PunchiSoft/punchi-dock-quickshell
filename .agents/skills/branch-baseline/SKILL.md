@@ -11,6 +11,21 @@ memory: a branch created from another feature branch or from a stale local `main
 attaches work that is not yours, and the mistake stays invisible until review or
 rebase.
 
+## Flow
+
+```mermaid
+flowchart TD
+    A["Modification"] --> B{"Uncommitted or unmerged work elsewhere?"}
+    B -->|"yes"| C["Stop and ask before switching"]
+    B -->|"no"| D["Fetch and compare main...origin/main"]
+    D --> E{"Local main behind?"}
+    E -->|"yes"| F["switch main; merge --ff-only"]
+    E -->|"no"| G["switch -c from main"]
+    F --> G
+    G --> H["Prove main...HEAD = 0 0 and origin/main..HEAD is empty"]
+    H --> I["Record the branch in the change note"]
+```
+
 ## Rule
 
 Work branches come from an updated `main`. A sub-branch is the exception, and it
