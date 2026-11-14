@@ -560,6 +560,10 @@ PanelWindow {
         magnificationEnabled: root.settings.magnificationEnabled
         reducedMotion: root.settings.effectiveReducedMotion
         windowMinimizeReaction: root.settings.windowMinimizeReaction
+        screenName: root.screen ? root.screen.name : ""
+        screenOriginX: view.x
+        screenOriginY: root.vertical ? view.y
+            : (root.screen ? root.screen.height - view.height - root.edgeClearance : view.y)
         maximumIconScale: root.settings.maximumIconScale
         waveEnterDuration: root.settings.waveEnterDuration
         waveLeaveDuration: root.settings.waveLeaveDuration

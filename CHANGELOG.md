@@ -11,6 +11,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Make a minimized window travel to the dock icon: the window helper publishes
+  each launcher's resting rectangle through KWin's minimize-geometry protocol, so
+  the compositor's effect targets the matching icon. It is independent of the
+  opt-in icon reaction and falls back when the helper or protocol is unavailable.
 - Add an opt-in **Settings → General → Minimize reaction** with **Slow bounce**
   and **Lateral ripple**. When a window minimizes, the dock reacts on the icon of
   its application, using KDE's window model so multiple windows keep one icon;

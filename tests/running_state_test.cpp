@@ -262,7 +262,8 @@ private slots:
         QCOMPARE(matches.size(), 1);
         QVERIFY(matches.first()->noDisplay());
         QCOMPARE(matches.first()->property<QStringList>(QStringLiteral("X-KDE-Wayland-Interfaces")),
-                 QStringList{QStringLiteral("org_kde_plasma_window_management")});
+                 (QStringList{QStringLiteral("org_kde_plasma_window_management"),
+                     QStringLiteral("zwlr_layer_shell_v1")}));
         QCOMPARE(run(QStringLiteral("--unregister")), 0);
         QVERIFY(!QFileInfo::exists(path));
         const QByteArray otherInstallation = QStringLiteral("[Desktop Entry]\nType=Application\n"

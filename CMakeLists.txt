@@ -22,7 +22,7 @@ find_program(WAYLAND_SCANNER_EXECUTABLE wayland-scanner REQUIRED)
 set(PROTOCOL_DIR ${CMAKE_BINARY_DIR}/protocols)
 file(MAKE_DIRECTORY ${PROTOCOL_DIR})
 set(EDGE_PROTOCOL_SOURCES)
-foreach(protocol kde-screen-edge-v1 wlr-layer-shell-unstable-v1 xdg-shell)
+foreach(protocol kde-screen-edge-v1 plasma-window-management wlr-layer-shell-unstable-v1 xdg-shell)
     set(protocol_xml ${CMAKE_SOURCE_DIR}/adapters/kde/protocols/${protocol}.xml)
     foreach(kind client-header server-header private-code)
         if(kind STREQUAL "private-code")
@@ -96,8 +96,9 @@ target_link_libraries(punchikde PRIVATE punchi_edge_protocols)
 add_executable(punchi-window-state adapters/kde/window-state/main.cpp
     adapters/kde/window-state/registration.cpp adapters/kde/window-state/activationdecision.cpp
     adapters/kde/window-state/windowtaskactions.cpp
+    adapters/kde/window-state/minimizegeometry.h adapters/kde/window-state/minimizegeometry.cpp
     adapters/kde/native/windows/kwinminimizeeffect.h adapters/kde/native/windows/kwinminimizeeffect.cpp)
-target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml Qt6::DBus KF6::ConfigCore KF6::Service KF6::WindowSystem PkgConfig::WaylandClient)
+target_link_libraries(punchi-window-state PRIVATE Qt6::Gui Qt6::Qml Qt6::DBus KF6::ConfigCore KF6::Service KF6::WindowSystem PkgConfig::WaylandClient punchi_edge_protocols)
 add_library(punchi_task_identity STATIC adapters/kde/window-state/taskidentity.cpp)
 target_link_libraries(punchi_task_identity PUBLIC Qt6::Gui KF6::Service KF6::CoreAddons)
 target_link_libraries(punchi-window-state PRIVATE punchi_task_identity)

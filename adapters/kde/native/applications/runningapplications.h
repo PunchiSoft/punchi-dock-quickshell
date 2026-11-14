@@ -43,6 +43,7 @@ public:
     void setEnabled(bool value);
     Q_INVOKABLE bool isRunning(const QString &desktopId) const;
     Q_INVOKABLE QVariantMap windowActions(const QString &desktopId) const;
+    Q_INVOKABLE void setMinimizeGeometry(const QString &screen, const QVariantList &entries);
     void classBegin() override {}
     void componentComplete() override { m_complete = true; restart(); }
 signals:

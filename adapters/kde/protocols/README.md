@@ -5,6 +5,7 @@ copyright/license notices. `wayland-scanner` generates client/server declaration
 and private wire metadata into the build directory.
 
 - [KDE screen edge](https://github.com/KDE/plasma-wayland-protocols/blob/master/src/protocols/kde-screen-edge-v1.xml): desktop-internal auto-hide extension, version 1.
+- [Plasma window management](https://github.com/KDE/plasma-wayland-protocols/blob/master/src/protocols/plasma-window-management.xml): version 18, LGPL-2.1-or-later; the window helper publishes task geometry through it.
 - [Layer shell](https://github.com/swaywm/wlr-protocols/blob/master/unstable/wlr-layer-shell-unstable-v1.xml): version 4 description; the sensor binds version 3. Its `namespace` argument is renamed `namespace_` solely to produce valid C++ headers.
 - [XDG shell](https://github.com/wayland-mirror/wayland-protocols/blob/main/stable/xdg-shell/xdg-shell.xml): included for layer-shell's referenced `xdg_popup` interface metadata; the sensor creates no XDG windows or popups.
 

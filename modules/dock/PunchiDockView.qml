@@ -30,13 +30,26 @@ Control {
         ? (bottomPadding - topPadding) / 2 : 0
     onMaximumScrollChanged: scrollOffset = scrollPositionChangedByUser
         ? Math.max(0, Math.min(maximumScroll, scrollOffset)) : centeredScrollOffset
-    onHeightChanged: if (vertical && !scrollPositionChangedByUser) scrollOffset = centeredScrollOffset
+    onHeightChanged: {
+        if (vertical && !scrollPositionChangedByUser) scrollOffset = centeredScrollOffset
+        geometryTimer.restart()
+    }
+    onWidthChanged: geometryTimer.restart()
+    onIconSizeChanged: geometryTimer.restart()
+    onItemSizeChanged: geometryTimer.restart()
+    onItemSpacingChanged: geometryTimer.restart()
+    onScrollOffsetChanged: geometryTimer.restart()
+    onScreenNameChanged: geometryTimer.restart()
+    onScreenOriginXChanged: geometryTimer.restart()
+    onScreenOriginYChanged: geometryTimer.restart()
     onDockEdgeChanged: {
         scrollPositionChangedByUser = false
         scrollOffset = centeredScrollOffset
         pointerEngaged = false
         Qt.callLater(root.updatePointerInteraction)
+        geometryTimer.restart()
     }
+    Component.onCompleted: geometryTimer.restart()
     clip: vertical && maximumScroll > 0
     WheelHandler {
         enabled: root.vertical && root.maximumScroll > 0 && !root.contextMenuOpen
@@ -63,13 +76,18 @@ Control {
         target: root.applicationState
         ignoreUnknownSignals: true
         function onApplicationMinimized(desktopId) { root.triggerMinimizeReaction(desktopId) }
+        function onRevisionChanged() { geometryTimer.restart() }
     }
     readonly property bool hostActive: root.Window.active
     onHostActiveChanged: if (!hostActive) {
         keyboardFocusId = ""
         keyboardNavigationRequested = false
     }
-    onVisibleChanged: if (!visible) keyboardNavigationRequested = false
+    onVisibleChanged: {
+        if (!visible) keyboardNavigationRequested = false
+        geometryTimer.restart()
+        if (!visible) Qt.callLater(root.publishMinimizeGeometry)
+    }
     readonly property PunchiDockMetrics metrics: PunchiDockMetrics {}
     property int itemSize: metrics.itemSize
     property int iconSize: metrics.iconSize
@@ -81,6 +99,9 @@ Control {
     property string windowMinimizeReaction: "none"
     property int minimizeTargetIndex: -1
     property int minimizeRevision: 0
+    property string screenName: ""
+    property real screenOriginX: 0
+    property real screenOriginY: 0
     property real maximumIconScale: 2.0
     property int clickDuration: Kirigami.Units.longDuration
     readonly property real clickTopReserve: Math.ceil(iconSize * 0.45)
@@ -201,6 +222,38 @@ Control {
             return
         }
     }
+    // Publish the resting icon rectangles of this dock. KWin animates a
+    // minimized window to that rectangle; the helper turns each one into a
+    // transparent Wayland marker.
+    function publishMinimizeGeometry(): void {
+        if (!root.applicationState
+                || typeof root.applicationState.publishMinimizeGeometry !== "function") return
+        if (!root.visible || root.screenName.length === 0) {
+            root.applicationState.publishMinimizeGeometry(root.screenName, [])
+            return
+        }
+        const entries = []
+        for (let index = 0; index < tiles.count; ++index) {
+            const tile = tiles.itemAt(index)
+            const entry = root.entries.get(index)
+            if (!tile || !entry) continue
+            const desktopId = normalizedDesktopId(entry.desktopId)
+            if (desktopId.length === 0) continue
+            const width = root.iconSize
+            const height = root.iconSize
+            const x = Math.round(root.screenOriginX + tile.x + (tile.width - width) / 2)
+            const y = Math.round(root.screenOriginY + tile.y + (tile.height - height) / 2)
+            if (x < 0 || y < 0) continue
+            entries.push({desktopId, x, y, width, height})
+        }
+        root.applicationState.publishMinimizeGeometry(root.screenName, entries)
+    }
+    Timer {
+        id: geometryTimer
+        interval: 0
+        repeat: false
+        onTriggered: root.publishMinimizeGeometry()
+    }
     function itemForId(appId: string): Item {
         for (let index = 0; index < tiles.count; ++index) {
             const item = tiles.itemAt(index) as PunchiDockTile
@@ -270,6 +323,7 @@ Control {
         if (root.currentIndex >= root.itemCount)
             root.currentIndex = root.itemCount - 1
         reconcileKeyboardFocus()
+        geometryTimer.restart()
     }
 
     // Observe rendered bounds without feeding them back into logical centers.

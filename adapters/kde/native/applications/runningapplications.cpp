@@ -53,6 +53,29 @@ QVariantMap RunningApplications::windowActions(const QString &desktopId) const
 {
     return m_available ? m_windowActions.value(normalized(desktopId)).toMap() : QVariantMap();
 }
+
+void RunningApplications::setMinimizeGeometry(const QString &screen, const QVariantList &entries)
+{
+    if (screen.isEmpty() || screen.size() > 128 || entries.size() > 256
+        || m_process.state() != QProcess::Running) return;
+    QJsonArray geometry;
+    for (const auto &value : entries) {
+        const auto entry = value.toMap();
+        const QString id = normalized(entry.value(QStringLiteral("desktopId")).toString());
+        const int x = entry.value(QStringLiteral("x")).toInt();
+        const int y = entry.value(QStringLiteral("y")).toInt();
+        const int width = entry.value(QStringLiteral("width")).toInt();
+        const int height = entry.value(QStringLiteral("height")).toInt();
+        if (id.isEmpty() || width <= 0 || height <= 0 || width > 4096 || height > 4096
+            || x < 0 || y < 0 || x > 100000 || y > 100000) continue;
+        geometry.append(QJsonObject{{QStringLiteral("desktopId"), id},
+            {QStringLiteral("x"), x}, {QStringLiteral("y"), y},
+            {QStringLiteral("width"), width}, {QStringLiteral("height"), height}});
+    }
+    const QJsonObject request{{QStringLiteral("type"), QStringLiteral("minimize-geometry")},
+        {QStringLiteral("screen"), screen}, {QStringLiteral("entries"), geometry}};
+    m_process.write(QJsonDocument(request).toJson(QJsonDocument::Compact) + '\n');
+}
 void RunningApplications::update(bool available, const QSet<QString> &ids, const QVariantList &applicationEntries,
     const QVariantMap &windowActions, const QVariantList &virtualDesktops,
     const QStringList &currentDesktopIds, const QVariantList &activities)
