@@ -113,7 +113,7 @@ TestCase {
         verify(settings.restore({version: 15, menuShowPageArrows: true}))
         compare(settings.menuShowScrollBar, true)
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 16)
+        compare(data.version, 17)
         compare(data.menuApplicationOrder, "alphabetical")
         compare(data.menuShowScrollBar, true)
         verify(settings.restore({version: 16, menuApplicationOrder: "categories",
@@ -155,6 +155,22 @@ TestCase {
         // A non-boolean value keeps the current choice.
         verify(restored.restore({version: 16, menuTextShadow: "yes"}))
         compare(restored.menuTextShadow, false)
+    }
+    function test_windowMinimizeReactionPersistence() {
+        const settings = createTemporaryObject(settingsFixture, test)
+        compare(settings.windowMinimizeReaction, "none")
+        settings.windowMinimizeReaction = "slowBounce"
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.windowMinimizeReaction, "slowBounce")
+        const restored = createTemporaryObject(settingsFixture, test)
+        verify(restored.restore({version: 17, windowMinimizeReaction: "lateralRipple"}))
+        compare(restored.windowMinimizeReaction, "lateralRipple")
+        // An unknown imported value keeps the current choice.
+        verify(restored.restore({version: 17, windowMinimizeReaction: "swing"}))
+        compare(restored.windowMinimizeReaction, "lateralRipple")
+        // A direct assignment outside the known modes falls back to the default.
+        restored.windowMinimizeReaction = "swing"
+        compare(restored.windowMinimizeReaction, "none")
     }
     function test_menuShowDockButtonPersistence() {
         const settings = createTemporaryObject(settingsFixture, test)
@@ -198,7 +214,7 @@ TestCase {
         settings.popupFanIconSize = 34
         settings.popupHeightPercent = 50
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 16)
+        compare(data.version, 17)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.popupScale, 1.15)
@@ -232,7 +248,7 @@ TestCase {
         settings.recentApplicationsContainerLayout = "fan"
         compare(settings.effectiveRecentApplicationsLayout, "fan")
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 16)
+        compare(data.version, 17)
         compare(data.recentApplicationsPresentation, "icons")
         compare(data.recentApplicationsContainerLayout, "fan")
         const restored = createTemporaryObject(settingsFixture, test)
@@ -295,7 +311,7 @@ TestCase {
         compare(settings.setContainerPath("files", "/tmp/other"), false)
         // The persisted profile carries the containers and still round-trips.
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 16)
+        compare(data.version, 17)
         compare(data.containers.length, 3)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
@@ -340,7 +356,7 @@ TestCase {
         // The profile round-trips the field and a schema-8 profile keeps none.
         verify(settings.setContainerHiddenEntries(id, ["skip.txt"]))
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 16)
+        compare(data.version, 17)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))
         compare(restored.containerHiddenEntries(id), ["skip.txt"])
@@ -362,7 +378,7 @@ TestCase {
         settings.runningMarkersFollowDesktop = true
         settings.avoidInnerEdgeAutoHide = false
         const data = JSON.parse(JSON.stringify(settings.snapshot()))
-        compare(data.version, 16)
+        compare(data.version, 17)
         compare(data.selectedScreens.length, 2)
         const restored = createTemporaryObject(settingsFixture, test)
         verify(restored.restore(data))

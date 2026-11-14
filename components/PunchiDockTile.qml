@@ -38,6 +38,11 @@ ToolButton {
     property real targetIconScale: 1
     property bool reducedMotion: false
     property int clickDuration: Kirigami.Units.longDuration
+    // The row index and the minimize transition shared by the whole dock.
+    property int itemIndex: -1
+    property string minimizeMode: "none"
+    property int minimizeTargetIndex: -1
+    property int minimizeRevision: 0
     readonly property bool feedbackRunning: feedback.running
     readonly property real clickOffsetY: feedback.verticalOffset
     signal activated()
@@ -46,10 +51,11 @@ ToolButton {
     onFocusReasonChanged: if (pressed && focusReason === Qt.MouseFocusReason) root.pointerPressed()
     property bool magnificationEnabled: true
     readonly property real visualIconScale: magnificationEnabled ? targetIconScale : 1
-    property real iconOffsetX: vertical
-        ? inwardDirection * (iconSize * 0.5 * (visualIconScale - 1) - clickOffsetY) : axisOffset
-    readonly property real iconOffsetY: vertical ? axisOffset
-        : -iconSize * 0.5 * (visualIconScale - 1) + clickOffsetY
+    property real iconOffsetX: (vertical
+        ? inwardDirection * (iconSize * 0.5 * (visualIconScale - 1) - clickOffsetY) : axisOffset)
+        + reaction.horizontalOffset
+    readonly property real iconOffsetY: (vertical ? axisOffset
+        : -iconSize * 0.5 * (visualIconScale - 1) + clickOffsetY) + reaction.verticalOffset
     // Parent coordinates, shared by unscaled surfaces attached to the icon.
     readonly property point iconTopCenter: Qt.point(
         root.x + root.width / 2 + root.iconOffsetX,
@@ -104,6 +110,18 @@ ToolButton {
         id: feedback
         iconSize: root.iconSize
         duration: root.clickDuration
+        motionEnabled: !root.reducedMotion && root.enabled && root.visible
+    }
+
+    PunchiDockMinimizeReaction {
+        id: reaction
+        mode: root.minimizeMode
+        itemIndex: root.itemIndex
+        targetIndex: root.minimizeTargetIndex
+        revision: root.minimizeRevision
+        iconSize: root.iconSize
+        vertical: root.vertical
+        bounceDirection: root.dockEdge === "bottom" || root.dockEdge === "right" ? -1 : 1
         motionEnabled: !root.reducedMotion && root.enabled && root.visible
     }
 

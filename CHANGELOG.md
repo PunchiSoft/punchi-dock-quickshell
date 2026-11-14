@@ -11,6 +11,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Add an opt-in **Settings → General → Minimize reaction** with **Slow bounce**
+  and **Lateral ripple**. When a window minimizes, the dock reacts on the icon of
+  its application, using KDE's window model so multiple windows keep one icon;
+  reduced motion disables the reaction. The profile schema advances to version 17.
 - Add a **Menu → Right-click menu text shadow** switch, on by default, for the
   dock's right-click menu only. Turn it off for readers who find the doubled edge
   harder to read. The fullscreen menu, folder and recent containers and Fan rows

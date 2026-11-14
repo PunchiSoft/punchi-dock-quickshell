@@ -67,12 +67,13 @@ private slots:
         QStandardItemModel tasks;
         tasks.setItemRoleNames({{Qt::UserRole + 1, "IsWindow"}, {Qt::UserRole + 2, "SkipTaskbar"},
             {Qt::UserRole + 3, "AppId"}, {Qt::UserRole + 4, "LauncherUrlWithoutIcon"},
-            {Qt::UserRole + 5, "AppName"}});
+            {Qt::UserRole + 5, "AppName"}, {Qt::UserRole + 6, "IsMinimized"}});
         auto *window = new QStandardItem;
         window->setData(true, Qt::UserRole + 1);
         window->setData(false, Qt::UserRole + 2);
         window->setData(desktopId, Qt::UserRole + 3);
         window->setData(QStringLiteral("Plasma Applet Settings"), Qt::UserRole + 5);
+        window->setData(true, Qt::UserRole + 6);
         window->setData(QIcon::fromTheme(QStringLiteral("preferences-system-windows")), Qt::DecorationRole);
         tasks.appendRow(window);
 
@@ -83,6 +84,7 @@ private slots:
             QStringLiteral("Plasma Applet Settings"));
         QCOMPARE(entries.first().toObject().value(QStringLiteral("iconName")).toString(),
             QStringLiteral("preferences-system-windows"));
+        QCOMPARE(entries.first().toObject().value(QStringLiteral("minimizedCount")).toInt(), 1);
 
         QStandardItemModel pins, catalog;
         DockApplicationsModel dock;

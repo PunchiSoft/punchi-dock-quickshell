@@ -9,7 +9,7 @@ category. **Apply** saves pending changes, **Accept** saves and closes, and
 | Category | Holds |
 | --- | --- |
 | **Items** | The pinned item list, Add Item, ordering, item configuration and removal |
-| **General** | Icon size, magnification, bounce, reduced motion, position, visibility, screens and desktops, updates and autostart |
+| **General** | Icon size, magnification, bounce, minimize reaction, reduced motion, position, visibility, screens and desktops, updates and autostart |
 | **Popups** | Popup size, height and icon size for the folder presentations |
 | **Menu** | Fullscreen-menu blur, opacity, icon size, labels, distribution name, order, scroll bar, close-button corner or hidden, hover animation, dock-over-menu, dock menu button, the right-click menu text shadow and the global menu shortcut |
 | **Profile** | Portable profile export and import with preview |
@@ -49,6 +49,7 @@ catalogue and the values restored by **Reset defaults**:
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
 | Click bounce | Enabled |
+| Minimize reaction | None; **Slow bounce** and **Lateral ripple** are opt-in |
 | Screens | Every connected screen, one shared profile |
 | Virtual desktops and activities | All desktops and activities |
 | Visibility | Windows go below (`overlay`), without reserving screen space |
@@ -67,7 +68,7 @@ Preferences persist independently of Plasma. Changing settings through Apply or
 Accept persists the user's values, and later starts load them. An explicit startup
 mode can override the saved visibility mode.
 
-The current file format is version 16 and accepts versions 1 to 15 through
+The current file format is version 17 and accepts versions 1 to 16 through
 migration. The version history, migration rules, defaults for missing fields and
 the portable-profile format are documented in
 [Data and settings](../architecture/data-and-settings.md#persistence).

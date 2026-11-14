@@ -42,6 +42,21 @@ The geometry and cosine formulas are described in
 - The window reserves room for the maximum bounce amplitude.
 - Disabled motion, hidden surfaces or disabled controls reset feedback immediately.
 
+## Window minimize reaction
+
+- Off by default. **Settings → General → Minimize reaction** offers **None**,
+  **Slow bounce** and **Lateral ripple**.
+- The dock observes each window that minimizes and reacts on the icon of its
+  application, not on a guessed neighbour.
+- **Slow bounce** moves only the target icon; **Lateral ripple** also moves up to
+  two neighbours, later ones with less amplitude.
+- A vertical dock bounces sideways; a horizontal dock bounces vertically. A ripple
+  travels along the dock's main axis.
+- The reaction uses transforms and theme durations, coalesces repeated minimizes,
+  and settles at rest. Reduced motion disables it entirely.
+- The count comes from KDE's window model, so grouping and multiple windows keep
+  one icon.
+
 ## Reduced motion
 
 - The dock reads Kirigami durations and detects disabled system animations.

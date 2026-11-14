@@ -40,7 +40,7 @@ const launchers = [
 ]
 
 const profile = {
-    version: 16,
+    version: 17,
     downloadsView: "grid",
     dockEdge: "bottom",
     panelMode: "overlay",
@@ -61,6 +61,9 @@ const profile = {
     magnificationEnabled: true,
     reducedMotion: false,
     bounceEnabled: true,
+    // The dock-side reaction to a window minimizing. Off by default; the
+    // optional bounce or ripple is enabled in Settings -> General.
+    windowMinimizeReaction: "none",
     maximumIconScale: 2.0,
     pinnedIds: ["files", "terminal", "item:folder:home", "browser", "kate",
         "systemsettings", "discover", "gwenview", "okular", "item:downloads",

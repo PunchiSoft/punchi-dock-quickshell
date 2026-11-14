@@ -56,6 +56,14 @@ Control {
         target: root.entries
         function onCountChanged() { root.reconcileKeyboardFocus() }
     }
+    // The running-applications service reports one desktop id per minimize
+    // transition; the row it belongs to receives the reaction, and its
+    // neighbours only participate in the ripple mode.
+    Connections {
+        target: root.applicationState
+        ignoreUnknownSignals: true
+        function onApplicationMinimized(desktopId) { root.triggerMinimizeReaction(desktopId) }
+    }
     readonly property bool hostActive: root.Window.active
     onHostActiveChanged: if (!hostActive) {
         keyboardFocusId = ""
@@ -70,6 +78,9 @@ Control {
     property int bottomContentPadding: metrics.bottomContentPadding
     property bool magnificationEnabled: true
     property bool reducedMotion: false
+    property string windowMinimizeReaction: "none"
+    property int minimizeTargetIndex: -1
+    property int minimizeRevision: 0
     property real maximumIconScale: 2.0
     property int clickDuration: Kirigami.Units.longDuration
     readonly property real clickTopReserve: Math.ceil(iconSize * 0.45)
@@ -172,6 +183,23 @@ Control {
 
     function keyboardActivation(item): bool {
         return !!item && item.activeFocus && item.visualFocus
+    }
+    function normalizedDesktopId(value): string {
+        let id = String(value || "")
+        while (id.endsWith(".desktop")) id = id.slice(0, -8)
+        return id
+    }
+    function triggerMinimizeReaction(desktopId): void {
+        if (!root.applicationState || root.windowMinimizeReaction === "none"
+                || root.reducedMotion) return
+        const target = normalizedDesktopId(desktopId)
+        if (target.length === 0) return
+        for (let row = 0; row < root.entries.count; ++row) {
+            if (normalizedDesktopId(root.entries.get(row).desktopId) !== target) continue
+            root.minimizeTargetIndex = row
+            root.minimizeRevision += 1
+            return
+        }
     }
     function itemForId(appId: string): Item {
         for (let index = 0; index < tiles.count; ++index) {
@@ -327,6 +355,10 @@ Control {
                     root.keyboardNavigationRequested = true
             }
             required appId
+            itemIndex: index
+            minimizeMode: root.windowMinimizeReaction
+            minimizeTargetIndex: root.minimizeTargetIndex
+            minimizeRevision: root.minimizeRevision
             parent: root
             x: root.leftPadding + (root.vertical ? 0 : index * (root.itemSize + root.itemSpacing))
             y: root.topPadding + (root.vertical ? index * (root.itemSize + root.itemSpacing) - root.scrollOffset : 0)
