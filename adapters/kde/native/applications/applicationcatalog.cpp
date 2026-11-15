@@ -77,7 +77,8 @@ QHash<int, QByteArray> ApplicationCatalog::roleNames() const
     return {{AppId, "appId"}, {DesktopId, "desktopId"}, {Title, "title"}, {Icon, "iconName"},
         {Name, "name"}, {Description, "description"}, {Installed, "installed"},
         {ApplicationIcon, "appIconName"}, {Categories, "categories"},
-        {StartupWMClass, "startupWMClass"}};
+        {StartupWMClass, "startupWMClass"}, {GenericName, "genericName"},
+        {Keywords, "keywords"}};
 }
 
 int ApplicationCatalog::rowCount(const QModelIndex &parent) const { return parent.isValid() ? 0 : m_rows.size(); }
@@ -134,6 +135,8 @@ void ApplicationCatalog::reload()
             {QStringLiteral("appIconName"), applicationIcon(service)},
             {QStringLiteral("categories"), service ? service->categories() : QStringList()},
             {QStringLiteral("startupWMClass"), startupWMClass},
+            {QStringLiteral("genericName"), service ? service->genericName() : QString()},
+            {QStringLiteral("keywords"), service ? service->keywords().join(u' ') : QString()},
             {QStringLiteral("installed"), installed}});
     }
     for (const auto &service : KService::allServices()) {
@@ -146,6 +149,8 @@ void ApplicationCatalog::reload()
             {QStringLiteral("categories"), service->categories()},
             {QStringLiteral("startupWMClass"),
                 service->property<QString>(QStringLiteral("StartupWMClass"))},
+            {QStringLiteral("genericName"), service->genericName()},
+            {QStringLiteral("keywords"), service->keywords().join(u' ')},
             {QStringLiteral("description"), service->comment()}, {QStringLiteral("installed"), true}});
     }
     QCollator collator;
@@ -197,7 +202,8 @@ bool ApplicationSearchModel::filterAcceptsRow(int row, const QModelIndex &parent
     if (!item.data(ApplicationCatalog::Installed).toBool()) return false;
     if (m_query.isEmpty()) return true;
     for (int role : {ApplicationCatalog::Name, ApplicationCatalog::Title, ApplicationCatalog::AppId,
-                     ApplicationCatalog::DesktopId, ApplicationCatalog::Description})
+                     ApplicationCatalog::DesktopId, ApplicationCatalog::Description,
+                     ApplicationCatalog::GenericName, ApplicationCatalog::Keywords})
         if (item.data(role).toString().contains(m_query, Qt::CaseInsensitive)) return true;
     return false;
 }

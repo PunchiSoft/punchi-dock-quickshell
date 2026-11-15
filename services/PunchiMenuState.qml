@@ -58,9 +58,10 @@ QtObject {
 
     // The catalogue is prepared once per revision instead of once per keystroke:
     // typing lowercases the query and compares against text that already is
-    // lowercased. A row exposes the desktop entry's name, the item's own title
-    // and the entry's comment, and the query matches any of them, so an
-    // application the user recognizes by its description is found too.
+    // lowercased. A row exposes the desktop entry's name, generic name, keywords,
+    // its own title, its comment and its desktop id (GIMP is remembered as
+    // "gimp" or "image editor", not by its long display name), and the query
+    // matches any of them.
     readonly property var searchIndex: {
         root.catalogueRevision
         const rows = []
@@ -70,7 +71,8 @@ QtObject {
             if (!application) continue
             const fields = []
             for (const field of [application.name, application.title,
-                    application.description]) {
+                    application.description, application.genericName,
+                    application.keywords, application.desktopId, application.appId]) {
                 if (typeof field === "string" && field.length > 0) fields.push(field)
             }
             rows.push({

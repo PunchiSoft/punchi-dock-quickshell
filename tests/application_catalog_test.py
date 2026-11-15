@@ -24,6 +24,8 @@ def main():
             wm_class_line = f'StartupWMClass={wm_class}\n' if wm_class else ''
             path.write_text('[Desktop Entry]\nType=Application\n'
                             f'Name={name}\nExec=/bin/true %U\nIcon={icon}\n'
+                            f'GenericName=Owned {name} Generic\n'
+                            f'Keywords={storage_id};fixture;\n'
                             f'{wm_class_line}'
                             f'MimeType={mime_types}\nCategories=Network;WebBrowser;\n')
             created.append(path)

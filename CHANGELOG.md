@@ -54,6 +54,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Search PunchiMenu by the desktop entry's generic name, keywords and desktop id,
+  so `gimp` finds GNU Image Manipulation Program instead of only matching its
+  long display name.
 - Resolve the dock context menu's window actions by the application's desktop
   ID, so Close, Minimize and the other window commands appear for running apps.
 - Offer only local KDE Places schemes (`file`, `trash`, `recentdocuments`,

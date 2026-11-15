@@ -31,6 +31,9 @@ private slots:
         QCOMPARE(browser.value("installed").toBool(), true);
         QCOMPARE(browser.value("title").toString(), QStringLiteral("Browser"));
         QCOMPARE(browser.value("name").toString(), QStringLiteral("Owned Catalog Browser"));
+        QCOMPARE(browser.value("genericName").toString(),
+            QStringLiteral("Owned Owned Catalog Browser Generic"));
+        QVERIFY(browser.value("keywords").toString().contains(QStringLiteral("fixture")));
         QCOMPARE(browser.value("appIconName").toString(), QStringLiteral("punchi-catalog-browser"));
         // The grouping the menu shows comes from the desktop entry itself.
         const QStringList browserCategories = browser.value("categories").toStringList();
@@ -84,6 +87,22 @@ private slots:
         const auto browser = catalog.application("browser");
         QVERIFY(browser.value("desktopId").toString().isEmpty());
         QCOMPARE(browser.value("installed").toBool(), false);
+    }
+    void searchMatchesGenericNameAndKeywords() {
+        QStandardItemModel presets;
+        initialize(presets);
+        append(presets, "browser", "", "Browser", "internet-web-browser",
+            "x-scheme-handler/https x-scheme-handler/http text/html");
+        ApplicationCatalog catalog;
+        catalog.setPresets(&presets);
+        ApplicationSearchModel search;
+        search.setSourceModel(&catalog);
+        search.setQuery("fixture");
+        QCOMPARE(search.rowCount(), 2);
+        search.setQuery("browser generic");
+        QCOMPARE(search.rowCount(), 1);
+        search.setQuery("no-such-term");
+        QCOMPARE(search.rowCount(), 0);
     }
 };
 QTEST_GUILESS_MAIN(ApplicationCatalogTest)
