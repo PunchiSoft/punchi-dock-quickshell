@@ -54,6 +54,8 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Resolve the dock context menu's window actions by the application's desktop
+  ID, so Close, Minimize and the other window commands appear for running apps.
 - Offer only local KDE Places schemes (`file`, `trash`, `recentdocuments`,
   `activities`); a remote or custom KIO scheme is no longer passed to the
   launcher.

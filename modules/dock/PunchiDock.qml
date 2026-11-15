@@ -371,7 +371,10 @@ PanelWindow {
         canLaunchNewWindow: contextService.canLaunchNewWindow
         canPin: contextService.canPin
         pinned: contextService.pinned
-        windowActions: root.services.runningApplications.revision >= 0 ? root.services.runningApplications.windowActions(contextMenu.appId) : ({})
+        // Window actions are keyed by desktop id; the context service resolved
+        // it from the dock row's app id (for example, terminal -> org.kde.konsole).
+        windowActions: root.services.runningApplications.revision >= 0
+            ? root.services.runningApplications.windowActions(contextService.desktopId) : ({})
         virtualDesktops: root.services.runningApplications.virtualDesktops
         trashItem: contextMenu.appId === "item:trash"
         canEmptyTrash: trash.canEmpty
