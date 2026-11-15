@@ -13,7 +13,7 @@ class ApplicationCatalog : public QAbstractListModel
     Q_PROPERTY(int count READ rowCount NOTIFY changed)
     Q_PROPERTY(int revision READ revision NOTIFY changed)
 public:
-    enum Role { AppId = Qt::UserRole + 1, DesktopId, Title, Icon, Name, Description, Installed, ApplicationIcon, Categories, StartupWMClass };
+    enum Role { AppId = Qt::UserRole + 1, DesktopId, Title, Icon, Name, Description, Installed, ApplicationIcon, Categories, StartupWMClass, GenericName, Keywords };
     explicit ApplicationCatalog(QObject *parent = nullptr);
     QAbstractItemModel *presets() const { return m_presets; }
     void setPresets(QAbstractItemModel *presets);

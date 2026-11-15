@@ -46,7 +46,13 @@ TestCase {
     readonly property var descriptiveCatalogue: [
         {appId: "x", name: "Dolphin", title: "Dolphin", description: "File manager"},
         {appId: "y", name: "Kate", title: "Kate", description: "Advanced text editor"},
-        {appId: "z", title: "Terminal", description: "Run commands"}
+        {appId: "z", title: "Terminal", description: "Run commands"},
+        {appId: "g", name: "GNU Image Manipulation Program",
+            title: "GNU Image Manipulation Program",
+            description: "Create images and edit photographs",
+            genericName: "Photo retoucher",
+            keywords: "GIMP graphic design illustration painting",
+            desktopId: "gimp"}
     ]
     Component {
         id: descriptiveFixture
@@ -89,7 +95,7 @@ TestCase {
     function test_searchMatchesTheLocalizedTitleAndDescription() {
         const state = createTemporaryObject(descriptiveFixture, test)
         verify(state !== null)
-        compare(state.filtered.length, 3)
+        compare(state.filtered.length, 4)
         // The name still matches, and the comparison ignores case.
         state.searchText = "DOLPH"
         compare(state.filtered.length, 1)
@@ -105,6 +111,18 @@ TestCase {
         state.searchText = "commands"
         compare(state.filtered.length, 1)
         compare(state.filtered[0].appId, "z")
+        // The desktop id and the keywords find an application whose long name
+        // does not contain the word the user types.
+        state.searchText = "gimp"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "g")
+        state.searchText = "illustration"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "g")
+        // GenericName is searchable too.
+        state.searchText = "retoucher"
+        compare(state.filtered.length, 1)
+        compare(state.filtered[0].appId, "g")
     }
 
     function test_searchIndexFollowsTheCatalogueRevision() {

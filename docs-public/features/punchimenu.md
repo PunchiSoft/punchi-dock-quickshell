@@ -10,9 +10,11 @@ installed applications is in
 
 ## Search
 
-The query matches the desktop entry's name, the item's own title and its comment,
-ignoring case. The catalogue is prepared once per revision instead of once per
-keystroke. Keywords are not searched.
+The query matches the desktop entry's name, its generic name and keywords, the
+item's own title, its comment and its desktop id, ignoring case. The catalogue is
+prepared once per revision instead of once per keystroke. This is why `gimp`
+finds **GNU Image Manipulation Program**, whose display name does not contain the
+word.
 
 ## Application order
 
