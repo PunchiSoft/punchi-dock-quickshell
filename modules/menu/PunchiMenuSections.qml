@@ -88,6 +88,9 @@ FocusScope {
     Component.onCompleted: if (root.menuState) root.menuState.rows = root.visibleRows
 
     signal launchRequested(int index)
+    // A tile asked for its application menu. The position is in this surface's
+    // coordinates, ready for the fullscreen overlay.
+    signal contextRequested(int index, point position)
 
     function categoryTitle(categoryId: string): string {
         switch (String(categoryId || "")) {
@@ -119,6 +122,23 @@ FocusScope {
     function takeKeyboardEmphasis(): void {
         root.pointerEmphasis = false
         root.revealCurrent()
+    }
+    // The Menu key (or Shift+F10) opens the actions of the current cell at its
+    // centre. The grid geometry already knows the cell, so no tile lookup is
+    // needed and a row that no delegate built yet still resolves.
+    function openContextForCurrent(): void {
+        const state = root.menuState
+        if (!root.active || !state || state.currentIndex < 0) return
+        const rows = state.displayRows
+        const row = state.displayRowFor(state.currentIndex)
+        if (row < 0 || row >= rows.length) return
+        const members = rows[row].members
+        if (!members || members.length === 0) return
+        const columnIndex = state.currentIndex - members[0].index
+        const x = sectionList.x + columnIndex * root.cellWidth + root.cellWidth / 2
+        const y = sectionList.y + root.rowTop(rows[row]) - sectionList.contentY
+            + root.cellHeight / 2
+        root.contextRequested(state.currentIndex, Qt.point(x, y))
     }
     // The view knows the display row of the current cell, so revealing a
     // keyboard selection is one indexed call instead of measuring the content.
@@ -291,6 +311,7 @@ FocusScope {
                     model: displayRow.isHeader ? [] : displayRow.modelData.members
 
                     delegate: PunchiMenuTile {
+                        id: menuTile
                         required property var modelData
 
                         readonly property int absoluteIndex: modelData.index
@@ -318,6 +339,10 @@ FocusScope {
                                 root.menuState.currentIndex = absoluteIndex
                         }
                         onActivated: root.launchRequested(absoluteIndex)
+                        onContextRequested: function(position) {
+                            root.contextRequested(absoluteIndex,
+                                menuTile.mapToItem(root, position.x, position.y))
+                        }
                     }
                 }
             }

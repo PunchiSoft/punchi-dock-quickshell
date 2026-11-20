@@ -24,6 +24,8 @@ public:
     Q_INVOKABLE QVariantList actions(const QString &desktopId) const;
     Q_INVOKABLE bool launchAction(const QString &desktopId, const QString &actionId);
     Q_INVOKABLE bool canLaunchNewWindow(const QString &desktopId) const;
+    Q_INVOKABLE bool canEditApplication(const QString &desktopId) const;
+    Q_INVOKABLE bool editApplication(const QString &desktopId);
     Q_INVOKABLE bool openPlace(FilePlaces *places, const QString &resource);
     Q_INVOKABLE bool openRecent(RecentDocuments *documents, const QString &resource);
     Q_INVOKABLE bool openTrash();

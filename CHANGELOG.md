@@ -11,6 +11,11 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Right-click a PunchiMenu tile, or press the Menu key on the current cell, for
+  the application's own actions: the desktop entry's actions, Places, Recent
+  Files with Forget Recent Files, Open New Window, Pin to Dock or Unpin from
+  Dock, and Edit Application through KMenuEdit. Each row appears only when KDE
+  reports that capability for the application.
 - Make a minimized window travel to the dock icon: the window helper publishes
   each launcher's resting rectangle through KWin's minimize-geometry protocol, so
   the compositor's effect targets the matching icon. It is independent of the

@@ -43,3 +43,24 @@ match rather than for the group it belongs to.
 Settings are not embedded here. A Plasma applet had to host its own settings
 view; this shell has a settings window, so the menu page lives in
 `modules/settings/PunchiDockMenuSettings.qml` under its own category.
+
+## Application actions
+
+The secondary button on a tile, or the Menu key on the current cell, opens
+`PunchiMenuAppContext` anchored to that cell inside the same fullscreen surface.
+The surface is the shared theme balloon: its tail points up when the card opens
+below the cell and down when the card flips above it, and it stays inside the
+layer window because placement is a binding over the measured card.
+The surface mirrors the native launcher's application menu with the entries KDE
+reports for that desktop entry: the `.desktop` actions, Places, Recent Files
+with **Forget Recent Files**, **Open New Window**, **Pin to Dock** or
+**Unpin from Dock**, and **Edit Application…** through KMenuEdit. A query that
+KDE cannot answer for the application hides only its own row.
+
+`PunchiApplicationContextService` resolves the selected application, its
+actions, recent documents, Places and pin state, so the menu does not repeat
+the dock's context logic. The surface stays inside the layer window: Escape or
+a click outside closes it and returns keyboard focus to the menu. A launching
+action closes the whole menu; pinning keeps it open. Plasma containment entries
+such as Add to Desktop or Add to Panel are not offered because this shell does
+not own a Plasma containment.
