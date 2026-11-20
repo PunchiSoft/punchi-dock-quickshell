@@ -59,6 +59,9 @@ Item {
     // The pointer entered this cell; the surface turns it into the current row so
     // exactly one band is painted.
     signal pointerEntered()
+    // The secondary button asked for this application's menu. The position is
+    // local to the cell.
+    signal contextRequested(point position)
 
     Accessible.role: Accessible.Button
     Accessible.name: root.title
@@ -113,8 +116,17 @@ Item {
         objectName: "menuTilePointer"
         anchors.fill: parent
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: Qt.PointingHandCursor
         onEntered: root.pointerEntered()
-        onClicked: root.activated()
+        onPressed: function(mouse) {
+            if (mouse.button !== Qt.RightButton) return
+            // Select the cell before its menu opens, as the native launcher does.
+            root.pointerEntered()
+            root.contextRequested(Qt.point(mouse.x, mouse.y))
+        }
+        onClicked: function(mouse) {
+            if (mouse.button === Qt.LeftButton) root.activated()
+        }
     }
 }

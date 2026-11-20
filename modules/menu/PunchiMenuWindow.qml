@@ -100,6 +100,17 @@ PanelWindow {
             ? root.settings.menuApplicationOrder
             : root.profileDefaults.menuApplicationOrder
     }
+    // One selection serves the context surface: the same native queries the
+    // dock uses, over the full catalogue instead of the pinned rows.
+    PunchiApplicationContextService {
+        id: contextService
+        entries: root.applications
+        adapter: launchAdapter
+        settings: root.settings
+        onRequestRejected: function(appId) {
+            console.warn("Punchi Dock Quickshell: menu context request rejected:", appId)
+        }
+    }
 
     PunchiMenuBackdrop {
         id: backdrop
@@ -194,6 +205,16 @@ PanelWindow {
                     launcher.launch(appId)
                     root.menuController.close()
                 }
+                onContextRequested: function(index, position) {
+                    const application = menuState.filtered[index]
+                    if (!application) return
+                    const appId = String(application.appId || "")
+                    if (appId.length === 0) return
+                    contextService.select(appId)
+                    if (contextService.appId.length === 0) return
+                    appContext.openFor(sections,
+                        String(application.name || application.title || ""), position)
+                }
             }
         }
 
@@ -204,7 +225,12 @@ PanelWindow {
         Keys.onDownPressed: { sections.takeKeyboardEmphasis(); menuState.moveVertical(1) }
         Keys.onPressed: function(event) {
             sections.takeKeyboardEmphasis()
-            if (event.key === Qt.Key_PageDown) { menuState.selectPage(1); event.accepted = true }
+            if (event.key === Qt.Key_Menu
+                    || (event.key === Qt.Key_F10 && (event.modifiers & Qt.ShiftModifier))) {
+                sections.openContextForCurrent()
+                event.accepted = true
+            }
+            else if (event.key === Qt.Key_PageDown) { menuState.selectPage(1); event.accepted = true }
             else if (event.key === Qt.Key_PageUp) { menuState.selectPage(-1); event.accepted = true }
             else if (event.key === Qt.Key_Home) { menuState.selectFirst(); event.accepted = true }
             else if (event.key === Qt.Key_End) { menuState.selectLast(); event.accepted = true }
@@ -236,6 +262,68 @@ PanelWindow {
                 menuState.reset()
                 Qt.callLater(header.focusSearch)
             }
+        }
+    }
+
+    // Application actions open over the whole menu surface, so the grid stays
+    // visible behind them and a click outside closes only this menu.
+    PunchiMenuAppContext {
+        id: appContext
+        anchors.fill: parent
+        property bool menuOpen: root.open
+        onMenuOpenChanged: if (!menuOpen) close(false)
+        motionEnabled: root.motionEnabled
+        textShadow: true
+        actions: contextService.actions
+        recentDocuments: contextService.recentDocuments
+        places: contextService.places
+        usesPlaces: contextService.usesPlaces
+        canLaunchNewWindow: contextService.canLaunchNewWindow
+        canPin: contextService.canPin
+        pinned: contextService.pinned
+        canEditApplication: contextService.canEditApplication
+        onClosed: content.forceActiveFocus(Qt.PopupFocusReason)
+        onLaunchRequested: {
+            launcher.launch(contextService.appId)
+            appContext.close(false)
+            root.menuController.close()
+        }
+        onActionRequested: function(actionId) {
+            launcher.launchAction(contextService.appId, actionId)
+            appContext.close(false)
+            root.menuController.close()
+        }
+        onNewWindowRequested: {
+            contextService.openNewWindow()
+            appContext.close(false)
+            root.menuController.close()
+        }
+        onPlaceRequested: function(resource) {
+            contextService.openPlace(resource)
+            appContext.close(false)
+            root.menuController.close()
+        }
+        onMorePlacesRequested: contextService.showMorePlaces()
+        onPlacesGroupRequested: function(group) { contextService.enterPlacesGroup(group) }
+        onPlacesBackRequested: contextService.leavePlacesGroup()
+        onRecentRequested: function(resource) {
+            contextService.openRecent(resource)
+            appContext.close(false)
+            root.menuController.close()
+        }
+        onForgetRecentRequested: contextService.forgetRecent()
+        onPinRequested: {
+            contextService.pin()
+            appContext.close()
+        }
+        onUnpinRequested: {
+            contextService.unpin()
+            appContext.close()
+        }
+        onEditApplicationRequested: {
+            contextService.editApplication()
+            appContext.close(false)
+            root.menuController.close()
         }
     }
 }

@@ -7,14 +7,18 @@ QtObject {
     id: root
     required property var entries
     required property var adapter
-    required property var settings
+    property var settings: null
     property string appId: ""
     property string desktopId: ""
     property var actions: []
     property bool canLaunchNewWindow: false
-    readonly property bool pinned: appId.length > 0 && settings.pinnedIds.indexOf(appId) >= 0
-    readonly property bool canPin: appId.length > 0 && desktopId.length > 0 && !appId.startsWith("item:")
-        && PunchiDockItemIds.valid(appId) && !pinned && settings.pinnedIds.length < PunchiDockItemIds.maximumPins && isConfigured()
+    readonly property bool canEditApplication: desktopId.length > 0 && isConfigured()
+        && adapter.canEditApplication(desktopId)
+    readonly property bool pinned: !!settings && appId.length > 0
+        && settings.pinnedIds.indexOf(appId) >= 0
+    readonly property bool canPin: !!settings && appId.length > 0 && desktopId.length > 0
+        && !appId.startsWith("item:") && PunchiDockItemIds.valid(appId) && !pinned
+        && settings.pinnedIds.length < PunchiDockItemIds.maximumPins && isConfigured()
     readonly property PunchiRecentDocumentsAdapter recentDocuments: PunchiRecentDocumentsAdapter { desktopId: root.desktopId }
     readonly property PunchiFilePlacesAdapter places: PunchiFilePlacesAdapter { desktopId: root.desktopId }
     readonly property bool usesPlaces: places.count > 0
@@ -63,14 +67,17 @@ QtObject {
         return false
     }
     function forgetRecent(): bool { return isConfigured() && recentDocuments.forget() }
+    function editApplication(): bool {
+        return isConfigured() && canEditApplication && adapter.editApplication(desktopId)
+    }
     function controlMedia(command: string): bool { return isConfigured() && media.dispatch(command) }
     function unpin(): bool {
-        if (!pinned) return false
+        if (!settings || !pinned) return false
         settings.pinnedIds = settings.pinnedIds.filter(id => id !== root.appId)
         return true
     }
     function pin(): bool {
-        if (!canPin) return false
+        if (!settings || !canPin) return false
         settings.pinnedIds = settings.pinnedIds.concat([root.appId])
         return true
     }

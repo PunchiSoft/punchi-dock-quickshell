@@ -79,6 +79,30 @@ Settings. The global shortcut and the IPC commands still open the menu, and
 **Settings → Menu → Show menu button** restores the icon. The list reuses the
 dock's balloon surface and shared popup rows, not a separate menu style.
 
+## Application actions
+
+Right-click a tile, or press the Menu key on the current cell, to open that
+application's actions inside the menu surface. The actions use the same themed
+balloon as the dock popups: the tail points at the cell, above or below the card
+depending on the room. The entries follow KDE's own
+launcher for the same desktop entry:
+
+- the actions the `.desktop` file declares, such as **New Private Window**;
+- **Open New Window** when KDE reports that the application supports another
+  instance and defines no new-window action of its own;
+- **Places**, grouped the way KDE reports them, for applications that open local
+  locations;
+- **Recent Files** with **Forget Recent Files**;
+- **Pin to Dock** or **Unpin from Dock**;
+- **Edit Application…**, which opens the same KMenuEdit entry as KDE.
+
+A capability that KDE does not report for the application hides only that row.
+The menu stays open behind the actions; launching one closes the whole menu,
+while pinning or browsing Places keeps it open. Escape and a click outside close
+the actions first and return the keyboard to the menu. Plasma's containment
+entries, such as Add to Desktop or Add to Panel, are not offered because the
+dock does not own a Plasma containment.
+
 ## Presentation
 
 - A theme-washed backdrop with KWin blur behind it.

@@ -33,9 +33,13 @@ PunchiAntialiasedSurface {
         height: root.verticalTail ? root.width : root.height
         x: (root.width - width) / 2
         y: (root.height - height) / 2
-        rotation: root.tailEdge === "left" ? 90 : root.tailEdge === "right" ? -90 : 0
+        rotation: root.tailEdge === "left" ? 90 : root.tailEdge === "right" ? -90
+            : root.tailEdge === "top" ? 180 : 0
         readonly property real bodyHeight: height - root.tailHeight
-        readonly property real pointerCenter: root.tailEdge === "right" ? width - root.pointerCenter : root.pointerCenter
+        // A top tail is the bottom shape turned half a circle, so the pointer
+        // position mirrors with it. Left and right mirror only one axis.
+        readonly property real pointerCenter: root.tailEdge === "right"
+            || root.tailEdge === "top" ? width - root.pointerCenter : root.pointerCenter
         ShapePath {
             strokeWidth: root.borderWidth
             strokeColor: root.strokeColor

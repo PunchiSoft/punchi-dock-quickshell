@@ -5,6 +5,7 @@
 #include <KApplicationTrader>
 
 #include <KIO/ApplicationLauncherJob>
+#include <KIO/CommandLauncherJob>
 #include <KWaylandExtras>
 #include <kwindowsystem_version.h>
 #include <memory>
@@ -39,6 +40,28 @@ bool DesktopLauncher::canLaunchNewWindow(const QString &desktopId) const
                 && action.name().endsWith(QLatin1String("window"), Qt::CaseInsensitive))
             || action.name() == QLatin1String("WindowNew")) return false;
     }
+    return true;
+}
+
+bool DesktopLauncher::canEditApplication(const QString &desktopId) const
+{
+    const auto service = resolve(desktopId);
+    return service && service->isApplication()
+        && KService::serviceByDesktopName(QStringLiteral("org.kde.kmenuedit"));
+}
+
+bool DesktopLauncher::editApplication(const QString &desktopId)
+{
+    const auto service = resolve(desktopId);
+    const auto editor = KService::serviceByDesktopName(QStringLiteral("org.kde.kmenuedit"));
+    if (!service || !service->isApplication() || !editor || editor->exec().isEmpty()) return false;
+    // Kicker passes the menu id, and collapses the editor tree when the entry
+    // has none. KMenuEdit receives it as one argument, never through a shell.
+    const auto menuId = service->menuId().isEmpty() ? QStringLiteral("/") : service->menuId();
+    auto *job = new KIO::CommandLauncherJob(editor->exec(), {menuId}, this);
+    job->setDesktopName(editor->desktopEntryName());
+    job->setUiDelegate(nullptr);
+    job->start();
     return true;
 }
 
