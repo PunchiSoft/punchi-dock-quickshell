@@ -2,7 +2,9 @@
 
 PunchiDockMetrics derives shared geometry from Kirigami.Units. PunchiShellSettings exposes
 reactive preferences; PunchiTooltipStyle owns balloon metrics. PunchiMotionPreferences supplies
-KDE animation durations. PunchiDockMetrics also sizes the update badge (`badgeBaseSize`,
+KDE animation durations, and `PunchiMotion.js` owns the shared cubic-bezier tokens (`enter`,
+`exit`, `move`, `drawer`) that the menu, the popup family and auto-hide bind through
+`Easing.BezierSpline`. PunchiDockMetrics also sizes the update badge (`badgeBaseSize`,
 `badgeFontPixelSize`, `badgeInset`), taken from `Kirigami.Units.iconSizes.small`,
 `Kirigami.Theme.smallFont` and `Kirigami.Units.smallSpacing`. PunchiDockBadge lays
 them out at the configured maximum magnification on the icon corner.

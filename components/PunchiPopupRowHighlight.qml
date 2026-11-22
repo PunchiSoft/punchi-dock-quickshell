@@ -7,6 +7,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import org.kde.kirigami as Kirigami
+import "../config/PunchiMotion.js" as PunchiMotion
 
 Rectangle {
     id: root
@@ -75,14 +76,16 @@ Rectangle {
         enabled: root.fadeDuration > 0
         ColorAnimation {
             duration: root.fadeDuration
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.ease
         }
     }
     Behavior on border.color {
         enabled: root.fadeDuration > 0
         ColorAnimation {
             duration: root.fadeDuration
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.ease
         }
     }
 
@@ -91,7 +94,8 @@ Rectangle {
         NumberAnimation {
             // Zero-duration animators are not reliable; 1 ms is the minimum.
             duration: Math.max(1, Kirigami.Units.veryShortDuration)
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
     }
 
@@ -101,12 +105,14 @@ Rectangle {
         property: "motionScale"
         to: 1
         duration: 100
-        easing.type: Easing.OutCubic
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: PunchiMotion.enter
     }
 
     // Punchi Menu's reference hover pulse: 3% rise in 95 ms and a 125 ms return.
     // The values are kept as the reference profile rather than derived, so the
-    // dock's popups feel the same as the menu they came from.
+    // dock's popups feel the same as the menu they came from; only the curves
+    // come from the shared tokens.
     SequentialAnimation {
         id: pulseAnimation
         NumberAnimation {
@@ -114,14 +120,16 @@ Rectangle {
             property: "motionScale"
             to: 1.03
             duration: 95
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
         NumberAnimation {
             target: root
             property: "motionScale"
             to: 1
             duration: 125
-            easing.type: Easing.InOutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.move
         }
     }
 }

@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import org.kde.kirigami as Kirigami
 import Punchi.Kde as Native
+import "../../config/PunchiMotion.js" as PunchiMotion
 
 // Full-screen wash behind the menu grid. The wash keeps the original floor of
 // 0.50 opacity so the desk never shows through enough to hurt legibility, and
@@ -15,8 +16,10 @@ Item {
     property bool blurEnabled: true
     property real backgroundOpacity: 0.6
     property bool motionEnabled: true
-    property int openDuration: Math.round(Kirigami.Units.longDuration * 1.1)
-    property int closeDuration: Math.round(Kirigami.Units.shortDuration * 1.4)
+    // The wash is paired with the menu content: one open duration and one close
+    // duration, so the two surfaces leave as a unit instead of the wash trailing.
+    property int openDuration: Kirigami.Units.longDuration
+    property int closeDuration: Kirigami.Units.shortDuration
 
     readonly property real safeOpacity: {
         const requested = Number(root.backgroundOpacity)
@@ -57,7 +60,8 @@ Item {
         enabled: root.motionEnabled
         NumberAnimation {
             duration: root.active ? root.openDuration : root.closeDuration
-            easing.type: root.active ? Easing.OutCubic : Easing.InQuad
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: root.active ? PunchiMotion.enter : PunchiMotion.exit
         }
     }
 }

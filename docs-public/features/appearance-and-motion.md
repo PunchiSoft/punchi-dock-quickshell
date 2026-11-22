@@ -24,6 +24,23 @@ Plasma/Kirigami theme.
 The geometry and cosine formulas are described in
 [Dock runtime](../architecture/dock-runtime.md#magnification).
 
+## Shared motion curves
+
+- The fullscreen menu, the popup family (context menus, folder and recent
+  containers, Fan) and the auto-hide slide use one curve set defined in
+  `config/PunchiMotion.js`.
+- Opening and arriving motion uses a strong ease-out: most of the travel happens
+  early and the surface settles into place. Leaving uses a moderate ease-out on
+  the shorter close duration, so the surface does not linger. Hover fills and
+  colour changes use a gentle ease. On-screen movement, such as the menu's row
+  snap, uses a symmetric curve.
+- The fullscreen menu and its backdrop share one open duration and one close
+  duration, so they leave as a unit.
+- Durations remain the Kirigami theme durations. Reduced motion still applies the
+  final state without animation.
+- The dock wave, the two-hop launch bounce and the minimize reaction keep their
+  own reference profiles.
+
 ## Text shadow
 
 - The fullscreen menu, folder and recent containers, Fan rows and their labels

@@ -46,6 +46,12 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Adopt a shared strong ease-out curve for the fullscreen menu, the popup family
+  and the auto-hide slide, so these surfaces settle into place instead of
+  marching and the dock leaves immediately instead of hanging before it snaps.
+  The menu and its backdrop now share one open and one close duration, and hover
+  fills use a gentler ease. The curve set lives in `config/PunchiMotion.js`; the
+  dock wave and the two-hop bounce keep their current profile.
 - Open the folder and recent-container view choices as submenus with a **Back to
   menu** row, and restore the Remastered icons for the view and sort rows.
 - Apply the 0.25 theme-aware text shadow to the fullscreen-menu distribution

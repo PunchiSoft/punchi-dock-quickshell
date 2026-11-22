@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
+import "../../config/PunchiMotion.js" as PunchiMotion
 
 // Search entry of the menu header. It owns its frame, its clear affordance and
 // its accessible name, so the header only positions it.
@@ -35,7 +36,11 @@ Controls.TextField {
         border.color: Kirigami.Theme.highlightColor
         Behavior on color {
             enabled: root.motionEnabled
-            ColorAnimation { duration: Kirigami.Units.shortDuration }
+            ColorAnimation {
+                duration: Kirigami.Units.shortDuration
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: PunchiMotion.ease
+            }
         }
     }
     Kirigami.Icon {
