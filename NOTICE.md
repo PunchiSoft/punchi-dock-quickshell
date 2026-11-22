@@ -18,6 +18,15 @@ Caelestia Shell is an architectural and visual inspiration:
 KDE-specific behavior must be researched and implemented separately. No Caelestia
 source or assets are copied in this stage.
 
+The motion curve catalogue in `.agents/skills/animations/references/curves.md`
+adapts the UI easing values and timing guidance from Emil Kowalski's skills
+(<https://github.com/emilkowalski/skills>, MIT License, Copyright (c) 2026 Emil
+Kowalski). The paired-element timing, the sorted curve families and the
+frequency/spring guidance were checked against the Vercel open-agents
+web-animation-design skill (<https://github.com/vercel-labs/open-agents>, MIT
+License, Copyright (c) 2026 Vercel, Inc.). The values are expressed for Qt Quick;
+no web implementation is copied.
+
 Quickshell is an external runtime dependency:
 <https://quickshell.org/>. The project does not bundle or fork it.
 

@@ -83,7 +83,8 @@ It owns hover, selection, focus, press, the fill fade, and the single hover puls
 Rows scale their content with `visualScale`; they never re-implement the profile.
 
 - The pulse is a one-shot response to pointer entry: 3% rise in 95 ms and a
-  125 ms return, matching Punchi Menu's reference hover. Leaving mid-pulse
+  125 ms return, matching Punchi Menu's reference hover. The rise uses
+  `PunchiMotion.enter` and the return `PunchiMotion.move`. Leaving mid-pulse
   settles to 1.
 - Press lives in the same surface (0.97, `veryShortDuration`), so an interrupted
   gesture still ends at rest.
@@ -100,13 +101,31 @@ next to the code; the popup pulse keeps 95/125 ms for parity with Punchi Menu.
 
 ## Easing
 
-- `OutQuad`/`OutCubic`: appearing, arriving, responding to an action.
-- `InQuad`/`InCubic`: leaving or losing presence.
-- `InOutQuad`/`InOutCubic`: transitions between equivalent states.
+- The shared curve tokens in [`config/PunchiMotion.js`](../../../config/PunchiMotion.js)
+  are the default:
+  - `enter` (`0.23, 1, 0.32, 1`) for appearing, arriving and responding to input.
+  - `exit` (`0.215, 0.61, 0.355, 1`) for leaving on the shorter close duration.
+  - `move` (`0.77, 0, 0.175, 1`) for on-screen movement between equivalent states.
+  - `drawer` (`0.32, 0.72, 0, 1`) for a surface that slides in and out.
+  - `ease` (`0.25, 0.1, 0.25, 1`) for hover fills and colour changes.
+- Bind a token with `easing.type: Easing.BezierSpline` and
+  `easing.bezierCurve: PunchiMotion.<token>`. Qt expects six numbers: control1,
+  control2 and the fixed `1, 1` end point, not the four-value CSS notation.
+- Both entering and leaving use an ease-out. Never use an ease-in on a short
+  close: it starts nearly stationary and then snaps. The auto-hide uses `drawer`.
+- `OutQuad`/`OutCubic` only where an existing reference profile specifies them,
+  such as the two-hop bounce. Do not extend them to a new surface.
+- `InQuad`/`InCubic` remain only in reference profiles that have not migrated
+  yet (the dock wave's leave fade, the badge and the Trash confirmation). Do not
+  add a new one.
 - `OutBack`/`OutElastic`/`OutBounce`: only with functional justification and
   small amplitude.
 - `Linear`: only for continuous values such as progress, drag, or pointer
   tracking, never for state transitions.
+- Elements that move as a unit share one curve and one duration: menu content
+  and backdrop, a popup and its tail, a container and its Fan arc.
+- Read [the curve catalogue](references/curves.md) before adding or changing a
+  curve.
 
 ## Reduced motion
 

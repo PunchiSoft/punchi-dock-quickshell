@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
+import "../config/PunchiMotion.js" as PunchiMotion
 import "PunchiFanGeometry.js" as PunchiFanGeometry
 
 // Container fan: the entries of a container unfold from the dock icon as one arc,
@@ -205,7 +206,8 @@ Item {
         enabled: root.motionEnabled && root.opened
         NumberAnimation {
             duration: Kirigami.Units.longDuration
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
     }
     readonly property real safeRevealProgress: root.motionEnabled

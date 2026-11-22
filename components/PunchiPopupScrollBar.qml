@@ -2,6 +2,7 @@
 import QtQuick
 import QtQuick.Controls
 import org.kde.kirigami as Kirigami
+import "../config/PunchiMotion.js" as PunchiMotion
 
 // Scroll indicator of the popup family: a thumb with no trough that fades out
 // while the view rests. Consumers reserve the strip it paints in only when their
@@ -39,7 +40,8 @@ ScrollBar {
             enabled: root.motionEnabled
             ColorAnimation {
                 duration: Kirigami.Units.shortDuration
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: PunchiMotion.ease
             }
         }
     }
@@ -47,7 +49,8 @@ ScrollBar {
         enabled: root.motionEnabled
         NumberAnimation {
             duration: Kirigami.Units.shortDuration
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
     }
 }

@@ -2,6 +2,7 @@
 pragma ComponentBehavior: Bound
 import QtQuick
 import org.kde.kirigami as Kirigami
+import "../../config/PunchiMotion.js" as PunchiMotion
 
 // Hover, selection and press surface of one menu cell, ported from the original
 // menu so the dock conversation keeps the same four hover modes. The frame and
@@ -23,14 +24,16 @@ Rectangle {
         property: "motionScale"
         to: 1.03
         duration: 130
-        easing.type: Easing.OutCubic
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: PunchiMotion.enter
     }
     readonly property NumberAnimation settleMotion: NumberAnimation {
         target: root
         property: "motionScale"
         to: 1.0
         duration: 100
-        easing.type: Easing.OutCubic
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: PunchiMotion.enter
     }
     readonly property SequentialAnimation pulseMotion: SequentialAnimation {
         NumberAnimation {
@@ -38,14 +41,16 @@ Rectangle {
             property: "motionScale"
             to: 1.03
             duration: 95
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
         NumberAnimation {
             target: root
             property: "motionScale"
             to: 1.0
             duration: 125
-            easing.type: Easing.InOutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.move
         }
     }
     readonly property SequentialAnimation bounceMotion: SequentialAnimation {
@@ -54,28 +59,32 @@ Rectangle {
             property: "motionScale"
             to: 1.03
             duration: 80
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
         NumberAnimation {
             target: root
             property: "motionScale"
             to: 0.985
             duration: 70
-            easing.type: Easing.InOutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.move
         }
         NumberAnimation {
             target: root
             property: "motionScale"
             to: 1.012
             duration: 65
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
         NumberAnimation {
             target: root
             property: "motionScale"
             to: 1.0
             duration: 80
-            easing.type: Easing.OutCubic
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.enter
         }
     }
 
@@ -117,6 +126,12 @@ Rectangle {
 
     Behavior on color {
         enabled: root.motionEnabled
-        ColorAnimation { duration: Math.max(80, Math.min(140, Kirigami.Units.shortDuration)) }
+        // The theme owns the speed; the shared enter curve keeps the fade legible
+        // without a fixed floor that would override the animation preference.
+        ColorAnimation {
+            duration: Kirigami.Units.shortDuration
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.ease
+        }
     }
 }

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import QtQml
 import QtQuick
+import "../../config/PunchiMotion.js" as PunchiMotion
 
 QtObject {
     id: root
@@ -34,7 +35,11 @@ QtObject {
         NumberAnimation {
             id: slide
             duration: root.effectiveDuration
-            easing.type: root.revealed ? Easing.OutCubic : Easing.InCubic
+            // The drawer curve leaves at once and lands softly. The former
+            // InCubic close spent the first part of the slide nearly stationary
+            // and then snapped.
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: PunchiMotion.drawer
             onRunningChanged: if (!running) Qt.callLater(root.settle)
         }
     }

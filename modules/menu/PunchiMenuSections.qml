@@ -4,6 +4,7 @@ import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
 import "../../config"
+import "../../config/PunchiMotion.js" as PunchiMotion
 import "../../components"
 
 // Continuous application listing. The service prepares display rows (a heading
@@ -355,9 +356,11 @@ FocusScope {
         target: sectionList
         property: "contentY"
         // A bounded settle with a known target; the theme duration keeps it
-        // consistent with the rest of the shell instead of a custom 120 ms.
+        // consistent with the rest of the shell, and the shared movement curve
+        // avoids a hard start on a long snap.
         duration: root.motionEnabled ? Kirigami.Units.longDuration : 0
-        easing.type: Easing.OutCubic
+        easing.type: Easing.BezierSpline
+        easing.bezierCurve: PunchiMotion.move
     }
     Timer {
         id: snapTimer

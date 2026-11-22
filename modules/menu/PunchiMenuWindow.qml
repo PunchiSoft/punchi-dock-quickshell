@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Wayland
 import org.kde.kirigami as Kirigami
 import "../../config"
+import "../../config/PunchiMotion.js" as PunchiMotion
 import "../../config/PunchiDefaultProfile.js" as PunchiDefaultProfile
 import "../../services"
 import "../../adapters/kde"
@@ -137,12 +138,15 @@ PanelWindow {
         transformOrigin: Item.Center
         focus: root.open
 
+        // The content opens on the shared strong ease-out and leaves on the exit
+        // curve; the theme still owns both durations.
         Behavior on opacity {
             enabled: root.motionEnabled
             NumberAnimation {
                 duration: root.open ? Kirigami.Units.longDuration
                     : Kirigami.Units.shortDuration
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: root.open ? PunchiMotion.enter : PunchiMotion.exit
             }
         }
         Behavior on scale {
@@ -150,7 +154,8 @@ PanelWindow {
             NumberAnimation {
                 duration: root.open ? Kirigami.Units.longDuration
                     : Kirigami.Units.shortDuration
-                easing.type: Easing.OutCubic
+                easing.type: Easing.BezierSpline
+                easing.bezierCurve: root.open ? PunchiMotion.enter : PunchiMotion.exit
             }
         }
 
