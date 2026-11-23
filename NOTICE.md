@@ -27,6 +27,17 @@ web-animation-design skill (<https://github.com/vercel-labs/open-agents>, MIT
 License, Copyright (c) 2026 Vercel, Inc.). The values are expressed for Qt Quick;
 no web implementation is copied.
 
+The `morph-transition` skill and its pattern catalogue adapt concepts, not source
+code, from the Material Design 3 container transform
+(<https://m3.material.io/styles/motion/transitions/transition-patterns>), the
+`container-transform` skill in soilmass/motion-design-agent (MIT License,
+Copyright (c) 2025 edox1), the LiquidMorph description in the `fluid_glass`
+package (<https://pub.dev/packages/fluid_glass>, Apache-2.0), and the SDF morph
+field in StatIndet/quickshell (<https://github.com/StatIndet/quickshell>,
+GPL-3.0). The timing proportions, the clip-from-origin model, the path morph and
+the smooth-minimum are rewritten for Qt Quick; no upstream implementation is
+bundled.
+
 Quickshell is an external runtime dependency:
 <https://quickshell.org/>. The project does not bundle or fork it.
 

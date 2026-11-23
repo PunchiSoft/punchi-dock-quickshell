@@ -31,6 +31,7 @@ flowchart TD
 - `surface-effects` covers the technical level of a visual effect.
 - `animation-performance` covers cost and theme durations.
 - `animations` covers the project policy on what should move.
+- `morph-transition` when the finding is about one surface becoming another.
 - `accessibility` when a finding affects focus, keyboard, or reduced motion.
 - `visual-review` when the problem is perceptible but not measurable in code.
 

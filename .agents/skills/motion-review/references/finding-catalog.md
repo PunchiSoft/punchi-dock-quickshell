@@ -122,13 +122,39 @@ recommendation line to justify each one.
   synchronize focus and reachability with visible content. Do not apply this to
   surfaces whose independent presentation is deliberate.
 
+### MOTION-20 - Morph without a spatial origin
+- Symptom: the surface grows from its center or cross-fades, and the control that
+  opened it is no longer recognizable.
+- Cause: `scale` on content whose `transformOrigin` is the center, or a separate
+  fade with no origin geometry.
+- Recommendation: derive position, size and radius from the origin rect and
+  radius on one progress; if there is no shared origin, use a fade-through.
+
+### MOTION-21 - Morph between unrelated surfaces
+- Symptom: opening or closing feels disconnected and the user loses the sense of
+  where the content came from.
+- Cause: a container transform applied to content that is not the same object or
+  the same context.
+- Recommendation: reserve morphing for a shared object or context; otherwise fade
+  through or fade.
+
+### MOTION-22 - Morph implemented as a clipped or relaid subtree
+- Symptom: the transition stutters, the content squashes, or the whole surface
+  repaints.
+- Cause: clipping a full-size content subtree, or animating the content's
+  `width`, `height` or `Layout.*` to follow the surface.
+- Recommendation: morph a childless surface at its animated geometry; keep the
+  content at final size and reveal it with opacity.
+
 ## Suggested priority
 
 | Classification | Default priority |
 |---|---|
 | MOTION-08, MOTION-11, MOTION-16, MOTION-18 | High |
 | MOTION-03, MOTION-04, MOTION-07, MOTION-09, MOTION-17, MOTION-19 | High or medium per component |
+| MOTION-20, MOTION-22 | High or medium per component |
 | MOTION-01, MOTION-02, MOTION-05, MOTION-06, MOTION-12, MOTION-13 | Medium |
+| MOTION-21 | Medium |
 | MOTION-10, MOTION-14, MOTION-15 | Medium or low per impact |
 
 Final priority depends on how often the component is used: a daily element weighs

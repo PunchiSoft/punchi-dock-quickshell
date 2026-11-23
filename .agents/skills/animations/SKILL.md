@@ -29,6 +29,8 @@ flowchart TD
 ## Coordination
 
 - `fluid-motion` chooses the Qt Quick mechanism and keeps reversal continuous.
+- `morph-transition` chooses the technique when the silhouette, not only the
+  position, becomes another surface.
 - `motion-review` audits existing motion without changing code.
 - `animation-performance` checks per-frame cost and theme durations.
 - `motion-design` coordinates a change that mixes input policy and motion.
@@ -73,6 +75,9 @@ the origin. See [the shared doctrine](../references/motion-doctrine.md).
 - Shape, position, clipping, and appearance of one expansion move together and
   can be reversed from any point.
 - A brief pressure deformation belongs to chosen controls, not every surface.
+- When the surface changes shape and not only bounds, `morph-transition` decides
+  between a container transform, a path morph and a fusion; the expansion still
+  keeps one progress and one curve.
 - Do not lose focus, available action, or spatial relation when the panel
   resizes or reduced motion is active.
 

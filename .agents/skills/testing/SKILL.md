@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Validate QML interactions, Quickshell loading, reversible KDE coexistence, and real desktop behavior with isolated test state. Use when adding or running a test, reproducing a bug, or deciding which evidence a change needs.
+description: Validate QML interactions, Quickshell loading, reversible KDE coexistence, and real desktop behavior with isolated test state and verified teardown. Use when adding or running a test, reproducing a bug, or deciding which evidence a change needs.
 license: GPL-3.0-or-later
 ---
 
@@ -21,7 +21,7 @@ flowchart TD
     E --> F
     F --> G{"Depends on the full graph?"}
     G -->|"yes"| H["Complete CTest or preset"]
-    G -->|"no"| I["Confirm isolation and cleanup"]
+    G -->|"no"| I["Close test-owned resources and verify no residue"]
     H --> I
     I --> J["Record the levels not executed"]
 ```
@@ -36,8 +36,9 @@ flowchart TD
    changed.
 4. Run the scoped test first. Escalate to the complete suite only when the
    scoped result depends on it, and say which dependency required it.
-5. Confirm isolation: each test owns temporary data and cleans processes,
-   caches, and sockets on success, failure, signal, and timeout.
+5. Confirm isolation and teardown: each test owns temporary data and releases its
+   processes, windows, caches, and sockets on success, failure, signal, and
+   timeout, then verifies the pre-run resource count.
 6. Record what could not be executed, and at which level it stays unverified.
 
 ## Commands
@@ -80,9 +81,34 @@ the check whose input you edited, such as `project_foundation` for a skill's
 frontmatter or `component_naming` for `tests/naming-baseline.json`. Documentation
 shipped with code is validated as code.
 Always verify the scoped restore route when changing startup/window lifecycle.
-Close every dock and settings window and stop every Punchi Dock Quickshell
-process started for a test; leave no test instance running on success, failure,
-signal, or timeout. Leave the user's own instance untouched.
+Close every test-owned window and process under
+[cleanup and residual state](#cleanup-and-residual-state); leaving an instance
+running is a failed test, not a warning.
+
+## Cleanup and residual state
+
+A test owns every resource it creates: process, window, temporary XDG root, cache,
+socket, and bus name. Releasing them is part of the test, not an optional courtesy.
+A test that cannot release them has failed even when its assertions passed. This
+includes every dock and settings window and every Punchi Dock Quickshell process
+the test started; an instance the user already had running is not test-owned.
+
+- Release in reverse creation order from a single teardown path that also runs on
+  failure, signal, and timeout (`trap` in shell, `finally` or `cleanup()` in code).
+- Close gracefully with a bounded wait, then terminate only the resources the test
+  started. Never touch an instance the user already had running.
+- Verify instead of assuming: before and after the run, count test-owned
+  processes, windows, temporary roots, and sockets. The count must return to the
+  pre-run value.
+- Run a test that starts a process or a window twice and compare both counts. A
+  second run that leaves more objects, processes, or directories than the first is
+  a leak; fix the test before accepting the change.
+- A window left open keeps its QML tree, models, and scene graph alive; a process
+  left running keeps CPU, GPU, and D-Bus names; a temporary root left behind grows
+  disk and changes the next run. Those are the leak symptoms to look for, not only
+  a crash.
+- Hiding a window is not cleanup: its process, models, and timers must end too.
+  Repeated runs that grow memory or object count mean the teardown is incomplete.
 
 ## Gotchas
 
