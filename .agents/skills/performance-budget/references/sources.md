@@ -88,3 +88,30 @@ Pinned to `plasma-desktop@748e64bb09e082d49a2dc5ad32521f0c9968f268` and
   laziness with a small row delegate and must be proved with our own census.
 - Qt does not quantify the object churn of a model reset; the "views rebuild
   delegates" consequence is an inference from the documented reset.
+
+## External optimization skills reviewed (2026-11-22)
+
+These were read as guidance for QML/Qt Quick and Quickshell; the project keeps
+its own skill text and does not copy their implementations.
+
+- **Qt AI Skills** — official Qt agent skills, BSD-3-Clause or Qt commercial:
+  <https://github.com/TheQtCompanyRnD/agent-skills>. `qt-qml` documents `Loader`
+  for conditional UI, `Loader.active: false` to destroy an unused component and
+  `sourceSize` for images; `qt-qml-review` applies QML performance review rules;
+  `qt-qml-profiler` runs `qmlprofiler` and reports frame time, memory and pixmap
+  cache. The profiler is not installed on the observed host.
+- **Quickshell FAQ** — "Reduce memory usage: use Loaders"; Loaders create objects
+  only when needed and destroy them when not needed:
+  <https://quickshell.org/docs/v0.2.0/guide/faq/>. The installed API is 0.2.1.
+- **iNiR Quickshell optimization notes** — async loading, explicit
+  `sourceSize` and `LazyLoader` for panels that are not immediately needed:
+  <https://github.com/snowarch/iNiR/wiki/OPTIMIZATION>. Community notes, not an
+  upstream contract; verify any API locally.
+- **pleamar Quickshell memory note** — a Quickshell configuration measured at
+  119 MB against a 214 MB bench, with NVIDIA driver memory accounting for much of
+  the remainder:
+  <https://github.com/k4ditano/pleamar/blob/dc902feb0ee9058b7db7c2bc2c9d59d9f655fd86/docs/01-why.md>.
+  A calibration point, not a comparison for this shell.
+
+The project's local memory baseline and measurements are kept in the private
+record; published links stay external or inside this repository.

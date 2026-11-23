@@ -94,8 +94,11 @@ TestCase {
     }
     function test_windowDraftAdditionApplyAcceptAndClose() {
         const window = createTemporaryObject(settingsWindowFixture, test)
+        verify(findChild(window.contentItem, "dockSettingsView") === null,
+            "the settings view must load on first open, not at window creation")
         window.open()
         const view = findChild(window.contentItem, "dockSettingsView")
+        verify(view, "the first open must create the settings view")
         view.currentPage = 0
         tryVerify(function() { return window.applicationCatalog.application("desktop:punchi-add-sentinel.desktop").installed === true })
         let dialog = openEditor(view)

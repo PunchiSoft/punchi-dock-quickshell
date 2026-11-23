@@ -18,9 +18,15 @@ Window {
     property var runningApplications: null
     readonly property bool hasPendingChanges: editor.dirty
         || (autostart !== null && autostart.dirty)
+    // The settings view builds every page at once. Load it on the first open so
+    // a shell that never opens settings does not keep that tree alive; it stays
+    // loaded afterwards, so close/reopen keeps the established view state.
+    property bool viewRequested: false
+    readonly property var view: settingsViewLoader.item
     title: qsTr("Punchi Dock Quickshell — Dock settings")
     visible: false
-    readonly property real preferredWidth: Math.min(view.implicitWidth,
+    readonly property real preferredWidth: Math.min(root.view
+        ? root.view.implicitWidth : Kirigami.Units.gridUnit * 38,
         Screen.width - Kirigami.Units.gridUnit * 2)
     // Fixed height reference: pages scroll instead of resizing the window when
     // optional screen, desktop or activity rows appear.
@@ -30,7 +36,7 @@ Window {
     height: preferredHeight
     minimumWidth: Math.min(Kirigami.Units.gridUnit * 38, Screen.width - Kirigami.Units.gridUnit * 2)
     minimumHeight: Kirigami.Units.gridUnit * 14
-    color: view.palette.window
+    color: root.view ? root.view.palette.window : Kirigami.Theme.backgroundColor
     // A compositor resize replaces the width/height binding. Reinstall the
     // established Kirigami size when the window is opened again instead of
     // treating the last dragged geometry as the new default.
@@ -41,19 +47,21 @@ Window {
         height = Qt.binding(function() { return root.preferredHeight })
     }
     function open(): void {
+        if (!root.viewRequested)
+            root.viewRequested = true
         const wasVisible = visible
         if (!wasVisible) {
             editor.begin()
             if (autostart !== null) autostart.begin()
-            view.clearSelection()
+            if (root.view) root.view.clearSelection()
             applyDefaultGeometry()
         }
         show(); raise(); requestActivate()
         if (!wasVisible) Qt.callLater(root.applyDefaultGeometry)
-        Qt.callLater(view.focusFirst)
+        if (root.view) Qt.callLater(root.view.focusFirst)
     }
     function keepFocusVisible(): void {
-        if (view) Qt.callLater(view.ensureFocusedVisible, root.activeFocusItem)
+        if (root.view) Qt.callLater(root.view.ensureFocusedVisible, root.activeFocusItem)
     }
     onActiveFocusItemChanged: keepFocusVisible()
     onWidthChanged: {
@@ -71,7 +79,7 @@ Window {
         keepFocusVisible()
     }
     onClosing: {
-        view.cancelAddingItem(false)
+        if (root.view) root.view.cancelAddingItem(false)
         if (autostart !== null) autostart.cancel()
         editor.cancel()
     }
@@ -79,30 +87,40 @@ Window {
     PunchiSettingsEditService { id: editor; settings: root.settings }
     Shortcut {
         sequence: "Escape"
-        enabled: !view.addingItem && !view.aboutDialogOpen
+        enabled: !(root.view && (root.view.addingItem || root.view.aboutDialogOpen))
         onActivated: root.close()
     }
-    PunchiSettingsView {
-        id: view
+    Loader {
+        id: settingsViewLoader
         anchors.fill: parent
-        settings: editor.draft
-        autostart: root.autostart
-        license: root.license
-        recentApplications: root.recentApplications
-        updates: root.updates
-        screens: root.screens
-        primaryScreenName: root.primaryScreenName
-        runningApplications: root.runningApplications
-        hasPendingChanges: root.hasPendingChanges
-        applicationCatalog: root.applicationCatalog
-        onApplyRequested: {
-            editor.apply()
-            if (root.autostart !== null) root.autostart.apply()
+        active: root.viewRequested
+        sourceComponent: Component {
+            PunchiSettingsView {
+                settings: editor.draft
+                autostart: root.autostart
+                license: root.license
+                recentApplications: root.recentApplications
+                updates: root.updates
+                screens: root.screens
+                primaryScreenName: root.primaryScreenName
+                runningApplications: root.runningApplications
+                hasPendingChanges: root.hasPendingChanges
+                applicationCatalog: root.applicationCatalog
+                onApplyRequested: {
+                    editor.apply()
+                    if (root.autostart !== null) root.autostart.apply()
+                }
+                onAcceptRequested: {
+                    editor.apply()
+                    if (root.autostart === null || root.autostart.apply()) root.close()
+                }
+                onCloseRequested: root.close()
+            }
         }
-        onAcceptRequested: {
-            editor.apply()
-            if (root.autostart === null || root.autostart.apply()) root.close()
+        onLoaded: {
+            if (!root.visible) return
+            root.applyDefaultGeometry()
+            if (root.view) root.view.focusFirst()
         }
-        onCloseRequested: root.close()
     }
 }

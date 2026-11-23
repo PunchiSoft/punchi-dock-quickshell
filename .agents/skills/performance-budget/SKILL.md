@@ -101,6 +101,26 @@ flowchart TD
   evidence.
 - `selection-emphasis`: one band still applies when delegates are recycled.
 
+## Memory
+
+Load is also a memory budget. A surface that is not visible must not build its
+object tree at startup.
+
+- Measure PSS or the application cgroup, not RSS: RSS includes shared libraries
+  and driver mappings. Compare against a minimal Quickshell baseline on the same
+  session; the delta is the project's own footprint.
+- Closed surfaces load on first open, not when the shell starts. Keep the loaded
+  view if a consumer or a test holds a reference to it; otherwise unload on close
+  and update that contract deliberately.
+- A hidden view with a size still owns delegates. Gate the model or the view, not
+  only `visible`.
+- First-open latency is the tradeoff. Measure it; do not hide it.
+- A measured example: loading the settings view on first open reduced an isolated
+  two-screen instance from about 298 MB to 267 MB PSS, and the application-items
+  QML suite from 24.2 s to 14.0 s. The view stays loaded after the first open.
+- External optimization skills and references are recorded in
+  [references/sources.md](references/sources.md).
+
 ## Validation
 
 ```bash

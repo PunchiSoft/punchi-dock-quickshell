@@ -49,8 +49,10 @@ TestCase {
     }
     function openWindow(): var {
         const window = createTemporaryObject(windowFixture, test)
-        findChild(window.contentItem, "settingsUserHeader").profile = profile()
+        // The settings view is created on the first open, so the header exists
+        // only after the window is opened.
         window.open()
+        findChild(window.contentItem, "settingsUserHeader").profile = profile()
         verify(waitForRendering(window.contentItem))
         return window
     }

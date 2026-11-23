@@ -46,6 +46,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Load the settings view on the first open instead of at shell startup, so a
+  session that never opens settings does not keep every page alive. An isolated
+  two-screen measurement dropped PSS from about 298 MB to 267 MB; the view stays
+  loaded after the first open.
 - Adopt a shared strong ease-out curve for the fullscreen menu, the popup family
   and the auto-hide slide, so these surfaces settle into place instead of
   marching and the dock leaves immediately instead of hanging before it snaps.
