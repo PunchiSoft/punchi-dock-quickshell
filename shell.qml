@@ -54,16 +54,25 @@ ShellRoot {
         runningApplications: dockServices.runningApplications
     }
     // One menu surface per screen; the controller decides which one is open.
+    // The window is created on the first open, kept through the closing fade
+    // and destroyed once the controller releases the mapped state.
     Variants {
         id: menuWindows
         model: Quickshell.screens
-        delegate: PunchiMenuWindow {
+        delegate: LazyLoader {
+            id: menuLoader
             property var modelData
-            screen: modelData
-            settings: shellSettings
-            menuController: menuController
-            applications: dockServices.catalog
-            distribution: dockServices.distribution
+            active: menuController.isOpen(modelData.name)
+                || menuController.isMapped(modelData.name)
+            component: Component {
+                PunchiMenuWindow {
+                    screen: menuLoader.modelData
+                    settings: shellSettings
+                    menuController: menuController
+                    applications: dockServices.catalog
+                    distribution: dockServices.distribution
+                }
+            }
         }
     }
     Variants {
