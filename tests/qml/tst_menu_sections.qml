@@ -177,6 +177,15 @@ TestCase {
         verify(sections.gridHeight <= sections.height + 0.5)
     }
 
+    function test_unmappedSurfaceCreatesNoRows(): void {
+        const view = createTemporaryObject(fixture, test)
+        tryVerify(function() { return sectionsView(view).count > 0 })
+        view.materialized = false
+        tryCompare(sectionsView(view), "count", 0)
+        view.materialized = true
+        tryVerify(function() { return sectionsView(view).count > 0 })
+    }
+
     function test_unmeasuredViewportCreatesNoZeroSizedCells() {
         const view = createTemporaryObject(unmeasuredFixture, test)
         verify(view !== null)

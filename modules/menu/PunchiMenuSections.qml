@@ -31,6 +31,9 @@ FocusScope {
     // The surface states whether it is on screen, so an opening menu always
     // starts at the top and a closed one does not keep a stale position.
     property bool active: false
+    // False releases the row model once the surface is unmapped. It defaults to
+    // true so a host that only exercises the grid keeps materializing rows.
+    property bool materialized: true
     property bool textShadow: false
 
     readonly property PunchiMenuMetrics metrics: PunchiMenuMetrics {}
@@ -228,7 +231,8 @@ FocusScope {
         height: root.gridHeight
         // Do not create delegates against a zero-sized viewport: a Label born
         // with zero width can keep its empty text texture after the cell grows.
-        model: root.measured && root.menuState ? root.menuState.displayRows : []
+        model: root.measured && root.materialized && root.menuState
+            ? root.menuState.displayRows : []
         // One row of preload: the budget is the viewport plus one row, not a
         // section-sized cache.
         cacheBuffer: root.cellHeight

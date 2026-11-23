@@ -95,7 +95,10 @@ PanelWindow {
     }
     PunchiMenuState {
         id: menuState
-        applications: root.applications
+        // The catalogue-derived search index and row model are only useful while
+        // the surface is mapped. Keeping the closed menu's state empty releases
+        // those arrays until the menu opens.
+        applications: root.visible ? root.applications : []
         columns: root.gridColumns
         applicationOrder: root.settings
             ? root.settings.menuApplicationOrder
@@ -190,6 +193,9 @@ PanelWindow {
                     - layout.spacing)
                 menuState: menuState
                 active: root.open
+                // Keep the rows through the closing fade, then release every
+                // delegate once the surface is unmapped.
+                materialized: root.open || root.visible
                 motionEnabled: root.motionEnabled
                 showLabels: root.settings
                     ? root.settings.menuShowLabels : root.profileDefaults.menuShowLabels
