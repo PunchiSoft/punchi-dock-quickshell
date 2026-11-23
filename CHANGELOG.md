@@ -46,6 +46,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Release the settings view one second after the window closes, once pending
+  focus and layout callbacks have settled. Reopening within that second keeps
+  the view; after it, the settings pages are destroyed instead of staying
+  resident for the rest of the session.
 - Create each fullscreen menu window only when its screen opens the menu, keep
   it through the closing fade and release it afterwards. An isolated one-screen
   measurement dropped startup PSS from about 180 MB to 177 MB; opening and
