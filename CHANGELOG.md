@@ -46,6 +46,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Create each fullscreen menu window only when its screen opens the menu, keep
+  it through the closing fade and release it afterwards. An isolated one-screen
+  measurement dropped startup PSS from about 180 MB to 177 MB; opening and
+  closing the menu kept the same footprint.
 - Create the dock context, folder and recent popups on first use through
   Quickshell's `LazyLoader`, so a dock that never opens them does not keep their
   content trees at startup. An isolated one-screen measurement dropped startup
