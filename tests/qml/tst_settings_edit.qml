@@ -306,6 +306,7 @@ TestCase {
     // The note names the sources that answered instead of promising all three.
     function test_updateSourcesNoteNamesDetectedSources(): void {
         const window = createTemporaryObject(updateNoteFixture, test)
+        window.open()
         const note = findChild(window, "updateBadgeSourcesNote")
         verify(note)
         compare(note.visible, true)
@@ -320,6 +321,7 @@ TestCase {
 
     function test_updateSourcesNoteHiddenWithoutSources(): void {
         const window = createTemporaryObject(noUpdateSourcesFixture, test)
+        window.open()
         const note = findChild(window, "updateBadgeSourcesNote")
         verify(note)
         compare(note.visible, false)
