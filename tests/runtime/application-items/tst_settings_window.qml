@@ -140,6 +140,11 @@ TestCase {
         verify(!window.hasPendingChanges)
         verify(!view.addingItem)
         window.close()
+        tryCompare(window, "visible", false)
+        tryCompare(window, "viewRequested", false)
+        tryVerify(function() {
+            return findChild(window.contentItem, "dockSettingsView") === null
+        })
     }
     function test_pickerFormOrderAndMetadata() {
         const window = createTemporaryObject(settingsWindowFixture, test)

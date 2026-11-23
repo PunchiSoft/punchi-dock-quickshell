@@ -58,10 +58,12 @@ Window {
         }
         show(); raise(); requestActivate()
         if (!wasVisible) Qt.callLater(root.applyDefaultGeometry)
-        if (root.view) Qt.callLater(root.view.focusFirst)
+        if (root.view) Qt.callLater(function() { if (root.view) root.view.focusFirst() })
     }
     function keepFocusVisible(): void {
-        if (root.view) Qt.callLater(root.view.ensureFocusedVisible, root.activeFocusItem)
+        if (root.view) Qt.callLater(function() {
+            if (root.view) root.view.ensureFocusedVisible(root.activeFocusItem)
+        })
     }
     onActiveFocusItemChanged: keepFocusVisible()
     onWidthChanged: {
@@ -82,6 +84,19 @@ Window {
         if (root.view) root.view.cancelAddingItem(false)
         if (autostart !== null) autostart.cancel()
         editor.cancel()
+    }
+    // Destroying the view while focus/layout callbacks are still queued logs
+    // warnings and fails the settings tests. Release it only after a short
+    // closed grace period; reopening cancels the timer.
+    Timer {
+        id: viewReleaseTimer
+        interval: 1000
+        repeat: false
+        onTriggered: if (!root.visible && root.viewRequested) root.viewRequested = false
+    }
+    onVisibleChanged: {
+        if (visible) viewReleaseTimer.stop()
+        else if (root.viewRequested) viewReleaseTimer.restart()
     }
     Component.onCompleted: applyDefaultGeometry()
     PunchiSettingsEditService { id: editor; settings: root.settings }
