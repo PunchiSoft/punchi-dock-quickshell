@@ -46,6 +46,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Release the fullscreen menu's catalogue search index and row model when the
+  menu is unmapped, so a closed menu no longer keeps its delegates alive. An
+  isolated one-screen measurement dropped PSS by about 11 MB while closed, open
+  and after close, and three open/close cycles did not grow.
 - Load the settings view on the first open instead of at shell startup, so a
   session that never opens settings does not keep every page alive. An isolated
   two-screen measurement dropped PSS from about 298 MB to 267 MB; the view stays
