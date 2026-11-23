@@ -44,7 +44,8 @@ flowchart TD
 2. List the levels the change cannot be validated without.
 3. Mark each level executed, failed, or not executed, with the command that ran.
 4. Re-run the scoped test after the final edit, never before it.
-5. Clean temporary state and confirm nothing outside the scope changed.
+5. Clean temporary state and confirm nothing outside the scope changed. Verify by
+   count that no test-owned process, window, socket, or temporary root remains.
 6. State the residual risk in one sentence per unexecuted level.
 
 ## Required before claiming completion
@@ -54,7 +55,9 @@ flowchart TD
 - Every KDE or KWin claim names the session and versions it was observed on.
 - Every removed or weakened test is called out with its authorization.
 - The dock and settings window are closed and every test instance is stopped; no
-  test process is left running for the user.
+  test process is left running for the user. This is verified by count. For a test
+  that starts a process or a window, a second run leaves the same counts as the
+  first.
 
 ## Documentation-only changes
 
@@ -75,6 +78,9 @@ Documentation shipped together with code is validated as code.
   `PanelWindow` backend offscreen.
 - `git diff` ignores untracked files. Check `git status --short` before saying the
   scope is clean.
+- A teardown that requests a close and returns is not evidence the process
+  exited; a leaked window keeps its models alive and the next run inherits that
+  state.
 - "Tests are green" without a count or filter can hide a suite that never ran
   because configuration failed.
 - A documentation claim is part of the deliverable; an unverified README sentence
