@@ -1,6 +1,6 @@
 ---
 name: surface-effects
-description: Evaluate and implement material and finish levels, covering depth, glass, morphing, blur, shadow, highlights, and transparency, and choose the lowest-cost QML, MultiEffect, or ShaderEffect level. Use when a surface needs a visual finish, not for pure motion or global performance diagnosis.
+description: Evaluate and implement material and finish levels, covering depth, glass, blur, shadow, highlights, and transparency, and choose the lowest-cost QML, MultiEffect, or ShaderEffect level. Use when a surface needs a visual finish, not for pure motion or global performance diagnosis.
 license: GPL-3.0-or-later
 metadata:
   source: Punchi Dock Remastered motion pack, adapted for Quickshell and KDE Plasma/KWin
@@ -34,6 +34,8 @@ flowchart TD
 ## Coordination
 
 - `fluid-motion` for the movement of the effect.
+- `morph-transition` when one surface becomes another; this skill admits the
+  shader level, not the transition.
 - `animation-performance` before approving an animated effect over large or
   repeated surfaces.
 - `accessibility` when the effect affects contrast, legibility, or state.
@@ -63,8 +65,10 @@ composition. Requirements before use:
 ### Level 3 - shaders
 
 `ShaderEffect` only for a finish normal QML cannot reasonably achieve: metaballs,
-signed distance fields, shape fusion, distortion, refraction, displacement, or
-morphing. Before introducing one, report: why QML is insufficient, expected
+signed distance fields, shape fusion, distortion, refraction, or displacement.
+A surface becoming another surface is a transition decision, not a material one:
+`morph-transition` owns it, and this level only supplies the fusion technique.
+Before introducing one, report: why QML is insufficient, expected
 render cost, simultaneous instances, target Qt version, KDE/Wayland behaviour,
 integrated-GPU behaviour, and impact with several dock instances. Without those
 answers, do not introduce it.

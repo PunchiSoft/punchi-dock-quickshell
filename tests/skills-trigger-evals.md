@@ -40,6 +40,8 @@ Should trigger:
 | 23 | "el menú se traba cuando tengo 500 aplicaciones" | `performance-budget` | a symptom report, not the word optimization or a delegate |
 | 25 | "el menú recorta la última fila en 1440x900" | `screen-geometry` | names a symptom, not a geometry method |
 | 26 | "¿cuántas columnas entran y qué espaciado de Kirigami uso?" | `screen-geometry` | asks for a count and units, not a named skill |
+| 28 | "el ícono se convierte en el panel, no aparece de golpe" | `morph-transition` | describes a symptom, never says morph or animation |
+| 29 | "hacé que la fila se transforme en la tarjeta al abrirla" | `morph-transition` | describes a transformation, not a technique |
 
 Should not trigger, near misses:
 
@@ -58,6 +60,8 @@ Should not trigger, near misses:
 | 22 | "mergeá esta rama en main" | `branch-baseline` | `main` appears, but the task is a merge request |
 | 24 | "¿por qué Qt Quick crea todos los ítems de un Repeater?" | `performance-budget` | general Qt knowledge, no change or budget to set |
 | 27 | "renombrá `gridUnit` a `spacing` en todo el repo" | `screen-geometry` | mechanical refactor, no layout calculation |
+| 30 | "¿cómo funciona un morph target en Qt Quick 3D?" | `morph-transition` | 3D blend shapes, not a 2D surface transition |
+| 31 | "que el hover tenga un rebote suave" | `morph-transition` | hover bounce belongs to `animations`, not a surface transform |
 
 ## Recording
 

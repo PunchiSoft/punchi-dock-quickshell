@@ -12,7 +12,7 @@ flowchart TD
     Req["requirements-capture"] --> Mod["modification-cycle"]
     Mod --> Base["branch-baseline"]
     Mod --> QML["QML and layout<br/>qml-ui-creation, screen-geometry, selection-emphasis, accessibility"]
-    Mod --> Motion["Motion<br/>animations, fluid-motion, motion-design, animation-performance, motion-review, surface-effects"]
+    Mod --> Motion["Motion<br/>animations, fluid-motion, motion-design, animation-performance, motion-review, morph-transition, surface-effects"]
     Mod --> Platform["Platform<br/>kde-integration, qt-kde-reference, quickshell-development, localization"]
     QML --> Review["code-review"]
     Motion --> Review
@@ -39,6 +39,7 @@ flowchart TD
 | [kde-integration](kde-integration/SKILL.md) | Native-first KDE and KWin behavior | a change touches KWin, Plasma or KDE Frameworks | `qt-kde-reference` |
 | [localization](localization/SKILL.md) | `qsTr` source strings and catalog verification | a runtime string or a language claim changes | `notice-copy-approval` |
 | [modification-cycle](modification-cycle/SKILL.md) | Staged feature delivery on a branch from `main` | a feature or multi-commit change starts | `requirements-capture`, `documentation` |
+| [morph-transition](morph-transition/SKILL.md) | One surface becomes another: level choice, origin, interruption | a control opens a surface and its silhouette must transform | `animations`, `fluid-motion` |
 | [motion-design](motion-design/SKILL.md) | Interaction policy and animation resolved together | input behaviour and motion must be fixed together | `animations`, `fluid-motion` |
 | [motion-review](motion-review/SKILL.md) | Read-only motion audit with the MOTION catalog | existing motion is reviewed | `animations` |
 | [notice-copy-approval](notice-copy-approval/SKILL.md) | Wording and emphasis approval before copy ships | a notice, tooltip or help text would reach the user | - |

@@ -34,6 +34,7 @@ flowchart TD
 
 - `fluid-motion` chooses the mechanism.
 - `surface-effects` chooses the effect level.
+- `morph-transition` chooses the morph level and its progress model.
 - `testing` decides what evidence supports a fluency claim.
 - `motion-review` inventories existing motion before a refactor.
 
@@ -76,10 +77,14 @@ effect, or dynamically created components when an existing state suffices.
 | Animated shadow on many delegates | HIGH |
 | Independent shader per icon | HIGH |
 | Mask or clip recalculated per frame | HIGH |
+| Shape path retessellated per frame (level 2 morph) | MEDIUM/HIGH |
+| SDF fusion over a surface (level 3 morph) | HIGH |
 | Animation that resizes a layout | HIGH |
 
 MEDIUM or HIGH motion must explain why it cannot be LOW. A LOW transform repeated
-per delegate stops being LOW. Full criteria:
+per delegate stops being LOW. A morph is not automatically LOW: level 1 animates a
+childless surface, level 2 retessellates a path on the CPU and level 3 runs a
+fragment pass per frame. Full criteria:
 [cost classification](references/cost-classification.md).
 
 ## Durations and the user preference
