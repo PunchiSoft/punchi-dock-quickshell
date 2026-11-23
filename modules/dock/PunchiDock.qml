@@ -57,9 +57,9 @@ PanelWindow {
     Connections {
         target: root.settings
         function onDockEdgeChanged() {
-            contextMenu.dismiss()
-            folderPopup.dismiss()
-            recentPopup.dismiss()
+            if (root.contextMenu) root.contextMenu.dismiss()
+            if (root.folderPopup) root.folderPopup.dismiss()
+            if (root.recentPopup) root.recentPopup.dismiss()
             visibilityController.reveal()
         }
     }
@@ -94,29 +94,29 @@ PanelWindow {
             height: root.windowAllowed ? Math.ceil(inputArea.height) : 0
         }
         Region {
-            x: root.windowAllowed ? Math.floor(contextMenu.x) : 0
-            y: root.windowAllowed ? Math.floor(contextMenu.y) : 0
-            width: root.windowAllowed && contextMenu.visible ? Math.ceil(contextMenu.width) : 0
-            height: root.windowAllowed && contextMenu.visible ? Math.ceil(contextMenu.height) : 0
+            x: root.windowAllowed && root.contextMenu ? Math.floor(root.contextMenu.x) : 0
+            y: root.windowAllowed && root.contextMenu ? Math.floor(root.contextMenu.y) : 0
+            width: root.windowAllowed && root.contextMenu && root.contextMenu.visible ? Math.ceil(root.contextMenu.width) : 0
+            height: root.windowAllowed && root.contextMenu && root.contextMenu.visible ? Math.ceil(root.contextMenu.height) : 0
         }
         Region {
-            x: root.windowAllowed ? Math.floor(folderPopup.x) : 0
-            y: root.windowAllowed ? Math.floor(folderPopup.y) : 0
-            width: root.windowAllowed && folderPopup.visible ? Math.ceil(folderPopup.width) : 0
-            height: root.windowAllowed && folderPopup.visible ? Math.ceil(folderPopup.height) : 0
+            x: root.windowAllowed && root.folderPopup ? Math.floor(root.folderPopup.x) : 0
+            y: root.windowAllowed && root.folderPopup ? Math.floor(root.folderPopup.y) : 0
+            width: root.windowAllowed && root.folderPopup && root.folderPopup.visible ? Math.ceil(root.folderPopup.width) : 0
+            height: root.windowAllowed && root.folderPopup && root.folderPopup.visible ? Math.ceil(root.folderPopup.height) : 0
         }
         Region {
-            x: root.windowAllowed ? Math.floor(recentPopup.x) : 0
-            y: root.windowAllowed ? Math.floor(recentPopup.y) : 0
-            width: root.windowAllowed && recentPopup.visible ? Math.ceil(recentPopup.width) : 0
-            height: root.windowAllowed && recentPopup.visible ? Math.ceil(recentPopup.height) : 0
+            x: root.windowAllowed && root.recentPopup ? Math.floor(root.recentPopup.x) : 0
+            y: root.windowAllowed && root.recentPopup ? Math.floor(root.recentPopup.y) : 0
+            width: root.windowAllowed && root.recentPopup && root.recentPopup.visible ? Math.ceil(root.recentPopup.width) : 0
+            height: root.windowAllowed && root.recentPopup && root.recentPopup.visible ? Math.ceil(root.recentPopup.height) : 0
         }
     }
-    onVisibleChanged: if (!visible) { contextMenu.dismiss(); folderPopup.dismiss(); recentPopup.dismiss(); trash.cancel() }
+    onVisibleChanged: if (!visible) { if (root.contextMenu) root.contextMenu.dismiss(); if (root.folderPopup) root.folderPopup.dismiss(); if (root.recentPopup) root.recentPopup.dismiss(); trash.cancel() }
     onWindowAllowedChanged: if (!root.windowAllowed) {
-        contextMenu.dismiss()
-        folderPopup.dismiss()
-        recentPopup.dismiss()
+        if (root.contextMenu) root.contextMenu.dismiss()
+        if (root.folderPopup) root.folderPopup.dismiss()
+        if (root.recentPopup) root.recentPopup.dismiss()
         trash.cancel()
     }
     // The fullscreen menu yields the overlay layer while its surface is mapped,
@@ -129,7 +129,7 @@ PanelWindow {
     PunchiDockFocusPolicy {
         id: dockFocusPolicy
         surfaceVisible: visibilityController.surfaceVisible && root.windowAllowed
-        menuOpen: view.contextMenuOpen || recentPopup.visible || recentPopup.preparingToShow
+        menuOpen: view.contextMenuOpen || (root.recentPopup ? root.recentPopup.visible || root.recentPopup.preparingToShow : false)
         keyboardNavigationRequested: view.keyboardNavigationRequested
     }
 
@@ -151,8 +151,9 @@ PanelWindow {
         configuring: root.configuring
         pointerInside: inputArea.hovered || nativeEdge.pointerInside
         menuOpen: root.menuOpen || view.contextMenuOpen
-            || folderPopup.visible || folderPopup.preparingToShow
-            || recentPopup.visible || recentPopup.preparingToShow || trashConfirmation.visible || trash.confirming || root.services.trashState.busy
+            || (root.folderPopup ? root.folderPopup.visible || root.folderPopup.preparingToShow : false)
+            || (root.recentPopup ? root.recentPopup.visible || root.recentPopup.preparingToShow : false)
+            || trashConfirmation.visible || trash.confirming || root.services.trashState.busy
         keyboardFocused: visibilityController.surfaceVisible && view.keyboardFocused && view.Window.active
         reducedMotion: root.settings.effectiveReducedMotion
         transitionDuration: root.settings.slideDuration
@@ -355,64 +356,87 @@ PanelWindow {
             if (!success) console.warn("Punchi Dock Quickshell: menu application failed:", desktopId, error)
         }
     }
-    PunchiDockContextPopup {
-        id: contextMenu
-        settings: root.settings
-        minimizeEffectController: root.services.minimizeEffects
-        dockEdge: root.settings.dockEdge
-        hostWindow: root
-        hostBaseHeight: root.vertical ? root.height : root.dockAllocationHeight
-        applications: root.services.catalog
-        actions: contextService.actions
-        recentDocuments: contextService.recentDocuments
-        places: contextService.places
-        media: contextService.media
-        usesPlaces: contextService.usesPlaces
-        canLaunchNewWindow: contextService.canLaunchNewWindow
-        canPin: contextService.canPin
-        pinned: contextService.pinned
-        // Window actions are keyed by desktop id; the context service resolved
-        // it from the dock row's app id (for example, terminal -> org.kde.konsole).
-        windowActions: root.services.runningApplications.revision >= 0
-            ? root.services.runningApplications.windowActions(contextService.desktopId) : ({})
-        virtualDesktops: root.services.runningApplications.virtualDesktops
-        trashItem: contextMenu.appId === "item:trash"
-        canEmptyTrash: trash.canEmpty
-        onSettingsRequested: root.settingsRequested()
-        onActionRequested: function(appId, actionId) { contextLauncher.launchAction(appId, actionId) }
-        onPlaceRequested: function(resource) { contextService.openPlace(resource) }
-        onMorePlacesRequested: contextService.showMorePlaces()
-        onPlacesGroupRequested: function(group) { contextService.enterPlacesGroup(group) }
-        onPlacesBackRequested: contextService.leavePlacesGroup()
-        onRecentRequested: function(resource) { contextService.openRecent(resource) }
-        onForgetRecentRequested: contextService.forgetRecent()
-        onNewWindowRequested: contextService.openNewWindow()
-        onApplicationRequested: function(appId) { menuAppsLauncher.launch(appId) }
-        onOpenMenuRequested: root.menuRequested(root.screen ? root.screen.name : "")
-        onRemoveMenuRequested: root.settings.menuShowDockButton = false
-        onPinRequested: contextService.pin()
-        onUnpinRequested: contextService.unpin()
-        onWindowActionRequested: function(action, virtualDesktop) {
-            if (root.services.runningApplications.windowActivation.requestWindowAction(contextMenu.appId, action, virtualDesktop) === 0)
-                console.warn("Punchi Dock Quickshell: window action request rejected:", action)
+    property bool contextMenuRequested: false
+    readonly property var contextMenu: contextLoader.item
+    function openContextMenu(sourceItem, appId, title, position): void {
+        if (!root.contextMenu) {
+            // The LazyLoader creates the item synchronously on the real path;
+            // this one-turn retry keeps a click if it is still being created.
+            Qt.callLater(function() { root.openContextMenu(sourceItem, appId, title, position) })
+            return
         }
-        onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
-        onFolderSortRequested: function(appId, sortMode) { root.settings.setContainerSortMode(appId, sortMode) }
-        onFolderLayoutRequested: function(appId, layout) { root.settings.setContainerLayout(appId, layout) }
-        onRecentLayoutRequested: function(layout) { root.settings.recentApplicationsContainerLayout = layout }
-        onOpenFolderRequested: {
-            const entry = root.settings.container(contextMenu.appId)
-            if (entry && entry.path.length > 0) contextApplicationAdapter.openFolderPath(entry.path)
-            else if (entry && entry.id === "home") contextApplicationAdapter.openHome()
-            else contextApplicationAdapter.openDownloads()
-        }
-        onOpenTrashRequested: trash.open()
-        onEmptyTrashRequested: trash.requestEmpty()
-        onAutoHideRequested: root.settings.panelMode = root.settings.panelMode === "autohide" ? "overlay" : "autohide"
-        onMagnificationRequested: root.settings.magnificationEnabled = !root.settings.magnificationEnabled
-        onDockEdgeRequested: function(edge) { root.settings.dockEdge = edge }
-        onMinimizeEffectRequested: function(effect) {
-            if (!root.services.minimizeEffects.setEffect(effect)) console.warn("Punchi Dock Quickshell: KWin minimize effect update failed")
+        root.dismissMenu()
+        if (root.folderPopup) root.folderPopup.dismiss()
+        if (root.recentPopup) root.recentPopup.dismiss()
+        root.contextMenu.appId = appId
+        contextService.select(appId)
+        if (appId.length > 0) root.contextMenu.openForItem(sourceItem, title)
+        else root.contextMenu.openAt(sourceItem, position)
+    }
+    LazyLoader {
+        id: contextLoader
+        active: root.contextMenuRequested
+        component: Component {
+            PunchiDockContextPopup {
+                id: contextMenu
+                settings: root.settings
+                minimizeEffectController: root.services.minimizeEffects
+                dockEdge: root.settings.dockEdge
+                hostWindow: root
+                hostBaseHeight: root.vertical ? root.height : root.dockAllocationHeight
+                applications: root.services.catalog
+                actions: contextService.actions
+                recentDocuments: contextService.recentDocuments
+                places: contextService.places
+                media: contextService.media
+                usesPlaces: contextService.usesPlaces
+                canLaunchNewWindow: contextService.canLaunchNewWindow
+                canPin: contextService.canPin
+                pinned: contextService.pinned
+                // Window actions are keyed by desktop id; the context service resolved
+                // it from the dock row's app id (for example, terminal -> org.kde.konsole).
+                windowActions: root.services.runningApplications.revision >= 0
+                    ? root.services.runningApplications.windowActions(contextService.desktopId) : ({})
+                virtualDesktops: root.services.runningApplications.virtualDesktops
+                trashItem: contextMenu.appId === "item:trash"
+                canEmptyTrash: trash.canEmpty
+                onSettingsRequested: root.settingsRequested()
+                onActionRequested: function(appId, actionId) { contextLauncher.launchAction(appId, actionId) }
+                onPlaceRequested: function(resource) { contextService.openPlace(resource) }
+                onMorePlacesRequested: contextService.showMorePlaces()
+                onPlacesGroupRequested: function(group) { contextService.enterPlacesGroup(group) }
+                onPlacesBackRequested: contextService.leavePlacesGroup()
+                onRecentRequested: function(resource) { contextService.openRecent(resource) }
+                onForgetRecentRequested: contextService.forgetRecent()
+                onNewWindowRequested: contextService.openNewWindow()
+                onApplicationRequested: function(appId) { menuAppsLauncher.launch(appId) }
+                onOpenMenuRequested: root.menuRequested(root.screen ? root.screen.name : "")
+                onRemoveMenuRequested: root.settings.menuShowDockButton = false
+                onPinRequested: contextService.pin()
+                onUnpinRequested: contextService.unpin()
+                onWindowActionRequested: function(action, virtualDesktop) {
+                    if (root.services.runningApplications.windowActivation.requestWindowAction(contextMenu.appId, action, virtualDesktop) === 0)
+                        console.warn("Punchi Dock Quickshell: window action request rejected:", action)
+                }
+                onMediaCommandRequested: function(command) { contextService.controlMedia(command) }
+                onFolderSortRequested: function(appId, sortMode) { root.settings.setContainerSortMode(appId, sortMode) }
+                onFolderLayoutRequested: function(appId, layout) { root.settings.setContainerLayout(appId, layout) }
+                onRecentLayoutRequested: function(layout) { root.settings.recentApplicationsContainerLayout = layout }
+                onOpenFolderRequested: {
+                    const entry = root.settings.container(contextMenu.appId)
+                    if (entry && entry.path.length > 0) contextApplicationAdapter.openFolderPath(entry.path)
+                    else if (entry && entry.id === "home") contextApplicationAdapter.openHome()
+                    else contextApplicationAdapter.openDownloads()
+                }
+                onOpenTrashRequested: trash.open()
+                onEmptyTrashRequested: trash.requestEmpty()
+                onAutoHideRequested: root.settings.panelMode = root.settings.panelMode === "autohide" ? "overlay" : "autohide"
+                onMagnificationRequested: root.settings.magnificationEnabled = !root.settings.magnificationEnabled
+                onDockEdgeRequested: function(edge) { root.settings.dockEdge = edge }
+                onMinimizeEffectRequested: function(effect) {
+                    if (!root.services.minimizeEffects.setEffect(effect)) console.warn("Punchi Dock Quickshell: KWin minimize effect update failed")
+                }
+            }
         }
     }
     PunchiApplicationContextService {
@@ -483,56 +507,84 @@ PanelWindow {
         function onLaunchDispatched(appId) { root.recentApplications.recordAccess(appId) }
     }
 
-    PunchiFolderContainerPopup {
-        id: folderPopup
-        objectName: "downloadsPopup"
-        hostWindow: root
-        hostBaseHeight: root.dockAllocationHeight
-        settings: root.preferences
-        opener: contextApplicationAdapter
-        clipboardService: root.services.clipboard
+    property bool folderPopupRequested: false
+    readonly property var folderPopup: folderLoader.item
+    LazyLoader {
+        id: folderLoader
+        active: root.folderPopupRequested
+        component: Component {
+            PunchiFolderContainerPopup {
+                id: folderPopup
+                objectName: "downloadsPopup"
+                hostWindow: root
+                hostBaseHeight: root.dockAllocationHeight
+                settings: root.preferences
+                opener: contextApplicationAdapter
+                clipboardService: root.services.clipboard
+            }
+        }
     }
     Connections {
         target: root.settings
         function onPinnedIdsChanged() {
-            if (!root.settings.container(folderPopup.appId)) folderPopup.dismiss()
+            if (root.folderPopup && !root.settings.container(root.folderPopup.appId))
+                root.folderPopup.dismiss()
         }
     }
-    PunchiRecentApplicationsPopup {
-        id: recentPopup
-        objectName: "recentApplicationsPopup"
-        hostWindow: root
-        hostBaseHeight: root.dockAllocationHeight
-        settings: root.preferences
-        selection: root.recentApplications.selection
-        onActivateRequested: function(appId) {
-            recentLauncher.launch(appId)
-            recentPopup.dismiss()
+    property bool recentPopupRequested: false
+    readonly property var recentPopup: recentLoader.item
+    LazyLoader {
+        id: recentLoader
+        active: root.recentPopupRequested
+        component: Component {
+            PunchiRecentApplicationsPopup {
+                id: recentPopup
+                objectName: "recentApplicationsPopup"
+                hostWindow: root
+                hostBaseHeight: root.dockAllocationHeight
+                settings: root.preferences
+                selection: root.recentApplications.selection
+                onActivateRequested: function(appId) {
+                    recentLauncher.launch(appId)
+                    if (root.recentPopup) root.recentPopup.dismiss()
+                }
+            }
         }
     }
     Connections {
         target: root.settings
         // Either choice rebuilds the dock row; an open popup would then point at
         // an item that is gone.
-        function onRecentApplicationsPresentationChanged() { recentPopup.dismiss() }
-        function onRecentApplicationsEnabledChanged() { recentPopup.dismiss() }
+        function onRecentApplicationsPresentationChanged() { if (root.recentPopup) root.recentPopup.dismiss() }
+        function onRecentApplicationsEnabledChanged() { if (root.recentPopup) root.recentPopup.dismiss() }
+    }
+    function openFolderPopup(tile, appId, container, fromKeyboard): void {
+        root.folderPopupRequested = true
+        if (!root.folderPopup) {
+            Qt.callLater(function() { root.openFolderPopup(tile, appId, container, fromKeyboard) })
+            return
+        }
+        root.folderPopup.toggleForItem(tile, appId, container, fromKeyboard)
+    }
+    function openRecentPopup(tile, fromKeyboard): void {
+        root.recentPopupRequested = true
+        if (!root.recentPopup) {
+            Qt.callLater(function() { root.openRecentPopup(tile, fromKeyboard) })
+            return
+        }
+        root.recentPopup.toggleForItem(tile, fromKeyboard)
     }
     PunchiDockView {
         id: view
         objectName: "dock-view"
         applicationState: root.services.runningApplications
         updateState: root.updateNotice
-        contextMenuOpen: contextMenu.visible || contextMenu.preparingToShow
-            || folderPopup.visible || folderPopup.preparingToShow
-            || recentPopup.visible || recentPopup.preparingToShow
+        contextMenuOpen: (root.contextMenu ? root.contextMenu.visible || root.contextMenu.preparingToShow : false)
+            || (root.folderPopup ? root.folderPopup.visible || root.folderPopup.preparingToShow : false)
+            || (root.recentPopup ? root.recentPopup.visible || root.recentPopup.preparingToShow : false)
         onContextMenuRequested: function(sourceItem, appId, title, position) {
-            root.dismissMenu()
-            folderPopup.dismiss()
-            recentPopup.dismiss()
-            contextMenu.appId = appId
-            contextService.select(appId)
-            if (appId.length > 0) contextMenu.openForItem(sourceItem, title)
-            else contextMenu.openAt(sourceItem, position)
+            root.contextMenuRequested = true
+            root.openContextMenu(sourceItem, appId, title, position)
         }
         dockEdge: root.settings.dockEdge
         sceneTranslation: Qt.point(slideTransform.x, slideTransform.y)
@@ -576,12 +628,12 @@ PanelWindow {
             root.settingsRequested()
         }
         onItemActivated: function(appId) {
-            contextMenu.dismiss()
+            if (root.contextMenu) root.contextMenu.dismiss()
             // The menu leader opens the fullscreen menu instead of launching an
             // application; the controller decides which screen owns it.
             if (appId === "item:menu") {
-                folderPopup.dismiss()
-                recentPopup.dismiss()
+                if (root.folderPopup) root.folderPopup.dismiss()
+                if (root.recentPopup) root.recentPopup.dismiss()
                 root.menuRequested(root.screen ? root.screen.name : "")
                 return
             }
@@ -591,21 +643,21 @@ PanelWindow {
             // Enter on a focused launcher keeps its band; a pointer click does not
             // turn the first row into a keyboard row.
             const fromKeyboard = view.keyboardActivation(tile)
-            if (container) folderPopup.toggleForItem(tile, appId, container, fromKeyboard)
-            else if (appId === "item:recent") recentPopup.toggleForItem(tile, fromKeyboard)
+            if (container) root.openFolderPopup(tile, appId, container, fromKeyboard)
+            else if (appId === "item:recent") root.openRecentPopup(tile, fromKeyboard)
             else {
-                folderPopup.dismiss()
-                recentPopup.dismiss()
+                if (root.folderPopup) root.folderPopup.dismiss()
+                if (root.recentPopup) root.recentPopup.dismiss()
                 if (appId === "item:trash") trash.open()
                 else activation.activate(appId)
             }
         }
         onItemNewWindowRequested: function(appId) {
             root.dismissMenu()
-            folderPopup.dismiss()
-            recentPopup.dismiss()
+            if (root.folderPopup) root.folderPopup.dismiss()
+            if (root.recentPopup) root.recentPopup.dismiss()
             if (!appId.startsWith("item:")) activation.newWindow(appId)
-            contextMenu.dismiss()
+            if (root.contextMenu) root.contextMenu.dismiss()
         }
         onCloseRequested: if (!root.configuring) root.requestedVisible = false
     }
