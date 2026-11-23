@@ -46,6 +46,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Create the dock context, folder and recent popups on first use through
+  Quickshell's `LazyLoader`, so a dock that never opens them does not keep their
+  content trees at startup. An isolated one-screen measurement dropped startup
+  PSS from about 201 MB to 183 MB; the popups stay loaded after the first use.
 - Release the fullscreen menu's catalogue search index and row model when the
   menu is unmapped, so a closed menu no longer keeps its delegates alive. An
   isolated one-screen measurement dropped PSS by about 11 MB while closed, open
