@@ -224,6 +224,11 @@ applications, the container presentation with the List view, the application ico
 an unfiltered folder listing, the reference popup proportions, the theme's glyph
 sizes, every screen and every desktop/activity.
 
+Before replacing the settings file, the store measures the serialized snapshot
+in UTF-8 bytes against the same 256 KiB bound the reader enforces. A multibyte
+snapshot that would exceed it is refused with a logged internal error, so the
+previous readable file stays intact.
+
 A trial run keeps its own profile in the instance runtime directory
 (`$XDG_RUNTIME_DIR/punchi-dock-quickshell-$UID/trial-profile`, or the temporary
 directory when `XDG_RUNTIME_DIR` is unavailable) and exports it as

@@ -7,6 +7,18 @@ import "../../config/PunchiProfileDocument.js" as PunchiProfileDocument
 TestCase {
     name: "PunchiProfileDocument"
 
+    function test_utf8_byte_length_counts_encoded_bytes() {
+        compare(PunchiProfileDocument.utf8ByteLength(""), 0)
+        compare(PunchiProfileDocument.utf8ByteLength("abc"), 3)
+        compare(PunchiProfileDocument.utf8ByteLength("é"), 2)
+        compare(PunchiProfileDocument.utf8ByteLength("漢"), 3)
+        compare(PunchiProfileDocument.utf8ByteLength("😀"), 4)
+        compare(PunchiProfileDocument.utf8ByteLength("aé漢😀"), 10)
+        compare(PunchiProfileDocument.utf8ByteLength("漢".repeat(10)), 30)
+        const ascii = "x".repeat(1024)
+        compare(PunchiProfileDocument.utf8ByteLength(ascii), ascii.length)
+    }
+
     function test_first_run_profile_is_a_valid_document() {
         const defaults = PunchiDefaultProfile.fresh()
         compare(defaults.version, 17)

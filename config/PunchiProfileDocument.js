@@ -15,6 +15,28 @@ const version = 1
 // multi-gigabyte read and keeps the preview parse a single bounded pass.
 const maximumBytes = 262144
 
+// String.length counts UTF-16 code units, but the native reader and writer
+// bound the file in UTF-8 bytes. Count the encoded form so a multibyte profile
+// cannot pass a guard the next start would reject.
+function utf8ByteLength(text) {
+    if (typeof text !== "string") return 0
+    let bytes = 0
+    for (let index = 0; index < text.length; ++index) {
+        const code = text.codePointAt(index)
+        if (code > 0xffff) {
+            bytes += 4
+            index += 1
+        } else if (code >= 0x800) {
+            bytes += 3
+        } else if (code >= 0x80) {
+            bytes += 2
+        } else {
+            bytes += 1
+        }
+    }
+    return bytes
+}
+
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
     "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
     "avoidInnerEdgeAutoHide", "menuBackgroundBlurEnabled", "menuShowDistributionName",

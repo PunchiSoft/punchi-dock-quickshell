@@ -52,7 +52,8 @@ Scope {
         const snapshot = JSON.stringify(settings.snapshot(), null, 2)
         // Never replace a readable profile with one the bounded loader would
         // reject on the next start. The previous file stays intact.
-        if (snapshot.length > PunchiProfileDocument.maximumBytes) {
+        if (PunchiProfileDocument.utf8ByteLength(snapshot)
+                > PunchiProfileDocument.maximumBytes) {
             console.warn("Punchi Dock Quickshell: settings profile exceeds the storage limit")
             return
         }
@@ -133,7 +134,9 @@ Scope {
             }
         }
         if (text.length === 0) settings.reset()
-        if (text.length > 0 && text.length <= PunchiProfileDocument.maximumBytes) {
+        if (text.length > 0
+                && PunchiProfileDocument.utf8ByteLength(text)
+                    <= PunchiProfileDocument.maximumBytes) {
             try {
                 const restored = settings.restore(JSON.parse(text))
                 if (restored && migrateLegacy) file.setText(text)
