@@ -201,7 +201,13 @@ compositor; the full command adds the `session` label that needs the live
 Plasma/KWin Wayland session. CI runs `scripts-dev/ci-headless.sh` inside Fedora 44
 with the presets and never claims session or visual validation.
 `build_dir_ownership` proves a stale build tree is removed only when its CMake
-cache names this checkout. `shell_removal` rejects a recursive removal without
+cache names this checkout. `build_selection` gives the isolated runner two
+complete temporary trees and proves that the CTest binary directory, a conflicting
+caller override and the configured distribution tree each select the intended QML
+artifacts. Every `run-isolated.py` registration passes `--build-dir
+"${CMAKE_BINARY_DIR}"`; the runner exports that tree to its children, and the
+setup-script and install mock fixtures drop an inherited `PUNCHI_BUILD_DIR`
+so each keeps using its own fake or installed artifacts. `shell_removal` rejects a recursive removal without
 `--` and a quoted variable followed by `/*`; when `ShellCheck` is installed it
 also checks SC2115, SC2086, SC2046 and SC2068 on the setup and development
 scripts. CI installs that package; a local run without it still applies the
