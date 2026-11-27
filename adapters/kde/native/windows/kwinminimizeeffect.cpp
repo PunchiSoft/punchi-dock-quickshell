@@ -164,8 +164,13 @@ QString pluginIdFromMetadata(const QString &path, const QString &fallback)
     const auto document = QJsonDocument::fromJson(bytes, &error);
     if (error.error != QJsonParseError::NoError || !document.isObject()) return {};
     const auto object = document.object();
-    if (object.value(QStringLiteral("org.kde.kwin.effect")).toObject()
-            .value(QStringLiteral("exclusiveGroup")).toString() != QStringLiteral("minimize")) return {};
+    // KWin 6.8 Squash publishes X-KWin-Exclusive-Category; Magic Lamp keeps
+    // the older nested exclusiveGroup. Accept both observed native forms.
+    const bool exclusiveGroup = object.value(QStringLiteral("org.kde.kwin.effect")).toObject()
+        .value(QStringLiteral("exclusiveGroup")).toString() == QStringLiteral("minimize");
+    const bool category = object.value(QStringLiteral("X-KWin-Exclusive-Category")).toString()
+        == QStringLiteral("minimize");
+    if (!exclusiveGroup && !category) return {};
     const auto id = object.value(QStringLiteral("KPlugin")).toObject()
         .value(QStringLiteral("Id")).toString(fallback);
     return validPluginId(id) ? id : QString();

@@ -706,7 +706,8 @@ state, not pixels.
 ## Owned KWin minimize-effect settings
 
 The context menu may change only the KWin `Plugins/*Enabled` entries in the
-`exclusiveGroup=minimize` effect group, and only after an explicit selection.
+minimize effect group, announced by the nested `exclusiveGroup=minimize` or by
+`X-KWin-Exclusive-Category=minimize`, and only after an explicit selection.
 Before writing, Punchi Dock Quickshell atomically records the original key presence/value
 and its own resulting values in the owner-only
 `$XDG_STATE_HOME/punchi-dock-quickshell/owned-settings.json` file. Existing
