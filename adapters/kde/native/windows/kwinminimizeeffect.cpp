@@ -267,40 +267,94 @@ bool KWinMinimizeEffectController::setEffect(const QString &effect)
         if (!record.original.contains(pluginId)) record.original.insert(pluginId, readValue(plugins, pluginId));
     }
 
-    bool changed = false;
+    // Derive the change plan from effective values only. A key already at the
+    // requested value stays out of the plan even when Punchi wrote it before,
+    // so an external edit is preserved instead of being adopted as owned.
+    QMap<QString, ConfigValue> writes;
     for (const auto &pluginId : m_minimizePlugins) {
-        const auto key = pluginId + QStringLiteral("Enabled");
         const bool target = pluginId == effect;
-        const auto current = readValue(plugins, pluginId);
-        if (current.value != target) {
-            plugins.writeEntry(key, target, KConfigBase::Notify);
-            record.written.insert(pluginId, {true, target});
-            changed = true;
-        } else if (record.written.contains(pluginId)) {
-            record.written.insert(pluginId, current);
-        }
+        if (readValue(plugins, pluginId).value != target) writes.insert(pluginId, {true, target});
+    }
+    // Keep ownership entries for keys this selection does not touch: a later
+    // restore still has to cover the complete set Punchi wrote.
+    const auto previousWritten = record.written;
+    for (auto it = writes.cbegin(); it != writes.cend(); ++it) {
+        record.written.insert(it.key(), it.value());
     }
 
-    if (record.written.isEmpty()) {
-        if (hasRecord && !removeRecord()) return false;
+    if (writes.isEmpty()) {
+        if (!hasRecord) {
+            refresh();
+            return true;
+        }
+        if (record.written.isEmpty()) {
+            if (!removeRecord(sourcePath)) return false;
+            refresh();
+            return true;
+        }
+        // A no-op selection must not rewrite kwinrc. Migrate a legacy record
+        // only after the new one is durable; otherwise leave it untouched.
+        if (sourcePath == legacyOwnershipPath()) {
+            if (!saveRecord(record)) {
+                qWarning() << "Punchi Dock Quickshell could not migrate its KWin settings recovery record";
+                return false;
+            }
+            if (!removeRecord(legacyOwnershipPath())) {
+                qWarning() << "Punchi Dock Quickshell could not remove the migrated KWin settings recovery record";
+            }
+        }
         refresh();
         return true;
     }
+
+    // The recovery record must be durable before the first kwinrc write, so a
+    // save failure leaves the shared configuration untouched and unflushable.
     if (!saveRecord(record)) {
         qWarning() << "Punchi Dock Quickshell could not persist the KWin settings recovery record";
         return false;
     }
-    if (hasRecord && sourcePath == legacyOwnershipPath()
-        && !removeRecord(legacyOwnershipPath())) return false;
-    if (changed && !m_config->sync()) {
+
+    for (auto it = writes.cbegin(); it != writes.cend(); ++it) {
+        plugins.writeEntry(it.key() + QStringLiteral("Enabled"), it.value().value, KConfigBase::Notify);
+    }
+
+    if (!m_config->sync()) {
+        qWarning() << "Punchi Dock Quickshell could not save the KWin settings";
+        // The record is already durable: keep it for retry or restoration.
+        // reparseConfiguration() syncs pending entries first, so mark them clean
+        // and then reload the file to discard writes that never reached disk.
+        m_config->markAsClean();
         m_config->reparseConfiguration();
+        // The failed sync may still have written some keys. Keep ownership only
+        // where the file matches this selection; otherwise restore the previous
+        // entry so a later restore still recognizes Punchi's own earlier write.
+        for (auto it = writes.cbegin(); it != writes.cend(); ++it) {
+            const auto current = readValue(plugins, it.key());
+            if (current.present == it.value().present && current.value == it.value().value) {
+                record.written.insert(it.key(), current);
+            } else if (previousWritten.contains(it.key())) {
+                record.written.insert(it.key(), previousWritten.value(it.key()));
+            } else {
+                record.written.remove(it.key());
+            }
+        }
+        if (!saveRecord(record)) {
+            qWarning() << "Punchi Dock Quickshell could not reconcile its KWin settings recovery record";
+        }
         refresh();
         return false;
     }
 
+    // Only after the new record and the kwinrc transition are durable may the
+    // legacy record be removed.
+    if (hasRecord && sourcePath == legacyOwnershipPath()
+        && !removeRecord(legacyOwnershipPath())) {
+        qWarning() << "Punchi Dock Quickshell could not remove the migrated KWin settings recovery record";
+    }
+
     m_config->reparseConfiguration();
     refresh();
-    if (changed) requestKWinReconfigure(this);
+    requestKWinReconfigure(this);
     return true;
 }
 

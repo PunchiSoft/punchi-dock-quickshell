@@ -711,8 +711,10 @@ that no longer match. A failed save or restore keeps the recovery file for retry
 KWin receives an asynchronous `reconfigure` request after a successful change or
 restoration. The isolated `kwin_minimize_effect` test covers config preservation,
 clean and explicit recovery, external edits, private file permissions, bounded
-metadata and KWin reconfiguration; real desktop behavior still needs a manual
-session check.
+metadata and KWin reconfiguration. It also injects a recovery-record save failure
+and a `kwinrc` sync failure to prove that a later shared-config sync cannot flush
+an unowned selection and that the durable record survives for retry. Real desktop
+behavior still needs a manual session check.
 
 ## Settings About page
 
