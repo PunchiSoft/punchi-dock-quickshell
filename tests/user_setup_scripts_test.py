@@ -702,6 +702,67 @@ def check_build_failure_log(root: Path) -> None:
         assert 'simulated compiler failure' in logs[0].read_text()
 
 
+def check_install_restart(root: Path) -> None:
+    """A running installed copy is stopped, replaced and restarted."""
+    setup = root / 'scripts-user/setup.sh'
+    scenarios = {
+        'running': ('1', '1', ['stop', 'install', 'restart'], '0', '1'),
+        'stopped': ('0', '1', ['install'], '0', '0'),
+        'no-restart': ('1', '0', ['stop', 'install'], '0', '0'),
+        'failure': ('1', '1', ['stop', 'install-failed', 'restart'], '1', '1'),
+    }
+    for name, (initial, restart, expected, status, running) in scenarios.items():
+        with tempfile.TemporaryDirectory(prefix='punchi-install-restart-') as temporary:
+            home = Path(temporary)
+            install = home / 'install'
+            install.mkdir()
+            log = home / 'order.log'
+            environment = os.environ.copy()
+            environment.update({
+                'HOME': str(home),
+                'PUNCHI_INSTALL_PREFIX': str(install),
+                'PUNCHI_RESTART_SCENARIO': name,
+                'PUNCHI_RESTART_INITIAL': initial,
+                'PUNCHI_RESTART_ENABLED': restart,
+                'PUNCHI_RESTART_LOG': str(log),
+                'NO_COLOR': '1',
+                'TERM': 'dumb',
+            })
+            script = '''set -euo pipefail
+source __SETUP__
+punchi_source_checkout_available() { return 0; }
+punchi_require_kde_environment() { return 0; }
+punchi_phase_dependencies() { return 0; }
+punchi_phase_build() { return 0; }
+punchi_ui_render_phase_started() { return 0; }
+punchi_ui_render_phase() { return 0; }
+punchi_install_root() { printf '%s\\n' "$PUNCHI_INSTALL_PREFIX"; }
+punchi_info() { :; }
+punchi_warning() { :; }
+punchi_error() { :; }
+running="$PUNCHI_RESTART_INITIAL"
+punchi_running_path() { [[ "$running" == 1 ]]; }
+punchi_restore_path() { printf 'stop\\n' >> "$PUNCHI_RESTART_LOG"; running=0; }
+punchi_restart_installed() { printf 'restart\\n' >> "$PUNCHI_RESTART_LOG"; running=1; }
+PUNCHI_RESTART_AFTER_INSTALL=$PUNCHI_RESTART_ENABLED
+case "$PUNCHI_RESTART_SCENARIO" in
+    failure) punchi_install_local() { printf 'install-failed\\n' >> "$PUNCHI_RESTART_LOG"; return 1; } ;;
+    *) punchi_install_local() { printf 'install\\n' >> "$PUNCHI_RESTART_LOG"; return 0; } ;;
+esac
+status=0
+punchi_action_install || status=$?
+printf 'status=%s running=%s\\n' "$status" "$running"
+'''.replace('__SETUP__', shlex.quote(str(setup)))
+            result = subprocess.run(
+                ['bash', '-c', script], env=environment, cwd=root,
+                capture_output=True, text=True, check=False, timeout=30)
+            combined = result.stdout + result.stderr
+            actual = log.read_text().splitlines() if log.exists() else []
+            assert actual == expected, (name, actual, combined)
+            assert f'status={status}' in combined, (name, combined)
+            assert f'running={running}' in combined, (name, combined)
+
+
 def check_qt_tool_resolution(root: Path) -> None:
     bash = shutil.which('bash') or '/bin/bash'
     with tempfile.TemporaryDirectory(prefix='punchi-qt-tools-test-') as temporary:
@@ -2011,6 +2072,7 @@ def main() -> int:
     check_presentation(root)
     check_failure_log(root)
     check_build_failure_log(root)
+    check_install_restart(root)
     check_environment_messages(root)
     check_start_environment_notice(root, start)
     check_install_environment_guard(root, setup)

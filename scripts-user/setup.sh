@@ -23,6 +23,7 @@ trap punchi_setup_cleanup EXIT
 
 PUNCHI_ACTION=""
 PUNCHI_START_AFTER=0
+PUNCHI_RESTART_AFTER_INSTALL=1
 PUNCHI_REMOVE_SETTINGS=0
 PUNCHI_REMOVE_BUILD=0
 PUNCHI_CLEAN_ALL=0
@@ -40,7 +41,8 @@ not run on other desktops.
 
 Actions (choose one):
   --install           Check/offer dependencies, build the checkout and install
-                      it for the current user.
+                      it for the current user. A running installed copy is
+                      stopped before replacement and restarted afterwards.
   --update            Alias for --install.
   --build             Check/offer dependencies and build without installing.
   --try, --test       Check/offer dependencies, build the checkout and run it
@@ -70,6 +72,8 @@ Options:
   --remove-build      With --uninstall, also remove the checkout's build/
                       directory.
   --keep-build        Kept for compatibility; build output is kept by default.
+  --no-restart        With --install/--update, leave a running installed copy
+                      stopped instead of restarting it after the replacement.
   --install-missing   With --check-deps, offer to install missing packages for
                       the detected distribution. It never runs without
                       confirmation; Debian/Ubuntu and Arch maps were matched to
@@ -272,6 +276,50 @@ punchi_start_installed_or_checkout() {
     return 1
 }
 
+# Starts the freshly installed copy without blocking the setup assistant. The
+# launcher owns the start log; this function only keeps the detached wrapper
+# output and verifies that Quickshell reports the instance.
+punchi_restart_installed() {
+    local install_root=""
+    local launcher=""
+    local start_script=""
+    local log_dir=""
+    local log=""
+    local attempt=0
+
+    install_root="$(punchi_install_root)" || return 1
+    command -v qs >/dev/null 2>&1 || return 1
+    launcher="$install_root/scripts-user/launcher.sh"
+    start_script="$install_root/scripts-user/start.sh"
+    log_dir="${XDG_STATE_HOME:-$HOME/.local/state}/punchi-dock-quickshell"
+    log="$log_dir/install-restart.log"
+    mkdir -p "$log_dir" || return 1
+
+    if [[ -x "$launcher" ]]; then
+        if command -v setsid >/dev/null 2>&1; then
+            setsid "$launcher" start >>"$log" 2>&1 < /dev/null &
+        else
+            nohup "$launcher" start >>"$log" 2>&1 < /dev/null &
+        fi
+    elif [[ -x "$start_script" ]]; then
+        if command -v setsid >/dev/null 2>&1; then
+            setsid "$start_script" >>"$log" 2>&1 < /dev/null &
+        else
+            nohup "$start_script" >>"$log" 2>&1 < /dev/null &
+        fi
+    else
+        return 1
+    fi
+
+    for ((attempt = 0; attempt < 100; ++attempt)); do
+        if punchi_running_path "$install_root"; then
+            return 0
+        fi
+        sleep 0.1
+    done
+    return 1
+}
+
 punchi_phase_dependencies() {
     local index="${1:?phase index is required}"
     local total="${2:?phase total is required}"
@@ -357,6 +405,8 @@ punchi_action_try() {
 
 punchi_action_install() {
     local total=3
+    local install_root=""
+    local install_was_running=0
 
     if ! punchi_source_checkout_available; then
         punchi_error "Install/update actions require the source checkout."
@@ -364,17 +414,43 @@ punchi_action_install() {
         return 1
     fi
     punchi_require_kde_environment 'install' || return 1
+    install_root="$(punchi_install_root)" || return 1
 
     punchi_phase_dependencies 1 "$total" || return 1
     punchi_phase_build 2 "$total" || return 1
 
+    if punchi_running_path "$install_root"; then
+        install_was_running=1
+        punchi_info "Stopping the running installed copy before replacing it..."
+        if ! punchi_restore_path "$install_root"; then
+            punchi_error "The running installed copy could not be stopped; installation cancelled."
+            return 1
+        fi
+    fi
+
     punchi_ui_render_phase_started 3 "$total" 'Install'
     if ! punchi_install_local; then
+        if (( install_was_running )); then
+            punchi_warning "Installation failed; trying to restart the previous installed copy."
+            punchi_restart_installed || punchi_warning "The previous installed copy could not be restarted."
+        fi
         punchi_ui_render_phase 3 "$total" error 'Install' 'Failed'
         punchi_error "Installation failed. Review the output above or the failure log."
         return 1
     fi
     punchi_ui_render_phase 3 "$total" success 'Install' 'Completed'
+
+    if (( install_was_running )); then
+        if (( PUNCHI_RESTART_AFTER_INSTALL == 1 )); then
+            punchi_info "Restarting the updated installed copy..."
+            if ! punchi_restart_installed; then
+                punchi_warning "The installation completed, but the dock did not restart."
+                punchi_info "Start it from the application menu or with $install_root/scripts-user/start.sh."
+            fi
+        else
+            punchi_info "The installed copy was stopped and will stay stopped (--no-restart)."
+        fi
+    fi
 
     if (( PUNCHI_START_AFTER == 1 )); then
         punchi_start_installed_or_checkout
@@ -600,6 +676,7 @@ parse_args() {
             --remove-settings) PUNCHI_REMOVE_SETTINGS=1; shift ;;
             --remove-build) PUNCHI_REMOVE_BUILD=1; shift ;;
             --keep-build) PUNCHI_REMOVE_BUILD=0; shift ;;
+            --no-restart) PUNCHI_RESTART_AFTER_INSTALL=0; shift ;;
             --install-missing) PUNCHI_INSTALL_MISSING=1; shift ;;
             --pull) PUNCHI_PULL=1; shift ;;
             -y|--yes) PUNCHI_ASSUME_YES=1; shift ;;
