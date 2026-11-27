@@ -9,6 +9,12 @@
 #include <QStandardPaths>
 #include <KApplicationTrader>
 #include <KSycoca>
+#include <cstring>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/sysmacros.h>
+#include <sys/un.h>
+#include <unistd.h>
 #include "adapters/kde/window-state/snapshot.h"
 #include "adapters/kde/native/applications/runningapplications.h"
 
@@ -36,6 +42,21 @@ private:
             "  sys.stdout.buffer.write(current[3:]); sys.stdout.flush(); last=current\n");
         QFile::setPermissions(path, QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner);
         return path;
+    }
+    static int runBackend(const QString &argument) {
+        QProcess process;
+        process.start(QStringLiteral(PUNCHI_TEST_BACKEND), {argument});
+        if (!process.waitForFinished(3000)) {
+            process.kill();
+            process.waitForFinished();
+            return -1;
+        }
+        return process.exitCode();
+    }
+    static bool hasFileType(const QString &path, mode_t type) {
+        struct stat info{};
+        if (::lstat(QFile::encodeName(path).constData(), &info) != 0) return false;
+        return (info.st_mode & S_IFMT) == type;
     }
 private slots:
     void visibilityProjectionAndDesktopState() {
@@ -286,6 +307,70 @@ private slots:
         QCOMPARE(existing.readAll(), QByteArray("unrelated existing desktop entry\n"));
         existing.close();
         QVERIFY(existing.remove());
+    }
+    void specialRegistrationFilesAreRejectedBeforeOpen() {
+        const QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
+            + QStringLiteral("/applications/org.punchi.Shell.WindowState.desktop");
+        QVERIFY(QDir().mkpath(QFileInfo(path).absolutePath()));
+        QFile::remove(path);
+        QDir().rmdir(path);
+
+        QCOMPARE(::mkfifo(QFile::encodeName(path).constData(), 0600), 0);
+        QVERIFY(hasFileType(path, S_IFIFO));
+        QVERIFY(runBackend(QStringLiteral("--register")) > 0);
+        QVERIFY(hasFileType(path, S_IFIFO));
+        QVERIFY(runBackend(QStringLiteral("--unregister")) > 0);
+        QVERIFY(hasFileType(path, S_IFIFO));
+        QCOMPARE(::unlink(QFile::encodeName(path).constData()), 0);
+
+        const QByteArray encoded = QFile::encodeName(path);
+        const int socketFd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+        QVERIFY(socketFd >= 0);
+        sockaddr_un address{};
+        address.sun_family = AF_UNIX;
+        QVERIFY(encoded.size() < static_cast<int>(sizeof(address.sun_path)));
+        std::memcpy(address.sun_path, encoded.constData(), encoded.size());
+        QCOMPARE(::bind(socketFd, reinterpret_cast<sockaddr *>(&address), sizeof(address)), 0);
+        QVERIFY(hasFileType(path, S_IFSOCK));
+        QVERIFY(runBackend(QStringLiteral("--register")) > 0);
+        QVERIFY(hasFileType(path, S_IFSOCK));
+        QVERIFY(runBackend(QStringLiteral("--unregister")) > 0);
+        QVERIFY(hasFileType(path, S_IFSOCK));
+        ::close(socketFd);
+        QCOMPARE(::unlink(encoded.constData()), 0);
+
+        QVERIFY(QDir().mkdir(path));
+        QVERIFY(hasFileType(path, S_IFDIR));
+        QVERIFY(runBackend(QStringLiteral("--register")) > 0);
+        QVERIFY(hasFileType(path, S_IFDIR));
+        QVERIFY(runBackend(QStringLiteral("--unregister")) > 0);
+        QVERIFY(hasFileType(path, S_IFDIR));
+        QVERIFY(QDir().rmdir(path));
+
+        QTemporaryDir targetDirectory;
+        QVERIFY(targetDirectory.isValid());
+        const QString target = targetDirectory.filePath(QStringLiteral("target"));
+        write(target, "unrelated target\n");
+        QVERIFY(QFile::link(target, path));
+        QVERIFY(hasFileType(path, S_IFLNK));
+        QVERIFY(runBackend(QStringLiteral("--register")) > 0);
+        QVERIFY(hasFileType(path, S_IFLNK));
+        QVERIFY(runBackend(QStringLiteral("--unregister")) > 0);
+        QVERIFY(hasFileType(path, S_IFLNK));
+        QVERIFY(QFile::remove(path));
+
+        if (::geteuid() == 0) {
+            if (::mknod(QFile::encodeName(path).constData(), S_IFCHR | 0600, makedev(1, 3)) == 0) {
+                QVERIFY(hasFileType(path, S_IFCHR));
+                QVERIFY(runBackend(QStringLiteral("--register")) > 0);
+                QVERIFY(hasFileType(path, S_IFCHR));
+                QVERIFY(runBackend(QStringLiteral("--unregister")) > 0);
+                QVERIFY(hasFileType(path, S_IFCHR));
+                QCOMPARE(::unlink(QFile::encodeName(path).constData()), 0);
+            } else {
+                qWarning() << "Skipping device registration probe: mknod is unavailable";
+            }
+        }
     }
 };
 QTEST_GUILESS_MAIN(RunningStateTest)

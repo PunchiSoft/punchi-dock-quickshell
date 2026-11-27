@@ -85,6 +85,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Reject a symlink, directory, FIFO, socket or device at the window-state
+  registration path before opening it, so a foreign special file can no longer
+  block `--register` or be removed. A non-Punchi regular file stays preserved.
 - Discover Squash from KWin's `X-KWin-Exclusive-Category=minimize` metadata as
   well as the nested `exclusiveGroup=minimize` used by Magic Lamp, so both
   installed minimize effects appear in the selector and enter the recovery

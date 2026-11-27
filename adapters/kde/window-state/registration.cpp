@@ -45,10 +45,15 @@ int registerWindowBackend(bool remove)
     const QString directory = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
         + QStringLiteral("/applications");
     const QString path = directory + QStringLiteral("/org.punchi.Shell.WindowState.desktop");
+    const QFileInfo info(path);
     QFile existing(path);
     bool changed = false;
-    if (QFileInfo::exists(path) || QFileInfo(path).isSymLink()) {
-        if (QFileInfo(path).isSymLink() || !existing.open(QIODevice::ReadOnly) || existing.size() > 4096) {
+    if (info.exists() || info.isSymLink()) {
+        // Check the file type before opening: opening a FIFO would block the
+        // synchronous start path, and a directory, socket or device is not an
+        // entry this backend may replace or remove.
+        if (info.isSymLink() || !info.isFile()
+                || !existing.open(QIODevice::ReadOnly) || existing.size() > 4096) {
             qCritical() << "Window backend registration collision";
             return 1;
         }

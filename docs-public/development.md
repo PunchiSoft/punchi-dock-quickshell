@@ -25,7 +25,9 @@ the legacy `punchi-shell.json`, the runtime lock and the window-state
 registration. Both paths unregister
 `${XDG_DATA_HOME:-$HOME/.local/share}/applications/org.punchi.Shell.WindowState.desktop`
 through the native backend and delete it when its content still matches this
-project. Install and build offer to install
+project. The backend checks the path type before opening it: a symbolic link,
+directory, FIFO, socket or device is rejected without being read, replaced or
+removed, and a foreign regular file is preserved. Install and build offer to install
 missing dependencies before compiling. Fedora package names are validated;
 Debian/Ubuntu and Arch maps are best-effort. Debian stable does not carry
 Quickshell, so when it has no apt candidate the setup offers to add the matching
