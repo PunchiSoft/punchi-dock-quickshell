@@ -1932,6 +1932,9 @@ def check_install_environment_guard(root: Path, setup: Path) -> None:
 
 def main() -> int:
     root = Path(__file__).resolve().parents[1]
+    # These fixtures create their own build trees. Never let a caller's
+    # PUNCHI_BUILD_DIR make a mock script select the real backend.
+    os.environ.pop('PUNCHI_BUILD_DIR', None)
     scripts = sorted((root / 'scripts-user').rglob('*.sh'))
     assert scripts, 'No user scripts found'
 

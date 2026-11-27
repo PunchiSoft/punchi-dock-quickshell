@@ -85,6 +85,11 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Run every isolated CTest probe against the build tree under test.
+  `run-isolated.py` now receives `--build-dir`, exports it to child probes, and
+  the setup-script and install mocks no longer inherit an external
+  `PUNCHI_BUILD_DIR`; a focused regression uses two temporary trees to prove the
+  selected QML artifacts.
 - Install `scripts-user/lib/build-dir.sh` with the CMake layout, so the installed
   `start.sh` no longer stops with a missing-helper error. The install regression
   now invokes the installed `start.sh` and `restore-kde.sh` and verifies that

@@ -23,6 +23,8 @@ def main():
         signal.signal(signum, interrupted)
     parser = argparse.ArgumentParser()
     parser.add_argument('--session', action='store_true')
+    parser.add_argument('--build-dir', type=Path,
+                        help='Build tree whose native QML artifacts the test must use.')
     parser.add_argument('--deadline', type=int, default=35,
                         help='Seconds before the test tree is terminated (default 35).')
     parser.add_argument('command', nargs=argparse.REMAINDER)
@@ -32,6 +34,11 @@ def main():
     command = args.command[1:] if args.command[:1] == ['--'] else args.command
     if not command:
         parser.error('A command is required.')
+    project_root = Path(__file__).resolve().parents[1]
+    build_dir = (args.build_dir.resolve() if args.build_dir
+                 else resolve_build_dir(project_root))
+    if not (build_dir / 'qml/Punchi/Kde/libpunchikdeplugin.so').is_file():
+        parser.error(f'The build tree has no native QML plugin: {build_dir}')
     env = os.environ.copy()
     # Read user-installed icon assets without writing into the user's data home.
     data_home = env.get('XDG_DATA_HOME', str(Path.home() / '.local/share'))
@@ -63,7 +70,10 @@ def main():
                     destination.symlink_to(entry)
         env['XDG_DATA_DIRS'] = os.pathsep.join((str(root / 'data'), data_dirs))
         env['QT_QUICK_CONTROLS_STYLE'] = 'Basic'
-        native_imports = str(resolve_build_dir(Path(__file__).resolve().parents[1]) / 'qml')
+        # Child probes and the shell scripts they launch must use the same tree
+        # as this runner, not the first complete distribution build on disk.
+        env['PUNCHI_BUILD_DIR'] = str(build_dir)
+        native_imports = str(build_dir / 'qml')
         env['QML_IMPORT_PATH'] = os.pathsep.join(filter(None, (native_imports, env.get('QML_IMPORT_PATH', ''))))
         # Offscreen Qt otherwise lacks a platform theme for named KDE icons.
         env.setdefault('QT_QPA_PLATFORMTHEME', 'kde')

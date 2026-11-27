@@ -158,7 +158,7 @@ if(BUILD_TESTING)
     target_include_directories(folder_contents_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(folder_contents_test PRIVATE Qt6::Test Qt6::Widgets Qt6::Qml KF6::KIOFileWidgets)
     add_test(NAME folder_contents COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:folder_contents_test>)
     set_tests_properties(folder_contents PROPERTIES TIMEOUT 45)
     add_executable(trash_state_test tests/trash_state_test.cpp
@@ -167,14 +167,14 @@ if(BUILD_TESTING)
     target_include_directories(trash_state_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(trash_state_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::KIOCore KF6::Service)
     add_test(NAME trash_state COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:trash_state_test>)
     set_tests_properties(trash_state PROPERTIES TIMEOUT 45)
     add_executable(update_state_test tests/update_state_test.cpp adapters/kde/native/updates/updatestate.cpp)
     target_include_directories(update_state_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(update_state_test PRIVATE Qt6::Test Qt6::DBus)
     add_test(NAME update_state COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:update_state_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:update_state_test>)
     set_tests_properties(update_state PROPERTIES TIMEOUT 60)
     add_executable(task_identity_test tests/task_identity_test.cpp
         adapters/kde/window-state/activationdecision.cpp
@@ -193,11 +193,11 @@ if(BUILD_TESTING)
     target_link_libraries(menu_shortcut_controller_test PRIVATE
         Qt6::Test Qt6::Gui Qt6::Qml KF6::GlobalAccel)
     add_test(NAME menu_shortcut_controller COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         $<TARGET_FILE:menu_shortcut_controller_test>)
     set_tests_properties(menu_shortcut_controller PROPERTIES TIMEOUT 45)
     add_test(NAME task_identity COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/task_identity_test.py $<TARGET_FILE:task_identity_test>)
     set_tests_properties(task_identity PROPERTIES TIMEOUT 45)
@@ -205,13 +205,13 @@ if(BUILD_TESTING)
     target_include_directories(dock_applications_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(dock_applications_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     add_test(NAME dock_applications COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:dock_applications_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:dock_applications_test>)
     add_executable(application_catalog_test tests/application_catalog_test.cpp
         adapters/kde/native/applications/applicationcatalog.cpp)
     target_include_directories(application_catalog_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(application_catalog_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml KF6::Service)
     add_test(NAME application_catalog COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/application_catalog_test.py
         $<TARGET_FILE:application_catalog_test>)
     set_tests_properties(application_catalog PROPERTIES TIMEOUT 45)
@@ -220,21 +220,21 @@ if(BUILD_TESTING)
     target_include_directories(recent_applications_model_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(recent_applications_model_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml)
     add_test(NAME recent_applications_model COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_model_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:recent_applications_model_test>)
     add_executable(icon_theme_catalog_test tests/icon_theme_catalog_test.cpp
         adapters/kde/native/appearance/iconthemecatalog.cpp)
     target_include_directories(icon_theme_catalog_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(icon_theme_catalog_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml
         Qt6::Concurrent KF6::ConfigCore)
     add_test(NAME icon_theme_catalog COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:icon_theme_catalog_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:icon_theme_catalog_test>)
     add_executable(recent_applications_tracking_test tests/recent_applications_tracking_test.cpp
         adapters/kde/native/applications/recentapplicationsadapter.cpp)
     target_include_directories(recent_applications_tracking_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(recent_applications_tracking_test PRIVATE Qt6::Test Qt6::Gui Qt6::Qml
         KF6::ConfigCore KF6::Service KF6::KIOGui Plasma::ActivitiesStats Plasma::Activities)
     add_test(NAME recent_applications_tracking COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:recent_applications_tracking_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:recent_applications_tracking_test>)
     add_executable(window_activation_test tests/window_activation_test.cpp
         adapters/kde/window-state/activationdecision.cpp
         adapters/kde/native/applications/runningapplications.cpp adapters/kde/native/windows/windowactivation.cpp
@@ -270,116 +270,116 @@ if(BUILD_TESTING)
     add_test(NAME qml_lint COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/validate-qml.py ${QMLLINT_EXECUTABLE})
     add_test(NAME dock_components COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --deadline 60 --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --deadline 60 --
         ${QMLTESTRUNNER_EXECUTABLE} -input ${CMAKE_SOURCE_DIR}/tests/qml)
     add_test(NAME folder_container COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/folder_container_test.py ${QMLTESTRUNNER_EXECUTABLE})
     set_tests_properties(folder_container PROPERTIES TIMEOUT 45)
     add_test(NAME autohide_edge COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:autohide_edge_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:autohide_edge_test>)
     set_tests_properties(autohide_edge PROPERTIES TIMEOUT 45)
     add_test(NAME profile_file COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py -- $<TARGET_FILE:profile_file_test>)
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} -- $<TARGET_FILE:profile_file_test>)
     set_tests_properties(profile_file PROPERTIES TIMEOUT 45)
     find_program(QUICKSHELL_EXECUTABLE NAMES qs REQUIRED)
     find_program(DBUS_RUN_SESSION_EXECUTABLE NAMES dbus-run-session REQUIRED)
     add_test(NAME autostart_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/autostart_runtime_test.py ${QUICKSHELL_EXECUTABLE})
     add_test(NAME icon_theme_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/icon_theme_runtime_test.py)
     set_tests_properties(icon_theme_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME vertical_dock_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/vertical_dock_runtime_test.py)
     set_tests_properties(vertical_dock_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME tooltip_theme_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/tooltip_theme_runtime_test.py)
     set_tests_properties(tooltip_theme_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME trash_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/trash_runtime_test.py)
     set_tests_properties(trash_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME adapter_contract COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/adapter_contract_runtime_test.py)
     set_tests_properties(adapter_contract PROPERTIES TIMEOUT 45)
     add_test(NAME application_media COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/media_runtime_test.py)
     set_tests_properties(application_media PROPERTIES TIMEOUT 45)
     add_test(NAME window_activation COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:window_activation_test>)
     set_tests_properties(window_activation PROPERTIES TIMEOUT 45)
     add_test(NAME kwin_minimize_effect COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:kwin_minimize_effect_test>)
     set_tests_properties(kwin_minimize_effect PROPERTIES TIMEOUT 45)
     add_test(NAME window_activation_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/window_activation_runtime_test.py)
     set_tests_properties(window_activation_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME window_models COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py $<TARGET_FILE:window_models_test>)
     set_tests_properties(window_models PROPERTIES TIMEOUT 45)
     add_test(NAME running_state COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- $<TARGET_FILE:running_state_test>)
     add_test(NAME running_marker_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/running_marker_runtime_test.py)
     add_test(NAME window_dodge_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/window_dodge_runtime_test.py)
     set_tests_properties(window_dodge_runtime PROPERTIES TIMEOUT 45)
     add_test(NAME launch_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/launch_runtime_test.py)
     add_test(NAME popup_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/popup_runtime_test.py)
     add_test(NAME recent_documents COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/recent_runtime_test.py)
     add_test(NAME places_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/places_runtime_test.py)
     add_test(NAME application_items COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/application_items_test.py)
     add_test(NAME settings_theme_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_theme_runtime_test.py)
     add_test(NAME profile_exchange COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/profile_exchange_runtime_test.py)
     set_tests_properties(profile_exchange PROPERTIES TIMEOUT 45)
     add_test(NAME settings_store_legacy COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_store_legacy_test.py)
     set_tests_properties(settings_store_legacy PROPERTIES TIMEOUT 45)
     add_test(NAME configuration_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/configuration_runtime_test.py)
     add_test(NAME placement_runtime COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/placement_runtime_test.py)
     add_test(NAME settings_reload COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --session --
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --session --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_reload_test.py)
     add_test(NAME window_capability COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/window_capability_test.py)
@@ -403,6 +403,9 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/tests/user_setup_scripts_test.py)
     add_test(NAME build_dir_ownership COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/build_dir_ownership_test.py)
+    add_test(NAME build_selection COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/tests/build_selection_test.py)
+    set_tests_properties(build_selection PROPERTIES TIMEOUT 45)
     add_test(NAME shell_removal COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/shell_removal_test.py)
     add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
@@ -454,6 +457,7 @@ if(BUILD_TESTING)
         settings_store_legacy
         user_setup_scripts
         build_dir_ownership
+        build_selection
         shell_removal
         user_setup_install
         cmake_install

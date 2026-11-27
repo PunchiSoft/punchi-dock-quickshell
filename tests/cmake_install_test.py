@@ -21,6 +21,9 @@ def script_environment(home: Path, fake_bin: Path, qs_log: Path) -> dict:
     for name in ('config', 'cache', 'data', 'state', 'runtime'):
         (home / name).mkdir(mode=0o700)
     environment = os.environ.copy()
+    # The installed tree must resolve its own bundled artifacts, never a
+    # caller-provided build override.
+    environment.pop('PUNCHI_BUILD_DIR', None)
     environment.update({
         'HOME': str(home),
         'TMPDIR': str(home),
