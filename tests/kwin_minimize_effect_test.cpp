@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QStandardPaths>
@@ -14,6 +15,7 @@
 #include <KConfigGroup>
 #include <KSharedConfig>
 #include <memory>
+#include <unistd.h>
 #include "kwinminimizeeffect.h"
 
 class KWinMock final : public QObject
@@ -24,6 +26,47 @@ public:
     int reconfigureCount = 0;
 public slots:
     void reconfigure() { ++reconfigureCount; }
+};
+
+class ScopedEnvironmentVariable final
+{
+public:
+    explicit ScopedEnvironmentVariable(const char *name)
+        : m_name(name)
+        , m_wasSet(qEnvironmentVariableIsSet(name))
+        , m_value(qgetenv(name))
+    {
+    }
+
+    ~ScopedEnvironmentVariable()
+    {
+        if (m_wasSet) qputenv(m_name, m_value);
+        else qunsetenv(m_name);
+    }
+
+    void set(const QByteArray &value) { qputenv(m_name, value); }
+
+private:
+    const char *m_name;
+    bool m_wasSet;
+    QByteArray m_value;
+};
+
+class ScopedDirectoryPermissions final
+{
+public:
+    ScopedDirectoryPermissions(const QString &path, QFileDevice::Permissions permissions)
+        : m_path(path)
+        , m_original(QFileInfo(path).permissions())
+    {
+        QFile::setPermissions(path, permissions);
+    }
+
+    ~ScopedDirectoryPermissions() { QFile::setPermissions(m_path, m_original); }
+
+private:
+    QString m_path;
+    QFileDevice::Permissions m_original;
 };
 
 class KWinMinimizeEffectTest final : public QObject
@@ -127,6 +170,132 @@ private slots:
         QVERIFY(!plugins.hasKey(QStringLiteral("magiclampEnabled")));
         QVERIFY(plugins.readEntry("blurEnabled", false));
         QTRY_COMPARE(m_kwin.reconfigureCount, 3);
+        QVERIFY(!QFileInfo::exists(recoveryPath()));
+    }
+
+    void recordSaveFailureLeavesNoFlushableKWinChanges()
+    {
+        auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
+        auto plugins = KConfigGroup(config, QStringLiteral("Plugins"));
+        QVERIFY(!config->isDirty());
+
+        QTemporaryDir root;
+        QVERIFY(root.isValid());
+        const auto stateBlocker = root.path() + QStringLiteral("/state");
+        QVERIFY(writeFile(stateBlocker, "This file blocks the recovery record directory."));
+
+        {
+            ScopedEnvironmentVariable stateHome("XDG_STATE_HOME");
+            stateHome.set(stateBlocker.toUtf8());
+            KWinMinimizeEffectController controller;
+            QVERIFY(controller.available());
+            QTest::ignoreMessage(QtWarningMsg,
+                "Punchi Dock Quickshell could not persist the KWin settings recovery record");
+            QVERIFY(!controller.setEffect(QStringLiteral("magiclamp")));
+        }
+
+        const bool wasDirty = config->isDirty();
+        QVERIFY(config->sync());
+        config->reparseConfiguration();
+        QVERIFY2(plugins.readEntry("squashEnabled", false),
+            "A later sync flushed squashEnabled without a recovery record");
+        QVERIFY2(plugins.readEntry("customEnabled", false),
+            "A later sync flushed customEnabled without a recovery record");
+        QVERIFY2(plugins.readEntry("blurEnabled", false),
+            "A later sync touched an unrelated KWin key");
+        QVERIFY2(!plugins.hasKey(QStringLiteral("magiclampEnabled")),
+            "A later sync flushed magiclampEnabled without a recovery record");
+        QVERIFY2(!wasDirty, "A failed recovery save left the shared KWin config dirty");
+        QVERIFY(!QFileInfo::exists(recoveryPath()));
+    }
+
+    void syncFailureKeepsTheRecordAndDiscardsUnconfirmedWrites()
+    {
+        if (geteuid() == 0) QSKIP("The sync-failure injection requires a non-root user");
+
+        const auto configRoot = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+        QVERIFY(!configRoot.isEmpty());
+        auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
+        auto plugins = KConfigGroup(config, QStringLiteral("Plugins"));
+        {
+            KWinMinimizeEffectController controller;
+            QVERIFY(controller.setEffect(QStringLiteral("magiclamp")));
+            QTRY_COMPARE(m_kwin.reconfigureCount, 1);
+            QVERIFY(QFileInfo::exists(recoveryPath()));
+
+            {
+                ScopedDirectoryPermissions readOnly(configRoot,
+                    QFileDevice::ReadOwner | QFileDevice::ExeOwner);
+                QTest::ignoreMessage(QtWarningMsg,
+                    "Punchi Dock Quickshell could not save the KWin settings");
+                QVERIFY(!controller.setEffect(QStringLiteral("none")));
+            }
+
+            QVERIFY(QFileInfo::exists(recoveryPath()));
+            QFile record(recoveryPath());
+            QVERIFY(record.open(QIODevice::ReadOnly));
+            const auto written = QJsonDocument::fromJson(record.readAll()).object()
+                .value(QStringLiteral("written")).toObject();
+            record.close();
+            QCOMPARE(written.value(QStringLiteral("magiclamp")).toObject()
+                .value(QStringLiteral("value")).toBool(), true);
+            QCOMPARE(written.value(QStringLiteral("squash")).toObject()
+                .value(QStringLiteral("value")).toBool(), false);
+            QVERIFY(!config->isDirty());
+            QCOMPARE(controller.effect(), QStringLiteral("magiclamp"));
+            QVERIFY(plugins.readEntry("magiclampEnabled", false));
+            QVERIFY(!plugins.readEntry("squashEnabled", false));
+            QCOMPARE(m_kwin.reconfigureCount, 1);
+
+            QVERIFY(controller.setEffect(QStringLiteral("magiclamp")));
+            QCOMPARE(m_kwin.reconfigureCount, 1);
+            QVERIFY(!config->isDirty());
+            QVERIFY(QFileInfo::exists(recoveryPath()));
+
+            QVERIFY(controller.setEffect(QStringLiteral("none")));
+            QTRY_COMPARE(m_kwin.reconfigureCount, 2);
+            QCOMPARE(controller.effect(), QStringLiteral("none"));
+            QVERIFY(!plugins.readEntry("magiclampEnabled", false));
+            QVERIFY(!plugins.readEntry("squashEnabled", false));
+            QVERIFY(QFileInfo::exists(recoveryPath()));
+        }
+        QVERIFY(!QFileInfo::exists(recoveryPath()));
+        config->reparseConfiguration();
+        QVERIFY(plugins.readEntry("squashEnabled", false));
+        QVERIFY(plugins.readEntry("customEnabled", false));
+        QVERIFY(!plugins.hasKey(QStringLiteral("magiclampEnabled")));
+    }
+
+    void recoveryRecordCapturesOriginalsAndNoOpSelectionKeepsIt()
+    {
+        auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
+        {
+            KWinMinimizeEffectController controller;
+            QVERIFY(controller.setEffect(QStringLiteral("magiclamp")));
+            QTRY_COMPARE(m_kwin.reconfigureCount, 1);
+
+            QFile record(recoveryPath());
+            QVERIFY(record.open(QIODevice::ReadOnly));
+            const auto original = QJsonDocument::fromJson(record.readAll()).object()
+                .value(QStringLiteral("original")).toObject();
+            record.close();
+            QCOMPARE(original.value(QStringLiteral("squash")).toObject()
+                .value(QStringLiteral("present")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("squash")).toObject()
+                .value(QStringLiteral("value")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("custom")).toObject()
+                .value(QStringLiteral("present")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("custom")).toObject()
+                .value(QStringLiteral("value")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("magiclamp")).toObject()
+                .value(QStringLiteral("present")).toBool(), false);
+
+            QVERIFY(!config->isDirty());
+            QVERIFY(controller.setEffect(QStringLiteral("magiclamp")));
+            QVERIFY(!config->isDirty());
+            QCOMPARE(m_kwin.reconfigureCount, 1);
+            QVERIFY(QFileInfo::exists(recoveryPath()));
+        }
         QVERIFY(!QFileInfo::exists(recoveryPath()));
     }
 

@@ -172,7 +172,8 @@ its first write, it captures the presence and boolean value of every discovered
 legacy record in the former `punchi-shell/` directory is read only when the new
 record does not exist, and the original snapshot is preserved during migration.
 The record is written atomically with owner-only permissions before `kwinrc`
-changes.
+changes. If the `kwinrc` sync fails, the unconfirmed in-memory writes are
+discarded and the record stays available for retry or a later restore.
 
 Only keys whose effective values differ from the requested state are written, and
 unrelated KWin settings are preserved. On clean shutdown and when

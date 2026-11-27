@@ -85,6 +85,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Persist the KWin minimize-effect recovery record before the first `kwinrc`
+  write. A failed record save now leaves the shared configuration clean, and a
+  failed `kwinrc` sync discards the unconfirmed writes while keeping the record
+  for retry, so an effect selection cannot be applied without a recovery record.
 - Search PunchiMenu by the desktop entry's generic name, keywords and desktop id,
   so `gimp` finds GNU Image Manipulation Program instead of only matching its
   long display name.
