@@ -126,8 +126,10 @@ install(FILES
     DESTINATION "${PUNCHI_INSTALL_DATADIR}/scripts-user"
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
         GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
-# start.sh loads its session detection and dialog helpers from this directory.
+# start.sh and restore-kde.sh load their shared runtime helpers from this
+# directory, so an installed tree must carry all of them.
 install(FILES
+    scripts-user/lib/build-dir.sh
     scripts-user/lib/session-detect.sh
     scripts-user/lib/notice-dialog.sh
     DESTINATION "${PUNCHI_INSTALL_DATADIR}/scripts-user/lib"
@@ -406,7 +408,7 @@ if(BUILD_TESTING)
     add_test(NAME user_setup_install COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/user_setup_install_test.py)
     add_test(NAME cmake_install COMMAND ${Python3_EXECUTABLE}
-        ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py)
+        ${CMAKE_SOURCE_DIR}/tests/cmake_install_test.py ${CMAKE_BINARY_DIR})
     set_tests_properties(qml_lint dock_components launch_runtime popup_runtime recent_documents places_runtime application_items settings_theme_runtime configuration_runtime placement_runtime running_state running_marker_runtime settings_reload window_capability project_foundation architecture_contract component_naming user_setup_scripts build_dir_ownership shell_removal autostart_runtime recent_applications_model recent_applications_tracking PROPERTIES TIMEOUT 45)
     # The aggregate QML tree legitimately runs for about 37 seconds; the runner
     # deadline above it stays at 60 and this CTest timeout leaves room for a

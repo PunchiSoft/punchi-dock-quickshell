@@ -179,7 +179,8 @@ ones. `PUNCHI_BUILD_DIR` overrides the location.
 
 This installs `bin/punchi-dock-quickshell`, the QML tree under
 `share/punchi-dock-quickshell`, the window backend under
-`libexec/punchi-dock-quickshell`, a desktop entry and the hicolor icon. The entry
+`libexec/punchi-dock-quickshell`, the runtime helper libraries used by
+`start.sh` and `restore-kde.sh`, a desktop entry and the hicolor icon. The entry
 point resolves its prefix, so it also works with `/usr` or another
 `CMAKE_INSTALL_PREFIX`. This route is intended for packaging and advanced
 deployments; `scripts-user/setup.sh` remains the guided per-user installer.

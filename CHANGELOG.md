@@ -85,6 +85,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Install `scripts-user/lib/build-dir.sh` with the CMake layout, so the installed
+  `start.sh` no longer stops with a missing-helper error. The install regression
+  now invokes the installed `start.sh` and `restore-kde.sh` and verifies that
+  startup resolves the installed QML plugin and backend.
 - Persist the KWin minimize-effect recovery record before the first `kwinrc`
   write. A failed record save now leaves the shared configuration clean, and a
   failed `kwinrc` sync discards the unconfirmed writes while keeping the record

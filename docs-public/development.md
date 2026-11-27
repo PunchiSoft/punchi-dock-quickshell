@@ -70,7 +70,11 @@ source-checkout and a user-local installation from running together; the second
 start reports the active path and its restore script. Stop with Ctrl+C or run
 `./scripts-user/restore-kde.sh`. Neither script edits or restarts Plasma. The
 installed copy exposes the same `start.sh`, `restore-kde.sh` and `settings.sh`
-under its install root.
+under its install root. The install manifest also carries the runtime helpers
+those scripts source (`build-dir.sh`, `session-detect.sh`, `notice-dialog.sh`).
+The `cmake_install` test invokes the installed `start.sh` and `restore-kde.sh`
+from a temporary prefix and proves that startup resolves the installed QML
+plugin and backend instead of the developer build tree.
 
 Quickshell's built-in reload popup is suppressed after a successful reload by
 `Quickshell.inhibitReloadPopup()` in `shell.qml`. The popup loads Quickshell's
