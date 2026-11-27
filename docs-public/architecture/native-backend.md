@@ -164,7 +164,9 @@ Activities Stats model API, without importing the private taskmanager applet.
 ## Owned KWin settings
 
 Punchi Dock Quickshell may change the global KWin minimize effect only after an
-explicit user selection, and only within KWin's `exclusiveGroup=minimize`. Before
+explicit user selection, and only within KWin's minimize group. KWin publishes
+that group as the nested `exclusiveGroup=minimize` or as
+`X-KWin-Exclusive-Category=minimize`; both observed forms are accepted. Before
 its first write, it captures the presence and boolean value of every discovered
 `Plugins/<effect>Enabled` key in the user-owned
 `$XDG_STATE_HOME/punchi-dock-quickshell/owned-settings.json` recovery record

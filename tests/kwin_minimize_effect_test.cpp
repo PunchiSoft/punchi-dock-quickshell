@@ -100,12 +100,20 @@ private slots:
         const auto configRoot = QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
         QVERIFY(!dataRoot.isEmpty());
         QVERIFY(!configRoot.isEmpty());
+        // Squash uses the category form observed on KWin 6.8.3; Magic Lamp keeps
+        // the older nested exclusiveGroup. Both must enter the minimize set.
         QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/effects/squash/metadata.json"),
-            R"({"KPlugin":{"Id":"squash"},"org.kde.kwin.effect":{"exclusiveGroup":"minimize"}})"));
+            R"({"KPlugin":{"Id":"squash"},"X-KWin-Exclusive-Category":"minimize"})"));
         QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/effects/custom/metadata.json"),
             R"({"KPlugin":{"Id":"custom"},"org.kde.kwin.effect":{"exclusiveGroup":"minimize"}})"));
         QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/builtin-effects/magiclamp.json"),
             R"({"KPlugin":{"Name":"Magic Lamp"},"org.kde.kwin.effect":{"exclusiveGroup":"minimize"}})"));
+        QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/effects/other/metadata.json"),
+            R"({"KPlugin":{"Id":"other"},"X-KWin-Exclusive-Category":"maximize"})"));
+        QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/effects/invalid-id/metadata.json"),
+            R"({"KPlugin":{"Id":"bad/id"},"X-KWin-Exclusive-Category":"minimize"})"));
+        QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/effects/malformed/metadata.json"),
+            QByteArray("{")));
         QVERIFY(writeFile(dataRoot + QStringLiteral("/kwin-test/effects/oversized/metadata.json"),
             QByteArray(1024 * 1024 + 1, 'x')));
         QVERIFY(writeFile(configRoot + QStringLiteral("/kwinrc"),
@@ -131,7 +139,7 @@ private slots:
             QVERIFY(bus.registerObject(QStringLiteral("/KWin"), &m_kwin, QDBusConnection::ExportAllSlots));
     }
 
-    void discoversExclusiveGroupAndAppliesGlobalSelection()
+    void discoversNativeMinimizeMetadataAndAppliesGlobalSelection()
     {
         auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
         auto plugins = KConfigGroup(config, QStringLiteral("Plugins"));
@@ -154,6 +162,22 @@ private slots:
             const auto permissions = QFileInfo(recoveryPath()).permissions();
             QVERIFY(!(permissions & (QFileDevice::ReadGroup | QFileDevice::WriteGroup
                 | QFileDevice::ReadOther | QFileDevice::WriteOther)));
+
+            QFile recovery(recoveryPath());
+            QVERIFY(recovery.open(QIODevice::ReadOnly));
+            const auto original = QJsonDocument::fromJson(recovery.readAll()).object()
+                .value(QStringLiteral("original")).toObject();
+            recovery.close();
+            QCOMPARE(original.value(QStringLiteral("squash")).toObject()
+                .value(QStringLiteral("present")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("squash")).toObject()
+                .value(QStringLiteral("value")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("custom")).toObject()
+                .value(QStringLiteral("present")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("custom")).toObject()
+                .value(QStringLiteral("value")).toBool(), true);
+            QCOMPARE(original.value(QStringLiteral("magiclamp")).toObject()
+                .value(QStringLiteral("present")).toBool(), false);
 
             QVERIFY(controller.setEffect(QStringLiteral("none")));
             QCOMPARE(controller.effect(), QStringLiteral("none"));
@@ -381,6 +405,9 @@ private slots:
         KWinMinimizeEffectController controller;
         QVERIFY(!controller.setEffect(QStringLiteral("scale")));
         QVERIFY(!controller.setEffect(QStringLiteral("oversized")));
+        QVERIFY(!controller.setEffect(QStringLiteral("other")));
+        QVERIFY(!controller.setEffect(QStringLiteral("invalid-id")));
+        QVERIFY(!controller.setEffect(QStringLiteral("malformed")));
         auto config = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
         auto plugins = KConfigGroup(config, QStringLiteral("Plugins"));
         plugins.writeEntry("customEnabled", false, KConfigBase::Notify);

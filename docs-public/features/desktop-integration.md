@@ -31,7 +31,8 @@ The dock context menu can select one of KWin's minimize effects. The change is
 deliberately narrow:
 
 - It happens only after an explicit user selection and only within KWin's
-  `exclusiveGroup=minimize`.
+  minimize group, announced either as `exclusiveGroup=minimize` or as
+  `X-KWin-Exclusive-Category=minimize`.
 - Before the first write, the presence and boolean value of every discovered
   `Plugins/<effect>Enabled` key are recorded in the user-owned recovery record.
 - Only keys whose effective values differ from the requested state are written, and

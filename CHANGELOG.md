@@ -85,6 +85,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Discover Squash from KWin's `X-KWin-Exclusive-Category=minimize` metadata as
+  well as the nested `exclusiveGroup=minimize` used by Magic Lamp, so both
+  installed minimize effects appear in the selector and enter the recovery
+  snapshot.
 - Measure a settings save in UTF-8 bytes before replacing the profile, so a
   multibyte snapshot can no longer pass the 256 KiB guard and then fail to load
   on the next start. An over-limit save keeps the previous readable file.
