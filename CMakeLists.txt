@@ -372,6 +372,10 @@ if(BUILD_TESTING)
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_store_legacy_test.py)
     set_tests_properties(settings_store_legacy PROPERTIES TIMEOUT 45)
+    add_test(NAME settings_store_utf8 COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_store_utf8_test.py)
+    set_tests_properties(settings_store_utf8 PROPERTIES TIMEOUT 60)
     add_test(NAME configuration_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${DBUS_RUN_SESSION_EXECUTABLE} -- ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/configuration_runtime_test.py)
@@ -455,6 +459,7 @@ if(BUILD_TESTING)
         emphasis_contract
         profile_exchange
         settings_store_legacy
+        settings_store_utf8
         user_setup_scripts
         build_dir_ownership
         build_selection

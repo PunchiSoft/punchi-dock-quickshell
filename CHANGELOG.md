@@ -85,6 +85,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Measure a settings save in UTF-8 bytes before replacing the profile, so a
+  multibyte snapshot can no longer pass the 256 KiB guard and then fail to load
+  on the next start. An over-limit save keeps the previous readable file.
 - Run every isolated CTest probe against the build tree under test.
   `run-isolated.py` now receives `--build-dir`, exports it to child probes, and
   the setup-script and install mocks no longer inherit an external
