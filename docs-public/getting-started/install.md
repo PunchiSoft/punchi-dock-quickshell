@@ -48,7 +48,7 @@ Without arguments it opens a menu:
 
 | Menu option | Non-interactive action | Effect |
 |---|---|---|
-| Install or update | `./scripts-user/setup.sh --install` | Checks dependencies, offers to install missing packages, builds the native components and installs the runtime for the current user. |
+| Install or update | `./scripts-user/setup.sh --install` | Checks dependencies, offers to install missing packages, builds the native components and installs the runtime for the current user. A running installed copy is stopped before replacement and restarted afterwards; `--no-restart` leaves it stopped. |
 | Build only | `./scripts-user/setup.sh --build` | Checks dependencies, offers to install missing packages and builds `build/` without installing or running the dock. |
 | Try without installing | `./scripts-user/setup.sh --try` (`--test` is an alias) | Checks dependencies, builds the checkout and runs the dock from the checkout. Nothing is installed and the installed copy is never used. The run uses its own trial profile, so it starts from the default dock items and never reads or writes your saved preferences. When the dock exits, one confirmation removes the build output, the trial profile, the window-state registration and the runtime lock. |
 | Start the dock | `./scripts-user/setup.sh --start` | Runs an existing build or user-local installation. It builds nothing: use Try or Build first. |
@@ -102,10 +102,12 @@ checkout remains the build source.
 the same build and restore scripts, so the existing start, panel-mode and restore
 behavior is unchanged.
 
-Install/update and build-only return to the menu and do not run the dock. Use Try
-without installing, the Start action, `--install --start` or `--build --start` to
-run it after the action finishes. The dock runs as a child of the assistant, so
-closing it returns you to the menu.
+Install/update returns to the menu and does not start a dock that was not
+already running. If an installed copy was running, it stops before replacement
+and restarts afterwards unless `--no-restart` is used. Build-only never runs the
+dock. Use Try without installing, the Start action, `--install --start` or
+`--build --start` to run it after the action finishes. The dock runs as a child
+of the assistant, so closing it returns you to the menu.
 
 ## One instance
 

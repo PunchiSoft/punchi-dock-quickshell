@@ -8,7 +8,8 @@
   and never runs the installed copy. Ctrl+C stops the trial, is reported as a
   stop rather than a failure, and is followed by the cleanup confirmation.
   "Start the dock" (`--start`) runs an existing build or installation and builds
-  nothing.
+  nothing. Install/update stops a running installed copy before replacing it and
+  restarts it afterwards unless `--no-restart` is passed.
 - `start.sh` runs this configuration in the foreground. Run
   `./scripts-user/start.sh --help` for panel modes.
 - `launcher.sh` is used by the application-menu entry. It writes startup output
@@ -89,8 +90,10 @@ directory; `PUNCHI_QT_BIN_DIRS` adds colon-separated custom Qt prefixes.
 
 The setup assistant installs for the current user under
 `${XDG_DATA_HOME:-$HOME/.local/share}/punchi-dock-quickshell` and writes an
-application-menu launcher with Stop and Settings actions. Install/update and
-build-only return to the menu and do not run the dock; use Try, the Start
+application-menu launcher with Stop and Settings actions. Install/update stops
+a running installed copy, replaces it and restarts the updated copy unless
+`--no-restart` is passed; it does not start a dock that was not running.
+Build-only returns to the menu and does not run the dock; use Try, the Start
 action or `--start` explicitly. The dock runs as a child process, so closing it
 returns to the menu instead of ending the assistant. It never uses `sudo` for
 the installation, never

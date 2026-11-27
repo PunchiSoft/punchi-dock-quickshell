@@ -11,7 +11,9 @@ match the installed release. This configuration first targets the 0.2.1 API.
 non-interactive actions such as `--check-deps`, `--install`, `--build`,
 `--try`, `--uninstall` and `--start`. `--try` (alias `--test`) builds the
 checkout and runs it from the checkout without installing; `--start` only runs
-an existing build or user-local installation. A trial exports
+an existing build or user-local installation. `--install` stops a running
+installed copy before replacing it and restarts it afterwards unless
+`--no-restart` is passed. A trial exports
 `PUNCHI_PROFILE_DIR` so `PunchiSettingsStore` and `PunchiAutostartService` use a profile under
 `$XDG_RUNTIME_DIR/punchi-dock-quickshell-$UID/trial-profile`, which keeps the
 installed copy's preferences and autostart entry untouched and disables the

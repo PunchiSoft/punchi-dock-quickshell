@@ -85,6 +85,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Stop a running installed copy before an install/update replaces it, then
+  restart the updated copy automatically unless `--no-restart` is passed, so
+  the new native plugin loads instead of the previous process keeping deleted
+  libraries mapped.
 - Reject a symlink, directory, FIFO, socket or device at the window-state
   registration path before opening it, so a foreign special file can no longer
   block `--register` or be removed. A non-Punchi regular file stays preserved.
