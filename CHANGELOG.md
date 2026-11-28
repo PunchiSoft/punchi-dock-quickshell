@@ -112,6 +112,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Keep **Safe to remove** unavailable when a removable drive still has a hidden
+  or system volume mounted, and require a fresh UDisks2 snapshot before reporting
+  the whole-drive removal as successful. Per-volume **Unmount** remains limited
+  to the visible volume.
 - Clear the style background on the top panel's popups so the shared
   balloon surface draws its rounded body and tail in the Punchi menu, the
   control centre and the calendar instead of a flat rectangle.

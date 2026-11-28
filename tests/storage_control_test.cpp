@@ -54,6 +54,10 @@ private slots:
     void internalDriveIsExcluded();
     void ignoredVolumeIsExcluded();
     void rootMountIsExcluded();
+    void hiddenMountedVolumeBlocksWholeDriveRemoval();
+    void rootMountedVolumeBlocksWholeDriveRemoval();
+    void hiddenUnmountedVolumeDoesNotBlockWholeDriveRemoval();
+    void providerConfirmationUsesEveryRelevantMount();
     void unavailableMediaIsExcluded();
     void unknownDriveBlockIsExcluded();
     void drivesKeepAStableOrder();
@@ -108,6 +112,72 @@ void StorageControlTest::rootMountIsExcluded()
     objects.insert(kBlockOne, blockObject(kDrivePath, QStringLiteral("Root"),
         {QStringLiteral("/")}));
     QVERIFY(drivesFromManagedObjects(objects).isEmpty());
+}
+
+void StorageControlTest::hiddenMountedVolumeBlocksWholeDriveRemoval()
+{
+    QVariantMap objects;
+    objects.insert(kDrivePath, driveObject(true));
+    objects.insert(kBlockOne, blockObject(kDrivePath, QStringLiteral("Photos"), {}));
+    objects.insert(kBlockTwo, blockObject(kDrivePath, QStringLiteral("Hidden"),
+        {QStringLiteral("/run/media/user/Hidden")}, true));
+
+    const QVariantList drives = drivesFromManagedObjects(objects);
+    QCOMPARE(drives.size(), 1);
+    const QVariantMap drive = drives.first().toMap();
+    QCOMPARE(drive.value(QStringLiteral("volumes")).toList().size(), 1);
+    QCOMPARE(drive.value(QStringLiteral("mountedCount")).toInt(), 1);
+    QCOMPARE(drive.value(QStringLiteral("protectedMounted")).toBool(), true);
+    QCOMPARE(drive.value(QStringLiteral("canRemove")).toBool(), false);
+    QCOMPARE(confirmDriveRemoval(objects, kDrivePath), QStringLiteral("protected"));
+}
+
+void StorageControlTest::rootMountedVolumeBlocksWholeDriveRemoval()
+{
+    QVariantMap objects;
+    objects.insert(kDrivePath, driveObject(true));
+    objects.insert(kBlockOne, blockObject(kDrivePath, QStringLiteral("Photos"), {}));
+    objects.insert(kBlockTwo, blockObject(kDrivePath, QStringLiteral("System"),
+        {QStringLiteral("/")}));
+
+    const QVariantList drives = drivesFromManagedObjects(objects);
+    QCOMPARE(drives.size(), 1);
+    const QVariantMap drive = drives.first().toMap();
+    QCOMPARE(drive.value(QStringLiteral("mountedCount")).toInt(), 1);
+    QCOMPARE(drive.value(QStringLiteral("canRemove")).toBool(), false);
+    QCOMPARE(confirmDriveRemoval(objects, kDrivePath), QStringLiteral("protected"));
+}
+
+void StorageControlTest::hiddenUnmountedVolumeDoesNotBlockWholeDriveRemoval()
+{
+    QVariantMap objects;
+    objects.insert(kDrivePath, driveObject(true));
+    objects.insert(kBlockOne, blockObject(kDrivePath, QStringLiteral("Photos"),
+        {QStringLiteral("/run/media/user/Photos")}));
+    objects.insert(kBlockTwo, blockObject(kDrivePath, QStringLiteral("Hidden"), {}, true));
+
+    const QVariantList drives = drivesFromManagedObjects(objects);
+    QCOMPARE(drives.size(), 1);
+    const QVariantMap drive = drives.first().toMap();
+    QCOMPARE(drive.value(QStringLiteral("mountedCount")).toInt(), 1);
+    QCOMPARE(drive.value(QStringLiteral("protectedMounted")).toBool(), false);
+    QCOMPARE(drive.value(QStringLiteral("canRemove")).toBool(), true);
+    QCOMPARE(confirmDriveRemoval(objects, kDrivePath), QStringLiteral("busy"));
+}
+
+void StorageControlTest::providerConfirmationUsesEveryRelevantMount()
+{
+    QVariantMap objects;
+    objects.insert(kDrivePath, driveObject(true));
+    objects.insert(kBlockOne, blockObject(kDrivePath, QStringLiteral("Photos"), {}));
+    objects.insert(kBlockTwo, blockObject(kDrivePath, QStringLiteral("Backup"),
+        {QStringLiteral("/run/media/user/Backup")}));
+    QCOMPARE(confirmDriveRemoval(objects, kDrivePath), QStringLiteral("busy"));
+
+    objects.remove(kBlockTwo);
+    QCOMPARE(confirmDriveRemoval(objects, kDrivePath), QStringLiteral("confirmed"));
+    objects.remove(kDrivePath);
+    QCOMPARE(confirmDriveRemoval(objects, kDrivePath), QStringLiteral("disconnected"));
 }
 
 void StorageControlTest::unavailableMediaIsExcluded()

@@ -25,6 +25,8 @@ ColumnLayout {
         case "rejected": return qsTr("Rejected")
         case "disconnected": return qsTr("Disconnected")
         case "timeout": return qsTr("Not confirmed")
+        case "protected": return qsTr("Protected volume mounted")
+        case "not-confirmed": return qsTr("Not confirmed")
         case "not-mounted": return qsTr("Not mounted")
         default: return qsTr("Failed")
         }
@@ -35,6 +37,7 @@ ColumnLayout {
         case "busy": return qsTr("Busy")
         case "rejected": return qsTr("Rejected")
         case "disconnected": return qsTr("Disconnected")
+        case "protected": return qsTr("Protected volume mounted")
         default: return qsTr("Failed")
         }
     }
@@ -127,6 +130,7 @@ ColumnLayout {
                     text: qsTr("Safe to remove")
                     font: Kirigami.Theme.smallFont
                     enabled: !root.pending && root.control !== null
+                        && deviceDelegate.modelData.canRemove !== false
                     Accessible.name: qsTr("Safely remove %1").arg(deviceDelegate.modelData.name)
                     onClicked: if (root.control) root.control.removeDrive(deviceDelegate.modelData.id)
                 }

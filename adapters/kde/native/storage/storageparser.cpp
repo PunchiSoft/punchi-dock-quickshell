@@ -71,6 +71,8 @@ QVariantList drivesFromManagedObjects(const QVariantMap &managedObjects)
         QString id;
         QVariantMap properties;
         QVariantList volumes;
+        int mountedCount = 0;
+        int protectedMountedCount = 0;
     };
     QHash<QString, DriveEntry> drives;
 
@@ -93,12 +95,17 @@ QVariantList drivesFromManagedObjects(const QVariantMap &managedObjects)
         if (driveId.isEmpty() || !drives.contains(driveId)) continue;
         if (stringValue(block.value(QStringLiteral("IdUsage"))) != QStringLiteral("filesystem"))
             continue;
-        if (block.value(QStringLiteral("HintIgnore")).toBool()) continue;
         const QVariantMap filesystem = objectInterfaces(interfaces.value(kFilesystemInterface));
         const QStringList points = mountPoints(filesystem.value(QStringLiteral("MountPoints")));
-        // A system device is never presented as removable storage, even when a
-        // drive reports a removable hint.
-        if (points.contains(QStringLiteral("/"))) continue;
+        // Hidden and system volumes are not rows, but their mounts still decide
+        // whether the whole drive may be announced as safe to remove.
+        const bool protectedVolume = block.value(QStringLiteral("HintIgnore")).toBool()
+            || points.contains(QStringLiteral("/"));
+        if (!points.isEmpty()) {
+            ++drives[driveId].mountedCount;
+            if (protectedVolume) ++drives[driveId].protectedMountedCount;
+        }
+        if (protectedVolume) continue;
         QString label = stringValue(block.value(QStringLiteral("IdLabel")));
         const QString device = stringValue(block.value(QStringLiteral("PreferredDevice")));
         if (label.isEmpty()) label = baseName(device);
@@ -137,14 +144,13 @@ QVariantList drivesFromManagedObjects(const QVariantMap &managedObjects)
         if (name.isEmpty()) name = drive->properties.value(QStringLiteral("Id")).toString();
         if (name.isEmpty() && !drive->volumes.isEmpty())
             name = drive->volumes.first().toMap().value(QStringLiteral("label")).toString();
-        int mounted = 0;
-        for (const QVariant &volume : drive->volumes)
-            if (volume.toMap().value(QStringLiteral("mounted")).toBool()) ++mounted;
         QVariantMap entry;
         entry.insert(QStringLiteral("id"), drive->id);
         entry.insert(QStringLiteral("name"), name);
         entry.insert(QStringLiteral("volumes"), drive->volumes);
-        entry.insert(QStringLiteral("mountedCount"), mounted);
+        entry.insert(QStringLiteral("mountedCount"), drive->mountedCount);
+        entry.insert(QStringLiteral("protectedMounted"), drive->protectedMountedCount > 0);
+        entry.insert(QStringLiteral("canRemove"), drive->protectedMountedCount == 0);
         entry.insert(QStringLiteral("ejectable"),
             drive->properties.value(QStringLiteral("Ejectable")).toBool());
         result.append(entry);
@@ -159,6 +165,38 @@ QVariantList drivesFromManagedObjects(const QVariantMap &managedObjects)
         return firstName < secondName;
     });
     return result;
+}
+
+QString confirmDriveRemoval(const QVariantMap &managedObjects, const QString &drivePath)
+{
+    bool driveFound = false;
+    bool protectedMounted = false;
+    bool visibleMounted = false;
+    for (auto object = managedObjects.constBegin(); object != managedObjects.constEnd(); ++object) {
+        const QVariantMap interfaces = objectInterfaces(object.value());
+        if (object.key() == drivePath && interfaces.contains(kDriveInterface)) {
+            driveFound = true;
+            continue;
+        }
+        const QVariantMap block = objectInterfaces(interfaces.value(kBlockInterface));
+        if (block.isEmpty()
+                || stringValue(block.value(QStringLiteral("Drive"))) != drivePath)
+            continue;
+        if (stringValue(block.value(QStringLiteral("IdUsage"))) != QStringLiteral("filesystem"))
+            continue;
+        const QVariantMap filesystem = objectInterfaces(interfaces.value(kFilesystemInterface));
+        const QStringList points = mountPoints(filesystem.value(QStringLiteral("MountPoints")));
+        if (points.isEmpty()) continue;
+        if (block.value(QStringLiteral("HintIgnore")).toBool()
+                || points.contains(QStringLiteral("/")))
+            protectedMounted = true;
+        else
+            visibleMounted = true;
+    }
+    if (!driveFound) return QStringLiteral("disconnected");
+    if (protectedMounted) return QStringLiteral("protected");
+    if (visibleMounted) return QStringLiteral("busy");
+    return QStringLiteral("confirmed");
 }
 
 QString classifyError(const QString &errorName)
