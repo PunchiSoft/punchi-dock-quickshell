@@ -27,7 +27,8 @@ ShellRoot {
     IpcHandler {
         target: "dnd"
         function state(): string {
-            return JSON.stringify({available: dnd.available, inhibited: dnd.inhibited})
+            return JSON.stringify({available: dnd.available, reading: dnd.reading,
+                valid: dnd.valid, inhibited: dnd.inhibited, lastError: dnd.lastError})
         }
     }
 }
@@ -49,15 +50,17 @@ ShellRoot {
                             state = json.loads(result.stdout)
                         except json.JSONDecodeError:
                             state = None
-                        if state is not None and state['available']:
+                        if state is not None and state['available'] and state['valid']:
                             break
                     if process.poll() is not None:
                         raise RuntimeError(log_path.read_text())
                     time.sleep(0.03)
                 assert state is not None, log_path.read_text()
                 assert state['available'] is True, state
+                assert state['valid'] is True, state
+                assert state['reading'] is False, state
                 assert isinstance(state['inhibited'], bool), state
-                print('Plasma Do Not Disturb effective state read-only: passed')
+                print('Plasma Do Not Disturb validated asynchronous state: passed')
             finally:
                 process.terminate()
                 try:

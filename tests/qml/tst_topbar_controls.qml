@@ -51,6 +51,9 @@ TestCase {
     QtObject {
         id: notificationProvider
         property bool available: true
+        property bool reading: false
+        property bool valid: true
+        property string lastError: ""
         property bool inhibited: false
     }
     QtObject {
@@ -173,6 +176,9 @@ TestCase {
     }
     function resetFakes(): void {
         notificationProvider.available = true
+        notificationProvider.reading = false
+        notificationProvider.valid = true
+        notificationProvider.lastError = ""
         notificationProvider.inhibited = false
         mediaProvider.players = []
         mediaPlayerA.isPlaying = true
@@ -217,11 +223,22 @@ TestCase {
         const row = findChild(view, "topBarDoNotDisturbControl")
         verify(row !== null)
         compare(control.available, true)
+        compare(control.valid, true)
         compare(control.active, false)
         compare(control.statusText, "Off")
         notificationProvider.inhibited = true
         compare(control.active, true)
         compare(control.statusText, "On")
+        // A service name alone is not a state: a pending or failed read never
+        // appears as Off.
+        notificationProvider.inhibited = false
+        notificationProvider.reading = true
+        notificationProvider.valid = false
+        compare(control.active, false)
+        compare(control.statusText, "Checking")
+        notificationProvider.reading = false
+        compare(control.statusText, "Unavailable")
+        notificationProvider.valid = true
         const spy = createTemporaryObject(spyComponent, test)
         spy.target = view
         spy.signalName = "settingsModuleRequested"
@@ -267,6 +284,9 @@ TestCase {
         compare(mediaPlayerB.previousCalls, 1)
         // No player hides the whole section.
         notificationProvider.available = true
+        notificationProvider.reading = false
+        notificationProvider.valid = true
+        notificationProvider.lastError = ""
         notificationProvider.inhibited = false
         mediaProvider.players = []
         compare(control.available, false)

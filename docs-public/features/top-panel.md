@@ -56,7 +56,7 @@ an explicit short result instead of claiming success.
 | **Brightness** | PowerDevil `org.kde.ScreenBrightness` | Shows the internal display first, otherwise the first display with a real range; the slider is clamped to the provider range, the value is read back after the write, and a missing provider or display leaves the row disabled |
 | **Volume and mute** | Quickshell's PipeWire service (`Pipewire.defaultAudioSink`) | Acts on the ready default sink, reflects external volume and mute changes, keeps mute independent from volume, mirrors an amplification the provider already reports, and refuses a late slider value when the sink identity changed during the gesture |
 | **Now playing** | Quickshell's public MPRIS service | Picks a playing player first, otherwise the first controllable one; shows its announced title/artist and only the transport actions it reports; the section disappears when no player exists |
-| **Do Not Disturb** | Plasma's `org.freedesktop.Notifications` `Inhibited` property (read-only) | Shows the effective mode and opens Plasma's notification settings. Plasma exposes no public setter for its persistent mode, so the row deliberately has no local switch |
+| **Do Not Disturb** | Plasma's `org.freedesktop.Notifications` `Inhibited` property (read-only) | Shows On or Off only after an asynchronous read returns a boolean for the current service owner. A pending first read, a failed read, a mistyped reply or a lost owner stays Unavailable. Opens Plasma's notification settings; Plasma exposes no public setter, so the row deliberately has no local switch |
 | **Wi-Fi** | Quickshell's NetworkManager provider (`Quickshell.Networking`) | Reflects the confirmed radio state, hardware block, connection and network name; a new network and its credentials stay in Plasma |
 | **Bluetooth** | Quickshell's BlueZ provider (`Quickshell.Bluetooth`) | Reflects adapter presence, power and the provider's Blocked state, handles several adapters through the provider default or first adapter; **Pair** opens KDE's pairing wizard, so discovery and the BlueZ agent stay in KDE |
 | **Removable storage** | UDisks2 D-Bus | Lists provider-identified removable drives with a visible filesystem; **Unmount** removes one mounted visible filesystem, while **Safe to remove** unmounts every visible mounted filesystem of a drive and is unavailable while a hidden or system volume remains mounted |
@@ -74,16 +74,16 @@ These are complementary accesses, not replacements for the native Plasma applets
 
 ## Limits
 
-- Brightness, do-not-disturb, media transport, session actions, the application
-  global menu, notifications and additional widgets are later phases and are not
-  part of this panel.
+- Session actions, the application global menu, notifications and additional
+  widgets are later phases and are not part of this panel.
 - The panel does not read or change plasma-pa's amplification preference: it
   mirrors a boost the provider already reports and never introduces a higher
   maximum by itself.
 - Do Not Disturb is read-only: Plasma owns the notification server and exposes
-  only the effective `Inhibited` state. Punchi never registers as a notification
-  server or a second DND owner; the row delegates configuration to
-  `kcm_notifications`.
+  only the effective `Inhibited` state. Punchi reads it asynchronously, validates
+  the reply type and owner, and never shows a default Off after a failure. It
+  never registers as a notification server or a second DND owner; the row
+  delegates configuration to `kcm_notifications`.
 - Playback uses the session MPRIS list, not the dock's app-scoped adapter. With
   several players it prefers one that is playing, otherwise the first
   controllable player; artwork, seeking and playlist selection are not part of
