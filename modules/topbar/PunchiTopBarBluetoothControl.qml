@@ -10,7 +10,9 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property var control: null
+    property bool compact: false
     objectName: "topBarBluetoothControl"
+    signal settingsRequested()
     spacing: Kirigami.Units.smallSpacing
     signal pairRequested()
     function focusFirst(): void { toggle.forceActiveFocus(Qt.PopupFocusReason) }
@@ -24,14 +26,28 @@ ColumnLayout {
         title: qsTr("Bluetooth")
         statusText: root.control ? root.control.statusText : qsTr("Unavailable")
         statusActive: root.control !== null && root.control.powered
+        compact: root.compact
         ToolButton {
             objectName: "topBarBluetoothPair"
-            text: qsTr("Pair")
+            text: root.compact ? "" : qsTr("Pair")
+            icon.name: root.compact ? "preferences-system-bluetooth" : ""
+            icon.width: root.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+            icon.height: root.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+            padding: root.compact ? 0 : Kirigami.Units.smallSpacing
             font: Kirigami.Theme.smallFont
             visible: root.control !== null && root.control.powered
             enabled: visible && !root.control.blocked
             Accessible.name: qsTr("Pair Bluetooth device")
             onClicked: root.pairRequested()
+        }
+        ToolButton {
+            objectName: "topBarBluetoothSettings"
+            icon.name: "settings-configure"
+            icon.width: root.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+            icon.height: root.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+            padding: root.compact ? 0 : Kirigami.Units.smallSpacing
+            Accessible.name: qsTr("Bluetooth settings")
+            onClicked: root.settingsRequested()
         }
         Switch {
             id: toggle

@@ -215,6 +215,32 @@ TestCase {
         storageFake.lastError = ""
         storageFake.calls = []
     }
+    function test_compactGroupsKeepSettingsNextToTheirControl(): void {
+        resetFakes()
+        const view = createTemporaryObject(fixture, test)
+        openControls(view)
+        wait(0)
+        const connectivity = findChild(view, "topBarConnectivitySection")
+        const dnd = findChild(view, "topBarDndSection")
+        const brightness = findChild(view, "topBarBrightnessSection")
+        const volume = findChild(view, "topBarVolumeSection")
+        verify(connectivity !== null && dnd !== null && brightness !== null && volume !== null)
+        verify(connectivity.y < dnd.y)
+        verify(dnd.y < brightness.y)
+        verify(brightness.y < volume.y)
+        verify(findChild(view, "topBarSettingsLinks") === null,
+            "settings links must live beside their control, not in a footer")
+        const spy = createTemporaryObject(spyComponent, test)
+        spy.target = view
+        spy.signalName = "settingsModuleRequested"
+        findChild(view, "topBarWifiSettings").clicked()
+        findChild(view, "topBarVolumeSettings").clicked()
+        findChild(view, "topBarStorageSettings").clicked()
+        compare(spy.count, 3)
+        compare(spy.signalArguments[0][0], "network")
+        compare(spy.signalArguments[1][0], "audio")
+        compare(spy.signalArguments[2][0], "storage")
+    }
     function test_doNotDisturbShowsTheEffectiveStateAndDelegatesSettings(): void {
         resetFakes()
         const view = createTemporaryObject(fixture, test)

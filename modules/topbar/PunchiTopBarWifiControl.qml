@@ -11,7 +11,9 @@ import org.kde.kirigami as Kirigami
 ColumnLayout {
     id: root
     property var control: null
+    property bool compact: false
     objectName: "topBarWifiControl"
+    signal settingsRequested()
     spacing: Kirigami.Units.smallSpacing
     function focusFirst(): void { toggle.forceActiveFocus(Qt.PopupFocusReason) }
     function syncChecked(): void {
@@ -24,6 +26,16 @@ ColumnLayout {
         title: qsTr("Wi-Fi")
         statusText: root.control ? root.control.statusText : qsTr("Unavailable")
         statusActive: root.control !== null && root.control.connected
+        compact: root.compact
+        ToolButton {
+            objectName: "topBarWifiSettings"
+            icon.name: "settings-configure"
+            icon.width: root.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+            icon.height: root.compact ? Kirigami.Units.iconSizes.small : Kirigami.Units.iconSizes.smallMedium
+            padding: root.compact ? 0 : Kirigami.Units.smallSpacing
+            Accessible.name: qsTr("Network settings")
+            onClicked: root.settingsRequested()
+        }
         Switch {
             id: toggle
             objectName: "topBarWifiSwitch"

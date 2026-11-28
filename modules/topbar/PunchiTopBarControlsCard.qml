@@ -5,9 +5,10 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 
-// Quick controls card: volume, Wi-Fi, Bluetooth and removable storage, plus the
-// KDE settings modules that own configuration Punchi does not implement. The
-// card scrolls inside the popup instead of growing past the screen edge.
+// Compact quick-controls card: connectivity and Do Not Disturb first, then
+// brightness and volume bands, then media and removable storage only when their
+// providers have content. Each group keeps the KDE settings access beside the
+// control it configures; the card scrolls instead of growing past the screen.
 ColumnLayout {
     id: root
     property var controls: null
@@ -19,7 +20,8 @@ ColumnLayout {
     spacing: Kirigami.Units.smallSpacing
     implicitHeight: flick.implicitHeight
     function focusFirst(): void {
-        if (brightness.ready) brightness.focusFirst()
+        if (wifi.control && wifi.control.actionEnabled) wifi.focusFirst()
+        else if (brightness.ready) brightness.focusFirst()
         else if (volume) volume.focusFirst()
     }
     Flickable {
@@ -38,68 +40,82 @@ ColumnLayout {
             objectName: "topBarControlsBody"
             width: flick.width
             spacing: Kirigami.Units.smallSpacing
-            PunchiTopBarBrightnessControl {
-                id: brightness
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.brightness : null
-            }
-            PunchiTopBarSeparator {}
-            PunchiTopBarVolumeControl {
-                id: volume
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.audio : null
-            }
-            PunchiTopBarSeparator {}
-            PunchiTopBarMediaControl {
-                id: media
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.media : null
-            }
-            PunchiTopBarSeparator { visible: media.visible }
-            PunchiTopBarDoNotDisturbControl {
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.dnd : null
-                onSettingsRequested: root.settingsRequested("notifications")
-            }
-            PunchiTopBarSeparator {}
-            PunchiTopBarWifiControl {
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.network : null
-            }
-            PunchiTopBarSeparator {}
-            PunchiTopBarBluetoothControl {
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.bluetooth : null
-                onPairRequested: root.bluetoothPairingRequested()
-            }
-            PunchiTopBarSeparator {}
-            PunchiTopBarStorageControl {
-                Layout.fillWidth: true
-                control: root.controls ? root.controls.storage : null
-            }
             GridLayout {
-                objectName: "topBarSettingsLinks"
+                objectName: "topBarConnectivitySection"
                 Layout.fillWidth: true
-                Layout.topMargin: Kirigami.Units.smallSpacing
                 columns: 2
                 columnSpacing: Kirigami.Units.smallSpacing
-                rowSpacing: 0
-                Repeater {
-                    model: [
-                        {key: "network", label: qsTr("Network settings")},
-                        {key: "bluetooth", label: qsTr("Bluetooth settings")},
-                        {key: "audio", label: qsTr("Sound settings")},
-                        {key: "storage", label: qsTr("Removable devices")}
-                    ]
-                    delegate: ToolButton {
-                        required property var modelData
-                        text: modelData.label
-                        font: Kirigami.Theme.smallFont
-                        leftPadding: 0
-                        rightPadding: 0
-                        Accessible.name: modelData.label
-                        onClicked: root.settingsRequested(modelData.key)
+                rowSpacing: Kirigami.Units.smallSpacing
+                PunchiTopBarSection {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+                    PunchiTopBarWifiControl {
+                        id: wifi
+                        Layout.fillWidth: true
+                        compact: true
+                        control: root.controls ? root.controls.network : null
+                        onSettingsRequested: root.settingsRequested("network")
                     }
+                }
+                PunchiTopBarSection {
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 9
+                    PunchiTopBarBluetoothControl {
+                        Layout.fillWidth: true
+                        compact: true
+                        control: root.controls ? root.controls.bluetooth : null
+                        onSettingsRequested: root.settingsRequested("bluetooth")
+                        onPairRequested: root.bluetoothPairingRequested()
+                    }
+                }
+            }
+            PunchiTopBarSection {
+                objectName: "topBarDndSection"
+                Layout.fillWidth: true
+                PunchiTopBarDoNotDisturbControl {
+                    Layout.fillWidth: true
+                    control: root.controls ? root.controls.dnd : null
+                    onSettingsRequested: root.settingsRequested("notifications")
+                }
+            }
+            PunchiTopBarSection {
+                objectName: "topBarBrightnessSection"
+                Layout.fillWidth: true
+                PunchiTopBarBrightnessControl {
+                    id: brightness
+                    Layout.fillWidth: true
+                    control: root.controls ? root.controls.brightness : null
+                }
+            }
+            PunchiTopBarSection {
+                objectName: "topBarVolumeSection"
+                Layout.fillWidth: true
+                PunchiTopBarVolumeControl {
+                    id: volume
+                    Layout.fillWidth: true
+                    control: root.controls ? root.controls.audio : null
+                    onSettingsRequested: root.settingsRequested("audio")
+                }
+            }
+            PunchiTopBarSection {
+                Layout.fillWidth: true
+                visible: root.controls !== null && root.controls.media !== null
+                    && root.controls.media.available === true
+                PunchiTopBarMediaControl {
+                    id: media
+                    Layout.fillWidth: true
+                    control: root.controls ? root.controls.media : null
+                }
+            }
+            PunchiTopBarSection {
+                Layout.fillWidth: true
+                visible: root.controls !== null && root.controls.storage !== null
+                    && root.controls.storage.devices.length > 0
+                PunchiTopBarStorageControl {
+                    id: storage
+                    Layout.fillWidth: true
+                    control: root.controls ? root.controls.storage : null
+                    onSettingsRequested: root.settingsRequested("storage")
                 }
             }
         }

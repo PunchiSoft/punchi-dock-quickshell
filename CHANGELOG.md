@@ -73,6 +73,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Changed
 
+- Reorganize the top-panel quick controls into compact groups: Wi-Fi, Bluetooth
+  and Do Not Disturb at the top; brightness and volume as bands; media and
+  removable storage only when their providers have content. KDE settings links
+  move beside the control they configure instead of a shared footer.
 - Release the settings view one second after the window closes, once pending
   focus and layout callbacks have settled. Reopening within that second keeps
   the view; after it, the settings pages are destroyed instead of staying

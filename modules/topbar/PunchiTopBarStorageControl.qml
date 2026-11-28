@@ -16,6 +16,8 @@ ColumnLayout {
     readonly property var devices: root.control ? root.control.devices : []
     readonly property bool pending: root.control ? root.control.pending === true : false
     readonly property bool available: root.control ? root.control.available === true : false
+    visible: root.devices.length > 0
+    signal settingsRequested()
     readonly property string outcomeText: {
         if (!root.control || !root.control.lastOperation) return ""
         if (root.control.lastSuccess) return root.control.lastOperation === "unmount"
@@ -50,6 +52,12 @@ ColumnLayout {
             textFormat: Text.PlainText
             font: Kirigami.Theme.defaultFont
             color: Kirigami.Theme.textColor
+        }
+        ToolButton {
+            objectName: "topBarStorageSettings"
+            icon.name: "settings-configure"
+            Accessible.name: qsTr("Removable devices settings")
+            onClicked: root.settingsRequested()
         }
         Label {
             objectName: "topBarStorageOutcome"
