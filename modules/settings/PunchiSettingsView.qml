@@ -42,7 +42,8 @@ Pane {
     // Preserve enough preferred height for the unified item picker.
     implicitHeight: Math.max(Kirigami.Units.gridUnit * 32,
         Math.max(generalPage.implicitHeight, popupsPage.implicitHeight,
-            Math.max(profilePage.implicitHeight, menuPage.implicitHeight))
+            Math.max(profilePage.implicitHeight, Math.max(menuPage.implicitHeight,
+                panelPage.implicitHeight)))
         + padding * 2 + footer.implicitHeight + Kirigami.Units.largeSpacing)
     function focusFirst(): void {
         if (currentPage === 0) itemsPage.focusFirst()
@@ -50,6 +51,7 @@ Pane {
         else if (currentPage === 2) popupsPage.focusFirst()
         else if (currentPage === 3) aboutPage.focusFirst()
         else if (currentPage === 5) menuPage.focusFirst()
+        else if (currentPage === 6) panelPage.focusFirst()
         else profilePage.focusFirst()
     }
     function cancelAddingItem(restoreFocus: bool): void { itemsPage.cancelAddItem(restoreFocus) }
@@ -61,6 +63,7 @@ Pane {
         case 3: return {page: aboutPage, viewport: aboutViewport}
         case 4: return {page: profilePage, viewport: profileViewport}
         case 5: return {page: menuPage, viewport: menuViewport}
+        case 6: return {page: panelPage, viewport: panelViewport}
         }
         return null
     }
@@ -149,6 +152,17 @@ Pane {
                     highlighted: checked
                     ButtonGroup.group: navigation
                     onClicked: { root.currentPage = 5; menuPage.focusFirst() }
+                }
+                PunchiSettingsCategoryButton {
+                    objectName: "panelSettingsPage"
+                    Layout.fillWidth: true
+                    text: qsTr("Panel")
+                    icon.name: "preferences-system-windows"
+                    checkable: true
+                    checked: root.currentPage === 6
+                    highlighted: checked
+                    ButtonGroup.group: navigation
+                    onClicked: { root.currentPage = 6; panelPage.focusFirst() }
                 }
                 Item { Layout.fillHeight: true }
                 PunchiSettingsCategoryButton {
@@ -370,6 +384,39 @@ Pane {
                             settings: root.settings
                             pageActive: root.currentPage === 5
                             width: menuViewport.width
+                        }
+                    }
+                }
+                ScrollView {
+                    id: panelScroll
+                    objectName: "settingsPanelScroll"
+                    Layout.minimumHeight: 0
+                    clip: true
+                    contentWidth: availableWidth
+                    rightPadding: ScrollBar.vertical.width + Kirigami.Units.smallSpacing * 2
+                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                    ScrollBar.vertical: PunchiPopupScrollBar {
+                        objectName: "settingsPanelScrollBar"
+                        orientation: Qt.Vertical
+                        anchors.right: parent.right
+                        anchors.top: parent.top
+                        anchors.bottom: parent.bottom
+                        width: implicitWidth
+                        alwaysVisible: true
+                        motionEnabled: !root.settings.reducedMotion
+                    }
+                    Flickable {
+                        id: panelViewport
+                        objectName: "settingsPanelViewport"
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        contentWidth: width
+                        contentHeight: panelPage.implicitHeight
+                        PunchiDockPanelSettings {
+                            id: panelPage
+                            objectName: "settingsDockPanel"
+                            settings: root.settings
+                            width: panelViewport.width
                         }
                     }
                 }

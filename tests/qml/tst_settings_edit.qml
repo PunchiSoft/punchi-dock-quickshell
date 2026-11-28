@@ -371,8 +371,8 @@ TestCase {
     function test_topPanelSwitchAppliesOrDiscards(): void {
         const window = openWindow()
         const view = control(window, "dockSettingsView")
-        mouseClick(control(window, "generalSettingsPage"))
-        compare(view.currentPage, 1)
+        mouseClick(control(window, "panelSettingsPage"))
+        compare(view.currentPage, 6)
         const toggle = control(window, "topBarEnabled")
         compare(toggle.checked, false)
         ensureVisible(window, toggle)
@@ -399,6 +399,30 @@ TestCase {
         keyClick(Qt.Key_Escape)
         tryCompare(window, "visible", false)
         compare(window.settings.topBarEnabled, true)
+    }
+    function test_panelCategoryOwnsTheOnlyTopPanelSwitch(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "generalSettingsPage"))
+        compare(view.currentPage, 1)
+        const general = control(window, "settingsDockGeneral")
+        verify(findChild(general, "topBarEnabled") === null,
+            "General must not own Show top panel")
+        mouseClick(control(window, "panelSettingsPage"))
+        compare(view.currentPage, 6)
+        const panel = control(window, "settingsDockPanel")
+        const toggle = findChild(panel, "topBarEnabled")
+        verify(toggle !== null)
+        view.focusFirst()
+        tryCompare(toggle, "activeFocus", true)
+        // Category changes keep the draft and never write the live settings.
+        mouseClick(toggle)
+        compare(view.settings.topBarEnabled, true)
+        mouseClick(control(window, "generalSettingsPage"))
+        mouseClick(control(window, "panelSettingsPage"))
+        compare(findChild(panel, "topBarEnabled").checked, true)
+        compare(window.settings.topBarEnabled, false)
+        window.close()
     }
     function test_resetPendingAndReopen(): void {
         const window = openWindow()
@@ -872,7 +896,7 @@ TestCase {
     }
     function test_sidebarCategoriesPlaceIconBeforeLabel(): void {
         const window = openWindow()
-        for (const name of ["itemsSettingsPage", "generalSettingsPage", "popupSettingsPage", "aboutSettingsPage"]) {
+        for (const name of ["itemsSettingsPage", "generalSettingsPage", "popupSettingsPage", "panelSettingsPage", "aboutSettingsPage"]) {
             const button = control(window, name)
             const icon = findChild(button, "categoryIcon")
             const label = findChild(button, "categoryLabel")
