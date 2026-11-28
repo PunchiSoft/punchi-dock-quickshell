@@ -8,7 +8,7 @@ import subprocess
 import tempfile
 
 
-def player_fixture(ready, capture, name, desktop):
+def player_fixture(ready, capture, name, desktop, status="Playing"):
     import dbus
     import dbus.service
     from dbus.mainloop.glib import DBusGMainLoop
@@ -26,7 +26,7 @@ def player_fixture(ready, capture, name, desktop):
             self.owner = dbus.service.BusName(name, self.player_bus)
             owners.append(self.owner)
             self.desktop = desktop
-            self.status = 'Playing'
+            self.status = status
             self.next_enabled = True
             super().__init__(self.owner, '/org/mpris/MediaPlayer2')
 

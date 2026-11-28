@@ -11,6 +11,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Add a **Now playing** row to the top-panel quick controls through Quickshell's
+  public MPRIS service. It prefers a playing player, shows the announced track
+  and artist, enables only the previous/play/next actions the player reports, and
+  hides when the session has no player.
 - Add top-panel **brightness** through PowerDevil's per-display
   `org.kde.ScreenBrightness` interface. The quick controls show the internal
   display first, clamp the slider to the provider range, confirm the value by
