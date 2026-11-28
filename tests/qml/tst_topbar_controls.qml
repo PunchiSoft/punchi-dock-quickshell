@@ -13,6 +13,46 @@ TestCase {
     width: 1280
     height: 800
     QtObject {
+        id: mediaPlayerA
+        property bool isPlaying: true
+        property bool canControl: true
+        property bool canGoNext: true
+        property bool canGoPrevious: false
+        property bool canPlay: true
+        property bool canPause: true
+        property string identity: "Player A"
+        property string trackTitle: "Track A"
+        property string trackArtist: "Artist A"
+        property int nextCalls: 0
+        property int previousCalls: 0
+        property int toggleCalls: 0
+        function next() { nextCalls++ }
+        function previous() { previousCalls++ }
+        function togglePlaying() { toggleCalls++ }
+    }
+    QtObject {
+        id: mediaPlayerB
+        property bool isPlaying: false
+        property bool canControl: true
+        property bool canGoNext: false
+        property bool canGoPrevious: true
+        property bool canPlay: true
+        property bool canPause: true
+        property string identity: "Player B"
+        property string trackTitle: "Track B"
+        property string trackArtist: "Artist B"
+        property int nextCalls: 0
+        property int previousCalls: 0
+        property int toggleCalls: 0
+        function next() { nextCalls++ }
+        function previous() { previousCalls++ }
+        function togglePlaying() { toggleCalls++ }
+    }
+    QtObject {
+        id: mediaProvider
+        property var players: []
+    }
+    QtObject {
         id: brightnessProvider
         property bool available: true
         property bool pending: false
@@ -101,6 +141,7 @@ TestCase {
     }
     QtObject {
         id: fakeControls
+        property var media: PunchiMediaControlService { provider: mediaProvider }
         property var brightness: PunchiBrightnessControlService { provider: brightnessProvider }
         property var audio: PunchiAudioControlService { provider: audioProvider }
         property var network: PunchiNetworkControlService { provider: networkProvider }
@@ -123,6 +164,15 @@ TestCase {
         verify(waitForRendering(view))
     }
     function resetFakes(): void {
+        mediaProvider.players = []
+        mediaPlayerA.isPlaying = true
+        mediaPlayerA.nextCalls = 0
+        mediaPlayerA.previousCalls = 0
+        mediaPlayerA.toggleCalls = 0
+        mediaPlayerB.isPlaying = false
+        mediaPlayerB.nextCalls = 0
+        mediaPlayerB.previousCalls = 0
+        mediaPlayerB.toggleCalls = 0
         brightnessProvider.available = true
         brightnessProvider.displays = [{
             id: "display0", label: "Built-in display", internal: true,
@@ -148,6 +198,44 @@ TestCase {
         storageFake.lastSuccess = false
         storageFake.lastError = ""
         storageFake.calls = []
+    }
+    function test_mediaShowsTheSelectedPlayerAndItsAnnouncedActions(): void {
+        resetFakes()
+        mediaProvider.players = [mediaPlayerA, mediaPlayerB]
+        const view = createTemporaryObject(fixture, test)
+        openControls(view)
+        const control = fakeControls.media
+        const media = findChild(view, "topBarMediaControl")
+        verify(media !== null)
+        compare(media.visible, true)
+        compare(control.title, "Track A")
+        compare(control.artist, "Artist A")
+        const previous = findChild(view, "topBarMediaPrevious")
+        const playPause = findChild(view, "topBarMediaPlayPause")
+        const next = findChild(view, "topBarMediaNext")
+        verify(previous !== null && playPause !== null && next !== null)
+        compare(previous.enabled, false)
+        compare(next.enabled, true)
+        compare(playPause.Accessible.name, "Pause")
+        next.clicked()
+        compare(mediaPlayerA.nextCalls, 1)
+        playPause.clicked()
+        compare(mediaPlayerA.toggleCalls, 1)
+        // An external pause changes the announced action, not just the icon.
+        mediaPlayerA.isPlaying = false
+        compare(control.playing, false)
+        compare(playPause.Accessible.name, "Play")
+        // A playing player wins over a paused first entry.
+        mediaPlayerB.isPlaying = true
+        mediaProvider.players = [mediaPlayerA, mediaPlayerB]
+        compare(control.title, "Track B")
+        compare(previous.enabled, true)
+        previous.clicked()
+        compare(mediaPlayerB.previousCalls, 1)
+        // No player hides the whole section.
+        mediaProvider.players = []
+        compare(control.available, false)
+        compare(media.visible, false)
     }
     function test_brightnessReflectsTheDisplayAndWritesThroughTheProvider(): void {
         resetFakes()

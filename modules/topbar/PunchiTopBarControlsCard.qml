@@ -50,6 +50,12 @@ ColumnLayout {
                 control: root.controls ? root.controls.audio : null
             }
             PunchiTopBarSeparator {}
+            PunchiTopBarMediaControl {
+                id: media
+                Layout.fillWidth: true
+                control: root.controls ? root.controls.media : null
+            }
+            PunchiTopBarSeparator { visible: media.visible }
             PunchiTopBarWifiControl {
                 Layout.fillWidth: true
                 control: root.controls ? root.controls.network : null
