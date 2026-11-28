@@ -49,6 +49,11 @@ TestCase {
         function togglePlaying() { toggleCalls++ }
     }
     QtObject {
+        id: notificationProvider
+        property bool available: true
+        property bool inhibited: false
+    }
+    QtObject {
         id: mediaProvider
         property var players: []
     }
@@ -141,6 +146,7 @@ TestCase {
     }
     QtObject {
         id: fakeControls
+        property var dnd: PunchiDoNotDisturbService { provider: notificationProvider }
         property var media: PunchiMediaControlService { provider: mediaProvider }
         property var brightness: PunchiBrightnessControlService { provider: brightnessProvider }
         property var audio: PunchiAudioControlService { provider: audioProvider }
@@ -164,6 +170,8 @@ TestCase {
         verify(waitForRendering(view))
     }
     function resetFakes(): void {
+        notificationProvider.available = true
+        notificationProvider.inhibited = false
         mediaProvider.players = []
         mediaPlayerA.isPlaying = true
         mediaPlayerA.nextCalls = 0
@@ -199,6 +207,29 @@ TestCase {
         storageFake.lastError = ""
         storageFake.calls = []
     }
+    function test_doNotDisturbShowsTheEffectiveStateAndDelegatesSettings(): void {
+        resetFakes()
+        const view = createTemporaryObject(fixture, test)
+        openControls(view)
+        const control = fakeControls.dnd
+        const row = findChild(view, "topBarDoNotDisturbControl")
+        verify(row !== null)
+        compare(control.available, true)
+        compare(control.active, false)
+        compare(control.statusText, "Off")
+        notificationProvider.inhibited = true
+        compare(control.active, true)
+        compare(control.statusText, "On")
+        const spy = createTemporaryObject(spyComponent, test)
+        spy.target = view
+        spy.signalName = "settingsModuleRequested"
+        findChild(view, "topBarDoNotDisturbSettings").clicked()
+        compare(spy.count, 1)
+        compare(spy.signalArguments[0][0], "notifications")
+        notificationProvider.available = false
+        compare(control.statusText, "Unavailable")
+        compare(control.active, false)
+    }
     function test_mediaShowsTheSelectedPlayerAndItsAnnouncedActions(): void {
         resetFakes()
         mediaProvider.players = [mediaPlayerA, mediaPlayerB]
@@ -233,6 +264,8 @@ TestCase {
         previous.clicked()
         compare(mediaPlayerB.previousCalls, 1)
         // No player hides the whole section.
+        notificationProvider.available = true
+        notificationProvider.inhibited = false
         mediaProvider.players = []
         compare(control.available, false)
         compare(media.visible, false)

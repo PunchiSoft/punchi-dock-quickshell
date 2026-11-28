@@ -108,6 +108,14 @@ TestCase {
         tryCompare(controlsPopup, "visible", false)
         compare(view.popupOpen, false)
     }
+    function test_popupsClearTheStyleBackgroundForTheBalloonSurface(): void {
+        const view = createTemporaryObject(fixture, test)
+        for (const name of ["topBarMenuPopup", "topBarQuickControlsPopup", "topBarCalendarPopup"]) {
+            const popup = findChild(view, name)
+            verify(popup !== null, name)
+            compare(popup.background, null, name)
+        }
+    }
     function test_quickControlsAlignToTheRightOfTheirTrigger(): void {
         const view = createTemporaryObject(fixture, test)
         const popup = findChild(view, "topBarQuickControlsPopup")

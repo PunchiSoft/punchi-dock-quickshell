@@ -14,6 +14,7 @@ const QStringList kSettingsModules = {
     QStringLiteral("kcm_pulseaudio"),
     QStringLiteral("kcm_device_automounter"),
     QStringLiteral("kcm_solid_actions"),
+    QStringLiteral("kcm_notifications"),
 };
 }
 

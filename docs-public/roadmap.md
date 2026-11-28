@@ -26,7 +26,8 @@ this page tracks scope and status, not behavior details.
 | 5a | Top panel quick controls: volume/mute, Wi-Fi, Bluetooth and removable storage, with KDE settings as complementary access | Implemented; physical USB removal and Bluetooth pairing pending |
 | 5b | Top-panel brightness through PowerDevil, with internal-display preference and read-back confirmation | Implemented; provider write observed at the current value, physical brightness sweep and external/DDC checks pending |
 | 5c | Top-panel **Now playing** through Quickshell's MPRIS service: playing-player preference, announced actions only, hidden without players | Implemented; two-player private-bus selection passed, visual capture with a real player pending |
-| 5d | Remaining top-panel controls: do-not-disturb, session actions, application menu, notifications and widgets | Planned; later phases of the top-panel plan |
+| 5d | Top-panel **Do Not Disturb** status from Plasma's notification server, with native notification settings | Implemented as a read-only status; a local toggle is not offered because Plasma exposes no public setter |
+| 5e | Remaining top-panel controls: session actions, application menu, notifications and widgets | Planned; later phases of the top-panel plan |
 
 Keep each stage independently useful and reversible. Shared settings, theme,
 services, and interaction primitives must be reused across modules.

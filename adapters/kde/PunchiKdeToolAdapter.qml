@@ -19,6 +19,7 @@ QtObject {
         case "bluetooth": return "kcm_bluetooth"
         case "audio": return "kcm_pulseaudio"
         case "storage": return "kcm_device_automounter"
+        case "notifications": return "kcm_notifications"
         }
         return ""
     }
