@@ -108,6 +108,19 @@ TestCase {
         tryCompare(controlsPopup, "visible", false)
         compare(view.popupOpen, false)
     }
+    function test_quickControlsAlignToTheRightOfTheirTrigger(): void {
+        const view = createTemporaryObject(fixture, test)
+        const popup = findChild(view, "topBarQuickControlsPopup")
+        const button = findChild(view, "topBarQuickControls")
+        verify(popup !== null && button !== null)
+        view.openQuickControls()
+        tryCompare(popup, "visible", true)
+        fuzzyCompare(popup.x + popup.width, view.width - popup.screenMargin, 2)
+        verify(popup.x > button.mapToItem(view, 0, 0).x - popup.width,
+            "the control center reaches past its trigger toward the right edge")
+        verify(popup.x > view.width / 2 - popup.width,
+            "the control center opens toward the right, not the left edge")
+    }
     function test_popupRegionStaysInsideThePanelWindow(): void {
         const view = createTemporaryObject(narrowFixture, test)
         const calendarPopup = findChild(view, "topBarCalendarPopup")

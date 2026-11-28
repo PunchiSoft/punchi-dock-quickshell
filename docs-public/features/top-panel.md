@@ -37,8 +37,8 @@ container or registers a second session service.
 | **Quick controls** | Brightness, volume and mute, the current MPRIS player, Wi-Fi, Bluetooth and removable storage, plus links to the KDE settings modules that own configuration Punchi does not implement |
 | **Clock** | Time and date from the system locale and time zone, with a monthly calendar that starts on the current month and offers Previous, Next and Today |
 
-Any open popup closes with Escape or an outside click and returns focus to its
-trigger. Only one popup is open at a time. Icon-only triggers keep their
+The quick-controls card is pinned to the right margin of its screen. Any open
+popup closes with Escape or an outside click and returns focus to its trigger. Only one popup is open at a time. Icon-only triggers keep their
 accessible names, the clock always exposes its full date and time to assistive
 technology, and the bar keeps every action when it is too narrow to show labels.
 The only bar animation is a short hover fade, disabled when reduced motion is on;

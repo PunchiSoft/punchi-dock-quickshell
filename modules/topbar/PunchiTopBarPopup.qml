@@ -12,6 +12,9 @@ import "../../components"
 Popup {
     id: root
     property Item anchorItem: null
+    // "right" pins the popup to the window's right margin, like a control
+    // centre opening toward the screen edge; "left" pins it to its trigger.
+    property string alignment: "center"
     property real preferredWidth: Kirigami.Units.gridUnit * 13
     property real inset: Kirigami.Units.largeSpacing
     property real tailHeight: Kirigami.Units.largeSpacing
@@ -20,12 +23,26 @@ Popup {
     readonly property real screenMargin: Kirigami.Units.smallSpacing
     readonly property real windowWidth: root.parent ? root.parent.width : root.preferredWidth
     readonly property real windowHeight: root.parent ? root.parent.height : 0
-    readonly property real anchorCenterX: root.anchorItem && root.parent
-        ? root.anchorItem.mapToItem(root.parent, root.anchorItem.width / 2, 0).x
-        : root.preferredWidth / 2
+    // The trigger is laid out after this popup is created. Reading its x/width
+    // (times zero) keeps the binding dependent on the layout result; mapToItem
+    // alone is a function call QML cannot track, which left the card at the
+    // screen edge before the first layout.
+    readonly property real anchorLeftX: root.anchorItem && root.parent
+        ? root.anchorItem.mapToItem(root.parent, 0, 0).x + root.anchorItem.x * 0
+        : root.screenMargin
+    readonly property real anchorRightX: root.anchorItem && root.parent
+        ? root.anchorItem.mapToItem(root.parent, root.anchorItem.width, 0).x
+            + root.anchorItem.width * 0 + root.anchorItem.x * 0
+        : root.screenMargin
+    readonly property real anchorCenterX: (root.anchorLeftX + root.anchorRightX) / 2
     readonly property real anchorBottomY: root.anchorItem && root.parent
         ? root.anchorItem.mapToItem(root.parent, 0, root.anchorItem.height).y
+            + root.anchorItem.y * 0 + root.anchorItem.height * 0
         : 0
+    readonly property real desiredX: root.alignment === "right"
+        ? root.windowWidth - root.width - root.screenMargin
+        : root.alignment === "left" ? root.anchorLeftX
+        : root.anchorCenterX - root.width / 2
     // Space a content card may use inside this popup. A card that can overflow
     // reads it and scrolls instead of growing past the screen edge.
     readonly property real maximumContentHeight: Math.max(Kirigami.Units.gridUnit * 4,
@@ -46,8 +63,7 @@ Popup {
     height: Math.round(Math.min(contentItem.implicitHeight,
         Math.max(0, root.windowHeight - root.screenMargin * 2)))
     x: Math.round(Math.max(root.screenMargin,
-        Math.min(root.windowWidth - root.width - root.screenMargin,
-            root.anchorCenterX - root.width / 2)))
+        Math.min(root.windowWidth - root.width - root.screenMargin, root.desiredX)))
     y: Math.round(Math.max(root.screenMargin,
         Math.min(root.windowHeight - root.height - root.screenMargin,
             root.anchorBottomY + Kirigami.Units.smallSpacing)))
