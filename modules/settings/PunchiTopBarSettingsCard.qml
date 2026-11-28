@@ -13,11 +13,15 @@ PunchiSettingsCard {
     objectName: "topBarCard"
     Layout.fillWidth: true
     title: qsTr("Top panel")
+    function focusFirst(): void {
+        toggle.forceActiveFocus(Qt.TabFocusReason)
+    }
     PunchiSettingsRow {
         Layout.fillWidth: true
         text: qsTr("Show top panel")
         showSeparator: false
         Switch {
+            id: toggle
             objectName: "topBarEnabled"
             Accessible.name: qsTr("Show top panel")
             checked: root.settings.topBarEnabled

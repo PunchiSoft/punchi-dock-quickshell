@@ -42,10 +42,6 @@ ColumnLayout {
         id: appearanceSettings
         settings: root.settings
     }
-    PunchiTopBarSettingsCard {
-        objectName: "topBarSettingsCard"
-        settings: root.settings
-    }
     PunchiDockStartupSettings {
         autostart: root.autostart
     }

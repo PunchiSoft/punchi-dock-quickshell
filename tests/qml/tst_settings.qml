@@ -385,7 +385,10 @@ TestCase {
     }
     function test_topPanelSwitchEditsTheSettings() {
         const view = createTemporaryObject(fixture, test)
-        const toggle = findChild(view, "topBarEnabled")
+        const general = findChild(view, "settingsDockGeneral")
+        const panel = findChild(view, "settingsDockPanel")
+        verify(findChild(general, "topBarEnabled") === null)
+        const toggle = findChild(panel, "topBarEnabled")
         verify(toggle !== null)
         compare(toggle.checked, false)
         compare(toggle.Accessible.name, "Show top panel")

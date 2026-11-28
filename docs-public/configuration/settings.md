@@ -9,9 +9,10 @@ category. **Apply** saves pending changes, **Accept** saves and closes, and
 | Category | Holds |
 | --- | --- |
 | **Items** | The pinned item list, Add Item, ordering, item configuration and removal |
-| **General** | Icon size, magnification, bounce, minimize reaction, reduced motion, the optional top panel, position, visibility, screens and desktops, updates and autostart |
+| **General** | Icon size, magnification, bounce, minimize reaction, reduced motion, position, visibility, screens and desktops, updates and autostart |
 | **Popups** | Popup size, height and icon size for the folder presentations |
 | **Menu** | Fullscreen-menu blur, opacity, icon size, labels, distribution name, order, scroll bar, close-button corner or hidden, hover animation, dock-over-menu, dock menu button, the right-click menu text shadow and the global menu shortcut |
+| **Panel** | The optional top-panel switch (`topBarEnabled`); future panel controls belong here |
 | **Profile** | Portable profile export and import with preview |
 | **About** | Application version, website and issue links, license, authors and the **Made with love** dedication |
 

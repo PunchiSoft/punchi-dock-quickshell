@@ -1,7 +1,7 @@
 # Top panel
 
 An optional bar at the top edge of the selected screens. It is off by default and
-is enabled with **Settings → General → Show top panel**. Enabling, disabling,
+is enabled with **Settings → Panel → Show top panel**. Enabling, disabling,
 saving and discarding follow the same draft, Apply, Accept and Close rules as the
 rest of the settings window, without restarting Punchi.
 

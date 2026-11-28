@@ -24,7 +24,7 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
   display first, clamp the slider to the provider range, confirm the value by
   reading it back and disable the row when no controllable display exists. There
   is no generic sysfs write.
-- Add an optional top panel, off by default, with **Settings → General → Show top
+- Add an optional top panel, off by default, with **Settings → Panel → Show top
   panel**. One bar per screen selected for the dock reserves its height and hosts
   a Punchi menu (Applications and Dock settings), KRunner search, a quick-controls
   center and a clock with a monthly calendar. Disabling the switch, removing a
