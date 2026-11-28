@@ -18,12 +18,16 @@ QtObject {
         enabled: root.active
         precision: SystemClock.Minutes
     }
+    readonly property var brightnessProvider: brightnessLoader.item
     readonly property var audioProvider: audioLoader.item
     readonly property var networkProvider: networkLoader.item
     readonly property var bluetoothProvider: bluetoothLoader.item
     readonly property var storageProvider: storageLoader.item
     readonly property PunchiKdeToolAdapter tools: PunchiKdeToolAdapter {
         active: root.active
+    }
+    readonly property PunchiBrightnessControlService brightness: PunchiBrightnessControlService {
+        provider: root.brightnessProvider
     }
     readonly property PunchiAudioControlService audio: PunchiAudioControlService {
         provider: root.audioProvider
@@ -39,6 +43,12 @@ QtObject {
     function launchBluetoothWizard(): bool { return root.tools.launchBluetoothWizard() }
     function openSettingsModule(module: string): bool {
         return root.tools.openSettingsModule(module)
+    }
+    readonly property LazyLoader brightnessLoader: LazyLoader {
+        active: root.active
+        component: Component {
+            PunchiBrightnessAdapter { active: true }
+        }
     }
     readonly property LazyLoader audioLoader: LazyLoader {
         active: root.active

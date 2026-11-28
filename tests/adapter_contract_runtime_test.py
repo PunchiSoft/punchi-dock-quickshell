@@ -57,6 +57,7 @@ ShellRoot {
     PunchiNetworkAdapter { id: network }
     PunchiBluetoothAdapter { id: bluetooth }
     PunchiStorageAdapter { id: storage }
+    PunchiBrightnessAdapter { id: brightness }
     PunchiAudioControlService { id: audioControl }
     PunchiKdeToolAdapter { id: tools }
     Component.onCompleted: Qt.callLater(function() {
@@ -110,6 +111,10 @@ ShellRoot {
         probe.checkMethods(bluetooth, "PunchiBluetoothAdapter", ["setPowered"])
         probe.checkProperties(bluetooth, "PunchiBluetoothAdapter",
             ["available", "adapterCount", "adapterName", "powered", "blocked"])
+        probe.checkMethods(brightness, "PunchiBrightnessAdapter", ["refresh", "setPercent"])
+        probe.checkProperties(brightness, "PunchiBrightnessAdapter",
+            ["available", "displays", "pending", "lastTarget", "lastPercent",
+             "lastSuccess", "lastError"])
         probe.checkMethods(storage, "PunchiStorageAdapter",
             ["refresh", "unmountVolume", "removeDrive"])
         probe.checkProperties(storage, "PunchiStorageAdapter",

@@ -34,7 +34,7 @@ container or registers a second session service.
 | --- | --- |
 | **Punchi** | Compact menu with **Applications**, which opens the existing fullscreen PunchiMenu on the screen that owns the button, and **Dock settings**, which opens the existing settings window |
 | **Search** | Opens KRunner once per gesture through its `org.kde.krunner` D-Bus interface, falling back to the fixed `krunner` executable when no instance owns the name |
-| **Quick controls** | Volume and mute, Wi-Fi, Bluetooth and removable storage, plus links to the KDE settings modules that own configuration Punchi does not implement |
+| **Quick controls** | Brightness, volume and mute, Wi-Fi, Bluetooth and removable storage, plus links to the KDE settings modules that own configuration Punchi does not implement |
 | **Clock** | Time and date from the system locale and time zone, with a monthly calendar that starts on the current month and offers Previous, Next and Today |
 
 Any open popup closes with Escape or an outside click and returns focus to its
@@ -53,6 +53,7 @@ an explicit short result instead of claiming success.
 
 | Control | Provider | Behavior |
 | --- | --- | --- |
+| **Brightness** | PowerDevil `org.kde.ScreenBrightness` | Shows the internal display first, otherwise the first display with a real range; the slider is clamped to the provider range, the value is read back after the write, and a missing provider or display leaves the row disabled |
 | **Volume and mute** | Quickshell's PipeWire service (`Pipewire.defaultAudioSink`) | Acts on the ready default sink, reflects external volume and mute changes, keeps mute independent from volume, mirrors an amplification the provider already reports, and refuses a late slider value when the sink identity changed during the gesture |
 | **Wi-Fi** | Quickshell's NetworkManager provider (`Quickshell.Networking`) | Reflects the confirmed radio state, hardware block, connection and network name; a new network and its credentials stay in Plasma |
 | **Bluetooth** | Quickshell's BlueZ provider (`Quickshell.Bluetooth`) | Reflects adapter presence, power and the provider's Blocked state, handles several adapters through the provider default or first adapter; **Pair** opens KDE's pairing wizard, so discovery and the BlueZ agent stay in KDE |
@@ -75,6 +76,9 @@ These are complementary accesses, not replacements for the native Plasma applets
 - The panel does not read or change plasma-pa's amplification preference: it
   mirrors a boost the provider already reports and never introduces a higher
   maximum by itself.
+- Brightness comes from PowerDevil; Punchi never writes `/sys/class/backlight`.
+  An external display appears only when PowerDevil reports a controllable range
+  for it, and a session without PowerDevil disables the row.
 - Physical USB removal, real Bluetooth pairing and a physical audio-device swap
   are not automated by the test suite. Hardware block, adapter absence and
   adapter power are observed through the providers.
@@ -92,7 +96,10 @@ control, by the adapter contract probe and by a real-compositor session probe
 that mounts the bar, checks one surface per screen with its exclusive zone, and
 verifies that disabling the switch releases it. Screen capture, theme and
 physical-device checks are recorded in the private development record. The
-captures use the system Qt Quick Controls style, not an offscreen substitute. The
+captures use the system Qt Quick Controls style, not an offscreen substitute.
+Brightness is validated against the live PowerDevil service read-only; a same-
+value provider write confirmed the native path without changing the screen, and
+a physical brightness sweep remains pending. The
 session evidence comes from one Fedora 45 machine with Plasma/KWin 6.8.3, KF6
 6.32.0 and Quickshell 0.2.1; it is an observation, not a new compatibility row.
 

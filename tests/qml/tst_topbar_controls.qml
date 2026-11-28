@@ -13,6 +13,22 @@ TestCase {
     width: 1280
     height: 800
     QtObject {
+        id: brightnessProvider
+        property bool available: true
+        property bool pending: false
+        property var displays: [{
+            id: "display0", label: "Built-in display", internal: true,
+            brightness: 4000, maximum: 10000, percent: 40
+        }]
+        property var calls: []
+        property int lastPercent: -1
+        function setPercent(displayId, percent) {
+            calls.push(displayId + ":" + percent)
+            lastPercent = percent
+            return true
+        }
+    }
+    QtObject {
         id: audioProvider
         property bool available: true
         property bool ready: true
@@ -85,6 +101,7 @@ TestCase {
     }
     QtObject {
         id: fakeControls
+        property var brightness: PunchiBrightnessControlService { provider: brightnessProvider }
         property var audio: PunchiAudioControlService { provider: audioProvider }
         property var network: PunchiNetworkControlService { provider: networkProvider }
         property var bluetooth: PunchiBluetoothControlService { provider: bluetoothProvider }
@@ -106,6 +123,13 @@ TestCase {
         verify(waitForRendering(view))
     }
     function resetFakes(): void {
+        brightnessProvider.available = true
+        brightnessProvider.displays = [{
+            id: "display0", label: "Built-in display", internal: true,
+            brightness: 4000, maximum: 10000, percent: 40
+        }]
+        brightnessProvider.calls = []
+        brightnessProvider.lastPercent = -1
         audioProvider.volume = 0.4
         audioProvider.muted = false
         audioProvider.nodeId = "sink-1"
@@ -124,6 +148,43 @@ TestCase {
         storageFake.lastSuccess = false
         storageFake.lastError = ""
         storageFake.calls = []
+    }
+    function test_brightnessReflectsTheDisplayAndWritesThroughTheProvider(): void {
+        resetFakes()
+        const view = createTemporaryObject(fixture, test)
+        openControls(view)
+        const control = fakeControls.brightness
+        const slider = findChild(view, "topBarBrightnessSlider")
+        const value = findChild(view, "topBarBrightnessValue")
+        verify(slider !== null && value !== null)
+        compare(control.hasControl, true)
+        compare(control.statusText, "Built-in display")
+        compare(slider.value, 40)
+        compare(value.text, "40%")
+        slider.forceActiveFocus()
+        keyClick(Qt.Key_Right)
+        wait(0)
+        compare(brightnessProvider.lastPercent, 41)
+        // An external change flows back into the slider.
+        brightnessProvider.displays = [{
+            id: "display0", label: "Built-in display", internal: true,
+            brightness: 7000, maximum: 10000, percent: 70
+        }]
+        compare(slider.value, 70)
+        compare(value.text, "70%")
+        // A display that changes under the gesture refuses the late value.
+        control.beginGesture()
+        brightnessProvider.displays = [{
+            id: "display1", label: "External display", internal: false,
+            brightness: 5000, maximum: 10000, percent: 50
+        }]
+        compare(control.setPercent(90), false)
+        control.endGesture()
+        // Removing the controllable display disables the slider explicitly.
+        brightnessProvider.displays = []
+        compare(control.hasControl, false)
+        compare(control.statusText, "No controllable display")
+        compare(slider.enabled, false)
     }
     function test_volumeReflectsTheProviderAndWritesOnlyWhileItIsReady(): void {
         resetFakes()
