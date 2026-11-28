@@ -170,6 +170,7 @@ Item {
         objectName: "topBarQuickControlsPopup"
         parent: root
         anchorItem: quickControlsButton
+        alignment: "right"
         preferredWidth: Kirigami.Units.gridUnit * 21
         PunchiTopBarControlsCard {
             id: controlsCard

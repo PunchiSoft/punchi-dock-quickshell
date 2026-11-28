@@ -108,6 +108,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Pin the top panel's quick-controls popup to the right edge of its
+  screen. Its anchor binding did not follow the trigger's layout position, so it
+  could open at the left edge instead of under the control-centre button.
 - Stop a running installed copy before an install/update replaces it, then
   restart the updated copy automatically unless `--no-restart` is passed, so
   the new native plugin loads instead of the previous process keeping deleted
