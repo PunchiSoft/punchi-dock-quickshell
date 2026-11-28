@@ -13,6 +13,9 @@ QtObject {
         monitoring: root.active
     }
     readonly property bool available: root.control.available
+    readonly property bool reading: root.control.reading
+    readonly property bool valid: root.control.valid
     readonly property bool inhibited: root.control.inhibited
+    readonly property string lastError: root.control.lastError
     function refresh(): void { root.control.refresh() }
 }

@@ -112,6 +112,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Show **Do Not Disturb** as On or Off only after an asynchronous, typed and
+  owner-checked read. A missing property, invalid type, lost owner or failed read
+  now leaves the row unavailable instead of displaying the default Off.
 - Keep **Safe to remove** unavailable when a removable drive still has a hidden
   or system volume mounted, and require a fresh UDisks2 snapshot before reporting
   the whole-drive removal as successful. Per-volume **Unmount** remains limited

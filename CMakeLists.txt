@@ -326,6 +326,11 @@ if(BUILD_TESTING)
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/trash_runtime_test.py)
     set_tests_properties(trash_runtime PROPERTIES TIMEOUT 45)
+    add_test(NAME dnd_state COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/dnd_state_test.py)
+    set_tests_properties(dnd_state PROPERTIES TIMEOUT 45)
     add_test(NAME topbar_media_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts-dev/run-private-bus.py
@@ -477,6 +482,7 @@ if(BUILD_TESTING)
         autohide_edge
         profile_file
         storage_control
+        dnd_state
         topbar_media_runtime
         adapter_contract
         application_media

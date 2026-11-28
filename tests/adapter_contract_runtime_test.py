@@ -116,7 +116,7 @@ ShellRoot {
         probe.checkProperties(mpris, "PunchiMprisAdapter", ["players", "count"])
         probe.checkMethods(notificationState, "PunchiNotificationStateAdapter", ["refresh"])
         probe.checkProperties(notificationState, "PunchiNotificationStateAdapter",
-            ["available", "inhibited"])
+            ["available", "reading", "valid", "inhibited", "lastError"])
         probe.checkMethods(brightness, "PunchiBrightnessAdapter", ["refresh", "setPercent"])
         probe.checkProperties(brightness, "PunchiBrightnessAdapter",
             ["available", "displays", "pending", "lastTarget", "lastPercent",
