@@ -227,6 +227,7 @@ bool StorageControl::unmountVolume(const QString &blockPath)
     bool mounted = false;
     QString driveId;
     if (!findVolume(blockPath, &mounted, &driveId) || !mounted) return false;
+    const quint64 generation = ++m_generation;
     m_pendingKind = QStringLiteral("unmount");
     m_pendingTarget = blockPath;
     m_pendingDrive.clear();
@@ -239,7 +240,7 @@ bool StorageControl::unmountVolume(const QString &blockPath)
     emit pendingChanged();
     emit pendingTargetChanged();
     emit lastResultChanged();
-    startUnmount(blockPath);
+    startUnmount(blockPath, generation);
     return true;
 }
 
@@ -255,6 +256,8 @@ bool StorageControl::removeDrive(const QString &drivePath)
         break;
     }
     if (!found) return false;
+    if (drive.value(QStringLiteral("canRemove"), true).toBool() == false) return false;
+    const quint64 generation = ++m_generation;
     m_pendingKind = QStringLiteral("remove");
     m_pendingTarget = drivePath;
     m_pendingDrive = drivePath;
@@ -269,16 +272,16 @@ bool StorageControl::removeDrive(const QString &drivePath)
     m_lastTarget = m_pendingTarget;
     m_lastSuccess = false;
     m_lastError.clear();
-    if (m_remainingBlocks.isEmpty()) {
-        // Every filesystem of the drive is already unmounted: the provider
-        // confirms the state the request asked for.
-        finishOperation(true, QString());
-        return true;
-    }
     m_pending = true;
     emit pendingChanged();
     emit pendingTargetChanged();
     emit lastResultChanged();
+    if (m_remainingBlocks.isEmpty()) {
+        // Every visible filesystem is already unmounted, but hidden mounts and
+        // concurrent changes still need a provider snapshot before success.
+        confirmDriveRemoval(generation);
+        return true;
+    }
     advance();
     return true;
 }
@@ -305,14 +308,49 @@ void StorageControl::advance()
             finishOperation(false, QStringLiteral("disconnected"));
             return;
         }
-        startUnmount(blockPath);
+        startUnmount(blockPath, m_generation);
         return;
     }
-    finishOperation(true, QString());
+    confirmDriveRemoval(m_generation);
 }
 
-void StorageControl::startUnmount(const QString &blockPath)
+void StorageControl::confirmDriveRemoval(quint64 generation)
 {
+    if (!m_pending || !m_monitoring || m_pendingKind != QStringLiteral("remove")
+            || generation != m_generation) return;
+    QDBusMessage message = QDBusMessage::createMethodCall(kService, kManagerPath,
+        kObjectManager, QStringLiteral("GetManagedObjects"));
+    auto *watcher = new QDBusPendingCallWatcher(
+        QDBusConnection::systemBus().asyncCall(message, 30000), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this,
+        [this, generation](QDBusPendingCallWatcher *call) {
+            call->deleteLater();
+            if (!m_pending || !m_monitoring || generation != m_generation) return;
+            if (call->isError()) {
+                finishOperation(false, call->error().name().endsWith(
+                    QStringLiteral("TimedOut")) ? QStringLiteral("timeout")
+                    : QStringLiteral("not-confirmed"));
+                return;
+            }
+            const QString state = PunchiStorage::confirmDriveRemoval(
+                managedObjectsFromReply(call->reply()), m_pendingDrive);
+            if (state == QStringLiteral("confirmed")) {
+                finishOperation(true, QString());
+            } else if (state == QStringLiteral("protected")) {
+                finishOperation(false, QStringLiteral("protected"));
+            } else if (state == QStringLiteral("busy")) {
+                finishOperation(false, QStringLiteral("busy"));
+            } else if (state == QStringLiteral("disconnected")) {
+                finishOperation(false, QStringLiteral("disconnected"));
+            } else {
+                finishOperation(false, QStringLiteral("not-confirmed"));
+            }
+        });
+}
+
+void StorageControl::startUnmount(const QString &blockPath, quint64 generation)
+{
+    if (generation != m_generation) return;
     m_currentBlock = blockPath;
     QDBusMessage message = QDBusMessage::createMethodCall(kService, blockPath,
         kFilesystem, QStringLiteral("Unmount"));
@@ -321,9 +359,10 @@ void StorageControl::startUnmount(const QString &blockPath)
     auto *watcher = new QDBusPendingCallWatcher(
         QDBusConnection::systemBus().asyncCall(message, 30000), this);
     connect(watcher, &QDBusPendingCallWatcher::finished, this,
-        [this](QDBusPendingCallWatcher *call) {
+        [this, generation, blockPath](QDBusPendingCallWatcher *call) {
             call->deleteLater();
-            if (!m_pending || !m_monitoring) return;
+            if (!m_pending || !m_monitoring || generation != m_generation
+                    || m_currentBlock != blockPath) return;
             if (call->isError()) {
                 const QString error = PunchiStorage::classifyError(call->error().name());
                 if (error == QStringLiteral("not-mounted")) {
@@ -350,7 +389,9 @@ void StorageControl::finishOperation(bool success, const QString &error)
     m_lastError = error;
     emit lastResultChanged();
     emit operationFinished(operation, target, success, error);
-    if (success) scheduleRefresh();
+    // Re-read the provider after every outcome so eligibility reflects mounts
+    // that appeared or disappeared during the request.
+    scheduleRefresh();
 }
 
 void StorageControl::resetOperation()

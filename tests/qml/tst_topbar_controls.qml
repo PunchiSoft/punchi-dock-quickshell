@@ -119,6 +119,8 @@ TestCase {
                 {path: "/org/freedesktop/UDisks2/block_devices/sdb2", label: "Backup", mounted: false, size: 1000}
             ],
             mountedCount: 1,
+            protectedMounted: false,
+            canRemove: true,
             ejectable: true
         }]
         property bool pending: false
@@ -440,6 +442,30 @@ TestCase {
         unmount.clicked()
         compare(storageFake.calls[1], "unmount:/org/freedesktop/UDisks2/block_devices/sdb1")
         compare(findChild(view, "topBarStorageOutcome").text, "Unmounted")
+    }
+    function test_storageProtectedMountDisablesWholeDriveRemoval(): void {
+        resetFakes()
+        storageFake.devices = [{
+            id: "/org/freedesktop/UDisks2/drives/Test",
+            name: "Test stick",
+            volumes: [
+                {path: "/org/freedesktop/UDisks2/block_devices/sdb1", label: "Photos", mounted: false, size: 1000}
+            ],
+            mountedCount: 1,
+            protectedMounted: true,
+            canRemove: false,
+            ejectable: true
+        }]
+        const view = createTemporaryObject(fixture, test)
+        openControls(view)
+        const card = findChild(view, "topBarStorageControl")
+        const remove = findChild(card, "topBarStorageRemove")
+        verify(remove !== null)
+        compare(remove.enabled, false)
+        // The visible volume is unmounted, so it has no per-volume action.
+        const unmount = findChild(card, "topBarStorageUnmount")
+        verify(unmount !== null)
+        compare(unmount.visible, false)
     }
     function test_storageBusyResultKeepsTheDeviceAndNamesTheFailure(): void {
         resetFakes()

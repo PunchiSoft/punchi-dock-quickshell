@@ -10,6 +10,11 @@
 // or ejection from an internal or system device.
 namespace PunchiStorage {
 QVariantList drivesFromManagedObjects(const QVariantMap &managedObjects);
+// Inspects every filesystem of a drive, including the volumes the panel hides.
+// Returns "confirmed" only when no relevant mount remains, "protected" when a
+// hidden or system volume is still mounted, "busy" when a visible volume is
+// still mounted, and "disconnected" when the drive is no longer present.
+QString confirmDriveRemoval(const QVariantMap &managedObjects, const QString &drivePath);
 // Maps a UDisks2 error name to the small code set the panel presents.
 QString classifyError(const QString &errorName);
 bool isRemovable(const QVariantMap &driveProperties);

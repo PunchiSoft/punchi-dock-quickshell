@@ -76,8 +76,9 @@ private:
     void setAvailable(bool available);
     void clearDevices();
     bool findVolume(const QString &blockPath, bool *mounted, QString *driveId) const;
-    void startUnmount(const QString &blockPath);
+    void startUnmount(const QString &blockPath, quint64 generation);
     void advance();
+    void confirmDriveRemoval(quint64 generation);
     void finishOperation(bool success, const QString &error);
     void resetOperation();
 
@@ -95,6 +96,7 @@ private:
     QString m_pendingDrive;
     QString m_currentBlock;
     QStringList m_remainingBlocks;
+    quint64 m_generation = 0;
 
     QString m_lastOperation;
     QString m_lastTarget;

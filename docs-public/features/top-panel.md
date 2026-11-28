@@ -59,12 +59,14 @@ an explicit short result instead of claiming success.
 | **Do Not Disturb** | Plasma's `org.freedesktop.Notifications` `Inhibited` property (read-only) | Shows the effective mode and opens Plasma's notification settings. Plasma exposes no public setter for its persistent mode, so the row deliberately has no local switch |
 | **Wi-Fi** | Quickshell's NetworkManager provider (`Quickshell.Networking`) | Reflects the confirmed radio state, hardware block, connection and network name; a new network and its credentials stay in Plasma |
 | **Bluetooth** | Quickshell's BlueZ provider (`Quickshell.Bluetooth`) | Reflects adapter presence, power and the provider's Blocked state, handles several adapters through the provider default or first adapter; **Pair** opens KDE's pairing wizard, so discovery and the BlueZ agent stay in KDE |
-| **Removable storage** | UDisks2 D-Bus | Lists only provider-identified removable drives with a filesystem; **Unmount** removes one mounted filesystem, **Safe to remove** unmounts every mounted filesystem of a drive, including a drive with several partitions |
+| **Removable storage** | UDisks2 D-Bus | Lists provider-identified removable drives with a visible filesystem; **Unmount** removes one mounted visible filesystem, while **Safe to remove** unmounts every visible mounted filesystem of a drive and is unavailable while a hidden or system volume remains mounted |
 
 **Safe to remove** never forces an unmount, ejects media or powers a drive off.
-Busy, rejected, timed-out and disconnected results are reported separately and
-the device stays listed for another attempt. Only the operation the user asked for
-is reported as succeeded, after UDisks2 confirms it.
+Hidden and system volumes are not rows, but their mounts still block whole-drive
+removal; a per-volume action remains limited to its visible volume. Success is
+reported only after a fresh UDisks2 snapshot confirms that no relevant filesystem
+of the drive remains mounted. Busy, protected, rejected, timed-out and disconnected
+results are reported separately and the device stays listed for another attempt.
 
 The KDE settings links open the network, Bluetooth, sound and removable-device
 modules with fixed identifiers. Bluetooth pairing opens the KDE pairing wizard.
