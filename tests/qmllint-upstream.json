@@ -22,5 +22,23 @@
     "file": "modules/menu/PunchiMenuWindow.qml",
     "message": "Type PanelWindow is not creatable.",
     "category": "uncreatable-type"
+  },
+  {
+    "severity": "Warning",
+    "file": "adapters/kde/PunchiBluetoothAdapter.qml",
+    "message": "Type \"UntypedObjectModel\" of property \"adapters\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.",
+    "category": "unresolved-type"
+  },
+  {
+    "severity": "Warning",
+    "file": "adapters/kde/PunchiBluetoothAdapter.qml",
+    "message": "Type \"BluetoothAdapter\" of property \"defaultAdapter\" not found. This is likely due to a missing dependency entry or a type not being exposed declaratively.",
+    "category": "unresolved-type"
+  },
+  {
+    "severity": "Warning",
+    "file": "modules/topbar/PunchiTopBar.qml",
+    "message": "Type PanelWindow is not creatable.",
+    "category": "uncreatable-type"
   }
 ]

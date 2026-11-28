@@ -368,6 +368,38 @@ TestCase {
         tryCompare(window, "visible", false)
         compare(window.settings.magnificationEnabled, true)
     }
+    function test_topPanelSwitchAppliesOrDiscards(): void {
+        const window = openWindow()
+        const view = control(window, "dockSettingsView")
+        mouseClick(control(window, "generalSettingsPage"))
+        compare(view.currentPage, 1)
+        const toggle = control(window, "topBarEnabled")
+        compare(toggle.checked, false)
+        ensureVisible(window, toggle)
+        mouseClick(toggle)
+        compare(view.settings.topBarEnabled, true)
+        compare(window.settings.topBarEnabled, false)
+        verify(window.hasPendingChanges)
+        mouseClick(control(window, "applyDockSettings"))
+        compare(window.settings.topBarEnabled, true)
+        verify(window.visible)
+        // Close discards a later draft change.
+        mouseClick(toggle)
+        compare(view.settings.topBarEnabled, false)
+        mouseClick(control(window, "closeDockSettings"))
+        tryCompare(window, "visible", false)
+        compare(window.settings.topBarEnabled, true)
+        window.open()
+        verify(waitForRendering(window.contentItem))
+        compare(view.settings.topBarEnabled, true)
+        // Escape discards it too.
+        const reopened = control(window, "topBarEnabled")
+        mouseClick(reopened)
+        compare(view.settings.topBarEnabled, false)
+        keyClick(Qt.Key_Escape)
+        tryCompare(window, "visible", false)
+        compare(window.settings.topBarEnabled, true)
+    }
     function test_resetPendingAndReopen(): void {
         const window = openWindow()
         const view = control(window, "dockSettingsView")

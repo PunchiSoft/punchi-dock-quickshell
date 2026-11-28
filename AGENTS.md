@@ -6,10 +6,12 @@ This file is canonical for this repository. Scoped instructions may supplement
 it. Skills live in `.agents/skills/`. User instructions take precedence.
 
 Punchi Dock Quickshell is a modular desktop interface built with Quickshell and QML for
-KDE Plasma/KWin, primarily on Wayland. The current stage is a dock with configured desktop-entry launchers, a continuous
-magnification wave, two-hop activation feedback, and an update badge on
-Discover read from PackageKit, fwupd and Flatpak. A native Qt/KDE QML module
-provides application launching. Rust remains optional.
+KDE Plasma/KWin, primarily on Wayland. The current stage is a dock with configured desktop-entry launchers, a
+continuous magnification wave, two-hop activation feedback, an update badge on
+Discover read from PackageKit, fwupd and Flatpak, and an optional top panel with a
+Punchi menu, KRunner, clock/calendar and system quick controls. A native Qt/KDE
+QML module provides application launching and the UDisks2 boundary. Rust remains
+optional.
 
 ## Safe coexistence — current operating contract
 

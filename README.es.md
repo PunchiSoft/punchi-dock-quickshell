@@ -94,6 +94,11 @@ mantiene el trabajo nuevo pendiente bajo `Unreleased`.
   un elemento Papelera nativo y una insignia en Discover que cuenta
   actualizaciones de PackageKit, fwupd y Flatpak.
   [Leer más](docs-public/features/media-and-updates.md)
+- **Panel superior:** una barra opcional en el borde superior con menú Punchi,
+  KRunner, volumen y silencio, Wi-Fi, Bluetooth, controles de almacenamiento
+  extraíble y un reloj con calendario mensual. Reserva su propio espacio y deja
+  intactos los paneles, la bandeja y los servicios de sesión de Plasma.
+  [Leer más](docs-public/features/top-panel.md)
 - **Apariencia y movimiento:** ampliación continua, tooltips con el tema,
   respuesta de dos saltos al lanzar, colocación abajo/izquierda/derecha, un dock
   por pantalla y compatibilidad con movimiento reducido.

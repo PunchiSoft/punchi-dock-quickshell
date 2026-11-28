@@ -61,6 +61,7 @@ QtObject {
         function onMagnificationEnabledChanged() { root.synchronize() }
         function onReducedMotionChanged() { root.synchronize() }
         function onBounceEnabledChanged() { root.synchronize() }
+        function onTopBarEnabledChanged() { root.synchronize() }
         function onRecentApplicationsEnabledChanged() { root.synchronize() }
         function onRecentApplicationsCountChanged() { root.synchronize() }
         function onRecentApplicationsPresentationChanged() { root.synchronize() }

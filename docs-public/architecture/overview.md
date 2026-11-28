@@ -25,7 +25,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Root["shell.qml<br/>composition only"] --> Modules["modules/<br/>dock, menu, recent, folders, settings"]
+    Root["shell.qml<br/>composition only"] --> Modules["modules/<br/>dock, menu, recent, folders, settings, topbar"]
     Modules --> Components["components/<br/>shared visual primitives"]
     Modules --> Services["services/<br/>data and coordination"]
     Modules --> Config["config/<br/>settings, defaults and metrics"]
@@ -66,11 +66,18 @@ allowed. A layer exception needs a written reason in
 | `modules/recent/` | Recent-applications container popup |
 | `modules/folders/` | Folder container popups, layouts and navigation |
 | `modules/settings/` | Settings window, categories, item editors and profile exchange |
+| `modules/topbar/` | Optional top-panel host, bar view, popups, quick controls and calendar |
 
-A future top bar belongs in its own `modules/topbar/` module, sharing confirmed
-components and services, including media controls, rather than requiring a second
-project. Quickshell supplies window hosting; KDE integration is connected
-explicitly through the adapters.
+`modules/topbar/` separates the Quickshell host (`PanelWindow` per selected
+screen, exclusive zone, input mask and popup placement) from the Qt Quick view.
+`PunchiTopBarServices` creates one minute-precision `SystemClock` and the provider
+clients shared by every bar window; the view receives them and emits intents.
+Desktop calls remain in `adapters/kde/`: Quickshell's public networking, Bluetooth
+and PipeWire providers, UDisks2 through the native `StorageControl`, and KRunner
+or a KDE settings module through the native `KdeToolLauncher`. The expanded
+top-panel controls (brightness, do-not-disturb, media, session actions, the
+application global menu, notifications and widgets) are not implemented; see the
+[top panel feature page](../features/top-panel.md#limits).
 
 ## Startup configuration
 

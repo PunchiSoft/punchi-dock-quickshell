@@ -33,7 +33,8 @@ first-run default.</em></p>
 
 Punchi Dock Quickshell combines animated magnification, configurable application
 launchers, a fullscreen application menu, KDE context actions and media
-transport, a settings window and persistent preferences. It runs alongside
+transport, an optional top panel with system quick controls, a settings window and
+persistent preferences. It runs alongside
 Plasma through reversible start and stop scripts.
 
 It was born from the limits of
@@ -88,6 +89,11 @@ pending work under `Unreleased`.
 - **Media and status:** MPRIS transport for the matching player, a native Trash
   item, and a Discover badge counting PackageKit, fwupd and Flatpak updates.
   [Read more](docs-public/features/media-and-updates.md)
+- **Top panel:** an optional bar at the top edge with a Punchi menu, KRunner,
+  volume and mute, Wi-Fi, Bluetooth, removable-storage controls and a clock with a
+  monthly calendar. It reserves its own space and leaves Plasma's panels, tray and
+  session services in place.
+  [Read more](docs-public/features/top-panel.md)
 - **Appearance and motion:** continuous magnification, themed tooltips,
   two-hop launch feedback, bottom/left/right placement, per-screen docks and
   reduced-motion support.

@@ -44,6 +44,7 @@ ShellRoot {
         function update(): bool {
             settings.panelMode = "autohide"
             settings.sizePercent = 125
+            settings.topBarEnabled = true
             return true
         }
         function reload(): bool { Quickshell.reload(false); return true }
@@ -84,11 +85,13 @@ ShellRoot {
                 stored = profile / 'punchi-dock-quickshell.json'
                 assert stored.exists(), log_path.read_text()
                 assert json.loads(stored.read_text())['sizePercent'] == 125, stored.read_text()
+                assert json.loads(stored.read_text())['topBarEnabled'] is True, stored.read_text()
                 for count in (2, 3):
                     assert ipc(config, 'reload').returncode == 0
                     state = state_when(lambda state: state['generation'] >= count and state['ready'])
                     assert state['preferences']['panelMode'] == 'autohide', state
                     assert state['preferences']['sizePercent'] == 125, state
+                    assert state['preferences']['topBarEnabled'] is True, state
                 print('Startup override once and live preferences across repeated Quickshell reload: passed')
             finally:
                 process.terminate()
@@ -97,6 +100,35 @@ ShellRoot {
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait()
+            # A fresh process proves the field is read back from the profile,
+            # not only kept alive by the reloaded engine.
+            restarted = subprocess.Popen(['qs', '--path', str(config), '--no-color'],
+                                         env=env, stdout=log, stderr=log)
+            try:
+                deadline = time.monotonic() + 5
+                state = None
+                while True:
+                    result = ipc(config, 'snapshot')
+                    if result.returncode == 0:
+                        try:
+                            state = json.loads(result.stdout)
+                        except json.JSONDecodeError:
+                            state = None
+                        if state is not None and state['ready']:
+                            break
+                    if restarted.poll() is not None or time.monotonic() > deadline:
+                        raise RuntimeError(log_path.read_text())
+                    time.sleep(0.03)
+                assert state['preferences']['topBarEnabled'] is True, state
+                assert state['preferences']['sizePercent'] == 125, state
+                print('Profile fields restored from disk after a process restart: passed')
+            finally:
+                restarted.terminate()
+                try:
+                    restarted.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    restarted.kill()
+                    restarted.wait()
     return 0
 
 

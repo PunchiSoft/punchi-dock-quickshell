@@ -55,6 +55,7 @@ TestCase {
         const imported = PunchiDefaultProfile.fresh()
         imported.panelMode = "reserve"
         imported.sizePercent = 80
+        imported.topBarEnabled = true
         imported.pinnedIds = ["terminal", "item:trash"]
         fakeFile.documents = ({"file:///incoming.json": PunchiProfileDocument.serialize(imported)})
 
@@ -66,6 +67,7 @@ TestCase {
         compare(settings.panelMode, "reserve")
         compare(settings.sizePercent, 80)
         compare(settings.pinnedIds.length, 2)
+        compare(settings.topBarEnabled, true)
         compare(exchange.notice, "Profile loaded. Review the changes, then apply or accept them.")
         verify(!exchange.hasPending)
 
@@ -95,12 +97,14 @@ TestCase {
         resetExchange()
         settings.panelMode = "reserve"
         settings.sizePercent = 80
+        settings.topBarEnabled = true
         verify(exchange.exportTo("file:///export.json"))
         compare(fakeFile.lastPath, "file:///export.json")
         const exported = PunchiProfileDocument.parse(fakeFile.lastWritten)
         verify(exported.ok)
         compare(exported.profile.panelMode, "reserve")
         compare(exported.profile.sizePercent, 80)
+        compare(exported.profile.topBarEnabled, true)
         compare(exchange.notice, "Profile exported.")
     }
 

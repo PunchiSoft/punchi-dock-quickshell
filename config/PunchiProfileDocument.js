@@ -39,7 +39,8 @@ function utf8ByteLength(text) {
 
 const booleanKeys = ["magnificationEnabled", "reducedMotion", "bounceEnabled",
     "recentApplicationsEnabled", "updateBadgeEnabled", "runningMarkersFollowDesktop",
-    "avoidInnerEdgeAutoHide", "menuBackgroundBlurEnabled", "menuShowDistributionName",
+    "avoidInnerEdgeAutoHide", "topBarEnabled", "menuBackgroundBlurEnabled",
+    "menuShowDistributionName",
     "menuShowScrollBar", "menuShowLabels", "menuShowDock", "menuShowDockButton",
     "menuTextShadow",
     // Version 15 profiles stored the paging arrows under this key; it stays
