@@ -9,7 +9,7 @@ category. **Apply** saves pending changes, **Accept** saves and closes, and
 | Category | Holds |
 | --- | --- |
 | **Items** | The pinned item list, Add Item, ordering, item configuration and removal |
-| **General** | Icon size, magnification, bounce, minimize reaction, reduced motion, position, visibility, screens and desktops, updates and autostart |
+| **General** | Icon size, magnification, bounce, minimize reaction, reduced motion, the optional top panel, position, visibility, screens and desktops, updates and autostart |
 | **Popups** | Popup size, height and icon size for the folder presentations |
 | **Menu** | Fullscreen-menu blur, opacity, icon size, labels, distribution name, order, scroll bar, close-button corner or hidden, hover animation, dock-over-menu, dock menu button, the right-click menu text shadow and the global menu shortcut |
 | **Profile** | Portable profile export and import with preview |
@@ -44,7 +44,7 @@ catalogue and the values restored by **Reset defaults**:
 
 | Setting | Current first-run default |
 |---|---|
-| Surface | Bottom dock by default; Bottom, Left or Right; no custom top bar yet |
+| Surface | Bottom dock by default; Bottom, Left or Right; the optional top panel is off |
 | Pinned items, in order | Dolphin, Konsole, Home, Browser, Kate, System Settings, Discover, Gwenview, Okular, Downloads, Trash |
 | Size | 100% of the theme-derived base size |
 | Pointer magnification | Enabled, with a maximum scale of 200% |
@@ -56,6 +56,7 @@ catalogue and the values restored by **Reset defaults**:
 | Reduced motion | Local override off; KDE animation preferences still apply |
 | Icons | The user's icon theme, including live KDE theme-change notifications |
 | Fullscreen menu | Blur on, 60% background opacity, application labels on, distribution name on, alphabetical order, scroll bar off, dock over the menu, dock menu button shown, close button on the right, no global shortcut |
+| Top panel | Off; when enabled, it uses the dock's screen selection and appears on every desktop and activity of those screens |
 
 These are prototype defaults, not a guarantee that every preset application is
 installed. **Browser** names a role instead of an application: the item opens the
@@ -69,7 +70,8 @@ Accept persists the user's values, and later starts load them. An explicit start
 mode can override the saved visibility mode.
 
 The current file format is version 17 and accepts versions 1 to 16 through
-migration. The version history, migration rules, defaults for missing fields and
+migration. The optional `topBarEnabled` field was added within version 17, so the
+format did not change: a profile without it restores the top panel off. The version history, migration rules, defaults for missing fields and
 the portable-profile format are documented in
 [Data and settings](../architecture/data-and-settings.md#persistence).
 
@@ -79,6 +81,8 @@ both files exist, the new filename takes precedence and neither is overwritten.
 
 ## Related pages
 
+- [Top panel](../features/top-panel.md): the optional bar, its controls and its
+  limits.
 - [Dock modes](dock-modes.md): placement, visibility, screens and desktops.
 - [Profiles](profiles.md): export, import and preview.
 - [Desktop integration](../features/desktop-integration.md): autostart and the

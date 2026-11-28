@@ -18,6 +18,7 @@ Status vocabulary:
 | [Applications and windows](applications-and-windows.md) | Pinned launchers, launching, activation, context menus and running markers | Implemented; running markers in development, physical KDE checks pending |
 | [Containers](containers.md) | Folder containers, Home and Downloads, recent applications and item icons | Implemented; desktop/theme visual validation pending |
 | [PunchiMenu](punchimenu.md) | The fullscreen application menu | Implemented |
+| [Top panel](top-panel.md) | Optional top bar with the Punchi menu, KRunner, quick controls and clock/calendar | Implemented; physical USB, Bluetooth pairing and audio-device checks pending |
 | [Media and updates](media-and-updates.md) | Media transport, Trash and the Discover update badge | Implemented; broader real-session media validation pending |
 | [Appearance and motion](appearance-and-motion.md) | Magnification, bounce, tooltips, placement and keyboard navigation | Implemented; final visual review pending |
 | [Desktop integration](desktop-integration.md) | Autostart, the owned KWin minimize effect and coexistence with Plasma | Implemented; physical KWin checks pending |
@@ -27,14 +28,14 @@ portable profiles live under [Configuration](../configuration/README.md).
 
 ## Not implemented yet
 
-- A separate second panel, or dock controls beyond the documented set.
+- Top-panel controls beyond the documented set: brightness, do-not-disturb,
+  media transport, session actions, notifications and additional widgets.
 - Drag and drop: reordering by dragging, pinning from the desktop or a menu, and
   dropping files onto a launcher or the Trash.
 - PunchiMenu favourites, named folders, hiding applications, drag and drop inside
   the menu, and a configurable global shortcut.
 - The parent project's media cards with artwork and track information, audio
-  visualizer, calendar and clock, quick notes, separators and Control Center
-  surfaces.
+  visualizer, quick notes, separators and further widget cards.
 
 The parent project's README is the comparison point for these groups
 ([Punchi Dock Remastered](https://github.com/PunchiSoft/punchi-dock-remastered));

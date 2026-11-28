@@ -57,6 +57,9 @@ const profile = {
     selectedActivities: [],
     runningMarkersFollowDesktop: false,
     avoidInnerEdgeAutoHide: true,
+    // The optional top panel. Off on a new install, in every profile written
+    // before the field existed, and after Reset defaults.
+    topBarEnabled: false,
     sizePercent: 100,
     magnificationEnabled: true,
     reducedMotion: false,

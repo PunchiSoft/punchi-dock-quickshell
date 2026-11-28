@@ -73,6 +73,7 @@ Scope {
         function onSelectedActivitiesChanged() { root.save() }
         function onRunningMarkersFollowDesktopChanged() { root.save() }
         function onAvoidInnerEdgeAutoHideChanged() { root.save() }
+        function onTopBarEnabledChanged() { root.save() }
         function onSizePercentChanged() { root.save() }
         function onMaximumIconScaleChanged() { root.save() }
         function onMagnificationEnabledChanged() { root.save() }

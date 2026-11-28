@@ -11,7 +11,8 @@ dock contexts imports a module's internals.
 | `folders/` | folder containers over the native KDirModel provider | `PunchiFolderContainerPopup.qml` |
 | `recent/` | the recent-applications and recent-documents containers | `PunchiRecentApplicationsPopup.qml` |
 | `settings/` | the settings window and its pages | `PunchiSettingsWindow.qml` |
+| `topbar/` | the optional top panel, its popups, quick controls and calendar | `PunchiTopBar.qml` |
 
-`shell.qml` imports `modules/dock`, `modules/menu` and `modules/settings`; the dock
-contexts open `modules/folders` and `modules/recent`. A new module needs a folder, a row in
+`shell.qml` imports `modules/dock`, `modules/menu`, `modules/settings` and
+`modules/topbar`; the dock contexts open `modules/folders` and `modules/recent`. A new module needs a folder, a row in
 this table and, when it is a top-level surface, one import in `shell.qml`.

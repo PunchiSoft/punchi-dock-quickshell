@@ -27,6 +27,7 @@ TestCase {
         compare(parsed.profile.version, 17)
         compare(parsed.profile.pinnedIds.length, defaults.pinnedIds.length)
         compare(parsed.profile.containers.length, defaults.containers.length)
+        compare(parsed.profile.topBarEnabled, false)
     }
 
     function test_fresh_profile_is_independent() {
@@ -150,6 +151,17 @@ TestCase {
         verify(parsed.ok)
         compare(parsed.profile.recentApplicationsPresentation, "icons")
         compare(parsed.profile.recentApplicationsContainerLayout, "fan")
+    }
+
+    function test_accepts_topPanelBoolean() {
+        const parsed = PunchiProfileDocument.parse(JSON.stringify({version: 17,
+            topBarEnabled: true}))
+        verify(parsed.ok)
+        compare(parsed.profile.topBarEnabled, true)
+        compare(PunchiProfileDocument.parse(JSON.stringify({version: 17,
+            topBarEnabled: "on"})).reason, "invalid-field")
+        // The field is optional so a profile written before it stays valid.
+        verify(PunchiProfileDocument.parse(JSON.stringify({version: 16})).ok)
     }
 
     function test_rejects_prototype_keys() {

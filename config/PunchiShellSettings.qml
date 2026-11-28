@@ -42,6 +42,10 @@ QtObject {
     property var selectedActivities: defaultProfile.selectedActivities
     property bool runningMarkersFollowDesktop: defaultProfile.runningMarkersFollowDesktop
     property bool avoidInnerEdgeAutoHide: defaultProfile.avoidInnerEdgeAutoHide
+    // The optional top panel is an explicit opt-in. A stored profile that
+    // predates the field restores the off default instead of inheriting
+    // whatever this object held when the profile was read.
+    property bool topBarEnabled: defaultProfile.topBarEnabled
     property bool magnificationEnabled: defaultProfile.magnificationEnabled
     property bool reducedMotion: defaultProfile.reducedMotion
     property bool bounceEnabled: defaultProfile.bounceEnabled
@@ -302,7 +306,7 @@ QtObject {
     function snapshot(): var {
         return {version: 17, downloadsView, containers, dockEdge, panelMode, screenMode, selectedScreens,
             desktopMode, selectedDesktops, activityMode, selectedActivities, runningMarkersFollowDesktop,
-            avoidInnerEdgeAutoHide, sizePercent, magnificationEnabled,
+            avoidInnerEdgeAutoHide, topBarEnabled, sizePercent, magnificationEnabled,
             reducedMotion, bounceEnabled, windowMinimizeReaction, maximumIconScale, pinnedIds, iconOverrides, recentApplicationsEnabled,
             recentApplicationsCount, recentApplicationsPresentation, recentApplicationsContainerLayout,
             updateBadgeEnabled, popupScale, popupIconSize, popupListIconSize, popupFanIconSize,
@@ -355,6 +359,9 @@ QtObject {
                 runningMarkersFollowDesktop = data.runningMarkersFollowDesktop
             if (typeof data.avoidInnerEdgeAutoHide === "boolean")
                 avoidInnerEdgeAutoHide = data.avoidInnerEdgeAutoHide
+            // Round-trip contract: an absent or non-boolean field means off, so
+            // an old profile never leaves a previously enabled panel running.
+            topBarEnabled = data.topBarEnabled === true
             if (inRange(data.sizePercent, PunchiDefaultProfile.limits.sizePercent, true))
                 sizePercent = data.sizePercent
             if (inRange(data.maximumIconScale, PunchiDefaultProfile.limits.maximumIconScale, false))

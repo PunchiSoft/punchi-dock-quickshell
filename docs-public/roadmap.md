@@ -1,6 +1,7 @@
 # Roadmap
 
-Punchi Dock Quickshell currently focuses on a configurable dock for KDE Plasma.
+Punchi Dock Quickshell currently focuses on a configurable dock and an optional
+top panel for KDE Plasma.
 Version 0.1.0 is the first development snapshot, not a completed desktop shell.
 Implemented behavior is documented in the [feature reference](features/README.md);
 this page tracks scope and status, not behavior details.
@@ -21,7 +22,9 @@ this page tracks scope and status, not behavior details.
 | 4d | Activate existing windows; minimize an active window on click | Implemented; isolated validation, physical KWin checks pending |
 | 4e | Startup coordination, window cycling, running unpinned apps, middle-click New Window | Implemented; isolated validation, physical KWin checks pending |
 | 4f | One dock per screen, shared services, screen/virtual-desktop/activity visibility and internal-edge handling | Implemented; two-screen IPC validation, physical hot-plug and visual review pending |
-| 5 | Panel, launcher, and control surfaces | Planned |
+| 5 | Optional top panel: switch, profile field, one mounted bar per selected screen, Punchi menu, KRunner, clock and calendar | Implemented; real-compositor mount and reservation observed, physical device checks pending |
+| 5a | Top panel quick controls: volume/mute, Wi-Fi, Bluetooth and removable storage, with KDE settings as complementary access | Implemented; physical USB removal and Bluetooth pairing pending |
+| 5b | Expanded top-panel controls: brightness, do-not-disturb, media, session actions, application menu, notifications and widgets | Planned; later phases of the top-panel plan |
 
 Keep each stage independently useful and reversible. Shared settings, theme,
 services, and interaction primitives must be reused across modules.

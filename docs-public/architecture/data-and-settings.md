@@ -216,13 +216,13 @@ migration:
 | 14 | Fullscreen-menu presentation settings |
 | 15 | Dock-over-menu switch |
 | 16 | Category grouping, application order and the scroll bar that replaced the paging arrows |
-| 17 | Window minimize reaction: none, slow bounce or lateral ripple |
+| 17 | Window minimize reaction: none, slow bounce or lateral ripple; the optional top panel (`topBarEnabled`) arrived in the same version and defaults off when absent |
 
 Schemas 1 to 6 remain readable, with one-time Trash/Downloads migrations when
 capacity permits. Missing fields in older profiles default to enabled, five
 applications, the container presentation with the List view, the application icon,
 an unfiltered folder listing, the reference popup proportions, the theme's glyph
-sizes, every screen and every desktop/activity.
+sizes, every screen, every desktop/activity and the top panel off.
 
 Before replacing the settings file, the store measures the serialized snapshot
 in UTF-8 bytes against the same 256 KiB bound the reader enforces. A multibyte

@@ -20,12 +20,15 @@ def main():
     with tempfile.TemporaryDirectory(prefix='punchi-adapter-contract-') as directory:
         config = Path(directory)
         shutil.copytree(root / 'adapters', config / 'adapters')
+        shutil.copytree(root / 'services', config / 'services')
+        shutil.copytree(root / 'config', config / 'config')
         (config / 'shell.qml').write_text('''//@ pragma UseQApplication
 //@ pragma RespectSystemStyle
 pragma ComponentBehavior: Bound
 import QtQuick
 import Quickshell
 import "adapters/kde"
+import "services"
 ShellRoot {
     id: probe
     property int failures: 0
@@ -51,6 +54,11 @@ ShellRoot {
     PunchiApplicationMediaAdapter { id: media }
     PunchiUserProfile { id: profile }
     PunchiMotionPreferences { id: motion }
+    PunchiNetworkAdapter { id: network }
+    PunchiBluetoothAdapter { id: bluetooth }
+    PunchiStorageAdapter { id: storage }
+    PunchiAudioControlService { id: audioControl }
+    PunchiKdeToolAdapter { id: tools }
     Component.onCompleted: Qt.callLater(function() {
         // Consumers: PunchiApplicationLaunchService, PunchiApplicationActivationService,
         // PunchiApplicationContextService, PunchiTrashService, PunchiFolderNavigationController,
@@ -85,6 +93,30 @@ ShellRoot {
         probe.checkProperties(profile, "PunchiUserProfile", ["displayName", "photoUrl", "avatarSource"])
         probe.checkProperties(motion, "PunchiMotionPreferences",
             ["reducedMotion", "clickDuration", "enterDuration", "leaveDuration", "slideDuration"])
+        // Top panel providers. Only the contract is read; every action method
+        // stays uncalled so the probe cannot change audio, radio or storage.
+        // The audio provider is Quickshell's PipeWire service. Creating it
+        // requires a live PipeWire socket, which this isolated probe does not
+        // own, so its contract runs in tst_topbar_controls with a provider
+        // double; the control service is checked here.
+        probe.checkMethods(audioControl, "PunchiAudioControlService",
+            ["setPercent", "toggleMute", "beginGesture", "endGesture"])
+        probe.checkProperties(audioControl, "PunchiAudioControlService",
+            ["available", "ready", "description", "volume", "percent", "muted",
+             "maximumPercent", "gestureStale"])
+        probe.checkMethods(network, "PunchiNetworkAdapter", ["setWirelessEnabled"])
+        probe.checkProperties(network, "PunchiNetworkAdapter",
+            ["available", "wirelessEnabled", "wirelessHardwareEnabled", "connected", "connectionName"])
+        probe.checkMethods(bluetooth, "PunchiBluetoothAdapter", ["setPowered"])
+        probe.checkProperties(bluetooth, "PunchiBluetoothAdapter",
+            ["available", "adapterCount", "adapterName", "powered", "blocked"])
+        probe.checkMethods(storage, "PunchiStorageAdapter",
+            ["refresh", "unmountVolume", "removeDrive"])
+        probe.checkProperties(storage, "PunchiStorageAdapter",
+            ["available", "devices", "pending", "lastOperation", "lastTarget", "lastSuccess", "lastError"])
+        probe.checkMethods(tools, "PunchiKdeToolAdapter",
+            ["launchKRunner", "launchBluetoothWizard", "openSettingsModule", "settingsModuleId"])
+        probe.checkProperties(tools, "PunchiKdeToolAdapter", ["active"])
         if (probe.failures === 0) {
             console.warn("PUNCHI_ADAPTER_CONTRACT_OK")
             Qt.quit()

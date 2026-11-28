@@ -10,6 +10,7 @@ import Punchi.Kde as Native
 import "modules/dock"
 import "modules/menu"
 import "modules/settings"
+import "modules/topbar"
 import "services"
 
 ShellRoot {
@@ -73,6 +74,22 @@ ShellRoot {
                     distribution: dockServices.distribution
                 }
             }
+        }
+    }
+    // The optional top panel: one bar per allowed screen. The model is empty
+    // while the switch is off or while the screen policy excludes every screen,
+    // so disabling it destroys the surfaces, popups and reserved space.
+    PunchiTopBarServices { id: topBarServices; settings: shellSettings }
+    Variants {
+        id: topBarWindows
+        model: shellSettings.topBarEnabled ? screenPolicy.activeScreens : []
+        delegate: PunchiTopBar {
+            property var modelData
+            screen: modelData
+            settings: shellSettings
+            services: topBarServices
+            menuController: menuController
+            onSettingsRequested: settingsWindow.open()
         }
     }
     Variants {

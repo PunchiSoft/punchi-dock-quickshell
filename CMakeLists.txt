@@ -72,7 +72,10 @@ qt_add_qml_module(punchikde
         adapters/kde/native/shortcuts/menushortcutcontroller.h adapters/kde/native/shortcuts/menushortcutcontroller.cpp
         adapters/kde/native/windows/kwinminimizeeffect.h adapters/kde/native/windows/kwinminimizeeffect.cpp
         adapters/kde/native/profile/profilefile.h adapters/kde/native/profile/profilefile.cpp
-        adapters/kde/native/profile/distributioninfo.h adapters/kde/native/profile/distributioninfo.cpp)
+        adapters/kde/native/profile/distributioninfo.h adapters/kde/native/profile/distributioninfo.cpp
+        adapters/kde/native/desktop/kdetoollauncher.h adapters/kde/native/desktop/kdetoollauncher.cpp
+        adapters/kde/native/storage/storagecontrol.h adapters/kde/native/storage/storagecontrol.cpp
+        adapters/kde/native/storage/storageparser.h adapters/kde/native/storage/storageparser.cpp)
 target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore KF6::GlobalAccel Plasma::ActivitiesStats Plasma::Activities)
 # The QML plugin loads the implementation library from a relative path so that
 # the user-local copy and the packaging layout never resolve it through the
@@ -86,9 +89,11 @@ set_target_properties(punchikdeplugin PROPERTIES
 set(PUNCHI_NATIVE_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/appearance
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/applications
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/desktop
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/files
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/profile
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/shortcuts
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/storage
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/updates
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/windows)
 include_directories(${PUNCHI_NATIVE_INCLUDE_DIRS})
@@ -256,6 +261,15 @@ if(BUILD_TESTING)
     add_executable(profile_file_test tests/profile_file_test.cpp adapters/kde/native/profile/profilefile.cpp)
     target_include_directories(profile_file_test PRIVATE ${CMAKE_SOURCE_DIR})
     target_link_libraries(profile_file_test PRIVATE Qt6::Test Qt6::Core Qt6::Qml)
+    add_executable(storage_control_test tests/storage_control_test.cpp
+        adapters/kde/native/storage/storageparser.cpp)
+    target_include_directories(storage_control_test PRIVATE ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/adapters/kde/native)
+    target_link_libraries(storage_control_test PRIVATE Qt6::Test Qt6::Core Qt6::DBus)
+    add_test(NAME storage_control COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --
+        $<TARGET_FILE:storage_control_test>)
+    set_tests_properties(storage_control PROPERTIES TIMEOUT 45)
     add_executable(running_state_test tests/running_state_test.cpp adapters/kde/native/applications/runningapplications.cpp
         adapters/kde/native/windows/windowvisibilitystate.cpp adapters/kde/native/windows/windowactivation.cpp)
     target_include_directories(running_state_test PRIVATE ${CMAKE_SOURCE_DIR})
@@ -385,6 +399,10 @@ if(BUILD_TESTING)
     add_test(NAME settings_reload COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --session --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_reload_test.py)
+    add_test(NAME topbar_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --session --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/topbar_runtime_test.py)
+    set_tests_properties(topbar_runtime PROPERTIES TIMEOUT 60)
     add_test(NAME window_capability COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/tests/window_capability_test.py)
     add_test(NAME project_foundation COMMAND ${Python3_EXECUTABLE}
@@ -441,6 +459,7 @@ if(BUILD_TESTING)
         recent_applications_tracking
         autohide_edge
         profile_file
+        storage_control
         adapter_contract
         application_media
         window_activation
@@ -483,6 +502,7 @@ if(BUILD_TESTING)
         configuration_runtime
         placement_runtime
         settings_reload
+        topbar_runtime
     )
     set_tests_properties(${PUNCHI_QML_TESTS} PROPERTIES LABELS qml)
     set_tests_properties(${PUNCHI_UNIT_TESTS} PROPERTIES LABELS unit)

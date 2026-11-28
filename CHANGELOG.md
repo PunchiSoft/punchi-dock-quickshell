@@ -11,6 +11,20 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Add an optional top panel, off by default, with **Settings → General → Show top
+  panel**. One bar per screen selected for the dock reserves its height and hosts
+  a Punchi menu (Applications and Dock settings), KRunner search, a quick-controls
+  center and a clock with a monthly calendar. Disabling the switch, removing a
+  screen or stopping Punchi releases the surface, its popups and the reserved
+  space without restarting. The optional `topBarEnabled` profile field keeps the
+  format version; a profile without it restores the panel off.
+- Add top-panel quick controls that report only provider-confirmed state: PipeWire
+  volume and mute of the default sink, NetworkManager Wi-Fi through Quickshell,
+  BlueZ Bluetooth adapter presence, power and blocking, and removable UDisks2
+  storage. Credentials, pairing and device configuration stay in KDE; storage
+  distinguishes unmounting one filesystem from safely removing a whole drive,
+  never forces, ejects or powers off, and keeps busy, rejected and disconnected
+  results explicit.
 - Right-click a PunchiMenu tile, or press the Menu key on the current cell, for
   the application's own actions: the desktop entry's actions, Places, Recent
   Files with Forget Recent Files, Open New Window, Pin to Dock or Unpin from

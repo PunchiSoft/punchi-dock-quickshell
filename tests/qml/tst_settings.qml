@@ -365,8 +365,36 @@ TestCase {
         verify(legacy.restore(data))
         compare(legacy.containerHiddenEntries(id), [])
     }
-    function test_screenAndDesktopPreferences() {
+    function test_topPanelIsOptInAndOffByDefault() {
         const settings = createTemporaryObject(settingsFixture, test)
+        compare(settings.topBarEnabled, false)
+        settings.topBarEnabled = true
+        const data = JSON.parse(JSON.stringify(settings.snapshot()))
+        compare(data.topBarEnabled, true)
+        // A profile written before the field existed turns the panel off even
+        // when the live settings had it on.
+        const restored = createTemporaryObject(settingsFixture, test)
+        restored.topBarEnabled = true
+        verify(restored.restore({version: 16}))
+        compare(restored.topBarEnabled, false)
+        verify(restored.restore({version: 17, topBarEnabled: true}))
+        compare(restored.topBarEnabled, true)
+        // Reset restores the first-run value.
+        restored.reset()
+        compare(restored.topBarEnabled, false)
+    }
+    function test_topPanelSwitchEditsTheSettings() {
+        const view = createTemporaryObject(fixture, test)
+        const toggle = findChild(view, "topBarEnabled")
+        verify(toggle !== null)
+        compare(toggle.checked, false)
+        compare(toggle.Accessible.name, "Show top panel")
+        toggle.checked = true
+        compare(view.settings.topBarEnabled, true)
+        toggle.checked = false
+        compare(view.settings.topBarEnabled, false)
+    }
+    function test_screenAndDesktopPreferences() {        const settings = createTemporaryObject(settingsFixture, test)
         compare(settings.screenMode, "all")
         compare(settings.avoidInnerEdgeAutoHide, true)
         settings.screenMode = "selected"
