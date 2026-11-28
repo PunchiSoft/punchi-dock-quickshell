@@ -56,6 +56,8 @@ Popup {
     dim: false
     focus: true
     padding: 0
+    // The style background is a rectangle and would cover the shared balloon.
+    background: null
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     parent: null
     width: Math.round(Math.min(root.preferredWidth,

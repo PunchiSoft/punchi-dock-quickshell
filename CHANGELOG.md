@@ -112,6 +112,9 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Fixed
 
+- Clear the style background on the top panel's popups so the shared
+  balloon surface draws its rounded body and tail in the Punchi menu, the
+  control centre and the calendar instead of a flat rectangle.
 - Pin the top panel's quick-controls popup to the right edge of its
   screen. Its anchor binding did not follow the trigger's layout position, so it
   could open at the left edge instead of under the control-centre button.
