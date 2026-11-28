@@ -148,6 +148,9 @@ TestCase {
         compare(calendar.displayedMonth, 10)
         const monthLabel = findChild(calendar, "topBarCalendarMonth")
         verify(monthLabel !== null)
+        // Pin both locales: the CI host is not Spanish, and the assertion
+        // must observe the locale-aware month name, not the host language.
+        calendar.locale = Qt.locale("es_CL")
         verify(monthLabel.text.indexOf("noviembre") >= 0)
         calendar.locale = Qt.locale("en_US")
         verify(monthLabel.text.indexOf("November") >= 0)

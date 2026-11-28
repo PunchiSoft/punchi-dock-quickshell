@@ -130,7 +130,13 @@ ShellRoot {
         env.pop('QT_QUICK_CONTROLS_STYLE', None)
         env.pop('WAYLAND_DISPLAY', None)
         env['QT_NO_XDG_DESKTOP_PORTAL'] = '1'
-        result = subprocess.run(['qs', '-p', str(config / 'shell.qml'), '--no-duplicate'],
+        # The private session bus has no NetworkManager or BlueZ. Quickshell's
+        # providers log that absence while the probe only checks adapter members;
+        # keep those categories quiet so a real contract error still fails.
+        env['QT_LOGGING_RULES'] = ('quickshell.network=false;'
+                                   'quickshell.dbus.objectmanager=false')
+        result = subprocess.run(['qs', '-p', str(config / 'shell.qml'), '--no-duplicate',
+                                 '--no-color'],
                                 env=env, capture_output=True, text=True, timeout=12)
         output = result.stdout + result.stderr
         print(output, end='')
