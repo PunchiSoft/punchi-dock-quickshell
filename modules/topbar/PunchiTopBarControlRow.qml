@@ -13,13 +13,15 @@ RowLayout {
     property string title: ""
     property string statusText: ""
     property bool statusActive: false
+    property bool compact: false
     default property alias trailing: trailingRow.data
-    spacing: Kirigami.Units.mediumSpacing
+    spacing: root.compact ? Kirigami.Units.smallSpacing : Kirigami.Units.mediumSpacing
     Kirigami.Icon {
         objectName: "topBarControlIcon"
         source: root.iconName
-        Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-        Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+        Layout.preferredWidth: root.compact ? Kirigami.Units.iconSizes.small
+            : Kirigami.Units.iconSizes.smallMedium
+        Layout.preferredHeight: Layout.preferredWidth
         Layout.alignment: Qt.AlignVCenter
         color: Kirigami.Theme.textColor
         Accessible.ignored: true
@@ -50,7 +52,7 @@ RowLayout {
     }
     RowLayout {
         id: trailingRow
-        spacing: Kirigami.Units.smallSpacing
+        spacing: root.compact ? 2 : Kirigami.Units.smallSpacing
         Layout.alignment: Qt.AlignVCenter
     }
 }

@@ -34,10 +34,11 @@ container or registers a second session service.
 | --- | --- |
 | **Punchi** | Compact menu with **Applications**, which opens the existing fullscreen PunchiMenu on the screen that owns the button, and **Dock settings**, which opens the existing settings window |
 | **Search** | Opens KRunner once per gesture through its `org.kde.krunner` D-Bus interface, falling back to the fixed `krunner` executable when no instance owns the name |
-| **Quick controls** | Brightness, volume and mute, the current MPRIS player, Do Not Disturb, Wi-Fi, Bluetooth and removable storage, plus links to the KDE settings modules that own configuration Punchi does not implement |
+| **Quick controls** | A compact card with Wi-Fi, Bluetooth and Do Not Disturb first; brightness and volume as full-width bands; the current MPRIS player and removable storage only when their providers have content. KDE settings links sit beside the control they configure |
 | **Clock** | Time and date from the system locale and time zone, with a monthly calendar that starts on the current month and offers Previous, Next and Today |
 
-The quick-controls card is pinned to the right margin of its screen. Any open
+The quick-controls card is pinned to the right margin of its screen and groups
+connectivity, state, level bands and conditional context into quiet sections. Any open
 popup closes with Escape or an outside click and returns focus to its trigger. Only one popup is open at a time. Icon-only triggers keep their
 accessible names, the clock always exposes its full date and time to assistive
 technology, and the bar keeps every action when it is too narrow to show labels.
@@ -68,9 +69,11 @@ reported only after a fresh UDisks2 snapshot confirms that no relevant filesyste
 of the drive remains mounted. Busy, protected, rejected, timed-out and disconnected
 results are reported separately and the device stays listed for another attempt.
 
-The KDE settings links open the network, Bluetooth, sound and removable-device
-modules with fixed identifiers. Bluetooth pairing opens the KDE pairing wizard.
-These are complementary accesses, not replacements for the native Plasma applets.
+The KDE settings links open the network, Bluetooth, sound, notification and
+removable-device modules with fixed identifiers. They sit in the section they
+configure rather than in a shared footer. Bluetooth pairing opens the KDE pairing
+wizard. These are complementary accesses, not replacements for the native Plasma
+applets.
 
 ## Limits
 
@@ -87,7 +90,9 @@ These are complementary accesses, not replacements for the native Plasma applets
 - Playback uses the session MPRIS list, not the dock's app-scoped adapter. With
   several players it prefers one that is playing, otherwise the first
   controllable player; artwork, seeking and playlist selection are not part of
-  the row.
+  the row. The media section is absent when no player exists.
+- The removable-storage section is absent when no drive exists; an empty card is
+  never reserved for media or storage.
 - Brightness comes from PowerDevil; Punchi never writes `/sys/class/backlight`.
   An external display appears only when PowerDevil reports a controllable range
   for it, and a session without PowerDevil disables the row.

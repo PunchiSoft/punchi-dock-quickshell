@@ -12,6 +12,7 @@ ColumnLayout {
     id: root
     property var control: null
     objectName: "topBarVolumeControl"
+    signal settingsRequested()
     readonly property bool ready: root.control !== null && root.control.ready === true
     spacing: Kirigami.Units.smallSpacing
     function focusFirst(): void { slider.forceActiveFocus(Qt.PopupFocusReason) }
@@ -26,6 +27,12 @@ ColumnLayout {
             text: root.ready ? qsTr("%1%").arg(root.control.percent) : ""
             font: Kirigami.Theme.defaultFont
             color: Kirigami.Theme.textColor
+        }
+        ToolButton {
+            objectName: "topBarVolumeSettings"
+            icon.name: "settings-configure"
+            Accessible.name: qsTr("Sound settings")
+            onClicked: root.settingsRequested()
         }
         ToolButton {
             objectName: "topBarMute"
