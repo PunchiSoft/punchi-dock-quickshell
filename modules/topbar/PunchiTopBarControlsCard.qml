@@ -19,7 +19,8 @@ ColumnLayout {
     spacing: Kirigami.Units.smallSpacing
     implicitHeight: flick.implicitHeight
     function focusFirst(): void {
-        if (volume) volume.focusFirst()
+        if (brightness.ready) brightness.focusFirst()
+        else if (volume) volume.focusFirst()
     }
     Flickable {
         id: flick
@@ -37,6 +38,12 @@ ColumnLayout {
             objectName: "topBarControlsBody"
             width: flick.width
             spacing: Kirigami.Units.smallSpacing
+            PunchiTopBarBrightnessControl {
+                id: brightness
+                Layout.fillWidth: true
+                control: root.controls ? root.controls.brightness : null
+            }
+            PunchiTopBarSeparator {}
             PunchiTopBarVolumeControl {
                 id: volume
                 Layout.fillWidth: true

@@ -24,7 +24,8 @@ this page tracks scope and status, not behavior details.
 | 4f | One dock per screen, shared services, screen/virtual-desktop/activity visibility and internal-edge handling | Implemented; two-screen IPC validation, physical hot-plug and visual review pending |
 | 5 | Optional top panel: switch, profile field, one mounted bar per selected screen, Punchi menu, KRunner, clock and calendar | Implemented; real-compositor mount and reservation observed, physical device checks pending |
 | 5a | Top panel quick controls: volume/mute, Wi-Fi, Bluetooth and removable storage, with KDE settings as complementary access | Implemented; physical USB removal and Bluetooth pairing pending |
-| 5b | Expanded top-panel controls: brightness, do-not-disturb, media, session actions, application menu, notifications and widgets | Planned; later phases of the top-panel plan |
+| 5b | Top-panel brightness through PowerDevil, with internal-display preference and read-back confirmation | Implemented; provider write observed at the current value, physical brightness sweep and external/DDC checks pending |
+| 5c | Remaining top-panel controls: do-not-disturb, media, session actions, application menu, notifications and widgets | Planned; later phases of the top-panel plan |
 
 Keep each stage independently useful and reversible. Shared settings, theme,
 services, and interaction primitives must be reused across modules.
