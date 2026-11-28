@@ -11,6 +11,10 @@ the legacy development baseline. New pending work accumulates under `Unreleased`
 
 ### Added
 
+- Add a read-only **Do Not Disturb** row to the top-panel quick controls. It
+  shows Plasma's effective `Inhibited` state and opens Plasma's notification
+  settings; no public setter exists for Plasma's persistent mode, so the panel
+  does not fake a switch or take over notifications.
 - Add a **Now playing** row to the top-panel quick controls through Quickshell's
   public MPRIS service. It prefers a playing player, shows the announced track
   and artist, enables only the previous/play/next actions the player reports, and

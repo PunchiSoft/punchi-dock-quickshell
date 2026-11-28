@@ -5,13 +5,13 @@ with a label, and CI runs only the labels a compositor-free Fedora host can sati
 
 ## Labels
 
-60 entries: 3 `qml`, 40 `unit`, 17 `session`.
+61 entries: 3 `qml`, 40 `unit`, 18 `session`.
 
 | Label | Needs | Entries | Selected by |
 | --- | --- | --- | --- |
 | `unit` | nothing beyond the built artifacts | 40 registered unit entries; see `PUNCHI_UNIT_TESTS` in `CMakeLists.txt` | `ctest --preset headless`, CI |
 | `qml` | `qmltestrunner`, offscreen | `qml_lint`, `dock_components` over `qml/`, `folder_container` over `folder-container/` | `ctest --preset headless`, CI |
-| `session` | a live Plasma/KWin Wayland session | 17 Python probes over `runtime/` fixtures | a developer, never CI |
+| `session` | a live Plasma/KWin Wayland session | 18 Python probes over `runtime/` fixtures | a developer, never CI |
 
 `session` results belong to a real desktop. A passing `unit` or `qml` run is not visual
 or KWin validation.

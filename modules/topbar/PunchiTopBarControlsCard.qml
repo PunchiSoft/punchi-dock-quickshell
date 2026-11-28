@@ -56,6 +56,12 @@ ColumnLayout {
                 control: root.controls ? root.controls.media : null
             }
             PunchiTopBarSeparator { visible: media.visible }
+            PunchiTopBarDoNotDisturbControl {
+                Layout.fillWidth: true
+                control: root.controls ? root.controls.dnd : null
+                onSettingsRequested: root.settingsRequested("notifications")
+            }
+            PunchiTopBarSeparator {}
             PunchiTopBarWifiControl {
                 Layout.fillWidth: true
                 control: root.controls ? root.controls.network : null

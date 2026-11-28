@@ -75,6 +75,7 @@ qt_add_qml_module(punchikde
         adapters/kde/native/profile/distributioninfo.h adapters/kde/native/profile/distributioninfo.cpp
         adapters/kde/native/brightness/screenbrightnesscontrol.h adapters/kde/native/brightness/screenbrightnesscontrol.cpp
         adapters/kde/native/desktop/kdetoollauncher.h adapters/kde/native/desktop/kdetoollauncher.cpp
+        adapters/kde/native/notifications/notificationstatecontrol.h adapters/kde/native/notifications/notificationstatecontrol.cpp
         adapters/kde/native/storage/storagecontrol.h adapters/kde/native/storage/storagecontrol.cpp
         adapters/kde/native/storage/storageparser.h adapters/kde/native/storage/storageparser.cpp)
 target_link_libraries(punchikde PRIVATE Qt6::Quick Qt6::DBus Qt6::Concurrent KF6::KIOGui KF6::KIOFileWidgets KF6::Service KF6::WindowSystem KF6::ConfigCore KF6::GlobalAccel Plasma::ActivitiesStats Plasma::Activities)
@@ -93,6 +94,7 @@ set(PUNCHI_NATIVE_INCLUDE_DIRS
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/brightness
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/desktop
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/files
+    ${CMAKE_SOURCE_DIR}/adapters/kde/native/notifications
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/profile
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/shortcuts
     ${CMAKE_SOURCE_DIR}/adapters/kde/native/storage
@@ -406,6 +408,10 @@ if(BUILD_TESTING)
     add_test(NAME settings_reload COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --session --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/settings_reload_test.py)
+    add_test(NAME dnd_runtime COMMAND ${Python3_EXECUTABLE}
+        ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --session --
+        ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/dnd_runtime_test.py)
+    set_tests_properties(dnd_runtime PROPERTIES TIMEOUT 60)
     add_test(NAME brightness_runtime COMMAND ${Python3_EXECUTABLE}
         ${CMAKE_SOURCE_DIR}/scripts-dev/run-isolated.py --build-dir ${CMAKE_BINARY_DIR} --session --
         ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/tests/brightness_runtime_test.py)
@@ -516,6 +522,7 @@ if(BUILD_TESTING)
         settings_reload
         topbar_runtime
         brightness_runtime
+        dnd_runtime
     )
     set_tests_properties(${PUNCHI_QML_TESTS} PROPERTIES LABELS qml)
     set_tests_properties(${PUNCHI_UNIT_TESTS} PROPERTIES LABELS unit)
